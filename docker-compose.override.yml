@@ -1,0 +1,14 @@
+version: '2'
+
+services:
+  fabric.identity.api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "80"
+
+  fabric.identity.mvcsample:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "80"

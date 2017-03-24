@@ -1,0 +1,14 @@
+version: '2'
+
+services:
+  fabric.identity.api:
+    image: fabric.identity.api
+    build:
+      context: ./Fabric.Identity.API
+      dockerfile: Dockerfile
+
+  fabric.identity.mvcsample:
+    image: fabric.identity.mvcsample
+    build:
+      context: ./Fabric.Identity.MvcSample
+      dockerfile: Dockerfile
