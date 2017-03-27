@@ -1,9 +1,0 @@
-C:\Source\Repos\Fabric.Identity\Fabric.Identity.MvcSample\bin\Debug\netcoreapp1.1\Fabric.Identity.MvcSample.deps.json
-C:\Source\Repos\Fabric.Identity\Fabric.Identity.MvcSample\bin\Debug\netcoreapp1.1\Fabric.Identity.MvcSample.runtimeconfig.json
-C:\Source\Repos\Fabric.Identity\Fabric.Identity.MvcSample\bin\Debug\netcoreapp1.1\Fabric.Identity.MvcSample.runtimeconfig.dev.json
-C:\Source\Repos\Fabric.Identity\Fabric.Identity.MvcSample\bin\Debug\netcoreapp1.1\Fabric.Identity.MvcSample.dll
-C:\Source\Repos\Fabric.Identity\Fabric.Identity.MvcSample\bin\Debug\netcoreapp1.1\Fabric.Identity.MvcSample.pdb
-C:\Source\Repos\Fabric.Identity\Fabric.Identity.MvcSample\obj\Debug\netcoreapp1.1\Fabric.Identity.MvcSample.csprojResolveAssemblyReference.cache
-C:\Source\Repos\Fabric.Identity\Fabric.Identity.MvcSample\obj\Debug\netcoreapp1.1\Fabric.Identity.MvcSample.AssemblyInfo.cs
-C:\Source\Repos\Fabric.Identity\Fabric.Identity.MvcSample\obj\Debug\netcoreapp1.1\Fabric.Identity.MvcSample.dll
-C:\Source\Repos\Fabric.Identity\Fabric.Identity.MvcSample\obj\Debug\netcoreapp1.1\Fabric.Identity.MvcSample.pdb
