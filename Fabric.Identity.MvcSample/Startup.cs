@@ -54,7 +54,10 @@ namespace Fabric.Identity.MvcSample
                 RequireHttpsMetadata = false,
 
                 ClientId = "fabric-mvcsample",
-                SaveTokens = true
+                ClientSecret = "secret",
+
+                ResponseType = "code id_token",
+                Scope = { "openid", "profile", "email", "patientapi", "offline_access"}
             });
 
             if (env.IsDevelopment())
