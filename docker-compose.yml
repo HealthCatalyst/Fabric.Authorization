@@ -12,3 +12,9 @@ services:
     build:
       context: ./Fabric.Identity.MvcSample
       dockerfile: Dockerfile
+
+  fabric.identity.apisample:
+    image: fabric.identity.apisample
+    build:
+      context: ./Fabric.Identity.APISample
+      dockerfile: Dockerfile
