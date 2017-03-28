@@ -15,8 +15,9 @@ namespace Fabric.Identity.APISample.Modules
             Get("/{patientId}", parameters => new
             {
                 FirstName = "Test",
-                LastName = "User",
-                DateOfBirth = DateTime.Parse("03/27/1965")
+                LastName = "Patient",
+                DateOfBirth = DateTime.Parse("03/27/1965"),
+                RequestingUserClaims = this.Context.CurrentUser.Claims.Select(c => new { c.Type, c.Value})
             });
         }
     }

@@ -17,6 +17,8 @@ namespace Fabric.Identity.APISample
         {
             base.RequestStartup(container, pipelines, context);
             var principal = context.GetOwinEnvironment()[OwinConstants.RequestUser] as ClaimsPrincipal;
+            
+            context.CurrentUser = principal;
         }
 
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)

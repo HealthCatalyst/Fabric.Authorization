@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using IdentityModel.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Fabric.Identity.MvcSample.Controllers
@@ -56,7 +58,8 @@ namespace Fabric.Identity.MvcSample.Controllers
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 var content = await client.GetStringAsync("http://localhost:5003/patients/123");
 
-                return Json(content);
+                ViewBag.PatientDataResponse = JsonConvert.DeserializeObject<PatientDataResponse>(content);
+                return View("Json");
             }
             catch (Exception e)
             {
@@ -77,7 +80,8 @@ namespace Fabric.Identity.MvcSample.Controllers
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 var content = await client.GetStringAsync("http://localhost:5003/patients/123");
 
-                return Json(content);
+                ViewBag.PatientDataResponse = JsonConvert.DeserializeObject<PatientDataResponse>(content);
+                return View("Json");
             }
             catch (Exception e)
             {
@@ -86,5 +90,19 @@ namespace Fabric.Identity.MvcSample.Controllers
             }
             
         }
+    }
+
+    public class PatientDataResponse
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public DateTime DateOfBirth { get; set; }
+        public List<UserClaim> RequestingUserClaims { get; set; }
+    }
+
+    public class UserClaim
+    {
+        public string Type { get; set; }
+        public string Value { get; set; }
     }
 }
