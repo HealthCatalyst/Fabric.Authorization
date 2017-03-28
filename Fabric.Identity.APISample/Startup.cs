@@ -30,15 +30,15 @@ namespace Fabric.Identity.APISample
             });
             app.UseOwin(buildFunc =>
             {
-                //buildFunc(next => env =>
-                //{
-                //    var ctx = new OwinContext(env);
-                //    var principal = ctx.Request.User;
-                //    if (principal != null && principal.HasClaim("scope", "patientapi"))
-                //        return next(env);
-                //    ctx.Response.StatusCode = 403;
-                //    return Task.FromResult(0);
-                //});
+                buildFunc(next => env =>
+                {
+                    var ctx = new OwinContext(env);
+                    var principal = ctx.Request.User;
+                    if (principal != null && principal.HasClaim("scope", "patientapi"))
+                        return next(env);
+                    ctx.Response.StatusCode = 403;
+                    return Task.FromResult(0);
+                });
                 buildFunc.UseNancy();
             });
         }

@@ -58,6 +58,8 @@ namespace Fabric.Identity.MvcSample
 
                 ResponseType = "code id_token",
                 Scope = { "openid", "profile", "email", "patientapi", "offline_access"},
+
+                GetClaimsFromUserInfoEndpoint = true,
                 SaveTokens = true
             });
 
