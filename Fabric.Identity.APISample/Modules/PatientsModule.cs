@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Nancy;
 using Nancy.Security;
@@ -11,7 +12,9 @@ namespace Fabric.Identity.APISample.Modules
     {
         public PatientsModule() : base("/patients")
         {
-            this.RequiresAuthentication();
+            Predicate<Claim> readDemographicsClaim = claim => claim.Type == "allowedresource" && claim.Value == "user/Patient.read";
+
+            this.RequiresClaims(new[] { readDemographicsClaim });
             Get("/{patientId}", parameters => new
             {
                 FirstName = "Test",

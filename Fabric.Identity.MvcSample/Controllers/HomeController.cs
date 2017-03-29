@@ -52,14 +52,7 @@ namespace Fabric.Identity.MvcSample.Controllers
             {
                 var tokenClient = new TokenClient("http://localhost:5001/connect/token", "fabric-mvcsample", "secret");
                 var tokenResponse = await tokenClient.RequestClientCredentialsAsync("patientapi");
-
-                var client = new HttpClient();
-                client.SetBearerToken(tokenResponse.AccessToken);
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                var content = await client.GetStringAsync("http://localhost:5003/patients/123");
-
-                ViewBag.PatientDataResponse = JsonConvert.DeserializeObject<PatientDataResponse>(content);
-                return View("Json");
+                return await CallApiWithToken(tokenResponse.AccessToken);
             }
             catch (Exception e)
             {
@@ -74,14 +67,7 @@ namespace Fabric.Identity.MvcSample.Controllers
             try
             {
                 var accessToken = await HttpContext.Authentication.GetTokenAsync("access_token");
-
-                var client = new HttpClient();
-                client.SetBearerToken(accessToken);
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                var content = await client.GetStringAsync("http://localhost:5003/patients/123");
-
-                ViewBag.PatientDataResponse = JsonConvert.DeserializeObject<PatientDataResponse>(content);
-                return View("Json");
+                return await CallApiWithToken(accessToken);
             }
             catch (Exception e)
             {
@@ -89,6 +75,27 @@ namespace Fabric.Identity.MvcSample.Controllers
                 throw;
             }
             
+        }
+
+        private async Task<IActionResult> CallApiWithToken(string accessToken)
+        {
+            var uri = "http://localhost:5003/patients/123";
+            var client = new HttpClient();
+            client.SetBearerToken(accessToken);
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            var response = await client.GetAsync(uri);
+            if (response.IsSuccessStatusCode)
+            {
+                ViewBag.PatientDataResponse = JsonConvert.DeserializeObject<PatientDataResponse>(await response.Content.ReadAsStringAsync());
+                return View("Json");
+            }
+
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                ViewBag.ErrorMessage = $"Received 403 Forbidden when calling: {uri}";
+                return View("Json");
+            }
+            throw new Exception($"Error received: {response.StatusCode} when trying to contact remote server: {uri}");
         }
     }
 

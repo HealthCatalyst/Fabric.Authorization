@@ -1,20 +1,27 @@
 ﻿<h2>API response</h2>
+@if (ViewBag.ErrorMessage != null)
+{
+    <h3>@ViewBag.ErrorMessage</h3>
+}
 
-<h3>Patient Information</h3>
-<dl>
-    <dt>Patient First Name</dt>
-    <dd>@ViewBag.PatientDataResponse.FirstName</dd>
-    <dt>Patient Last Name</dt>
-    <dd>@ViewBag.PatientDataResponse.LastName</dd>
-    <dt>Patient DOB</dt>
-    <dd>@ViewBag.PatientDataResponse.DateOfBirth</dd>
-</dl>
+@if (ViewBag.PatientDataResponse != null)
+{
+    <h3>Patient Information</h3>
+    <dl>
+        <dt>Patient First Name</dt>
+        <dd>@ViewBag.PatientDataResponse.FirstName</dd>
+        <dt>Patient Last Name</dt>
+        <dd>@ViewBag.PatientDataResponse.LastName</dd>
+        <dt>Patient DOB</dt>
+        <dd>@ViewBag.PatientDataResponse.DateOfBirth</dd>
+    </dl>
 
-<h3>Requesting User Claims</h3>
-<dl>
-    @foreach (var claim in ViewBag.PatientDataResponse.RequestingUserClaims)
-    {
-        <dt>@claim.Type</dt>
-        <dd>@claim.Value</dd>
-    }
-</dl>
+    <h3>Requesting User Claims</h3>
+    <dl>
+        @foreach (var claim in ViewBag.PatientDataResponse.RequestingUserClaims)
+        {
+            <dt>@claim.Type</dt>
+            <dd>@claim.Value</dd>
+        }
+    </dl>
+}

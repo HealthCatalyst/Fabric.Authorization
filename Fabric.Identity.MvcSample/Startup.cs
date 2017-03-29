@@ -57,7 +57,7 @@ namespace Fabric.Identity.MvcSample
                 ClientSecret = "secret",
 
                 ResponseType = "code id_token",
-                Scope = { "openid", "profile", "email", "patientapi", "offline_access"},
+                Scope = { "openid", "profile", "fabric.profile", "patientapi", "offline_access"},
 
                 GetClaimsFromUserInfoEndpoint = true,
                 SaveTokens = true
