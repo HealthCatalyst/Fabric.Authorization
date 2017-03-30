@@ -1,0 +1,40 @@
+﻿<h1>Patient Demographic Details</h1>
+
+<p>This component demonstrates getting data from a Fabric API that requires authentication.</p>
+
+<p *ngIf="!patientDetails"><em>Loading...</em></p>
+
+<table class='table' *ngIf="patientDetails">
+    <thead>
+    <tr>
+        <th>First Name</th>
+        <th>Last Name</th>
+        <th>Date of Birth</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>{{ patientDetails.firstName }}</td>
+        <td>{{ patientDetails.lastName }}</td>
+        <td>{{ patientDetails.dateOfBirth }}</td>
+    </tr>
+    </tbody>
+</table>
+
+<h2>User claims</h2>
+<p>These are the claims of the user who requested the API call.</p>
+
+<table class='table' *ngIf="patientDetails && patientDetails.requestingUserClaims">
+  <thead>
+    <tr>
+      <th>Claim Type</th>
+      <th>Claim Value</th>
+    </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let claim of patientDetails.requestingUserClaims">
+      <td>{{ claim.type }}</td>
+      <td>{{ claim.value }}</td>
+  </tr>
+  </tbody>
+</table>

@@ -20,7 +20,7 @@ namespace Fabric.Identity.APISample.Modules
                 FirstName = "Test",
                 LastName = "Patient",
                 DateOfBirth = DateTime.Parse("03/27/1965"),
-                RequestingUserClaims = this.Context.CurrentUser.Claims.Select(c => new { c.Type, c.Value})
+                RequestingUserClaims = Context.CurrentUser.Claims.Select(c => new { c.Type, c.Value})
             });
         }
     }
