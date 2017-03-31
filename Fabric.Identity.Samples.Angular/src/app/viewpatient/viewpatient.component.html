@@ -2,7 +2,8 @@
 
 <p>This component demonstrates getting data from a Fabric API that requires authentication.</p>
 
-<p *ngIf="!patientDetails"><em>Loading...</em></p>
+<p *ngIf="!patientDetails && !errorMessage"><em>Loading...</em></p>
+<p *ngIf="!patientDetails && errorMessage"><em>{{errorMessage}}</em></p>
 
 <table class='table' *ngIf="patientDetails">
     <thead>
@@ -23,18 +24,4 @@
 
 <h2>User claims</h2>
 <p>These are the claims of the user who requested the API call.</p>
-
-<table class='table' *ngIf="patientDetails && patientDetails.requestingUserClaims">
-  <thead>
-    <tr>
-      <th>Claim Type</th>
-      <th>Claim Value</th>
-    </tr>
-  </thead>
-  <tbody>
-  <tr *ngFor="let claim of patientDetails.requestingUserClaims">
-      <td>{{ claim.type }}</td>
-      <td>{{ claim.value }}</td>
-  </tr>
-  </tbody>
-</table>
+<p *ngIf="authenticatedUser && authenticatedUser.profile">{{authenticatedUser.profile | json}}</p>
