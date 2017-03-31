@@ -21,20 +21,13 @@ namespace Fabric.Identity.MvcSample.Controllers
             return View();
         }
         [Authorize]
-        public IActionResult About()
+        public IActionResult Patient()
         {
             ViewData["Message"] = "Your application description page.";
 
             return View();
         }
-
-        public IActionResult Contact()
-        {
-            ViewData["Message"] = "Your contact page.";
-
-            return View();
-        }
-
+        
         public IActionResult Error()
         {
             return View();
@@ -104,7 +97,6 @@ namespace Fabric.Identity.MvcSample.Controllers
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public DateTime DateOfBirth { get; set; }
-        public List<UserClaim> RequestingUserClaims { get; set; }
     }
 
     public class UserClaim

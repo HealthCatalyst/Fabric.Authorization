@@ -15,13 +15,4 @@
         <dt>Patient DOB</dt>
         <dd>@ViewBag.PatientDataResponse.DateOfBirth</dd>
     </dl>
-
-    <h3>Requesting User Claims</h3>
-    <dl>
-        @foreach (var claim in ViewBag.PatientDataResponse.RequestingUserClaims)
-        {
-            <dt>@claim.Type</dt>
-            <dd>@claim.Value</dd>
-        }
-    </dl>
 }
