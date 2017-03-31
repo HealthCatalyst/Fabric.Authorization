@@ -3,11 +3,16 @@
     padding-bottom: 20px;
 }
 
+.logo-row {
+    padding: 20px;
+}
+
 /* Wrapping element */
 /* Set some basic padding to keep content from hitting the edges */
 .body-content {
     padding-left: 15px;
     padding-right: 15px;
+    background-color: white;
 }
 
 /* Set widths on the form inputs since otherwise they're 100% wide */
@@ -26,6 +31,7 @@ textarea {
 /* Make .svg files in the carousel display properly in older browsers */
 .carousel-inner .item img[src$=".svg"] {
     width: 100%;
+    color: #333333;
 }
 
 /* Hide/rearrange for smaller screens */
