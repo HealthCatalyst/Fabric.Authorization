@@ -6,15 +6,3 @@ services:
     build:
       context: ./Fabric.Identity.API
       dockerfile: Dockerfile
-
-  fabric.identity.mvcsample:
-    image: fabric.identity.mvcsample
-    build:
-      context: ./Fabric.Identity.MvcSample
-      dockerfile: Dockerfile
-
-  fabric.identity.apisample:
-    image: fabric.identity.apisample
-    build:
-      context: ./Fabric.Identity.APISample
-      dockerfile: Dockerfile
