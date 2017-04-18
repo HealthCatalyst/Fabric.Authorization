@@ -16,3 +16,34 @@ The Fabric.Identity service is built using:
   + `dotnet run`
 
 Fabric.Identity service will start up and listen on port 5001.
+
+You can run the following curl commands to ensure the service is up and working properly:
+
+```curl -G http://localhost:5001/.well-known/openid-configuration```
+
+Which will return a json document representing the discovery information for the service:
+
+```
+{
+  "issuer": "http://localhost:5001",
+  "jwks_uri": "http://localhost:5001/.well-known/openid-configuration/jwks",
+  "authorization_endpoint": "http://localhost:5001/connect/authorize",
+  ...
+}
+```
+
+You can then run the following curl to ensure the service is issuing access tokens properly:
+
+```
+curl http://localhost:5001/connect/token --data "client_id=fabric-sampleapi-client&client_secret=secret&grant_type=client_credentials&scope=patientapi"
+```
+
+You should get a response back that looks something like this:
+
+```
+{
+	"access_token": "[base64 encoded string]",
+	"expires_in": 3600,
+	"token_type": "Bearer"
+}
+```
