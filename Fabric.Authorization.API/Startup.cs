@@ -39,7 +39,7 @@ namespace Fabric.Authorization.API
 
             var levelSwitch = new LoggingLevelSwitch();
             var logger = LogFactory.CreateLogger(levelSwitch, appConfig.ElasticSearchSettings, idServerSettings.ClientId);
-            
+
             app.UseIdentityServerAuthentication(new IdentityServerAuthenticationOptions
             {
                 Authority = idServerSettings.Authority,
@@ -49,7 +49,7 @@ namespace Fabric.Authorization.API
             });
             app.UseOwin()
                 .UseFabricLoggingAndMonitoring(logger, () => Task.FromResult(true), levelSwitch)
-                .UseAuthPlatform(idServerSettings.Scopes)
+                //.UseAuthPlatform(idServerSettings.Scopes)
                 .UseNancy(opt => opt.Bootstrapper = new Bootstrapper(logger, appConfig));
         }
     }

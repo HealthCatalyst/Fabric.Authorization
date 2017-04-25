@@ -9,5 +9,6 @@
     <PackageReference Include="Fabric.Platform.Bootstrappers.Nancy" Version="1.0.0-beta3" />
     <PackageReference Include="Microsoft.AspNetCore" Version="1.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Owin" Version="1.1.1" />
+    <PackageReference Include="Nancy" Version="2.0.0-clinteastwood" />
   </ItemGroup>
 </Project>
