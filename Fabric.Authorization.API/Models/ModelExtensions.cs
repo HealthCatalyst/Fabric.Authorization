@@ -17,7 +17,7 @@ namespace Fabric.Authorization.API.Models
                 Grain = role.Grain,
                 Resource = role.Resource,
                 Name = role.Name,
-                Permissions = role.Permissions.Select(p => p.ToPermissionApiModel())
+                Permissions = role.Permissions?.Select(p => p.ToPermissionApiModel())
             };
             return roleApiModel;
         }

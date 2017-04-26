@@ -4,4 +4,9 @@
     <TargetFramework>netstandard1.3</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Permissions\" />
+    <Folder Include="Users\" />
+  </ItemGroup>
+
 </Project>

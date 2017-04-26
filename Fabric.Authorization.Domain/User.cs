@@ -9,9 +9,9 @@ namespace Fabric.Authorization.Domain
         
         public IEnumerable<Permission> Permissions
         {
-            get { return Roles.SelectMany(r => r.Permissions); }
+            get { return Roles.Where(r => r.Permissions != null).SelectMany(r => r.Permissions); }
         }
 
-        public IEnumerable<Role> Roles { get; set; }
+        public ICollection<Role> Roles { get; set; }
     }
 }

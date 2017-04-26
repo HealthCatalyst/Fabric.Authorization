@@ -61,11 +61,17 @@ namespace Fabric.Authorization.API.Modules
             {
                 try
                 {
-                    userService.AddRoleToUser(parameters.userId, parameters.grain, parameters.resource,
-                        parameters.roleName);
+                    var roleApiModel = this.Bind<RoleApiModel>();
+                    userService.AddRoleToUser(parameters.userId, roleApiModel.Id, roleApiModel.Grain,
+                        roleApiModel.Resource,
+                        roleApiModel.Name);
                     return HttpStatusCode.NoContent;
                 }
-                catch (Exception)
+                catch (UserNotFoundException)
+                {
+                    return HttpStatusCode.NotFound;
+                }
+                catch (RoleNotFoundException)
                 {
                     return HttpStatusCode.BadRequest;
                 }
@@ -75,11 +81,17 @@ namespace Fabric.Authorization.API.Modules
             {
                 try
                 {
-                    userService.DeleteRoleFromUser(parameters.userId, parameters.grain, parameters.resource,
-                        parameters.roleName);
+                    var roleApiModel = this.Bind<RoleApiModel>();
+                    userService.DeleteRoleFromUser(parameters.userId, roleApiModel.Id, roleApiModel.Grain,
+                        roleApiModel.Resource,
+                        roleApiModel.Name);
                     return HttpStatusCode.NoContent;
                 }
-                catch (Exception)
+                catch (UserNotFoundException)
+                {
+                    return HttpStatusCode.NotFound;
+                }
+                catch (RoleNotFoundException)
                 {
                     return HttpStatusCode.BadRequest;
                 }
