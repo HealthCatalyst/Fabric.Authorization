@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Fabric.Authorization.Domain
+namespace Fabric.Authorization.Domain.Users
 {
     public interface IUserService
     {

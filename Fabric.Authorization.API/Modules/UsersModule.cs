@@ -1,8 +1,7 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using Fabric.Authorization.API.Models;
-using Fabric.Authorization.Domain;
 using Fabric.Authorization.Domain.Exceptions;
+using Fabric.Authorization.Domain.Users;
 using Nancy;
 using Nancy.ModelBinding;
 

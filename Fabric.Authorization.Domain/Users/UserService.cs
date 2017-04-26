@@ -4,7 +4,7 @@ using System.Linq;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Roles;
 
-namespace Fabric.Authorization.Domain
+namespace Fabric.Authorization.Domain.Users
 {
     public class UserService : IUserService
     {

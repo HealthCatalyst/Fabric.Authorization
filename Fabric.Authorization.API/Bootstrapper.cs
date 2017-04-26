@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.Domain;
 using Fabric.Authorization.Domain.Roles;
+using Fabric.Authorization.Domain.Users;
 using Fabric.Platform.Bootstrappers.Nancy;
 using Nancy;
 using Nancy.Bootstrapper;

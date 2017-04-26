@@ -1,4 +1,4 @@
-﻿namespace Fabric.Authorization.Domain
+﻿namespace Fabric.Authorization.Domain.Users
 {
     public interface IUserStore
     {
