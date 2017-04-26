@@ -30,7 +30,7 @@ namespace Fabric.Authorization.Domain
             return permissions.Select(p => p.ToString());
         }
 
-        public IEnumerable<string> GetRolesForUser(string userId, string grain = null, string resource = null)
+        public IEnumerable<Role> GetRolesForUser(string userId, string grain = null, string resource = null)
         {
             var user = _userStore.GetUser(userId);
             if (user == null) throw new UserNotFoundException();
@@ -44,7 +44,23 @@ namespace Fabric.Authorization.Domain
             {
                 roles = roles.Where(p => p.Resource == resource);
             }
-            return roles.Select(p => p.ToString());
+            return roles;
+        }
+
+        public void AddRoleToUser(string userId, string grain, string resource, string roleName)
+        {
+            //first check if user exists
+            //then check if role exists
+            //if all is ok, add the role to the user.
+            throw new NotImplementedException();
+        }
+
+        public void DeleteRoleFromUser(string userId, string grain, string resource, string roleName)
+        {
+            //first check if user exists
+            //check if user has indicated role
+            //if all is ok then remove the role from the user
+            throw new NotImplementedException();
         }
     }
 }

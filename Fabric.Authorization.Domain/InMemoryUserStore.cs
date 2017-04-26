@@ -16,6 +16,7 @@ namespace Fabric.Authorization.Domain
                 {
                     new Role
                     {
+                        Id = 1,
                         Grain = "app",
                         Resource = "patientsafety",
                         Name = "Admin",
@@ -23,18 +24,31 @@ namespace Fabric.Authorization.Domain
                         {
                             new Permission
                             {
+                                Id = 1,
                                 Grain = "app",
                                 Resource = "patientsafety",
                                 Name = "manageusers"
                             },
                             new Permission
                             {
+                                Id = 2,
                                 Grain = "app",
                                 Resource = "patientsafety",
                                 Name = "createalerts"
-                            },
+                            }
+                        }
+                    },
+                    new Role
+                    {
+                        Id = 2,
+                        Grain = "app",
+                        Resource = "sourcemartdesigner",
+                        Name = "Admin",
+                        Permissions = new List<Permission>
+                        {
                             new Permission
                             {
+                                Id = 3,
                                 Grain = "app",
                                 Resource = "sourcemartdesigner",
                                 Name = "createalerts"

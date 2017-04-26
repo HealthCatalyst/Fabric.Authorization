@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Domain;
 using Fabric.Authorization.Domain.Exceptions;
@@ -11,6 +12,7 @@ namespace Fabric.Authorization.API.Modules
     {
         public UsersModule(IUserService userService) : base("/users")
         {
+            //Get all the permissions for a user
             Get("/{userId}/permissions", parameters =>
             {
                 try
@@ -18,7 +20,7 @@ namespace Fabric.Authorization.API.Modules
                     var userPermissionRequest = this.Bind<UserInfoRequest>();
                     var permissions = userService.GetPermissionsForUser(userPermissionRequest.UserId,
                         userPermissionRequest.Grain, userPermissionRequest.Resource);
-                    return new UserPermissionsResponse
+                    return new UserPermissionsApiModel
                     {
                         RequestedGrain = userPermissionRequest.Grain,
                         RequestedResource = userPermissionRequest.Resource,
@@ -32,6 +34,7 @@ namespace Fabric.Authorization.API.Modules
                 }
             });
 
+            //Get all the roles for a user
             Get("/{userId}/roles", parameters =>
             {
                 try
@@ -39,17 +42,46 @@ namespace Fabric.Authorization.API.Modules
                     var userRoleRequest = this.Bind<UserInfoRequest>();
                     var roles = userService.GetRolesForUser(userRoleRequest.UserId, userRoleRequest.Grain,
                         userRoleRequest.Resource);
-                    return new UserRoleResponse
+                    return new UserRoleApiModel
                     {
                         RequestedGrain = userRoleRequest.Grain,
                         RequestedResource = userRoleRequest.Resource,
                         UserId = userRoleRequest.UserId,
-                        Roles = roles
+                        Roles = roles.Select(r => r.ToRoleApiModel())
                     };
                 }
                 catch (UserNotFoundException)
                 {
                     return HttpStatusCode.NotFound;
+                }
+            });
+
+            //Add a role to a user
+            Post("/{userId}/roles", parameters =>
+            {
+                try
+                {
+                    userService.AddRoleToUser(parameters.userId, parameters.grain, parameters.resource,
+                        parameters.roleName);
+                    return HttpStatusCode.NoContent;
+                }
+                catch (Exception)
+                {
+                    return HttpStatusCode.BadRequest;
+                }
+            });
+
+            Delete("/{userId}/roles", parameters =>
+            {
+                try
+                {
+                    userService.DeleteRoleFromUser(parameters.userId, parameters.grain, parameters.resource,
+                        parameters.roleName);
+                    return HttpStatusCode.NoContent;
+                }
+                catch (Exception)
+                {
+                    return HttpStatusCode.BadRequest;
                 }
             });
         }
