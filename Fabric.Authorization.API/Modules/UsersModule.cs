@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Fabric.Authorization.API.Models;
-using Microsoft.Extensions.Logging;
+﻿using Fabric.Authorization.API.Models;
+using Fabric.Authorization.Domain;
+using Fabric.Authorization.Domain.Exceptions;
 using Nancy;
 using Nancy.ModelBinding;
 
@@ -11,22 +8,27 @@ namespace Fabric.Authorization.API.Modules
 {
     public class UsersModule : NancyModule
     {
-        public UsersModule() : base("/users")
+        public UsersModule(IPermissionService permissionService) : base("/users")
         {
             Get("/{userId}/permissions", parameters =>
             {
-                var userPermissionRequest = this.Bind<UserPermissionRequest>();
-                return new UserPermissionsResponse
+                try
                 {
-                    RequestedGrain = userPermissionRequest.Grain,
-                    RequestedResource = userPermissionRequest.Resource,
-                    UserId = userPermissionRequest.UserId,
-                    Permissions = new List<string>
+                    var userPermissionRequest = this.Bind<UserPermissionRequest>();
+                    var permissions = permissionService.GetPermissionsForUser(userPermissionRequest.UserId,
+                        userPermissionRequest.Grain, userPermissionRequest.Resource);
+                    return new UserPermissionsResponse
                     {
-                        "app/patientsafety.manageusers",
-                        "app/patientsafety.createalerts"
-                    }
-                };
+                        RequestedGrain = userPermissionRequest.Grain,
+                        RequestedResource = userPermissionRequest.Resource,
+                        UserId = userPermissionRequest.UserId,
+                        Permissions = permissions
+                    };
+                }
+                catch (UserNotFoundException)
+                {
+                    return HttpStatusCode.NotFound;
+                }
             });
         }
     }

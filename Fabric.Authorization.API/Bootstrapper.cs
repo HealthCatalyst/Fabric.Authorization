@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
+using Fabric.Authorization.Domain;
 using Fabric.Platform.Bootstrappers.Nancy;
 using Nancy;
 using Nancy.Bootstrapper;
@@ -43,6 +41,8 @@ namespace Fabric.Authorization.API
                 return ctx.Response;
             });
             container.Register(_appConfig);
+            container.Register<IUserStore, InMemoryUserStore>();
+            container.Register<IPermissionService, PermissionService>();
         }
     }
 }
