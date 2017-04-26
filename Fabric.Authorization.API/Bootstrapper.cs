@@ -42,7 +42,7 @@ namespace Fabric.Authorization.API
             });
             container.Register(_appConfig);
             container.Register<IUserStore, InMemoryUserStore>();
-            container.Register<IPermissionService, PermissionService>();
+            container.Register<IUserService, UserService>();
         }
     }
 }

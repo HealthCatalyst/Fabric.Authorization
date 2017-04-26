@@ -2,11 +2,8 @@
 
 namespace Fabric.Authorization.API.Models
 {
-    public class UserPermissionsResponse
+    public class UserPermissionsResponse : ResponseBase
     {
-        public string UserId { get; set; }
-        public string RequestedGrain { get; set; }
-        public string RequestedResource { get; set; }
         public IEnumerable<string> Permissions { get; set; }
     }
 }

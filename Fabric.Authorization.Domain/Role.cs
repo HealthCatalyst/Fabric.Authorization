@@ -11,5 +11,10 @@ namespace Fabric.Authorization.Domain
         public string Resource { get; set; }
         
         public IEnumerable<Permission> Permissions { get; set; }
+
+        public override string ToString()
+        {
+            return $"{Grain}/{Resource}.{Name}";
+        }
     }
 }

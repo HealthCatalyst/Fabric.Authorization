@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Fabric.Authorization.API.Models
 {
-    public class UserPermissionRequest
+    public class UserInfoRequest
     {
         public string UserId { get; set; }
         public string Grain { get; set; }
