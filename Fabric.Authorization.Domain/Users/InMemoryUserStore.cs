@@ -11,51 +11,7 @@ namespace Fabric.Authorization.Domain.Users
         {
             var user1 = new User
             {
-                Id = "mvidal",
-                Roles = new List<Role>
-                {
-                    new Role
-                    {
-                        Id = 1,
-                        Grain = "app",
-                        Resource = "patientsafety",
-                        Name = "Admin",
-                        Permissions = new List<Permission>
-                        {
-                            new Permission
-                            {
-                                Id = 1,
-                                Grain = "app",
-                                Resource = "patientsafety",
-                                Name = "manageusers"
-                            },
-                            new Permission
-                            {
-                                Id = 2,
-                                Grain = "app",
-                                Resource = "patientsafety",
-                                Name = "createalerts"
-                            }
-                        }
-                    },
-                    new Role
-                    {
-                        Id = 2,
-                        Grain = "app",
-                        Resource = "sourcemartdesigner",
-                        Name = "Admin",
-                        Permissions = new List<Permission>
-                        {
-                            new Permission
-                            {
-                                Id = 3,
-                                Grain = "app",
-                                Resource = "sourcemartdesigner",
-                                Name = "createalerts"
-                            }
-                        }
-                    }
-                }
+                Id = "mvidal"
             };
             Users.TryAdd(user1.Id, user1);
         }

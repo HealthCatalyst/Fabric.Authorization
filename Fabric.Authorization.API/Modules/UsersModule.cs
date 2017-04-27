@@ -61,9 +61,8 @@ namespace Fabric.Authorization.API.Modules
                 try
                 {
                     var roleApiModel = this.Bind<RoleApiModel>();
-                    userService.AddRoleToUser(parameters.userId, roleApiModel.Id, roleApiModel.Grain,
-                        roleApiModel.Resource,
-                        roleApiModel.Name);
+                    if (roleApiModel.Id == null) throw new RoleNotFoundException();
+                    userService.AddRoleToUser(parameters.userId, roleApiModel.Id.Value);
                     return HttpStatusCode.NoContent;
                 }
                 catch (UserNotFoundException)
@@ -81,9 +80,8 @@ namespace Fabric.Authorization.API.Modules
                 try
                 {
                     var roleApiModel = this.Bind<RoleApiModel>();
-                    userService.DeleteRoleFromUser(parameters.userId, roleApiModel.Id, roleApiModel.Grain,
-                        roleApiModel.Resource,
-                        roleApiModel.Name);
+                    if (roleApiModel.Id == null) throw new RoleNotFoundException();
+                    userService.DeleteRoleFromUser(parameters.userId, roleApiModel.Id.Value);
                     return HttpStatusCode.NoContent;
                 }
                 catch (UserNotFoundException)

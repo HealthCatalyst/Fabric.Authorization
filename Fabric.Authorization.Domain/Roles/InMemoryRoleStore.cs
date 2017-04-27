@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6,51 +7,41 @@ namespace Fabric.Authorization.Domain.Roles
 {
     public class InMemoryRoleStore : IRoleStore
     {
-        private static readonly ConcurrentDictionary<int, Role> Roles = new ConcurrentDictionary<int, Role>();
-
-        static InMemoryRoleStore()
+        private static readonly ConcurrentDictionary<Guid, Role> Roles = new ConcurrentDictionary<Guid, Role>();
+        
+        public IEnumerable<Role> GetRoles(string grain = null, string resource = null, string roleName = null)
         {
-            var role1 = new Role
+            var roles = Roles.Select(kvp => kvp.Value);
+            if (!string.IsNullOrEmpty(grain))
             {
-                Id = 1,
-                Grain = "app",
-                Resource = "patientsafety",
-                Name = "Admin"
-            };
-
-            var role2 = new Role
+                roles = roles.Where(r => r.Grain == grain);
+            }
+            if (!string.IsNullOrEmpty(resource))
             {
-                Id = 2,
-                Grain = "app",
-                Resource = "sourcemartdesigner",
-                Name = "Admin",
-            };
-
-            var role3 = new Role
+                roles = roles.Where(r => r.Resource == resource);
+            }
+            if (!string.IsNullOrEmpty(roleName))
             {
-                Id = 3,
-                Grain = "app",
-                Resource = "sourcemartdesigner",
-                Name = "Contributor",
-            };
-            Roles.TryAdd(role1.Id, role1);
-            Roles.TryAdd(role2.Id, role2);
-            Roles.TryAdd(role3.Id, role3);
+                roles = roles.Where(r => r.Name == roleName);
+            }
+            return roles.Where(r => !r.IsDeleted);
         }
 
-        public IEnumerable<Role> GetRoles(string grain = null, string resource = null)
-        {
-            return Roles.Where(kvp => kvp.Value.Grain == grain && kvp.Value.Resource == resource).Select(kvp => kvp.Value);
-        }
-
-        public Role GetRole(int roleId)
+        public Role GetRole(Guid roleId)
         {
             return Roles.ContainsKey(roleId) ? Roles[roleId] : null;
         }
 
         public void AddRole(Role role)
         {
+            role.Id = Guid.NewGuid();
             Roles.TryAdd(role.Id, role);
+        }
+
+        public void DeleteRole(Role role)
+        {
+            role.IsDeleted = true;
+            UpdateRole(role);
         }
 
         public void UpdateRole(Role role)

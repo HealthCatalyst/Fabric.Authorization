@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Fabric.Authorization.Domain.Users
 {
@@ -7,8 +8,8 @@ namespace Fabric.Authorization.Domain.Users
         IEnumerable<string> GetPermissionsForUser(string userId, string grain = null, string resource = null);
         IEnumerable<Role> GetRolesForUser(string userId, string grain = null, string resource = null);
 
-        void AddRoleToUser(string userId, int roleId, string grain, string resource, string roleName);
+        void AddRoleToUser(string userId, Guid roleId);
 
-        void DeleteRoleFromUser(string userId, int roleId, string grain, string resource, string roleName);
+        void DeleteRoleFromUser(string userId, Guid roleId);
     }
 }

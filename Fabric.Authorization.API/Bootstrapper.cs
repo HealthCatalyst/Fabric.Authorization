@@ -46,6 +46,7 @@ namespace Fabric.Authorization.API
             container.Register<IUserStore, InMemoryUserStore>();
             container.Register<IUserService, UserService>();
             container.Register<IRoleStore, InMemoryRoleStore>();
+            container.Register<IRoleService, RoleService>();
         }
     }
 }

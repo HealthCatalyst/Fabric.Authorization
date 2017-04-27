@@ -1,8 +1,10 @@
-﻿namespace Fabric.Authorization.API.Models
+﻿using System;
+
+namespace Fabric.Authorization.API.Models
 {
     public class PermissionApiModel
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
 
         public string Grain { get; set; }
 

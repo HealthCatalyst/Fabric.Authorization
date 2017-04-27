@@ -22,6 +22,7 @@ namespace Fabric.Authorization.Domain.Users
             if (user == null) throw new UserNotFoundException();
 
             var permissions = user.Permissions;
+            if(permissions == null) return new List<string>();
             if (!string.IsNullOrEmpty(grain))
             {
                 permissions = permissions.Where(p => p.Grain == grain);
@@ -39,6 +40,7 @@ namespace Fabric.Authorization.Domain.Users
             if (user == null) throw new UserNotFoundException();
 
             var roles = user.Roles;
+            if(roles == null) return new List<Role>();
             if (!string.IsNullOrEmpty(grain))
             {
                 roles = roles.Where(p => p.Grain == grain).ToList();
@@ -47,24 +49,24 @@ namespace Fabric.Authorization.Domain.Users
             {
                 roles = roles.Where(p => p.Resource == resource).ToList();
             }
-            return roles;
+            return roles.Where(r => !r.IsDeleted);
         }
 
-        public void AddRoleToUser(string userId, int roleId, string grain, string resource, string roleName)
+        public void AddRoleToUser(string userId, Guid roleId)
         {
             var user = _userStore.GetUser(userId);
             if (user == null) throw new UserNotFoundException();
 
             var role = _roleStore.GetRole(roleId);
             if (role == null) throw new RoleNotFoundException();
-
+            
             if (user.Roles.All(r => r.Id != roleId))
             {
                 user.Roles.Add(role);
             }
         }
 
-        public void DeleteRoleFromUser(string userId, int roleId, string grain, string resource, string roleName)
+        public void DeleteRoleFromUser(string userId, Guid roleId)
         {
             var user = _userStore.GetUser(userId);
             if (user == null) throw new UserNotFoundException();
