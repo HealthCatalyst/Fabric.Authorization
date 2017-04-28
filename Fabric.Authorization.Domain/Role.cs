@@ -20,7 +20,7 @@ namespace Fabric.Authorization.Domain
 
         public bool IsDeleted { get; set; }
         
-        public IEnumerable<Permission> Permissions { get; set; }
+        public ICollection<Permission> Permissions { get; set; }
 
         public override string ToString()
         {
