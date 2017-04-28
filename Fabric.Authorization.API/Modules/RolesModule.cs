@@ -54,12 +54,41 @@ namespace Fabric.Authorization.API.Modules
                 }
             });
 
+            Post("/{roleId}/permissions", parameters =>
+            {
+                try
+                {
+                    var roleApiModels = this.Bind<List<PermissionApiModel>>(new BindingConfig{BodyOnly = true});
+                    roleService.AddPermissionsToRole(parameters.roleId, roleApiModels.Select(p => p.Id).ToArray());
+                    return HttpStatusCode.NoContent;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    throw;
+                }
+            });
+
             Delete("/{roleId}", parameters =>
             {
                 try
                 {
                     roleService.DeleteRole(parameters.roleId);
-                    return HttpStatusCode.Created;
+                    return HttpStatusCode.NoContent;
+                }
+                catch (RoleNotFoundException)
+                {
+                    return HttpStatusCode.BadRequest;
+                }
+            });
+
+            Delete("/{roleId}/permissions", parameters =>
+            {
+                try
+                {
+                    var roleApiModels = this.Bind<List<PermissionApiModel>>(new BindingConfig { BodyOnly = true });
+                    roleService.RemovePermissionsFromRole(parameters.roleId, roleApiModels.Select(p => p.Id).ToArray());
+                    return HttpStatusCode.NoContent;
                 }
                 catch (RoleNotFoundException)
                 {

@@ -69,7 +69,7 @@ namespace Fabric.Authorization.Domain.Roles
                 }
                 else
                 {
-                    throw new Exception($"Permission with id {permission.Id} has the wrong grain, resource or is already present on the role");
+                    throw new IncompatiblePermissionException($"Permission with id {permission.Id} has the wrong grain, resource or is already present on the role");
                 }
             }
             foreach (var permission in permissionsToAdd)
