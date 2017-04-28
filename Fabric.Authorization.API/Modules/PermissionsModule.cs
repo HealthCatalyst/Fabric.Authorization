@@ -15,18 +15,6 @@ namespace Fabric.Authorization.API.Modules
     {
         public PermissionsModule(IPermissionService permissionService) : base("/Permissions")
         {
-            Get("/", parameters =>
-            {
-                var permissions = permissionService.GetPermissions();
-                return permissions.Select(p => p.ToPermissionApiModel());
-            });
-
-            Get("/{grain}", parameters =>
-            {
-                IEnumerable<Permission> permissions = permissionService.GetPermissions(parameters.grain);
-                return permissions.Select(p => p.ToPermissionApiModel());
-            });
-
             Get("/{grain}/{resource}", parameters =>
             {
                 IEnumerable<Permission> permissions = permissionService.GetPermissions(parameters.grain, parameters.resource);
@@ -54,7 +42,7 @@ namespace Fabric.Authorization.API.Modules
                 }
             });
 
-            Delete("/", parameters =>
+            Delete("/{permissionId}", parameters =>
             {
                 try
                 {

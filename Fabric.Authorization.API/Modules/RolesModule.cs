@@ -16,18 +16,6 @@ namespace Fabric.Authorization.API.Modules
     {
         public RolesModule(IRoleService roleService) : base("/roles")
         {
-            Get("/", parameters =>
-            {
-                var roles = roleService.GetRoles();
-                return roles.Select(r => r.ToRoleApiModel());
-            });
-
-            Get("/{grain}", parameters =>
-            {
-                IEnumerable<Role> roles = roleService.GetRoles(parameters.grain);
-                return roles.Select(r => r.ToRoleApiModel());
-            });
-
             Get("/{grain}/{resource}", parameters =>
             {
                 IEnumerable<Role> roles = roleService.GetRoles(parameters.grain, parameters.resource);
