@@ -2,9 +2,9 @@
 using System.Security.Claims;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.Domain;
+using Fabric.Authorization.Domain.Groups;
 using Fabric.Authorization.Domain.Permissions;
 using Fabric.Authorization.Domain.Roles;
-using Fabric.Authorization.Domain.Users;
 using Fabric.Platform.Bootstrappers.Nancy;
 using Nancy;
 using Nancy.Bootstrapper;
@@ -43,13 +43,15 @@ namespace Fabric.Authorization.API
                 _logger.Error(ex, "Unhandled error on request: @{Url}. Error Message: @{Message}", ctx.Request.Url, ex.Message);
                 return ctx.Response;
             });
+
+            //container registrations
             container.Register(_appConfig);
-            container.Register<IUserStore, InMemoryUserStore>();
-            container.Register<IUserService, UserService>();
             container.Register<IRoleStore, InMemoryRoleStore>();
             container.Register<IRoleService, RoleService>();
             container.Register<IPermissionService, PermissionService>();
             container.Register<IPermissionStore, InMemoryPermissionStore>();
+            container.Register<IGroupService, GroupService>();
+            container.Register<IGroupStore, InMemoryGroupStore>();
         }
     }
 }

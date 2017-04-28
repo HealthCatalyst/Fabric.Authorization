@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Domain.Exceptions;
-using Fabric.Authorization.Domain.Users;
+using Fabric.Authorization.Domain.Groups;
 using Nancy;
 using Nancy.ModelBinding;
 
@@ -9,88 +9,28 @@ namespace Fabric.Authorization.API.Modules
 {
     public class UsersModule : NancyModule
     {
-        public UsersModule(IUserService userService) : base("/users")
+        public UsersModule(IGroupService groupService) : base("/user")
         {
             //Get all the permissions for a user
-            Get("/{userId}/permissions", parameters =>
+            Get("/permissions", parameters =>
             {
                 try
                 {
+                    //TODO: validate that the client has access to the grain/resource they are requesting permissions for
                     var userPermissionRequest = this.Bind<UserInfoRequest>();
-                    var permissions = userService.GetPermissionsForUser(userPermissionRequest.UserId,
+                    var groups = new[] { "HC PatientSafety Admin", "HC SourceMartDesigner Admin" }; //TODO: get this from the identity when we wire up that functionality
+                    var permissions = groupService.GetPermissionsForGroups(groups,
                         userPermissionRequest.Grain, userPermissionRequest.Resource);
                     return new UserPermissionsApiModel
                     {
                         RequestedGrain = userPermissionRequest.Grain,
                         RequestedResource = userPermissionRequest.Resource,
-                        UserId = userPermissionRequest.UserId,
                         Permissions = permissions
                     };
                 }
                 catch (UserNotFoundException)
                 {
                     return HttpStatusCode.NotFound;
-                }
-            });
-
-            //Get all the roles for a user
-            Get("/{userId}/roles", parameters =>
-            {
-                try
-                {
-                    var userRoleRequest = this.Bind<UserInfoRequest>();
-                    var roles = userService.GetRolesForUser(userRoleRequest.UserId, userRoleRequest.Grain,
-                        userRoleRequest.Resource);
-                    return new UserRoleApiModel
-                    {
-                        RequestedGrain = userRoleRequest.Grain,
-                        RequestedResource = userRoleRequest.Resource,
-                        UserId = userRoleRequest.UserId,
-                        Roles = roles.Select(r => r.ToRoleApiModel())
-                    };
-                }
-                catch (UserNotFoundException)
-                {
-                    return HttpStatusCode.NotFound;
-                }
-            });
-
-            //Add a role to a user
-            Post("/{userId}/roles", parameters =>
-            {
-                try
-                {
-                    var roleApiModel = this.Bind<RoleApiModel>();
-                    if (roleApiModel.Id == null) throw new RoleNotFoundException();
-                    userService.AddRoleToUser(parameters.userId, roleApiModel.Id.Value);
-                    return HttpStatusCode.NoContent;
-                }
-                catch (UserNotFoundException)
-                {
-                    return HttpStatusCode.NotFound;
-                }
-                catch (RoleNotFoundException)
-                {
-                    return HttpStatusCode.BadRequest;
-                }
-            });
-
-            Delete("/{userId}/roles", parameters =>
-            {
-                try
-                {
-                    var roleApiModel = this.Bind<RoleApiModel>();
-                    if (roleApiModel.Id == null) throw new RoleNotFoundException();
-                    userService.DeleteRoleFromUser(parameters.userId, roleApiModel.Id.Value);
-                    return HttpStatusCode.NoContent;
-                }
-                catch (UserNotFoundException)
-                {
-                    return HttpStatusCode.NotFound;
-                }
-                catch (RoleNotFoundException)
-                {
-                    return HttpStatusCode.BadRequest;
                 }
             });
         }
