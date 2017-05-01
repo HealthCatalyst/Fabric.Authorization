@@ -37,10 +37,11 @@ namespace Fabric.Authorization.Domain.Permissions
             throw new PermissionNotFoundException();
         }
 
-        public void AddPermission(Permission permission)
+        public Permission AddPermission(Permission permission)
         {
             permission.Id = Guid.NewGuid();
             Permissions.TryAdd(permission.Id, permission);
+            return permission;
         }
 
         public void DeletePermission(Permission permission)

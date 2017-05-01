@@ -11,7 +11,7 @@ namespace Fabric.Authorization.Domain.Permissions
         
         Permission GetPermission(Guid permissionId);
 
-        void AddPermission(Permission permission);
+        Permission AddPermission(Permission permission);
 
         void DeletePermission(Permission permission);
 

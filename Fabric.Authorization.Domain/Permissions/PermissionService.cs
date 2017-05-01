@@ -19,13 +19,13 @@ namespace Fabric.Authorization.Domain.Permissions
             return _permissionStore.GetPermissions(grain, resource, permissionName);
         }
 
-        public void AddPermission(string grain, string resource, string permissionName)
+        public Permission AddPermission(string grain, string resource, string permissionName)
         {
             if (_permissionStore.GetPermissions(grain, resource, permissionName).Any())
             {
                 throw new PermissionAlreadyExistsException();
             }
-            _permissionStore.AddPermission(new Permission
+            return _permissionStore.AddPermission(new Permission
             {
                 Grain = grain,
                 Resource = resource,
