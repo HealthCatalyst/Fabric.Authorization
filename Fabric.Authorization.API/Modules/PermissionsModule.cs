@@ -32,9 +32,9 @@ namespace Fabric.Authorization.API.Modules
                 try
                 {
                     var permissionApiModel = this.Bind<PermissionApiModel>();
-                    permissionService.AddPermission(permissionApiModel.Grain, permissionApiModel.Resource,
+                     var permission = permissionService.AddPermission(permissionApiModel.Grain, permissionApiModel.Resource,
                         permissionApiModel.Name);
-                    return HttpStatusCode.Created;
+                    return Negotiate.WithModel(permission).WithStatusCode(HttpStatusCode.Created);
                 }
                 catch (PermissionAlreadyExistsException)
                 {
