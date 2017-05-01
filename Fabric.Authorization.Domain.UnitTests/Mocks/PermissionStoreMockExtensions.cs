@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Permissions;
 using Moq;
 
@@ -26,15 +27,27 @@ namespace Fabric.Authorization.Domain.UnitTests.Mocks
             mockPermissionStore
                 .Setup(permissionStore => permissionStore.GetPermissions(It.IsAny<string>(), It.IsAny<string>(),
                     It.IsAny<string>()))
-                .Returns((string grain, string resource, string permissionName) => permissions.Where(p => p.Grain == grain && p.Resource == resource && p.Name == permissionName));
-            return mockPermissionStore;
+                .Returns((string grain, string resource, string permissionName) => 
+                    permissions.Where(p => 
+                        p.Grain == grain 
+                        && p.Resource == resource 
+                        && (p.Name == permissionName || string.IsNullOrEmpty(permissionName))));
+
+            
+            return mockPermissionStore.SetupGetPermission(permissions);
         }
 
-        public static Mock<IPermissionStore> SetupGetPermission(this Mock<IPermissionStore> mockPermissionStore,
-            Permission permission)
+        private static Mock<IPermissionStore> SetupGetPermission(this Mock<IPermissionStore> mockPermissionStore,
+            List<Permission> permissions)
         {
             mockPermissionStore.Setup(permissionStore => permissionStore.GetPermission(It.IsAny<Guid>()))
-                .Returns(permission);
+                .Returns((Guid permissionId) => {
+                    if (permissions.Any(p => p.Id == permissionId))
+                    {
+                        return permissions.First(p => p.Id == permissionId);
+                    };
+                    throw new PermissionNotFoundException();
+                });
             return mockPermissionStore;
         }
 

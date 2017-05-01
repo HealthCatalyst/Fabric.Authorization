@@ -62,7 +62,7 @@ namespace Fabric.Authorization.Domain.UnitTests.PermissionsTests
                 Name = "manageusers"
             };
             var mockPermissionStore = new Mock<IPermissionStore>()
-                .SetupGetPermission(existingPermission);
+                .SetupGetPermissions(new List<Permission>{existingPermission});
 
             var permissionService = new PermissionService(mockPermissionStore.Object);
             permissionService.DeletePermission(existingPermission.Id);
