@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using Fabric.Authorization.Domain.Exceptions;
 
 namespace Fabric.Authorization.Domain.Roles
 {
@@ -29,7 +30,11 @@ namespace Fabric.Authorization.Domain.Roles
 
         public Role GetRole(Guid roleId)
         {
-            return Roles.ContainsKey(roleId) ? Roles[roleId] : null;
+            if (Roles.ContainsKey(roleId))
+            {
+                return Roles[roleId];
+            }
+            throw new RoleNotFoundException();
         }
 
         public void AddRole(Role role)

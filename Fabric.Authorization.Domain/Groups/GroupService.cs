@@ -37,10 +37,8 @@ namespace Fabric.Authorization.Domain.Groups
         public IEnumerable<Role> GetRolesForGroup(string groupName, string grain = null, string resource = null)
         {
             var group = _groupStore.GetGroup(groupName);
-            if (group == null) throw new GroupNotFoundException();
 
             var roles = group.Roles;
-            if (roles == null) return new List<Role>();
             if (!string.IsNullOrEmpty(grain))
             {
                 roles = roles.Where(p => p.Grain == grain).ToList();
@@ -55,10 +53,7 @@ namespace Fabric.Authorization.Domain.Groups
         public void AddRoleToGroup(string groupName, Guid roleId)
         {
             var group = _groupStore.GetGroup(groupName);
-            if (group == null) throw new GroupNotFoundException();
-
             var role = _roleStore.GetRole(roleId);
-            if (role == null) throw new RoleNotFoundException();
 
             if (group.Roles.All(r => r.Id != roleId))
             {
@@ -69,10 +64,7 @@ namespace Fabric.Authorization.Domain.Groups
         public void DeleteRoleFromGroup(string groupName, Guid roleId)
         {
             var group = _groupStore.GetGroup(groupName);
-            if (group == null) throw new UserNotFoundException();
-
             var role = _roleStore.GetRole(roleId);
-            if (role == null) throw new RoleNotFoundException();
 
             if (group.Roles.Any(r => r.Id == roleId))
             {

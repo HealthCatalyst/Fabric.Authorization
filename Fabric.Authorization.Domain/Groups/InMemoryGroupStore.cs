@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
+using Fabric.Authorization.Domain.Exceptions;
 
 namespace Fabric.Authorization.Domain.Groups
 {
@@ -29,7 +30,11 @@ namespace Fabric.Authorization.Domain.Groups
 
         public Group GetGroup(string groupName)
         {
-            return Groups.ContainsKey(groupName) ? Groups[groupName] : null;
+            if (Groups.ContainsKey(groupName))
+            {
+                return Groups[groupName];
+            }
+            throw new GroupNotFoundException();
         }
     }
 }

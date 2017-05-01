@@ -25,8 +25,7 @@ namespace Fabric.Authorization.Domain.Roles
         public IEnumerable<Permission> GetPermissionsForRole(Guid roleId)
         {
             var role = _roleStore.GetRole(roleId);
-            if(role == null) throw new RoleNotFoundException();
-            return role.Permissions ?? new List<Permission>();
+            return role.Permissions;
         }
 
         public void AddRole(string grain, string resource, string roleName)
@@ -46,23 +45,16 @@ namespace Fabric.Authorization.Domain.Roles
         public void DeleteRole(Guid roleId)
         {
             var role = _roleStore.GetRole(roleId);
-            if (role == null)
-            {
-                throw new RoleNotFoundException(); 
-            }
             _roleStore.DeleteRole(role);
         }
 
         public void AddPermissionsToRole(Guid roleId, Guid[] permissionIds)
         {
-            //first check to see if the role exists
             var role = _roleStore.GetRole(roleId);
-            if(role == null) throw new RoleNotFoundException();
             var permissionsToAdd = new List<Permission>();
             foreach (var permissionId in permissionIds)
             {
                 var permission = _permissionStore.GetPermission(permissionId);
-                if(permission == null) throw new PermissionNotFoundException();
                 if (permission.Grain == role.Grain && permission.Resource == role.Resource && role.Permissions.All(p => p.Id != permission.Id))
                 {
                     permissionsToAdd.Add(permission);
@@ -82,7 +74,6 @@ namespace Fabric.Authorization.Domain.Roles
         public void RemovePermissionsFromRole(Guid roleId, Guid[] permissionIds)
         {
             var role = _roleStore.GetRole(roleId);
-            if (role == null) throw new RoleNotFoundException();
             foreach (var permissionId in permissionIds)
             {
                 if (role.Permissions.All(p => p.Id != permissionId))

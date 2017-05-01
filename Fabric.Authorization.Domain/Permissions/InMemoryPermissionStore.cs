@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Fabric.Authorization.Domain.Exceptions;
 
 namespace Fabric.Authorization.Domain.Permissions
 {
@@ -29,7 +30,11 @@ namespace Fabric.Authorization.Domain.Permissions
 
         public Permission GetPermission(Guid permissionId)
         {
-            return Permissions.ContainsKey(permissionId) ? Permissions[permissionId] : null;
+            if (Permissions.ContainsKey(permissionId))
+            {
+                return Permissions[permissionId];
+            }
+            throw new PermissionNotFoundException();
         }
 
         public void AddPermission(Permission permission)

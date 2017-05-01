@@ -36,10 +36,6 @@ namespace Fabric.Authorization.Domain.Permissions
         public void DeletePermission(Guid permissionId)
         {
             var permission = _permissionStore.GetPermission(permissionId);
-            if (permission == null)
-            {
-                throw new PermissionNotFoundException();
-            }
             _permissionStore.DeletePermission(permission);
         }
     }
