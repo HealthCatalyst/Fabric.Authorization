@@ -112,8 +112,18 @@ namespace Fabric.Authorization.Domain.UnitTests.PermissionsTests
             Assert.Equal(permissionToPost.Name, newPermission.Name);
         }
 
+        [Fact]
+        public void PermissionsModule_GetPermissions_ReturnsPermissionForId()
+        {
+            var existingPermission = _existingPermissions.First();
+            var actual = _authorizationApi.Get($"/permissions/{existingPermission.Id}").Result;
+            Assert.Equal(HttpStatusCode.OK, actual.StatusCode);
+            var newPermission = actual.Body.DeserializeJson<PermissionApiModel>();
+            Assert.Equal(existingPermission.Id, newPermission.Id);
+        }
+
         [Theory, MemberData(nameof(RequestData))]
-        public void PermissionsModule_GetPermissions_ReturnsPermissions(string path, int statusCode, int count)
+        public void PermissionsModule_GetPermissions_ReturnsPermissionsForGrainAndResource(string path, int statusCode, int count)
         {
             var actual = _authorizationApi.Get(path).Result;
             Assert.Equal(statusCode, (int)actual.StatusCode);
@@ -129,7 +139,6 @@ namespace Fabric.Authorization.Domain.UnitTests.PermissionsTests
             new object[] { "/permissions/app/patientsafety", 200, 2},
             new object[] {"/permissions/app/patientsafety/updatepatient", 200, 1},
             new object[] {"/permissions/app/sourcemartdesigner", 200, 1},
-            new object[] {"/permissions/app", 405, 1},
             new object[] {"/permissions/app/nonexistant", 200, 0}
         };
     }

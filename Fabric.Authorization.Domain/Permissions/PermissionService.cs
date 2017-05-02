@@ -19,6 +19,11 @@ namespace Fabric.Authorization.Domain.Permissions
             return _permissionStore.GetPermissions(grain, resource, permissionName);
         }
 
+        public Permission GetPermission(Guid permissionId)
+        {
+            return _permissionStore.GetPermission(permissionId);
+        }
+
         public Permission AddPermission(string grain, string resource, string permissionName)
         {
             if (_permissionStore.GetPermissions(grain, resource, permissionName).Any())

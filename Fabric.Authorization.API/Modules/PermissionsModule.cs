@@ -27,6 +27,12 @@ namespace Fabric.Authorization.API.Modules
                 return permissions.Select(p => p.ToPermissionApiModel());
             });
 
+            Get("/{permissionId}", parameters =>
+            {
+                var permission = permissionService.GetPermission(parameters.permissionId);
+                return permission;
+            });
+
             Post("/", parameters =>
             {
                 try

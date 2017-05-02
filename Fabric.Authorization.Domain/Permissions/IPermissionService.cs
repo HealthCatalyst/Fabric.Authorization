@@ -8,6 +8,8 @@ namespace Fabric.Authorization.Domain.Permissions
     {
         IEnumerable<Permission> GetPermissions(string grain = null, string resource = null,
             string permissionName = null);
+
+        Permission GetPermission(Guid permissionId);
         
         Permission AddPermission(string grain, string resource, string permissionName);
 
