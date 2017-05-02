@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Fabric.Authorization.Domain.Permissions
 {
@@ -11,7 +10,7 @@ namespace Fabric.Authorization.Domain.Permissions
 
         Permission GetPermission(Guid permissionId);
         
-        Permission AddPermission(string grain, string resource, string permissionName);
+        Result<T> AddPermission<T>(string grain, string resource, string permissionName);
 
         void DeletePermission(Guid permissionId);
     }

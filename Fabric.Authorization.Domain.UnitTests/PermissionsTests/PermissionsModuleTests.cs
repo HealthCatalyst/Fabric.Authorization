@@ -1,26 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Fabric.Authorization.API;
-using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Permissions;
 using Fabric.Authorization.Domain.UnitTests.Mocks;
-using Fabric.Platform.Shared.Configuration;
 using Moq;
 using Nancy;
 using Nancy.Testing;
-using Serilog;
 using Xunit;
 
 namespace Fabric.Authorization.Domain.UnitTests.PermissionsTests
 {
     public class PermissionsModuleTests
     {
-        private Browser _authorizationApi;
-        private List<Permission> _existingPermissions;
-        private Mock<IPermissionStore> _mockPermissionStore;
+        private readonly Browser _authorizationApi;
+        private readonly List<Permission> _existingPermissions;
+        private readonly Mock<IPermissionStore> _mockPermissionStore;
         public PermissionsModuleTests()
         {
             _existingPermissions = new List<Permission>
@@ -112,6 +108,22 @@ namespace Fabric.Authorization.Domain.UnitTests.PermissionsTests
             Assert.Equal(permissionToPost.Name, newPermission.Name);
         }
 
+        [Theory, MemberData(nameof(BadRequestData))]
+        public void PermissionModule_AddPermission_InvalidModel(string grain, string resource, string permissionName, int errorCount)
+        {
+            var permissionToPost = new Permission
+            {
+                Grain = grain,
+                Resource = resource,
+                Name = permissionName
+            };
+
+            var actual = _authorizationApi.Post("/permissions",
+                with => with.JsonBody(permissionToPost)).Result;
+            
+            Assert.Equal(HttpStatusCode.BadRequest, actual.StatusCode);
+        }
+
         [Fact]
         public void PermissionsModule_GetPermissions_ReturnsPermissionForId()
         {
@@ -139,7 +151,18 @@ namespace Fabric.Authorization.Domain.UnitTests.PermissionsTests
             new object[] { "/permissions/app/patientsafety", 200, 2},
             new object[] {"/permissions/app/patientsafety/updatepatient", 200, 1},
             new object[] {"/permissions/app/sourcemartdesigner", 200, 1},
-            new object[] {"/permissions/app/nonexistant", 200, 0}
+            new object[] {"/permissions/app/nonexistant", 200, 0},
+            new object[] {"/permissions/app", 400, 0}
+        };
+
+        public static IEnumerable<object[]> BadRequestData => new[]
+        {
+            new object[] { "app", "patientsafety", "", 1},
+            new object[] {"app", "", "", 2},
+            new object[] {"", "", "", 3},
+            new object[] {"app", "patientsafety", null, 1},
+            new object[] {"app", null, null, 2},
+            new object[] {null, null, null, 3}
         };
     }
 }

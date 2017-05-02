@@ -4,4 +4,8 @@
     <TargetFramework>netstandard1.3</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="6.4.1" />
+  </ItemGroup>
+
 </Project>

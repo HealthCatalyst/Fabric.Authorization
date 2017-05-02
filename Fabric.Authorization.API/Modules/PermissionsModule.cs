@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Domain;
 using Fabric.Authorization.Domain.Exceptions;
@@ -29,7 +28,12 @@ namespace Fabric.Authorization.API.Modules
 
             Get("/{permissionId}", parameters =>
             {
-                Permission permission = permissionService.GetPermission(parameters.permissionId);
+                if (!Guid.TryParse(parameters.permissionId, out Guid permissionId))
+                {
+                    return HttpStatusCode.BadRequest;
+                }
+
+                Permission permission = permissionService.GetPermission(permissionId);
                 return permission.ToPermissionApiModel();
             });
 
@@ -38,9 +42,13 @@ namespace Fabric.Authorization.API.Modules
                 try
                 {
                     var permissionApiModel = this.Bind<PermissionApiModel>();
-                     Permission permission = permissionService.AddPermission(permissionApiModel.Grain, permissionApiModel.Resource,
-                        permissionApiModel.Name);
-                    return Negotiate.WithModel(permission.ToPermissionApiModel()).WithStatusCode(HttpStatusCode.Created);
+                    Result<Permission> result = permissionService.AddPermission<Permission>(permissionApiModel.Grain, permissionApiModel.Resource,
+                       permissionApiModel.Name);
+                    if (result.ValidationResult.IsValid)
+                    {
+                        return Negotiate.WithModel(result.Model.ToPermissionApiModel()).WithStatusCode(HttpStatusCode.Created);
+                    }
+                    return Negotiate.WithModel(result.ValidationResult).WithStatusCode(HttpStatusCode.BadRequest);
                 }
                 catch (PermissionAlreadyExistsException)
                 {
@@ -52,7 +60,12 @@ namespace Fabric.Authorization.API.Modules
             {
                 try
                 {
-                    permissionService.DeletePermission(parameters.permissionId);
+                    if (!Guid.TryParse(parameters.permissionId, out Guid permissionId))
+                    {
+                        return HttpStatusCode.BadRequest;
+                    }
+
+                    permissionService.DeletePermission(permissionId);
                     return HttpStatusCode.NoContent;
                 }
                 catch (PermissionNotFoundException)
