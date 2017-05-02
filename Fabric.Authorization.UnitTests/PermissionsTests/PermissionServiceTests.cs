@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using Fabric.Authorization.Domain.Exceptions;
+using Fabric.Authorization.Domain;
 using Fabric.Authorization.Domain.Permissions;
-using Fabric.Authorization.Domain.UnitTests.Mocks;
 using Fabric.Authorization.Domain.Validators;
+using Fabric.Authorization.UnitTests.Mocks;
 using Moq;
 using Xunit;
 
-namespace Fabric.Authorization.Domain.UnitTests.PermissionsTests
+namespace Fabric.Authorization.UnitTests.PermissionsTests
 {
     public class PermissionServiceTests
     {

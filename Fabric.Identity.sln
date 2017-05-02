@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fabric.Authorization.API", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fabric.Authorization.Domain", "Fabric.Authorization.Domain\Fabric.Authorization.Domain.csproj", "{CBC5A141-C608-4B8A-BE76-BE38F109D474}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fabric.Authorization.Domain.UnitTests", "Fabric.Authorization.Domain.UnitTests\Fabric.Authorization.Domain.UnitTests.csproj", "{C6F3BC91-9F07-439B-B554-05A1E2FBE144}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fabric.Authorization.UnitTests", "Fabric.Authorization.UnitTests\Fabric.Authorization.UnitTests.csproj", "{C6F3BC91-9F07-439B-B554-05A1E2FBE144}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

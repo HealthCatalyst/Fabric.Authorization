@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using Fabric.Authorization.Domain;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Permissions;
 using Moq;
 
-namespace Fabric.Authorization.Domain.UnitTests.Mocks
+namespace Fabric.Authorization.UnitTests.Mocks
 {
     public static class PermissionStoreMockExtensions
     {
