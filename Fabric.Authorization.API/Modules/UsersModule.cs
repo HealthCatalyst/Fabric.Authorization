@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using Fabric.Authorization.API.Models;
+﻿using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Groups;
 using Nancy;

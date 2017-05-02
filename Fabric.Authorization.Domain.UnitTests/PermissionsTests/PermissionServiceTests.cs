@@ -18,16 +18,16 @@ namespace Fabric.Authorization.Domain.UnitTests.PermissionsTests
                 .SetupAddPermissions()
                 .Create();
 
-            var permissionService = new PermissionService(mockPermissionStore, new PermissionValidator());
+            var permissionService = new PermissionService(mockPermissionStore, new PermissionValidator(mockPermissionStore));
             var result = permissionService.AddPermission<Permission>("app", "patientsafety", "manageusers");
 
             Assert.NotNull(result.Model);
             Assert.NotNull(result.Model.Id);
 
         }
-
-        [Fact]
-        public void PermissionService_AddPermission_ThrowsIfPermissionAlreadyExists()
+        
+        [Theory, MemberData(nameof(RequestData))]
+        public void PermissionService_AddPermission_ReturnsInvalidIfModelNotValid(string grain, string resource, string permissionName, int errorCount)
         {
             var existingPermission = new Permission
             {
@@ -36,28 +36,16 @@ namespace Fabric.Authorization.Domain.UnitTests.PermissionsTests
                 Resource = "patientsafety",
                 Name = "manageusers"
             };
-            var mockPermissionStore = new Mock<IPermissionStore>()
-                .SetupGetPermissions(new List<Permission>
-                                            {
-                                                existingPermission
-                                            })
-                .Create();
 
-            var permissionService = new PermissionService(mockPermissionStore, new PermissionValidator());
-
-            Assert.Throws<PermissionAlreadyExistsException>(
-                () => permissionService.AddPermission<Permission>(existingPermission.Grain, existingPermission.Resource, existingPermission.Name));
-
-        }
-
-        [Theory, MemberData(nameof(RequestData))]
-        public void PermissionService_AddPermission_ReturnsInvalidIfModelNotValid(string grain, string resource, string permissionName, int errorCount)
-        {
             var mockPermissionStore = new Mock<IPermissionStore>()
                 .SetupAddPermissions()
+                .SetupGetPermissions(new List<Permission>
+                {
+                    existingPermission
+                })
                 .Create();
 
-            var permissionService = new PermissionService(mockPermissionStore, new PermissionValidator());
+            var permissionService = new PermissionService(mockPermissionStore, new PermissionValidator(mockPermissionStore));
             var result = permissionService.AddPermission<Permission>(grain, resource, permissionName);
 
             Assert.False(result.ValidationResult.IsValid);
@@ -79,7 +67,7 @@ namespace Fabric.Authorization.Domain.UnitTests.PermissionsTests
             var mockPermissionStore = new Mock<IPermissionStore>()
                 .SetupGetPermissions(new List<Permission>{existingPermission});
 
-            var permissionService = new PermissionService(mockPermissionStore.Object, new PermissionValidator());
+            var permissionService = new PermissionService(mockPermissionStore.Object, new PermissionValidator(mockPermissionStore.Object));
             permissionService.DeletePermission(existingPermission.Id);
 
             mockPermissionStore.Verify();
@@ -92,7 +80,8 @@ namespace Fabric.Authorization.Domain.UnitTests.PermissionsTests
             new object[] {"", "", "", 3},
             new object[] {"app", "patientsafety", null, 1},
             new object[] {"app", null, null, 2},
-            new object[] {null, null, null, 3}
+            new object[] {null, null, null, 3},
+            new object[] {"app", "patientsafety", "manageusers", 1}
         };
     }
 }

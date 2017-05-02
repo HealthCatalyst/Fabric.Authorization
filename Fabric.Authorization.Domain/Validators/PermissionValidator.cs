@@ -1,10 +1,20 @@
-﻿using FluentValidation;
+﻿using System;
+using System.Linq;
+using Fabric.Authorization.Domain.Permissions;
+using FluentValidation;
 
 namespace Fabric.Authorization.Domain.Validators
 {
     public class PermissionValidator : AbstractValidator<Permission>
     {
-        public PermissionValidator()
+        private readonly IPermissionStore _permissionStore;
+        public PermissionValidator(IPermissionStore permissionStore)
+        {
+            _permissionStore = permissionStore ?? throw new ArgumentNullException(nameof(permissionStore));
+            ConfigureRules();
+        }
+
+        private void ConfigureRules()
         {
             RuleFor(permission => permission.Grain)
                 .NotEmpty()
@@ -17,6 +27,20 @@ namespace Fabric.Authorization.Domain.Validators
             RuleFor(permission => permission.Name)
                 .NotEmpty()
                 .WithMessage("Please specify a Name for this permission");
+
+            RuleFor(permission => permission)
+                .Must(BeUnique)
+                .When(permission => !string.IsNullOrEmpty(permission.Grain)
+                                    && !string.IsNullOrEmpty(permission.Resource)
+                                    && !string.IsNullOrEmpty(permission.Name))
+                .WithMessage("The permission already exists");
+        }
+
+        public bool BeUnique(Permission permission)
+        {
+            return !_permissionStore
+                    .GetPermissions(permission.Grain, permission.Resource, permission.Name)
+                    .Any();
         }
     }
 }

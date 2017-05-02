@@ -46,15 +46,10 @@ namespace Fabric.Authorization.Domain.Permissions
                 };
             }
 
-            if (_permissionStore.GetPermissions(grain, resource, permissionName).Any())
-            {
-                throw new PermissionAlreadyExistsException();
-            }
-
-            var addedPermission = _permissionStore.AddPermission(newPermission);
+            object addedPermission = _permissionStore.AddPermission(newPermission);
             return new Result<T>
             {
-                Model = (T)(object)addedPermission,
+                Model = (T)addedPermission,
                 ValidationResult = validationResults
             };
         }
