@@ -29,8 +29,8 @@ namespace Fabric.Authorization.API.Modules
 
             Get("/{permissionId}", parameters =>
             {
-                var permission = permissionService.GetPermission(parameters.permissionId);
-                return permission;
+                Permission permission = permissionService.GetPermission(parameters.permissionId);
+                return permission.ToPermissionApiModel();
             });
 
             Post("/", parameters =>
@@ -38,9 +38,9 @@ namespace Fabric.Authorization.API.Modules
                 try
                 {
                     var permissionApiModel = this.Bind<PermissionApiModel>();
-                     var permission = permissionService.AddPermission(permissionApiModel.Grain, permissionApiModel.Resource,
+                     Permission permission = permissionService.AddPermission(permissionApiModel.Grain, permissionApiModel.Resource,
                         permissionApiModel.Name);
-                    return Negotiate.WithModel(permission).WithStatusCode(HttpStatusCode.Created);
+                    return Negotiate.WithModel(permission.ToPermissionApiModel()).WithStatusCode(HttpStatusCode.Created);
                 }
                 catch (PermissionAlreadyExistsException)
                 {
