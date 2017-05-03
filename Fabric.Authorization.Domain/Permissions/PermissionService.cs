@@ -27,7 +27,7 @@ namespace Fabric.Authorization.Domain.Permissions
             return _permissionStore.GetPermission(permissionId);
         }
 
-        public Result<T> AddPermission<T>(string grain, string resource, string permissionName)
+        public Result<Permission> AddPermission(string grain, string resource, string permissionName)
         {
             var newPermission = new Permission
             {
@@ -37,21 +37,14 @@ namespace Fabric.Authorization.Domain.Permissions
             };
 
             var validationResults = _permissionValidator.Validate(newPermission);
-
-            if (!validationResults.IsValid)
+            var result = new Result<Permission> {ValidationResult = validationResults};
+            
+            if (validationResults.IsValid)
             {
-                return new Result<T>
-                {
-                    ValidationResult = validationResults
-                };
+                result.Model = _permissionStore.AddPermission(newPermission);
             }
 
-            object addedPermission = _permissionStore.AddPermission(newPermission);
-            return new Result<T>
-            {
-                Model = (T)addedPermission,
-                ValidationResult = validationResults
-            };
+            return result;
         }
 
         public void DeletePermission(Guid permissionId)

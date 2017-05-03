@@ -2,9 +2,9 @@
 
 namespace Fabric.Authorization.API.Models
 {
-    public class PermissionApiModel
+    public class PermissionApiModel : IIdentifiable
     {
-        public Guid Id { get; set; }
+        public Guid? Id { get; set; }
 
         public string Grain { get; set; }
 

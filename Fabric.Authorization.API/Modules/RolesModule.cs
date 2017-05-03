@@ -47,7 +47,7 @@ namespace Fabric.Authorization.API.Modules
                 try
                 {
                     var roleApiModels = this.Bind<List<PermissionApiModel>>(new BindingConfig{BodyOnly = true});
-                    roleService.AddPermissionsToRole(parameters.roleId, roleApiModels.Select(p => p.Id).ToArray());
+                    roleService.AddPermissionsToRole(parameters.roleId, roleApiModels.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToArray());
                     return HttpStatusCode.NoContent;
                 }
                 catch (Exception e)
@@ -75,7 +75,7 @@ namespace Fabric.Authorization.API.Modules
                 try
                 {
                     var roleApiModels = this.Bind<List<PermissionApiModel>>(new BindingConfig { BodyOnly = true });
-                    roleService.RemovePermissionsFromRole(parameters.roleId, roleApiModels.Select(p => p.Id).ToArray());
+                    roleService.RemovePermissionsFromRole(parameters.roleId, roleApiModels.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToArray());
                     return HttpStatusCode.NoContent;
                 }
                 catch (RoleNotFoundException)

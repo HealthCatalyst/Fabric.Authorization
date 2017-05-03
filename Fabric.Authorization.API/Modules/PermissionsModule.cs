@@ -10,7 +10,7 @@ using Nancy.ModelBinding;
 
 namespace Fabric.Authorization.API.Modules
 {
-    public class PermissionsModule : NancyModule
+    public class PermissionsModule : FabricModule
     {
         public PermissionsModule(IPermissionService permissionService) : base("/Permissions")
         {
@@ -39,21 +39,12 @@ namespace Fabric.Authorization.API.Modules
 
             Post("/", parameters =>
             {
-                try
-                {
-                    var permissionApiModel = this.Bind<PermissionApiModel>();
-                    Result<Permission> result = permissionService.AddPermission<Permission>(permissionApiModel.Grain, permissionApiModel.Resource,
-                       permissionApiModel.Name);
-                    if (result.ValidationResult.IsValid)
-                    {
-                        return Negotiate.WithModel(result.Model.ToPermissionApiModel()).WithStatusCode(HttpStatusCode.Created);
-                    }
-                    return Negotiate.WithModel(result.ValidationResult).WithStatusCode(HttpStatusCode.BadRequest);
-                }
-                catch (PermissionAlreadyExistsException)
-                {
-                    return HttpStatusCode.BadRequest;
-                }
+                var permissionApiModel = this.Bind<PermissionApiModel>();
+                Result<Permission> result = permissionService.AddPermission(permissionApiModel.Grain, permissionApiModel.Resource,
+                   permissionApiModel.Name);
+                return result.ValidationResult.IsValid
+                    ? CreateSuccessfulPostResponse(result.Model.ToPermissionApiModel())
+                    : CreateFailureResponse(result.ValidationResult);
             });
 
             Delete("/{permissionId}", parameters =>
@@ -74,5 +65,7 @@ namespace Fabric.Authorization.API.Modules
                 }
             });
         }
+
+
     }
 }

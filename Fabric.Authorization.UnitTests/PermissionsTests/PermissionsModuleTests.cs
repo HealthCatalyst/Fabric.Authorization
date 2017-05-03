@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain;
 using Fabric.Authorization.Domain.Permissions;
 using Fabric.Authorization.UnitTests.Mocks;
 using Moq;
-using Nancy;
 using Nancy.Testing;
 using Xunit;
+using HttpStatusCode = Nancy.HttpStatusCode;
 
 namespace Fabric.Authorization.UnitTests.PermissionsTests
 {
@@ -102,11 +103,13 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
                 with => with.JsonBody(permissionToPost)).Result;
 
             var newPermission = actual.Body.DeserializeJson<PermissionApiModel>();
+            var locationHeaderValue = actual.Headers[HttpResponseHeaders.Location];
 
             Assert.Equal(HttpStatusCode.Created, actual.StatusCode);
             Assert.NotNull(newPermission);
             Assert.NotNull(newPermission.Id);
             Assert.Equal(permissionToPost.Name, newPermission.Name);
+            Assert.Equal($"http:///Permissions/{newPermission.Id}", locationHeaderValue);
         }
 
         [Theory, MemberData(nameof(BadRequestData))]
