@@ -16,7 +16,8 @@ namespace Fabric.Authorization.API.Modules
         {
             Get("/{grain}/{resource}", parameters =>
             {
-                IEnumerable<Permission> permissions = permissionService.GetPermissions(parameters.grain, parameters.resource);
+                IEnumerable<Permission> permissions =
+                    permissionService.GetPermissions(parameters.grain, parameters.resource);
                 return permissions.Select(p => p.ToPermissionApiModel());
             });
 

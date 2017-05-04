@@ -5,6 +5,7 @@ using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain;
+using Fabric.Authorization.Domain.Clients;
 using Fabric.Authorization.Domain.Permissions;
 using Fabric.Authorization.UnitTests.Mocks;
 using Moq;
@@ -18,7 +19,10 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
     {
         private readonly Browser _authorizationApi;
         private readonly List<Permission> _existingPermissions;
+        private readonly List<Client> _clients;
         private readonly Mock<IPermissionStore> _mockPermissionStore;
+        private readonly Mock<IClientStore> _mockClientStore;
+
         public PermissionsModuleTests()
         {
             _existingPermissions = new List<Permission>
@@ -52,10 +56,16 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
                     Name ="read"
                 }
             };
+
+            _clients = new List<Client>();
+
             _mockPermissionStore = new Mock<IPermissionStore>().SetupGetPermissions(_existingPermissions).SetupAddPermissions();
+            _mockClientStore = new Mock<IClientStore>().SetupGetClient(_clients);
             _authorizationApi = new Browser(with => with.Module<PermissionsModule>()
                                                         .Dependency<IPermissionService>(typeof(PermissionService))
-                                                        .Dependency(_mockPermissionStore.Object), withDefaults => withDefaults.Accept("application/json"));
+                                                        .Dependency<IClientService>(typeof(ClientService))
+                                                        .Dependency(_mockPermissionStore.Object)
+                                                        .Dependency(_mockClientStore.Object), withDefaults => withDefaults.Accept("application/json"));
         }
 
         [Fact]
