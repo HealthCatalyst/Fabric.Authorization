@@ -67,6 +67,13 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
         }
 
         [Fact]
+        public void PermissionsModule_DeletePermission_ReturnsBadRequestForInvalidId()
+        {
+            var actual = _authorizationApi.Delete("/permissions/notaguid").Result;
+            Assert.Equal(HttpStatusCode.BadRequest, actual.StatusCode);
+        }
+
+        [Fact]
         public void PermissionModule_DeletePermission_Successful()
         {
             var existingPermission = _existingPermissions.First();
@@ -148,6 +155,20 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
                 var permissions = actual.Body.DeserializeJson<List<PermissionApiModel>>();
                 Assert.Equal(count, permissions.Count);
             }
+        }
+
+        [Fact]
+        public void PermissionsModule_GetPermissions_ReturnsNotFoundForMissingId()
+        {
+            var actual = _authorizationApi.Get($"/permissions/{Guid.NewGuid()}").Result;
+            Assert.Equal(HttpStatusCode.NotFound, actual.StatusCode);
+        }
+
+        [Fact]
+        public void PermissionsModule_GetPermissions_ReturnsBadRequestForInvalidId()
+        {
+            var actual = _authorizationApi.Get("/permissions/notaguid").Result;
+            Assert.Equal(HttpStatusCode.BadRequest, actual.StatusCode);
         }
 
         public static IEnumerable<object[]> RequestData => new[]

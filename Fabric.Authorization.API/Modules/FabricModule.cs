@@ -32,9 +32,23 @@ namespace Fabric.Authorization.API.Modules
                 .WithHeader(HttpResponseHeaders.Location, selfLink);
         }
 
-        protected Negotiator CreateFailureResponse(ValidationResult validationResult)
+        protected Negotiator CreateFailureResponse<T>(ValidationResult validationResult, HttpStatusCode statusCode)
         {
-            return Negotiate.WithModel(validationResult).WithStatusCode(HttpStatusCode.BadRequest);
+            var error = validationResult.ToError();
+            error.Code = Enum.GetName(typeof(HttpStatusCode), statusCode);
+            error.Target = typeof(T).Name;
+            return Negotiate.WithModel(error).WithStatusCode(statusCode);
+        }
+
+        protected Negotiator CreateFailureResponse<T>(string message, HttpStatusCode statusCode)
+        {
+            var error = new Error
+            {
+                Code = Enum.GetName(typeof(HttpStatusCode), statusCode),
+                Target = typeof(T).Name,
+                Message = message
+            };
+            return Negotiate.WithModel(error).WithStatusCode(statusCode);
         }
     }
 }

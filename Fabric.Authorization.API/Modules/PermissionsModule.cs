@@ -28,13 +28,20 @@ namespace Fabric.Authorization.API.Modules
 
             Get("/{permissionId}", parameters =>
             {
-                if (!Guid.TryParse(parameters.permissionId, out Guid permissionId))
+                try
                 {
-                    return HttpStatusCode.BadRequest;
-                }
+                    if (!Guid.TryParse(parameters.permissionId, out Guid permissionId))
+                    {
+                        return CreateFailureResponse<Permission>("permissionId must be a guid.", HttpStatusCode.BadRequest);
+                    }
 
-                Permission permission = permissionService.GetPermission(permissionId);
-                return permission.ToPermissionApiModel();
+                    Permission permission = permissionService.GetPermission(permissionId);
+                    return permission.ToPermissionApiModel();
+                }
+                catch (PermissionNotFoundException)
+                {
+                    return CreateFailureResponse<Permission>("The specified permission was not found.", HttpStatusCode.NotFound);
+                }
             });
 
             Post("/", parameters =>
@@ -44,7 +51,7 @@ namespace Fabric.Authorization.API.Modules
                    permissionApiModel.Name);
                 return result.ValidationResult.IsValid
                     ? CreateSuccessfulPostResponse(result.Model.ToPermissionApiModel())
-                    : CreateFailureResponse(result.ValidationResult);
+                    : CreateFailureResponse<Permission>(result.ValidationResult, HttpStatusCode.BadRequest);
             });
 
             Delete("/{permissionId}", parameters =>
@@ -53,7 +60,7 @@ namespace Fabric.Authorization.API.Modules
                 {
                     if (!Guid.TryParse(parameters.permissionId, out Guid permissionId))
                     {
-                        return HttpStatusCode.BadRequest;
+                        return CreateFailureResponse<Permission>("permissionId must be a guid.", HttpStatusCode.BadRequest);
                     }
 
                     permissionService.DeletePermission(permissionId);
@@ -61,11 +68,9 @@ namespace Fabric.Authorization.API.Modules
                 }
                 catch (PermissionNotFoundException)
                 {
-                    return HttpStatusCode.NotFound;
+                    return CreateFailureResponse<Permission>("The specified permission was not found.", HttpStatusCode.NotFound);
                 }
             });
         }
-
-
     }
 }
