@@ -15,9 +15,9 @@ namespace Fabric.Authorization.Domain.Services
         {
             _permissionStore = permissionStore ?? throw new ArgumentNullException(nameof(permissionStore));
         }
-        public IEnumerable<Permission> GetPermissions(string grain = null, string resource = null, string permissionName = null)
+        public IEnumerable<Permission> GetPermissions(string grain = null, string securableItem = null, string permissionName = null)
         {
-            return _permissionStore.GetPermissions(grain, resource, permissionName);
+            return _permissionStore.GetPermissions(grain, securableItem, permissionName);
         }
 
         public Permission GetPermission(Guid permissionId)

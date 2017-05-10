@@ -6,7 +6,7 @@ namespace Fabric.Authorization.Domain.Services
 {
     public interface IPermissionService
     {
-        IEnumerable<Permission> GetPermissions(string grain = null, string resource = null,
+        IEnumerable<Permission> GetPermissions(string grain = null, string securableItem = null,
             string permissionName = null);
 
         Permission GetPermission(Guid permissionId);

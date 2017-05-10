@@ -12,13 +12,13 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
     public class PermissionValidatorTests
     {
         [Theory, MemberData(nameof(RequestData))]
-        public void PermissionValidator_ValidatePermission_ReturnsInvalidIfModelNotValid(string grain, string resource, string permissionName, int errorCount)
+        public void PermissionValidator_ValidatePermission_ReturnsInvalidIfModelNotValid(string grain, string securableItem, string permissionName, int errorCount)
         {
             var existingPermission = new Permission
             {
                 Id = Guid.NewGuid(),
                 Grain = "app",
-                Resource = "patientsafety",
+                SecurableItem = "patientsafety",
                 Name = "manageusers"
             };
 
@@ -34,7 +34,7 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
             var validationResult = permissionValidator.Validate(new Permission
             {
                 Grain = grain,
-                Resource = resource,
+                SecurableItem = securableItem,
                 Name = permissionName
             });
 
@@ -56,7 +56,7 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
             var validationResult = permissionValidator.Validate(new Permission
             {
                 Grain = "app",
-                Resource = "patientsafety",
+                SecurableItem = "patientsafety",
                 Name = "manageusers"
             });
 

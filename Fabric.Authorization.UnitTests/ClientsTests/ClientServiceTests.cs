@@ -15,42 +15,42 @@ namespace Fabric.Authorization.UnitTests.ClientsTests
         private Client _testClient = new Client
         {
             Id = "sampleapplication",
-            TopLevelResource = new Resource
+            TopLevelSecurableItem = new SecurableItem
             {
                 Id = Guid.NewGuid(),
                 Name = "sampleapplication",
-                Resources = new List<Resource>
+                SecurableItems = new List<SecurableItem>
                 {
-                    new Resource
+                    new SecurableItem
                     {
                         Id = Guid.NewGuid(),
                         Name = "ehr1",
-                        Resources = new List<Resource>
+                        SecurableItems = new List<SecurableItem>
                         {
-                            new Resource
+                            new SecurableItem
                             {
                                 Id = Guid.NewGuid(),
                                 Name = "patient",
                             },
-                            new Resource
+                            new SecurableItem
                             {
                                 Id = Guid.NewGuid(),
                                 Name = "diagnoses"
                             }
                         }
                     },
-                    new Resource
+                    new SecurableItem
                     {
                         Id = Guid.NewGuid(),
                         Name = "ehr2",
-                        Resources = new List<Resource>
+                        SecurableItems = new List<SecurableItem>
                         {
-                            new Resource
+                            new SecurableItem
                             {
                                 Id = Guid.NewGuid(),
                                 Name = "patient"
                             },
-                            new Resource
+                            new SecurableItem
                             {
                                 Id = Guid.NewGuid(),
                                 Name = "observations"
@@ -62,16 +62,16 @@ namespace Fabric.Authorization.UnitTests.ClientsTests
         };
 
         [Theory, MemberData(nameof(RequestData))]
-        public void ClientService_DoesClientOwnResource_TopLevelMatch(string clientId, string grain, string resource, bool expectedResult)
+        public void ClientService_DoesClientOwnItem_TopLevelMatch(string clientId, string grain, string securableItem, bool expectedResult)
         {
             var mockClientStore = new Mock<IClientStore>()
                 .SetupGetClient(new List<Client> { _testClient })
                 .Create();
 
             var clientService = new ClientService(mockClientStore);
-            var ownsRequestedResource =
-                clientService.DoesClientOwnResource(clientId, grain, resource);
-            Assert.Equal(expectedResult, ownsRequestedResource);
+            var ownsRequestedItem =
+                clientService.DoesClientOwnItem(clientId, grain, securableItem);
+            Assert.Equal(expectedResult, ownsRequestedItem);
         }
 
         public static IEnumerable<object[]> RequestData => new[]

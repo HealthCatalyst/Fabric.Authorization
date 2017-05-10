@@ -10,16 +10,16 @@ namespace Fabric.Authorization.Domain.Stores
     public class InMemoryPermissionStore : IPermissionStore
     {
         private static readonly ConcurrentDictionary<Guid, Permission> Permissions = new ConcurrentDictionary<Guid, Permission>();
-        public IEnumerable<Permission> GetPermissions(string grain = null, string resource = null, string permissionName = null)
+        public IEnumerable<Permission> GetPermissions(string grain = null, string securableItem = null, string permissionName = null)
         {
             var permissions = Permissions.Select(kvp => kvp.Value);
             if (!string.IsNullOrEmpty(grain))
             {
                 permissions = permissions.Where(p => p.Grain == grain);
             }
-            if (!string.IsNullOrEmpty(resource))
+            if (!string.IsNullOrEmpty(securableItem))
             {
-                permissions = permissions.Where(p => p.Resource == resource);
+                permissions = permissions.Where(p => p.SecurableItem == securableItem);
             }
             if (!string.IsNullOrEmpty(permissionName))
             {

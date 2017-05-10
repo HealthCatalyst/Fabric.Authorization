@@ -16,7 +16,7 @@ namespace Fabric.Authorization.Domain.Models
 
         public string Grain { get; set; }
 
-        public string Resource { get; set; }
+        public string SecurableItem { get; set; }
 
         public bool IsDeleted { get; set; }
         
@@ -24,7 +24,7 @@ namespace Fabric.Authorization.Domain.Models
 
         public override string ToString()
         {
-            return $"{Grain}/{Resource}.{Name}";
+            return $"{Grain}/{SecurableItem}.{Name}";
         }
     }
 }

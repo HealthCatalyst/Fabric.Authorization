@@ -20,11 +20,11 @@ namespace Fabric.Authorization.API.Modules
                 {
                     var groupInfoRequest = this.Bind<GroupInfoRequest>();
                     var roles = groupService.GetRolesForGroup(groupInfoRequest.GroupName, groupInfoRequest.Grain,
-                        groupInfoRequest.Resource);
+                        groupInfoRequest.SecurableItem);
                     return new GroupRoleApiModel
                     {
                         RequestedGrain = groupInfoRequest.Grain,
-                        RequestedResource = groupInfoRequest.Resource,
+                        RequestedSecurableItem = groupInfoRequest.SecurableItem,
                         GroupName = groupInfoRequest.GroupName,
                         Roles = roles.Select(r => r.ToRoleApiModel())
                     };

@@ -17,15 +17,15 @@ namespace Fabric.Authorization.API.Modules
     {
         public RolesModule(IRoleService roleService) : base("/roles")
         {
-            Get("/{grain}/{resource}", parameters =>
+            Get("/{grain}/{securableItem}", parameters =>
             {
-                IEnumerable<Role> roles = roleService.GetRoles(parameters.grain, parameters.resource);
+                IEnumerable<Role> roles = roleService.GetRoles(parameters.grain, parameters.securableItem);
                 return roles.Select(r => r.ToRoleApiModel());
             });
 
-            Get("/{grain}/{resource}/{roleName}", parameters =>
+            Get("/{grain}/{securableItem}/{roleName}", parameters =>
             {
-                IEnumerable<Role> roles = roleService.GetRoles(parameters.grain, parameters.resource, parameters.roleName);
+                IEnumerable<Role> roles = roleService.GetRoles(parameters.grain, parameters.securableItem, parameters.roleName);
                 return roles.Select(r => r.ToRoleApiModel());
             });
 
@@ -34,7 +34,7 @@ namespace Fabric.Authorization.API.Modules
                 try
                 {
                     var roleApiModel = this.Bind<RoleApiModel>();
-                    roleService.AddRole(roleApiModel.Grain, roleApiModel.Resource, roleApiModel.Name);
+                    roleService.AddRole(roleApiModel.Grain, roleApiModel.SecurableItem, roleApiModel.Name);
                     return HttpStatusCode.Created;
                 }
                 catch (RoleAlreadyExistsException)

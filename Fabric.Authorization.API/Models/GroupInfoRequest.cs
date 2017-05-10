@@ -9,6 +9,6 @@ namespace Fabric.Authorization.API.Models
     {
         public string GroupName { get; set; }
         public string Grain { get; set; }
-        public string Resource { get; set; }
+        public string SecurableItem { get; set; }
     }
 }

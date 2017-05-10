@@ -17,9 +17,9 @@ namespace Fabric.Authorization.Domain.Services
             _roleStore = roleStore ?? throw new ArgumentNullException(nameof(roleStore));
             _permissionStore = permissionStore ?? throw new ArgumentNullException(nameof(permissionStore));
         }
-        public IEnumerable<Role> GetRoles(string grain = null, string resource = null, string roleName = null)
+        public IEnumerable<Role> GetRoles(string grain = null, string securableItem = null, string roleName = null)
         {
-            return _roleStore.GetRoles(grain, resource, roleName);
+            return _roleStore.GetRoles(grain, securableItem, roleName);
         }
 
         public IEnumerable<Permission> GetPermissionsForRole(Guid roleId)
@@ -28,16 +28,16 @@ namespace Fabric.Authorization.Domain.Services
             return role.Permissions;
         }
 
-        public void AddRole(string grain, string resource, string roleName)
+        public void AddRole(string grain, string securableItem, string roleName)
         {
-            if (_roleStore.GetRoles(grain, resource, roleName).Any())
+            if (_roleStore.GetRoles(grain, securableItem, roleName).Any())
             {
                 throw new RoleAlreadyExistsException();
             }
             _roleStore.AddRole(new Role
             {
                 Grain = grain,
-                Resource = resource,
+                SecurableItem = securableItem,
                 Name = roleName
             });
         }
@@ -55,13 +55,13 @@ namespace Fabric.Authorization.Domain.Services
             foreach (var permissionId in permissionIds)
             {
                 var permission = _permissionStore.GetPermission(permissionId);
-                if (permission.Grain == role.Grain && permission.Resource == role.Resource && role.Permissions.All(p => p.Id != permission.Id))
+                if (permission.Grain == role.Grain && permission.SecurableItem == role.SecurableItem && role.Permissions.All(p => p.Id != permission.Id))
                 {
                     permissionsToAdd.Add(permission);
                 }
                 else
                 {
-                    throw new IncompatiblePermissionException($"Permission with id {permission.Id} has the wrong grain, resource or is already present on the role");
+                    throw new IncompatiblePermissionException($"Permission with id {permission.Id} has the wrong grain, securableItem, or is already present on the role");
                 }
             }
             foreach (var permission in permissionsToAdd)

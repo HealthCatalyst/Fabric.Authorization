@@ -22,7 +22,7 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
             var permission = permissionService.AddPermission(new Permission
             {
                 Grain = "app",
-                Resource = "patientsafety",
+                SecurableItem = "patientsafety",
                 Name = "manageusers"
             });
 
@@ -38,7 +38,7 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
             {
                 Id = Guid.NewGuid(),
                 Grain = "app",
-                Resource = "patientsafety",
+                SecurableItem = "patientsafety",
                 Name = "manageusers"
             };
             var mockPermissionStore = new Mock<IPermissionStore>()

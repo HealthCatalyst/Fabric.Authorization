@@ -19,18 +19,18 @@ namespace Fabric.Authorization.API.Modules
             ILogger logger, 
             PermissionValidator validator) : base("/Permissions", logger, validator)
         {
-            Get("/{grain}/{resource}", parameters =>
+            Get("/{grain}/{securableItem}", parameters =>
             {
-                CheckAccess(clientService, parameters.grain, parameters.resource, AuthorizationReadClaim);
+                CheckAccess(clientService, parameters.grain, parameters.securableItem, AuthorizationReadClaim);
                 IEnumerable<Permission> permissions =
-                    permissionService.GetPermissions(parameters.grain, parameters.resource);
+                    permissionService.GetPermissions(parameters.grain, parameters.securableItem);
                 return permissions.Select(p => p.ToPermissionApiModel());
             });
 
-            Get("/{grain}/{resource}/{permissionName}", parameters =>
+            Get("/{grain}/{securableItem}/{permissionName}", parameters =>
             {
-                CheckAccess(clientService, parameters.grain, parameters.resource, AuthorizationReadClaim);
-                IEnumerable<Permission> permissions = permissionService.GetPermissions(parameters.grain, parameters.resource, parameters.permissionName);
+                CheckAccess(clientService, parameters.grain, parameters.securableItem, AuthorizationReadClaim);
+                IEnumerable<Permission> permissions = permissionService.GetPermissions(parameters.grain, parameters.securableItem, parameters.permissionName);
                 return permissions.Select(p => p.ToPermissionApiModel());
             });
 
@@ -44,7 +44,7 @@ namespace Fabric.Authorization.API.Modules
                     }
 
                     Permission permission = permissionService.GetPermission(permissionId);
-                    CheckAccess(clientService, permission.Grain, permission.Resource, AuthorizationReadClaim);
+                    CheckAccess(clientService, permission.Grain, permission.SecurableItem, AuthorizationReadClaim);
                     return permission.ToPermissionApiModel();
                 }
                 catch (PermissionNotFoundException ex)
@@ -60,7 +60,7 @@ namespace Fabric.Authorization.API.Modules
                 var permissionApiModel = this.Bind<PermissionApiModel>();
                 var incomingPermission = permissionApiModel.ToPermissionDomainModel();
                 Validate(incomingPermission);
-                CheckAccess(clientService, permissionApiModel.Grain, permissionApiModel.Resource, AuthorizationWriteClaim);
+                CheckAccess(clientService, permissionApiModel.Grain, permissionApiModel.SecurableItem, AuthorizationWriteClaim);
                 Permission permission = permissionService.AddPermission(incomingPermission);
                 return CreateSuccessfulPostResponse(permission.ToPermissionApiModel());
             });
@@ -74,7 +74,7 @@ namespace Fabric.Authorization.API.Modules
                         return CreateFailureResponse("permissionId must be a guid.", HttpStatusCode.BadRequest);
                     }
                     Permission permission = permissionService.GetPermission(permissionId);
-                    CheckAccess(clientService, permission.Grain, permission.Resource, AuthorizationReadClaim);
+                    CheckAccess(clientService, permission.Grain, permission.SecurableItem, AuthorizationReadClaim);
                     permissionService.DeletePermission(permission);
                     return HttpStatusCode.NoContent;
                 }

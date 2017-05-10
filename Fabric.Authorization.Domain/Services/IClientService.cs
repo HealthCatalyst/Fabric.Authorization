@@ -2,6 +2,6 @@
 {
     public interface IClientService
     {
-        bool DoesClientOwnResource(string clientId, string grain, string resource);
+        bool DoesClientOwnItem(string clientId, string grain, string securableItem);
     }
 }

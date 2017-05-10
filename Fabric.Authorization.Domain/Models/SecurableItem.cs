@@ -3,15 +3,15 @@ using System.Collections.Generic;
 
 namespace Fabric.Authorization.Domain.Models
 {
-    public class Resource
+    public class SecurableItem
     {
-        public Resource()
+        public SecurableItem()
         {
-            Resources = new List<Resource>();
+            SecurableItems = new List<SecurableItem>();
         }
 
         public Guid Id { get; set; }
         public string Name { get; set; }
-        public ICollection<Resource> Resources { get; set; }
+        public ICollection<SecurableItem> SecurableItems { get; set; }
     }
 }

@@ -21,9 +21,9 @@ namespace Fabric.Authorization.Domain.Validators
                 .NotEmpty()
                 .WithMessage("Please specify a Grain for this permission");
 
-            RuleFor(permission => permission.Resource)
+            RuleFor(permission => permission.SecurableItem)
                 .NotEmpty()
-                .WithMessage("Please specify a Resource for this permission");
+                .WithMessage("Please specify a SecurableItem for this permission");
 
             RuleFor(permission => permission.Name)
                 .NotEmpty()
@@ -32,7 +32,7 @@ namespace Fabric.Authorization.Domain.Validators
             RuleFor(permission => permission)
                 .Must(BeUnique)
                 .When(permission => !string.IsNullOrEmpty(permission.Grain)
-                                    && !string.IsNullOrEmpty(permission.Resource)
+                                    && !string.IsNullOrEmpty(permission.SecurableItem)
                                     && !string.IsNullOrEmpty(permission.Name))
                 .WithMessage("The permission already exists");
         }
@@ -40,7 +40,7 @@ namespace Fabric.Authorization.Domain.Validators
         public bool BeUnique(Permission permission)
         {
             return !_permissionStore
-                    .GetPermissions(permission.Grain, permission.Resource, permission.Name)
+                    .GetPermissions(permission.Grain, permission.SecurableItem, permission.Name)
                     .Any();
         }
     }

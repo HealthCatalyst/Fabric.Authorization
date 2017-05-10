@@ -17,23 +17,23 @@ namespace Fabric.Authorization.Domain.Services
             _roleStore = roleStore ?? throw new ArgumentNullException(nameof(roleStore));
         }
 
-        public IEnumerable<string> GetPermissionsForGroups(string[] groupNames, string grain = null, string resource = null)
+        public IEnumerable<string> GetPermissionsForGroups(string[] groupNames, string grain = null, string securableItem = null)
         {
             var permissions = new List<string>();
             foreach (var groupName in groupNames)
             {
-                var roles = GetRolesForGroup(groupName, grain, resource);
+                var roles = GetRolesForGroup(groupName, grain, securableItem);
                 permissions
                     .AddRange(roles
                         .Where(r => r.Permissions != null && !r.IsDeleted)
                         .SelectMany(r => r.Permissions.Where(p => !p.IsDeleted && (p.Grain == grain || grain == null) 
-                                                        && (p.Resource == resource || resource == null))
+                                                        && (p.SecurableItem == securableItem || securableItem == null))
                         .Select(p => p.ToString())));
             }
             return permissions;
         }
 
-        public IEnumerable<Role> GetRolesForGroup(string groupName, string grain = null, string resource = null)
+        public IEnumerable<Role> GetRolesForGroup(string groupName, string grain = null, string securableItem = null)
         {
             var group = _groupStore.GetGroup(groupName);
 
@@ -42,9 +42,9 @@ namespace Fabric.Authorization.Domain.Services
             {
                 roles = roles.Where(p => p.Grain == grain).ToList();
             }
-            if (!string.IsNullOrEmpty(resource))
+            if (!string.IsNullOrEmpty(securableItem))
             {
-                roles = roles.Where(p => p.Resource == resource).ToList();
+                roles = roles.Where(p => p.SecurableItem == securableItem).ToList();
             }
             return roles.Where(r => !r.IsDeleted);
         }

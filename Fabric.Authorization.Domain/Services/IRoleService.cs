@@ -6,11 +6,11 @@ namespace Fabric.Authorization.Domain.Services
 {
     public interface IRoleService
     {
-        IEnumerable<Role> GetRoles(string grain = null, string resource = null, string roleName = null);
+        IEnumerable<Role> GetRoles(string grain = null, string securableItem = null, string roleName = null);
 
         IEnumerable<Permission> GetPermissionsForRole(Guid roleId);
 
-        void AddRole(string grain, string resource, string roleName);
+        void AddRole(string grain, string securableItem, string roleName);
 
         void DeleteRole(Guid roleId);
 

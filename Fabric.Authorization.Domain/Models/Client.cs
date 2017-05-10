@@ -3,6 +3,8 @@
     public class Client
     {
         public string Id { get; set; }
-        public Resource TopLevelResource { get; set; }
+
+        public string Name { get; set; }
+        public SecurableItem TopLevelSecurableItem { get; set; }
     }
 }

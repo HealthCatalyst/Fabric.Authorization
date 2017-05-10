@@ -14,7 +14,7 @@ namespace Fabric.Authorization.API.Models
             {
                 Id = role.Id,
                 Grain = role.Grain,
-                Resource = role.Resource,
+                SecurableItem = role.SecurableItem,
                 Name = role.Name,
                 Permissions = role.Permissions?.Select(p => p.ToPermissionApiModel())
             };
@@ -28,7 +28,7 @@ namespace Fabric.Authorization.API.Models
                 Id = permission.Id,
                 Grain = permission.Grain,
                 Name = permission.Name,
-                Resource = permission.Resource,
+                SecurableItem = permission.SecurableItem,
                 CreatedDateTimeUtc = permission.CreatedDateTimeUtc,
                 ModifiedDateTimeUtc = permission.ModifiedDateTimeUtc,
                 CreatedBy = permission.CreatedBy,
@@ -44,7 +44,7 @@ namespace Fabric.Authorization.API.Models
                 Id = permission.Id ?? Guid.Empty,
                 Grain = permission.Grain,
                 Name = permission.Name,
-                Resource = permission.Resource,
+                SecurableItem = permission.SecurableItem,
                 CreatedDateTimeUtc = permission.CreatedDateTimeUtc,
                 ModifiedDateTimeUtc = permission.ModifiedDateTimeUtc,
                 CreatedBy = permission.CreatedBy,

@@ -63,12 +63,12 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
         [Fact]
         public void PermissionsModule_AddPermission_PermissionAlreadyExists()
         {
-            var existingPermission = _existingPermissions.First(p => p.Grain == "app" && p.Resource =="patientsafety");
+            var existingPermission = _existingPermissions.First(p => p.Grain == "app" && p.SecurableItem =="patientsafety");
             var actual = _authorizationApi.Post("/permissions",
                 with => with.JsonBody(new Permission
                 {
                     Grain = existingPermission.Grain,
-                    Resource = existingPermission.Resource,
+                    SecurableItem = existingPermission.SecurableItem,
                     Name = existingPermission.Name
                 })).Result;
             Assert.Equal(HttpStatusCode.BadRequest, actual.StatusCode);
@@ -80,7 +80,7 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
             var permissionToPost = new Permission
             {
                 Grain = "app",
-                Resource = "patientsafety",
+                SecurableItem = "patientsafety",
                 Name = "createalerts"
             };
 
@@ -98,12 +98,12 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
         }
 
         [Theory, MemberData(nameof(BadRequestData))]
-        public void PermissionModule_AddPermission_InvalidModel(string grain, string resource, string permissionName, int errorCount)
+        public void PermissionModule_AddPermission_InvalidModel(string grain, string securableItem, string permissionName, int errorCount)
         {
             var permissionToPost = new Permission
             {
                 Grain = grain,
-                Resource = resource,
+                SecurableItem = securableItem,
                 Name = permissionName
             };
 
@@ -124,7 +124,7 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
         }
 
         [Theory, MemberData(nameof(RequestData))]
-        public void PermissionsModule_GetPermissions_ReturnsPermissionsForGrainAndResource(string path, int statusCode, int count)
+        public void PermissionsModule_GetPermissions_ReturnsPermissionsForGrainAndSecurableItem(string path, int statusCode, int count)
         {
             var actual = _authorizationApi.Get(path).Result;
             Assert.Equal(statusCode, (int)actual.StatusCode);
@@ -194,7 +194,7 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
                 new Client
                 {
                     Id = "patientsafety",
-                    TopLevelResource = new Resource
+                    TopLevelSecurableItem = new SecurableItem
                     {
                         Id = Guid.NewGuid(),
                         Name = "patientsafety"
@@ -211,28 +211,28 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
                 {
                     Id = Guid.NewGuid(),
                     Grain = "app",
-                    Resource = "patientsafety",
+                    SecurableItem = "patientsafety",
                     Name = "manageusers"
                 },
                 new Permission
                 {
                     Id = Guid.NewGuid(),
                     Grain = "app",
-                    Resource = "patientsafety",
+                    SecurableItem = "patientsafety",
                     Name = "updatepatient"
                 },
                 new Permission
                 {
                     Id = Guid.NewGuid(),
                     Grain = "app",
-                    Resource = "sourcemartdesigner",
+                    SecurableItem = "sourcemartdesigner",
                     Name = "manageusers"
                 },
                 new Permission
                 {
                     Id = Guid.NewGuid(),
                     Grain = "patient",
-                    Resource = "Patient",
+                    SecurableItem = "Patient",
                     Name ="read"
                 }
             };

@@ -58,12 +58,12 @@ namespace Fabric.Authorization.API.Modules
             return Negotiate.WithModel(error).WithStatusCode(statusCode);
         }
 
-        protected void CheckAccess(IClientService clientService, dynamic grain, dynamic resource,
+        protected void CheckAccess(IClientService clientService, dynamic grain, dynamic securableItem,
             params Predicate<Claim>[] requiredClaims)
         {
             string grainAsString = grain.ToString();
-            string resourceAsString = resource.ToString();
-            this.RequiresResourceOwnershipAndClaims<T>(clientService, grainAsString, resourceAsString, requiredClaims);
+            string securableItemAsString = securableItem.ToString();
+            this.RequiresOwnershipAndClaims<T>(clientService, grainAsString, securableItemAsString, requiredClaims);
         }
 
         protected void Validate(T model)

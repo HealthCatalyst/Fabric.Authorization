@@ -28,10 +28,10 @@ namespace Fabric.Authorization.UnitTests.Mocks
             mockPermissionStore
                 .Setup(permissionStore => permissionStore.GetPermissions(It.IsAny<string>(), It.IsAny<string>(),
                     It.IsAny<string>()))
-                .Returns((string grain, string resource, string permissionName) => 
+                .Returns((string grain, string securableItem, string permissionName) => 
                     permissions.Where(p => 
                         p.Grain == grain 
-                        && p.Resource == resource 
+                        && p.SecurableItem == securableItem 
                         && (p.Name == permissionName || string.IsNullOrEmpty(permissionName))));
 
             

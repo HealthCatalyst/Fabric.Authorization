@@ -22,42 +22,42 @@ namespace Fabric.Authorization.Domain.Services
             _clientStore = clientStore ?? throw new ArgumentNullException(nameof(clientStore));
         }
 
-        public bool DoesClientOwnResource(string clientId, string grain, string resource)
+        public bool DoesClientOwnItem(string clientId, string grain, string securableItem)
         {
             if (string.IsNullOrEmpty(clientId)) return false;
 
             var client = _clientStore.GetClient(clientId);
-            var topLeveResource = client.TopLevelResource;
+            var topLevelSecurableItem = client.TopLevelSecurableItem;
 
-            if (topLeveResource == null)
+            if (topLevelSecurableItem == null)
             {
                 return false;
             }
 
             
-            if (TopLevelGrains.Contains(grain) && topLeveResource.Name == resource)
+            if (TopLevelGrains.Contains(grain) && topLevelSecurableItem.Name == securableItem)
             {
                 return true;
             }
 
-            return HasRequestedResource(topLeveResource, grain, resource);
+            return HasRequestedSecurableItem(topLevelSecurableItem, grain, securableItem);
         }
 
-        private bool HasRequestedResource(Resource parentResource, string grain, string resource)
+        private bool HasRequestedSecurableItem(SecurableItem parentSecurableItem, string grain, string securableItem)
         {
-            var childResources = parentResource.Resources;
+            var childSecurableItems = parentSecurableItem.SecurableItems;
 
-            if (childResources == null || childResources.Count == 0)
+            if (childSecurableItems == null || childSecurableItems.Count == 0)
             {
                 return false;
             }
 
-            if (parentResource.Name == grain && childResources.Any(r => r.Name == resource))
+            if (parentSecurableItem.Name == grain && childSecurableItems.Any(r => r.Name == securableItem))
             {
                 return true;
             }
 
-            return childResources.Any(childResource => HasRequestedResource(childResource, grain, resource));
+            return childSecurableItems.Any(childSecurableItem => HasRequestedSecurableItem(childSecurableItem, grain, securableItem));
         }
     }
 }

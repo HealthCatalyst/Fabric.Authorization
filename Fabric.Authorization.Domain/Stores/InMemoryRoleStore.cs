@@ -11,16 +11,16 @@ namespace Fabric.Authorization.Domain.Stores
     {
         private static readonly ConcurrentDictionary<Guid, Role> Roles = new ConcurrentDictionary<Guid, Role>();
         
-        public IEnumerable<Role> GetRoles(string grain = null, string resource = null, string roleName = null)
+        public IEnumerable<Role> GetRoles(string grain = null, string securableItem = null, string roleName = null)
         {
             var roles = Roles.Select(kvp => kvp.Value);
             if (!string.IsNullOrEmpty(grain))
             {
                 roles = roles.Where(r => r.Grain == grain);
             }
-            if (!string.IsNullOrEmpty(resource))
+            if (!string.IsNullOrEmpty(securableItem))
             {
-                roles = roles.Where(r => r.Resource == resource);
+                roles = roles.Where(r => r.SecurableItem == securableItem);
             }
             if (!string.IsNullOrEmpty(roleName))
             {

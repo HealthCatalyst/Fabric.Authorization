@@ -15,15 +15,15 @@ namespace Fabric.Authorization.API.Modules
             {
                 try
                 {
-                    //TODO: validate that the client has access to the grain/resource they are requesting permissions for
+                    //TODO: validate that the client has access to the grain/securableItem they are requesting permissions for
                     var userPermissionRequest = this.Bind<UserInfoRequest>();
                     var groups = new[] { "HC PatientSafety Admin", "HC SourceMartDesigner Admin" }; //TODO: get this from the identity when we wire up that functionality
                     var permissions = groupService.GetPermissionsForGroups(groups,
-                        userPermissionRequest.Grain, userPermissionRequest.Resource);
+                        userPermissionRequest.Grain, userPermissionRequest.SecurableItem);
                     return new UserPermissionsApiModel
                     {
                         RequestedGrain = userPermissionRequest.Grain,
-                        RequestedResource = userPermissionRequest.Resource,
+                        RequestedSecurableItem = userPermissionRequest.SecurableItem,
                         Permissions = permissions
                     };
                 }
