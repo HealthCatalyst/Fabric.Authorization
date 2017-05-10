@@ -7,7 +7,7 @@ using Nancy.Extensions;
 using Nancy.Responses;
 using Nancy.Security;
 
-namespace Fabric.Authorization.API.Security
+namespace Fabric.Authorization.API.ModuleExtensions
 {
     public static class ModuleSecurity
     {

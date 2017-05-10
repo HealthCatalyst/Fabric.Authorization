@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http.Headers;
-using System.Threading.Tasks;
-using Elasticsearch.Net;
 using Fabric.Authorization.Domain;
 using FluentValidation.Results;
 
@@ -29,6 +25,18 @@ namespace Fabric.Authorization.API.Models
             var permissionApiModel = new PermissionApiModel
             {
                 Id = permission.Id,
+                Grain = permission.Grain,
+                Name = permission.Name,
+                Resource = permission.Resource
+            };
+            return permissionApiModel;
+        }
+
+        public static Permission ToPermissionDomainModel(this PermissionApiModel permission)
+        {
+            var permissionApiModel = new Permission
+            {
+                Id = permission.Id ?? Guid.Empty,
                 Grain = permission.Grain,
                 Name = permission.Name,
                 Resource = permission.Resource

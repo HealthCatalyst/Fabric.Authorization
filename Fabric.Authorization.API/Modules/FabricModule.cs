@@ -1,20 +1,21 @@
 ﻿using System;
 using System.Security.Claims;
 using Fabric.Authorization.API.Models;
-using FluentValidation.Results;
 using Nancy;
 using Nancy.Responses.Negotiation;
 using Fabric.Authorization.API.Constants;
-using Fabric.Authorization.API.Security;
+using Fabric.Authorization.API.ModuleExtensions;
 using Fabric.Authorization.Domain.Clients;
+using FluentValidation;
 
 namespace Fabric.Authorization.API.Modules
 {
-    public abstract class FabricModule : NancyModule
+    public abstract class FabricModule<T> : NancyModule
     {
         protected string ReadScope => "fabric/authorization.read";
         protected string WriteScope => "fabric/authorization.write";
 
+        protected AbstractValidator<T> Validator;
         protected Predicate<Claim> AuthorizationReadClaim
         {
             get { return claim => claim.Type == "scope" && claim.Value == ReadScope; }
@@ -28,9 +29,9 @@ namespace Fabric.Authorization.API.Modules
         protected FabricModule()
         { }
 
-        protected FabricModule(string path) : base(path)
+        protected FabricModule(string path, AbstractValidator<T> abstractValidator) : base(path)
         {
-            
+            Validator = abstractValidator ?? throw new ArgumentNullException(nameof(abstractValidator));
         }
 
         protected Negotiator CreateSuccessfulPostResponse(IIdentifiable model)
@@ -48,24 +49,27 @@ namespace Fabric.Authorization.API.Modules
                 .WithHeader(HttpResponseHeaders.Location, selfLink);
         }
 
-        protected Negotiator CreateFailureResponse<T>(ValidationResult validationResult, HttpStatusCode statusCode)
-        {
-            var error = ErrorFactory.CreateError<T>(validationResult, statusCode);
-            return Negotiate.WithModel(error).WithStatusCode(statusCode);
-        }
-
-        protected Negotiator CreateFailureResponse<T>(string message, HttpStatusCode statusCode)
+        protected Negotiator CreateFailureResponse(string message, HttpStatusCode statusCode)
         {
             var error = ErrorFactory.CreateError<T>(message, statusCode);
             return Negotiate.WithModel(error).WithStatusCode(statusCode);
         }
 
-        protected void CheckAccess<T>(IClientService clientService, dynamic grain, dynamic resource,
+        protected void CheckAccess(IClientService clientService, dynamic grain, dynamic resource,
             params Predicate<Claim>[] requiredClaims)
         {
             string grainAsString = grain.ToString();
             string resourceAsString = resource.ToString();
             this.RequiresResourceOwnershipAndClaims<T>(clientService, grainAsString, resourceAsString, requiredClaims);
+        }
+
+        protected void Validate(T model)
+        {
+            var validationResults = Validator.Validate(model);
+            if (!validationResults.IsValid)
+            {
+                this.CreateValidationFailureResponse<T>(validationResults);
+            }
         }
     }
 }
