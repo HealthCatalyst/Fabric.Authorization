@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Fabric.Authorization.Domain;
 using Fabric.Authorization.Domain.Models;
 using FluentValidation.Results;
@@ -51,6 +52,60 @@ namespace Fabric.Authorization.API.Models
                 ModifiedBy = permission.ModifiedBy
             };
             return permissionApiModel;
+        }
+
+        public static ClientApiModel ToClientApiModel(this Client client)
+        {
+            var clientApiModel = new ClientApiModel
+            {
+                Id = client.Id,
+                Name = client.Name,
+                CreatedDateTimeUtc = client.CreatedDateTimeUtc,
+                ModifiedDateTimeUtc = client.ModifiedDateTimeUtc,
+                CreatedBy = client.CreatedBy,
+                ModifiedBy = client.ModifiedBy,
+                TopLevelSecurableItem = client.TopLevelSecurableItem.ToSecurableItemApiModel()
+
+            };
+            return clientApiModel;
+        }
+
+        public static Client ToClientDomainModel(this ClientApiModel client)
+        {
+            var clientApiModel = new Client()
+            {
+                Id = client.Id,
+                Name = client.Name,
+                CreatedDateTimeUtc = client.CreatedDateTimeUtc,
+                ModifiedDateTimeUtc = client.ModifiedDateTimeUtc,
+                CreatedBy = client.CreatedBy,
+                ModifiedBy = client.ModifiedBy,
+                TopLevelSecurableItem = client.TopLevelSecurableItem.ToSecurableItemDomainModel()
+
+            };
+            return clientApiModel;
+        }
+
+        public static SecurableItemApiModel ToSecurableItemApiModel(this SecurableItem securableItem)
+        {
+            var securableItemApiModel = new SecurableItemApiModel
+            {
+                Id = securableItem.Id,
+                Name = securableItem.Name,
+                SecurableItems = securableItem.SecurableItems.Select(s => s.ToSecurableItemApiModel()).ToList()
+            };
+            return securableItemApiModel;
+        }
+
+        public static SecurableItem ToSecurableItemDomainModel(this SecurableItemApiModel securableItem)
+        {
+            var securableItemApiModel = new SecurableItem
+            {
+                Id = securableItem.Id ?? Guid.Empty,
+                Name = securableItem.Name,
+                SecurableItems = securableItem.SecurableItems.Select(s => s.ToSecurableItemDomainModel()).ToList()
+            };
+            return securableItemApiModel;
         }
 
         public static Error ToError(this ValidationResult validationResult)

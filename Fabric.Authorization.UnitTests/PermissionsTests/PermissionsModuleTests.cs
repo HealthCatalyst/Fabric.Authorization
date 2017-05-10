@@ -180,7 +180,7 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
 
                 with.RequestStartup((container, pipeline, context) =>
                 {
-                    context.CurrentUser = new TestPrincipal(new Claim("client_id", "patientsafety"), 
+                    context.CurrentUser = new TestPrincipal(new Claim(Claims.Scope, "patientsafety"), 
                         new Claim("scope", "fabric/authorization.read"), 
                         new Claim("scope", "fabric/authorization.write"));
                 });

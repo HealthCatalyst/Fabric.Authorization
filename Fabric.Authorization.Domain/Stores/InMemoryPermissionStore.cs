@@ -48,7 +48,6 @@ namespace Fabric.Authorization.Domain.Stores
         public void DeletePermission(Permission permission)
         {
             permission.IsDeleted = true;
-            permission.ModifiedDateTimeUtc = DateTime.UtcNow;
             UpdatePermission(permission);
         }
 

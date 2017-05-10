@@ -43,6 +43,31 @@ namespace Fabric.Authorization.Domain.Services
             return HasRequestedSecurableItem(topLevelSecurableItem, grain, securableItem);
         }
 
+        public IEnumerable<Client> GetClients()
+        {
+            return _clientStore.GetClients();
+        }
+
+        public Client GetClient(string id)
+        {
+            return _clientStore.GetClient(id);
+        }
+
+        public Client AddClient(Client client)
+        {
+            client.TopLevelSecurableItem = new SecurableItem
+            {
+                Id = Guid.NewGuid(),
+                Name = client.Id
+            };
+            return _clientStore.Add(client);
+        }
+
+        public void DeleteClient(Client client)
+        {
+            _clientStore.Delete(client);
+        }
+
         private bool HasRequestedSecurableItem(SecurableItem parentSecurableItem, string grain, string securableItem)
         {
             var childSecurableItems = parentSecurableItem.SecurableItems;

@@ -16,16 +16,23 @@ namespace Fabric.Authorization.API.Modules
         protected string ReadScope => "fabric/authorization.read";
         protected string WriteScope => "fabric/authorization.write";
 
+        protected string ManageClientsScope => "fabric/authorization.manageclients";
+
         protected AbstractValidator<T> Validator;
         protected ILogger Logger;
         protected Predicate<Claim> AuthorizationReadClaim
         {
-            get { return claim => claim.Type == "scope" && claim.Value == ReadScope; }
+            get { return claim => claim.Type == Claims.Scope && claim.Value == ReadScope; }
         }
 
         protected Predicate<Claim> AuthorizationWriteClaim
         {
-            get { return claim => claim.Type == "scope" && claim.Value == WriteScope; }
+            get { return claim => claim.Type == Claims.Scope && claim.Value == WriteScope; }
+        }
+
+        protected Predicate<Claim> AuthorizationManageClientsClaim
+        {
+            get { return claim => claim.Type == Claims.Scope && claim.Value == ManageClientsScope; }
         }
 
         protected FabricModule()
@@ -42,7 +49,7 @@ namespace Fabric.Authorization.API.Modules
             var uriBuilder = new UriBuilder(Request.Url.Scheme,
                 Request.Url.HostName,
                 Request.Url.Port ?? 80,
-                $"{ModulePath}/{model.Id}");
+                $"{ModulePath}/{model.Identifier}");
 
             var selfLink = uriBuilder.ToString();
 
@@ -74,6 +81,11 @@ namespace Fabric.Authorization.API.Modules
                 Logger.Information("Validation failed for model: {@model}. ValidationResults: {@validationResults}.", model, validationResults);
                 this.CreateValidationFailureResponse<T>(validationResults);
             }
+        }
+
+        protected Predicate<Claim> GetClientIdPredicate(string clientId)
+        {
+            return claim => claim.Type == Claims.ClientId && claim.Value == clientId;
         }
     }
 }

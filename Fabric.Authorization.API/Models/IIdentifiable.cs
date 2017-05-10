@@ -7,6 +7,6 @@ namespace Fabric.Authorization.API.Models
 {
     public interface IIdentifiable
     {
-        Guid? Id { get; }
+        string Identifier { get; }
     }
 }

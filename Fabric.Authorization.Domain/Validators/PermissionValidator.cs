@@ -37,7 +37,7 @@ namespace Fabric.Authorization.Domain.Validators
                 .WithMessage("The permission already exists");
         }
 
-        public bool BeUnique(Permission permission)
+        private bool BeUnique(Permission permission)
         {
             return !_permissionStore
                     .GetPermissions(permission.Grain, permission.SecurableItem, permission.Name)

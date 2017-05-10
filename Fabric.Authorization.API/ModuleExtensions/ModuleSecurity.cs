@@ -6,6 +6,7 @@ using Nancy;
 using Nancy.Extensions;
 using Nancy.Responses;
 using Nancy.Security;
+using Fabric.Authorization.API.Constants;
 
 namespace Fabric.Authorization.API.ModuleExtensions
 {
@@ -22,7 +23,7 @@ namespace Fabric.Authorization.API.ModuleExtensions
             return (context) =>
             {
                 Response response = null;
-                var clientId = context.CurrentUser?.FindFirst("client_id")?.Value;
+                var clientId = context.CurrentUser?.FindFirst(Claims.Scope)?.Value;
                 if (!clientService.DoesClientOwnItem(clientId, grain, securableItem))
                 {
                     var error = ErrorFactory.CreateError<T>($"Client: {clientId} does not have access to the requested grain/securableItem: {grain}/{securableItem} combination", HttpStatusCode.Forbidden);
