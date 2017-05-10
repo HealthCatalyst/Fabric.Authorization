@@ -2,18 +2,22 @@
 using System.Collections.Generic;
 using System.Linq;
 using Fabric.Authorization.API.Models;
-using Fabric.Authorization.Domain;
 using Fabric.Authorization.Domain.Exceptions;
+using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Validators;
 using Nancy;
 using Nancy.ModelBinding;
+using Serilog;
 
 namespace Fabric.Authorization.API.Modules
 {
     public class PermissionsModule : FabricModule<Permission>
     {
-        public PermissionsModule(IPermissionService permissionService, IClientService clientService, PermissionValidator validator) : base("/Permissions", validator)
+        public PermissionsModule(IPermissionService permissionService, 
+            IClientService clientService, 
+            ILogger logger, 
+            PermissionValidator validator) : base("/Permissions", logger, validator)
         {
             Get("/{grain}/{resource}", parameters =>
             {
@@ -43,20 +47,21 @@ namespace Fabric.Authorization.API.Modules
                     CheckAccess(clientService, permission.Grain, permission.Resource, AuthorizationReadClaim);
                     return permission.ToPermissionApiModel();
                 }
-                catch (PermissionNotFoundException)
+                catch (PermissionNotFoundException ex)
                 {
-                    return CreateFailureResponse("The specified permission was not found.", HttpStatusCode.NotFound);
+
+                    Logger.Error(ex, ex.Message, parameters.permissionId);
+                    return CreateFailureResponse($"The specified permission with id: {parameters.permissionId} was not found.", HttpStatusCode.NotFound);
                 }
             });
 
             Post("/", parameters =>
             {
                 var permissionApiModel = this.Bind<PermissionApiModel>();
-
-                Validate(permissionApiModel.ToPermissionDomainModel());
+                var incomingPermission = permissionApiModel.ToPermissionDomainModel();
+                Validate(incomingPermission);
                 CheckAccess(clientService, permissionApiModel.Grain, permissionApiModel.Resource, AuthorizationWriteClaim);
-                Permission permission = permissionService.AddPermission(permissionApiModel.Grain, permissionApiModel.Resource,
-                   permissionApiModel.Name);
+                Permission permission = permissionService.AddPermission(incomingPermission);
                 return CreateSuccessfulPostResponse(permission.ToPermissionApiModel());
             });
 
@@ -73,9 +78,10 @@ namespace Fabric.Authorization.API.Modules
                     permissionService.DeletePermission(permission);
                     return HttpStatusCode.NoContent;
                 }
-                catch (PermissionNotFoundException)
+                catch (PermissionNotFoundException ex)
                 {
-                    return CreateFailureResponse("The specified permission was not found.", HttpStatusCode.NotFound);
+                    Logger.Error(ex, ex.Message, parameters.permissionId);
+                    return CreateFailureResponse($"The specified permission with id: {parameters.permissionId} was not found.", HttpStatusCode.NotFound);
                 }
             });
         }

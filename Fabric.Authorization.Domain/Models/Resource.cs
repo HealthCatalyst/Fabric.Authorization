@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
-namespace Fabric.Authorization.Domain
+namespace Fabric.Authorization.Domain.Models
 {
     public class Resource
     {

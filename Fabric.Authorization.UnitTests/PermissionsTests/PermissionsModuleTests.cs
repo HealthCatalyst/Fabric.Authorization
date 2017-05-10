@@ -6,11 +6,13 @@ using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain;
+using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.UnitTests.Mocks;
 using Moq;
 using Nancy.Testing;
+using Serilog;
 using Xunit;
 using HttpStatusCode = Nancy.HttpStatusCode;
 
@@ -29,7 +31,8 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
             _mockPermissionStore = new Mock<IPermissionStore>().SetupGetPermissions(_existingPermissions)
                 .SetupAddPermissions();
             var mockClientStore = new Mock<IClientStore>().SetupGetClient(clients);
-            _authorizationApi = new Browser(CreateBootstrappper(_mockPermissionStore.Object, mockClientStore.Object),
+            var mockLogger = new Mock<ILogger>();
+            _authorizationApi = new Browser(CreateBootstrappper(_mockPermissionStore.Object, mockClientStore.Object, mockLogger.Object),
                 withDefaults => withDefaults.Accept("application/json"));
         }
 
@@ -164,13 +167,14 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
             new object[] {null, null, null, 3}
         };
 
-        private ConfigurableBootstrapper CreateBootstrappper(IPermissionStore mockPermissionStore, IClientStore mockClientStore)
+        private ConfigurableBootstrapper CreateBootstrappper(IPermissionStore mockPermissionStore, IClientStore mockClientStore, ILogger mockLogger)
         {
             return new ConfigurableBootstrapper(with =>
             {
                 with.Module<PermissionsModule>()
                     .Dependency<IPermissionService>(typeof(PermissionService))
                     .Dependency<IClientService>(typeof(ClientService))
+                    .Dependency(mockLogger)
                     .Dependency(mockPermissionStore)
                     .Dependency(mockClientStore);
 

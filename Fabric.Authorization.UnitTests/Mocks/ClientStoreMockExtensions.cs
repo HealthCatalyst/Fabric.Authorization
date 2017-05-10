@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Fabric.Authorization.Domain;
+using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
 using Moq;
 

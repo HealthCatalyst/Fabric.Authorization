@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using Fabric.Authorization.Domain.Exceptions;
+using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.Domain.Stores
 {

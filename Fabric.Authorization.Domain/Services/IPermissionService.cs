@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.Domain.Services
 {
@@ -10,10 +11,8 @@ namespace Fabric.Authorization.Domain.Services
 
         Permission GetPermission(Guid permissionId);
         
-        Permission AddPermission(string grain, string resource, string permissionName);
-
-        Result<Permission> ValidatePermission(string grain, string resource, string permissionName);
-
+        Permission AddPermission(Permission permission);
+        
         void DeletePermission(Permission permission);
     }
 }

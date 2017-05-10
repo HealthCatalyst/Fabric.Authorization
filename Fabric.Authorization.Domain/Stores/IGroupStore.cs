@@ -1,4 +1,6 @@
-﻿namespace Fabric.Authorization.Domain.Stores
+﻿using Fabric.Authorization.Domain.Models;
+
+namespace Fabric.Authorization.Domain.Stores
 {
     public interface IGroupStore
     {

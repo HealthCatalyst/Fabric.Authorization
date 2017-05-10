@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Fabric.Authorization.Domain.Exceptions;
+using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.Domain.Stores
 {
@@ -39,6 +40,7 @@ namespace Fabric.Authorization.Domain.Stores
         public Permission AddPermission(Permission permission)
         {
             permission.Id = Guid.NewGuid();
+            permission.CreatedDateTimeUtc = DateTime.UtcNow;
             Permissions.TryAdd(permission.Id, permission);
             return permission;
         }
@@ -46,12 +48,13 @@ namespace Fabric.Authorization.Domain.Stores
         public void DeletePermission(Permission permission)
         {
             permission.IsDeleted = true;
+            permission.ModifiedDateTimeUtc = DateTime.UtcNow;
             UpdatePermission(permission);
         }
 
         public void UpdatePermission(Permission permission)
         {
-            //do nothing since this is an in memory store
+            permission.ModifiedDateTimeUtc = DateTime.UtcNow;
         }
     }
 }

@@ -45,6 +45,7 @@ namespace Fabric.Authorization.API
 
             //container registrations
             container.Register(_appConfig);
+            container.Register(_logger);
             container.Register<IRoleStore, InMemoryRoleStore>();
             container.Register<IRoleService, RoleService>();
             container.Register<IPermissionService, PermissionService>();

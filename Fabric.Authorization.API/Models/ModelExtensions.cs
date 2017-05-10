@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Fabric.Authorization.Domain;
+using Fabric.Authorization.Domain.Models;
 using FluentValidation.Results;
 
 namespace Fabric.Authorization.API.Models
@@ -27,7 +28,11 @@ namespace Fabric.Authorization.API.Models
                 Id = permission.Id,
                 Grain = permission.Grain,
                 Name = permission.Name,
-                Resource = permission.Resource
+                Resource = permission.Resource,
+                CreatedDateTimeUtc = permission.CreatedDateTimeUtc,
+                ModifiedDateTimeUtc = permission.ModifiedDateTimeUtc,
+                CreatedBy = permission.CreatedBy,
+                ModifiedBy = permission.ModifiedBy
             };
             return permissionApiModel;
         }
@@ -39,7 +44,11 @@ namespace Fabric.Authorization.API.Models
                 Id = permission.Id ?? Guid.Empty,
                 Grain = permission.Grain,
                 Name = permission.Name,
-                Resource = permission.Resource
+                Resource = permission.Resource,
+                CreatedDateTimeUtc = permission.CreatedDateTimeUtc,
+                ModifiedDateTimeUtc = permission.ModifiedDateTimeUtc,
+                CreatedBy = permission.CreatedBy,
+                ModifiedBy = permission.ModifiedBy
             };
             return permissionApiModel;
         }

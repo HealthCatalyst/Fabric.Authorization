@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
-namespace Fabric.Authorization.Domain
+namespace Fabric.Authorization.Domain.Models
 {
     public class Group
     {

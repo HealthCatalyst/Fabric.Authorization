@@ -7,6 +7,7 @@ using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.ModuleExtensions;
 using Fabric.Authorization.Domain.Services;
 using FluentValidation;
+using Serilog;
 
 namespace Fabric.Authorization.API.Modules
 {
@@ -16,6 +17,7 @@ namespace Fabric.Authorization.API.Modules
         protected string WriteScope => "fabric/authorization.write";
 
         protected AbstractValidator<T> Validator;
+        protected ILogger Logger;
         protected Predicate<Claim> AuthorizationReadClaim
         {
             get { return claim => claim.Type == "scope" && claim.Value == ReadScope; }
@@ -29,9 +31,10 @@ namespace Fabric.Authorization.API.Modules
         protected FabricModule()
         { }
 
-        protected FabricModule(string path, AbstractValidator<T> abstractValidator) : base(path)
+        protected FabricModule(string path, ILogger logger, AbstractValidator<T> abstractValidator) : base(path)
         {
             Validator = abstractValidator ?? throw new ArgumentNullException(nameof(abstractValidator));
+            Logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         protected Negotiator CreateSuccessfulPostResponse(IIdentifiable model)
@@ -68,6 +71,7 @@ namespace Fabric.Authorization.API.Modules
             var validationResults = Validator.Validate(model);
             if (!validationResults.IsValid)
             {
+                Logger.Information("Validation failed for model: {@model}. ValidationResults: {@validationResults}.", model, validationResults);
                 this.CreateValidationFailureResponse<T>(validationResults);
             }
         }
