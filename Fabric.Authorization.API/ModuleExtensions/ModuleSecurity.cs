@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Security.Claims;
 using Fabric.Authorization.API.Models;
-using Fabric.Authorization.Domain.Clients;
+using Fabric.Authorization.Domain.Services;
 using Nancy;
 using Nancy.Extensions;
 using Nancy.Responses;

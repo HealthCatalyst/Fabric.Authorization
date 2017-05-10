@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Validators;
 using FluentValidation.Results;
 
-namespace Fabric.Authorization.Domain.Permissions
+namespace Fabric.Authorization.Domain.Services
 {
     public class PermissionService : IPermissionService
     {

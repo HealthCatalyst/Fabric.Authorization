@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Fabric.Authorization.Domain.Stores;
 
-namespace Fabric.Authorization.Domain.Clients
+namespace Fabric.Authorization.Domain.Services
 {
     public class ClientService : IClientService
     {

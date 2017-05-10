@@ -5,7 +5,7 @@ using Nancy;
 using Nancy.Responses.Negotiation;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.ModuleExtensions;
-using Fabric.Authorization.Domain.Clients;
+using Fabric.Authorization.Domain.Services;
 using FluentValidation;
 
 namespace Fabric.Authorization.API.Modules

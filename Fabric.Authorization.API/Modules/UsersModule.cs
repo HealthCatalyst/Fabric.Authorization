@@ -1,6 +1,6 @@
 ﻿using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Domain.Exceptions;
-using Fabric.Authorization.Domain.Groups;
+using Fabric.Authorization.Domain.Services;
 using Nancy;
 using Nancy.ModelBinding;
 

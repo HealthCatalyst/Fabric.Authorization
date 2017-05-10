@@ -2,10 +2,8 @@
 using System.Security.Claims;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.Domain;
-using Fabric.Authorization.Domain.Clients;
-using Fabric.Authorization.Domain.Groups;
-using Fabric.Authorization.Domain.Permissions;
-using Fabric.Authorization.Domain.Roles;
+using Fabric.Authorization.Domain.Services;
+using Fabric.Authorization.Domain.Stores;
 using Fabric.Platform.Bootstrappers.Nancy;
 using Nancy;
 using Nancy.Bootstrapper;

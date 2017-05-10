@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using Fabric.Authorization.Domain.Exceptions;
 
-namespace Fabric.Authorization.Domain.Clients
+namespace Fabric.Authorization.Domain.Stores
 {
     public class InMemoryClientStore : IClientStore
     {

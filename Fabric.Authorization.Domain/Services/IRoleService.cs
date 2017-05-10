@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
-namespace Fabric.Authorization.Domain.Roles
+namespace Fabric.Authorization.Domain.Services
 {
     public interface IRoleService
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Fabric.Authorization.Domain.Permissions
+namespace Fabric.Authorization.Domain.Services
 {
     public interface IPermissionService
     {

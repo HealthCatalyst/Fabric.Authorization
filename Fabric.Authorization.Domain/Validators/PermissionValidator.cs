@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using Fabric.Authorization.Domain.Permissions;
+using Fabric.Authorization.Domain.Stores;
 using FluentValidation;
 
 namespace Fabric.Authorization.Domain.Validators

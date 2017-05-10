@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Fabric.Authorization.Domain.Exceptions;
 
-namespace Fabric.Authorization.Domain.Roles
+namespace Fabric.Authorization.Domain.Stores
 {
     public class InMemoryRoleStore : IRoleStore
     {

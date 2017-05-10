@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Text;
 using Fabric.Authorization.Domain.Exceptions;
 
-namespace Fabric.Authorization.Domain.Groups
+namespace Fabric.Authorization.Domain.Stores
 {
     public class InMemoryGroupStore : IGroupStore
     {

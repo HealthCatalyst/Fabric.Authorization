@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Fabric.Authorization.Domain.Exceptions;
-using Fabric.Authorization.Domain.Roles;
+using Fabric.Authorization.Domain.Stores;
 
-namespace Fabric.Authorization.Domain.Groups
+namespace Fabric.Authorization.Domain.Services
 {
     public class GroupService : IGroupService
     {

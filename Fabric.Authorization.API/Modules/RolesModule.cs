@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Domain;
 using Fabric.Authorization.Domain.Exceptions;
-using Fabric.Authorization.Domain.Roles;
+using Fabric.Authorization.Domain.Services;
 using Nancy;
 using Nancy.ModelBinding;
 

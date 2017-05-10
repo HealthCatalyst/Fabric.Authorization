@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Fabric.Authorization.Domain;
 using Fabric.Authorization.Domain.Exceptions;
-using Fabric.Authorization.Domain.Permissions;
+using Fabric.Authorization.Domain.Stores;
 using Moq;
 
 namespace Fabric.Authorization.UnitTests.Mocks

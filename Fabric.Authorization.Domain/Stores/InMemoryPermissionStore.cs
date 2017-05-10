@@ -2,10 +2,9 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Fabric.Authorization.Domain.Exceptions;
 
-namespace Fabric.Authorization.Domain.Permissions
+namespace Fabric.Authorization.Domain.Stores
 {
     public class InMemoryPermissionStore : IPermissionStore
     {

@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
-namespace Fabric.Authorization.Domain.Groups
+namespace Fabric.Authorization.Domain.Services
 {
     public interface IGroupService
     {

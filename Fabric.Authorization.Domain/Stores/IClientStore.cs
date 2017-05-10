@@ -1,4 +1,4 @@
-﻿namespace Fabric.Authorization.Domain.Clients
+﻿namespace Fabric.Authorization.Domain.Stores
 {
     public interface IClientStore
     {
