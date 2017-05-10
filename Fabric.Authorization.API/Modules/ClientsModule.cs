@@ -29,7 +29,7 @@ namespace Fabric.Authorization.API.Modules
                 try
                 {
                     string clientIdAsString = parameters.clientid.ToString();
-                    this.RequiresClaims(AuthorizationManageClientsClaim, GetClientIdPredicate(clientIdAsString));
+                    this.RequiresClaims(AuthorizationReadClaim, GetClientIdPredicate(clientIdAsString));
                     Client client = clientService.GetClient(clientIdAsString);
                     return client.ToClientApiModel();
                 }

@@ -15,6 +15,10 @@ namespace Fabric.Authorization.UnitTests.Mocks
         {
             mockClientStore.Setup(clientStore => clientStore.GetClient(It.IsAny<string>()))
                 .Returns((string clientId) => clients.First(c => c.Id == clientId));
+            mockClientStore.Setup(clientStore => clientStore.ClientExists(It.IsAny<string>()))
+                .Returns((string clientId) => clients.Any(c => c.Id == clientId));
+            mockClientStore.Setup(clientStore => clientStore.GetClients())
+                .Returns(() => clients);
             return mockClientStore;
         }
 
