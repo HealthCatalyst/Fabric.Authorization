@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
@@ -19,53 +20,17 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
     {
         private readonly Browser _authorizationApi;
         private readonly List<Permission> _existingPermissions;
-        private readonly List<Client> _clients;
         private readonly Mock<IPermissionStore> _mockPermissionStore;
-        private readonly Mock<IClientStore> _mockClientStore;
 
         public PermissionsModuleTests()
         {
-            _existingPermissions = new List<Permission>
-            {
-                new Permission
-                {
-                    Id = Guid.NewGuid(),
-                    Grain = "app",
-                    Resource = "patientsafety",
-                    Name = "manageusers"
-                },
-                new Permission
-                {
-                    Id = Guid.NewGuid(),
-                    Grain = "app",
-                    Resource = "patientsafety",
-                    Name = "updatepatient"
-                },
-                new Permission
-                {
-                    Id = Guid.NewGuid(),
-                    Grain = "app",
-                    Resource = "sourcemartdesigner",
-                    Name = "manageusers"
-                },
-                new Permission
-                {
-                    Id = Guid.NewGuid(),
-                    Grain = "patient",
-                    Resource = "Patient",
-                    Name ="read"
-                }
-            };
-
-            _clients = new List<Client>();
-
-            _mockPermissionStore = new Mock<IPermissionStore>().SetupGetPermissions(_existingPermissions).SetupAddPermissions();
-            _mockClientStore = new Mock<IClientStore>().SetupGetClient(_clients);
-            _authorizationApi = new Browser(with => with.Module<PermissionsModule>()
-                                                        .Dependency<IPermissionService>(typeof(PermissionService))
-                                                        .Dependency<IClientService>(typeof(ClientService))
-                                                        .Dependency(_mockPermissionStore.Object)
-                                                        .Dependency(_mockClientStore.Object), withDefaults => withDefaults.Accept("application/json"));
+            _existingPermissions = CreatePermissionList();
+            var clients = CreateClientList();
+            _mockPermissionStore = new Mock<IPermissionStore>().SetupGetPermissions(_existingPermissions)
+                .SetupAddPermissions();
+            var mockClientStore = new Mock<IClientStore>().SetupGetClient(clients);
+            _authorizationApi = new Browser(CreateBootstrappper(_mockPermissionStore.Object, mockClientStore.Object),
+                withDefaults => withDefaults.Accept("application/json"));
         }
 
         [Fact]
@@ -95,7 +60,7 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
         [Fact]
         public void PermissionsModule_AddPermission_PermissionAlreadyExists()
         {
-            var existingPermission = _existingPermissions.First();
+            var existingPermission = _existingPermissions.First(p => p.Grain == "app" && p.Resource =="patientsafety");
             var actual = _authorizationApi.Post("/permissions",
                 with => with.JsonBody(new Permission
                 {
@@ -185,8 +150,7 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
         {
             new object[] { "/permissions/app/patientsafety", 200, 2},
             new object[] {"/permissions/app/patientsafety/updatepatient", 200, 1},
-            new object[] {"/permissions/app/sourcemartdesigner", 200, 1},
-            new object[] {"/permissions/app/nonexistant", 200, 0},
+            new object[] {"/permissions/app/sourcemartdesigner", 403, 0},
             new object[] {"/permissions/app", 400, 0}
         };
 
@@ -199,5 +163,75 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
             new object[] {"app", null, null, 2},
             new object[] {null, null, null, 3}
         };
+
+        private ConfigurableBootstrapper CreateBootstrappper(IPermissionStore mockPermissionStore, IClientStore mockClientStore)
+        {
+            return new ConfigurableBootstrapper(with =>
+            {
+                with.Module<PermissionsModule>()
+                    .Dependency<IPermissionService>(typeof(PermissionService))
+                    .Dependency<IClientService>(typeof(ClientService))
+                    .Dependency(mockPermissionStore)
+                    .Dependency(mockClientStore);
+
+                with.RequestStartup((container, pipeline, context) =>
+                {
+                    context.CurrentUser = new TestPrincipal(new Claim("client_id", "patientsafety"), 
+                        new Claim("scope", "fabric/authorization.read"), 
+                        new Claim("scope", "fabric/authorization.write"));
+                });
+            });
+        }
+
+        private List<Client> CreateClientList()
+        {
+            return new List<Client>
+            {
+                new Client
+                {
+                    Id = "patientsafety",
+                    TopLevelResource = new Resource
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "patientsafety"
+                    }
+                }
+            };
+        }
+
+        private List<Permission> CreatePermissionList()
+        {
+            return new List<Permission>
+            {
+                new Permission
+                {
+                    Id = Guid.NewGuid(),
+                    Grain = "app",
+                    Resource = "patientsafety",
+                    Name = "manageusers"
+                },
+                new Permission
+                {
+                    Id = Guid.NewGuid(),
+                    Grain = "app",
+                    Resource = "patientsafety",
+                    Name = "updatepatient"
+                },
+                new Permission
+                {
+                    Id = Guid.NewGuid(),
+                    Grain = "app",
+                    Resource = "sourcemartdesigner",
+                    Name = "manageusers"
+                },
+                new Permission
+                {
+                    Id = Guid.NewGuid(),
+                    Grain = "patient",
+                    Resource = "Patient",
+                    Name ="read"
+                }
+            };
+        }
     }
 }

@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.Domain;
+using Fabric.Authorization.Domain.Clients;
 using Fabric.Authorization.Domain.Groups;
 using Fabric.Authorization.Domain.Permissions;
 using Fabric.Authorization.Domain.Roles;
@@ -52,6 +53,8 @@ namespace Fabric.Authorization.API
             container.Register<IPermissionStore, InMemoryPermissionStore>();
             container.Register<IGroupService, GroupService>();
             container.Register<IGroupStore, InMemoryGroupStore>();
+            container.Register<IClientService, ClientService>();
+            container.Register<IClientStore, InMemoryClientStore>();
         }
     }
 }

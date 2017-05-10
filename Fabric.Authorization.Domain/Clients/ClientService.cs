@@ -22,6 +22,8 @@ namespace Fabric.Authorization.Domain.Clients
 
         public bool DoesClientOwnResource(string clientId, string grain, string resource)
         {
+            if (string.IsNullOrEmpty(clientId)) return false;
+
             var client = _clientStore.GetClient(clientId);
             var topLeveResource = client.TopLevelResource;
 

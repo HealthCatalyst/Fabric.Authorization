@@ -10,8 +10,10 @@ namespace Fabric.Authorization.Domain.Permissions
 
         Permission GetPermission(Guid permissionId);
         
-        Result<Permission> AddPermission(string grain, string resource, string permissionName);
+        Permission AddPermission(string grain, string resource, string permissionName);
 
-        void DeletePermission(Guid permissionId);
+        Result<Permission> ValidatePermission(string grain, string resource, string permissionName);
+
+        void DeletePermission(Permission permission);
     }
 }

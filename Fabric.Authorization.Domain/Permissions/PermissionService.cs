@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Validators;
 using FluentValidation.Results;
 
@@ -27,30 +25,34 @@ namespace Fabric.Authorization.Domain.Permissions
             return _permissionStore.GetPermission(permissionId);
         }
 
-        public Result<Permission> AddPermission(string grain, string resource, string permissionName)
+        public Permission AddPermission(string grain, string resource, string permissionName)
         {
-            var newPermission = new Permission
+            var newPermission = CreatePermission(grain, resource, permissionName);
+
+            return _permissionStore.AddPermission(newPermission);
+        }
+
+        public Result<Permission> ValidatePermission(string grain, string resource, string permissionName)
+        {
+            var newPermission = CreatePermission(grain, resource, permissionName);
+
+            var validationResults = _permissionValidator.Validate(newPermission);
+            return new Result<Permission> { ValidationResult = validationResults, Model = newPermission };
+        }
+
+        public void DeletePermission(Permission permission)
+        {
+            _permissionStore.DeletePermission(permission);
+        }
+
+        private Permission CreatePermission(string grain, string resource, string permissionName)
+        {
+            return new Permission
             {
                 Grain = grain,
                 Resource = resource,
                 Name = permissionName
             };
-
-            var validationResults = _permissionValidator.Validate(newPermission);
-            var result = new Result<Permission> {ValidationResult = validationResults};
-            
-            if (validationResults.IsValid)
-            {
-                result.Model = _permissionStore.AddPermission(newPermission);
-            }
-
-            return result;
-        }
-
-        public void DeletePermission(Guid permissionId)
-        {
-            var permission = _permissionStore.GetPermission(permissionId);
-            _permissionStore.DeletePermission(permission);
         }
     }
 

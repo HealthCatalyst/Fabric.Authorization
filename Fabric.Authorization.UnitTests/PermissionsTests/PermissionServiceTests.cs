@@ -19,10 +19,12 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
                 .Create();
 
             var permissionService = new PermissionService(mockPermissionStore, new PermissionValidator(mockPermissionStore));
-            var result = permissionService.AddPermission("app", "patientsafety", "manageusers");
+            var validationResult = permissionService.ValidatePermission("app", "patientsafety", "manageusers");
+            Assert.True(validationResult.ValidationResult.IsValid);
+            var permission = permissionService.AddPermission("app", "patientsafety", "manageusers");
 
-            Assert.NotNull(result.Model);
-            Assert.NotNull(result.Model.Id);
+            Assert.NotNull(permission);
+            Assert.NotNull(permission.Id);
 
         }
         
@@ -46,7 +48,7 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
                 .Create();
 
             var permissionService = new PermissionService(mockPermissionStore, new PermissionValidator(mockPermissionStore));
-            var result = permissionService.AddPermission(grain, resource, permissionName);
+            var result = permissionService.ValidatePermission(grain, resource, permissionName);
 
             Assert.False(result.ValidationResult.IsValid);
             Assert.NotNull(result.ValidationResult.Errors);
@@ -68,7 +70,7 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
                 .SetupGetPermissions(new List<Permission>{existingPermission});
 
             var permissionService = new PermissionService(mockPermissionStore.Object, new PermissionValidator(mockPermissionStore.Object));
-            permissionService.DeletePermission(existingPermission.Id);
+            permissionService.DeletePermission(existingPermission);
 
             mockPermissionStore.Verify();
         }

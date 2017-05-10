@@ -1,14 +1,30 @@
 ﻿using System;
+using System.Security.Claims;
 using Fabric.Authorization.API.Models;
 using FluentValidation.Results;
 using Nancy;
 using Nancy.Responses.Negotiation;
 using Fabric.Authorization.API.Constants;
+using Fabric.Authorization.API.Security;
+using Fabric.Authorization.Domain.Clients;
 
 namespace Fabric.Authorization.API.Modules
 {
     public abstract class FabricModule : NancyModule
     {
+        protected string ReadScope => "fabric/authorization.read";
+        protected string WriteScope => "fabric/authorization.write";
+
+        protected Predicate<Claim> AuthorizationReadClaim
+        {
+            get { return claim => claim.Type == "scope" && claim.Value == ReadScope; }
+        }
+
+        protected Predicate<Claim> AuthorizationWriteClaim
+        {
+            get { return claim => claim.Type == "scope" && claim.Value == WriteScope; }
+        }
+
         protected FabricModule()
         { }
 
@@ -34,21 +50,22 @@ namespace Fabric.Authorization.API.Modules
 
         protected Negotiator CreateFailureResponse<T>(ValidationResult validationResult, HttpStatusCode statusCode)
         {
-            var error = validationResult.ToError();
-            error.Code = Enum.GetName(typeof(HttpStatusCode), statusCode);
-            error.Target = typeof(T).Name;
+            var error = ErrorFactory.CreateError<T>(validationResult, statusCode);
             return Negotiate.WithModel(error).WithStatusCode(statusCode);
         }
 
         protected Negotiator CreateFailureResponse<T>(string message, HttpStatusCode statusCode)
         {
-            var error = new Error
-            {
-                Code = Enum.GetName(typeof(HttpStatusCode), statusCode),
-                Target = typeof(T).Name,
-                Message = message
-            };
+            var error = ErrorFactory.CreateError<T>(message, statusCode);
             return Negotiate.WithModel(error).WithStatusCode(statusCode);
+        }
+
+        protected void CheckAccess<T>(IClientService clientService, dynamic grain, dynamic resource,
+            params Predicate<Claim>[] requiredClaims)
+        {
+            string grainAsString = grain.ToString();
+            string resourceAsString = resource.ToString();
+            this.RequiresResourceOwnershipAndClaims<T>(clientService, grainAsString, resourceAsString, requiredClaims);
         }
     }
 }
