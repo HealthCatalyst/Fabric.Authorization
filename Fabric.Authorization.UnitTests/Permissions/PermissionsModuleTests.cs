@@ -179,9 +179,9 @@ namespace Fabric.Authorization.UnitTests.Permissions
 
                 with.RequestStartup((container, pipeline, context) =>
                 {
-                    context.CurrentUser = new TestPrincipal(new Claim(Claims.Scope, "patientsafety"), 
-                        new Claim("scope", "fabric/authorization.read"), 
-                        new Claim("scope", "fabric/authorization.write"));
+                    context.CurrentUser = new TestPrincipal(new Claim(Claims.ClientId, "patientsafety"), 
+                        new Claim(Claims.Scope, Scopes.ReadScope), 
+                        new Claim(Claims.Scope, Scopes.WriteScope));
                 });
             });
         }

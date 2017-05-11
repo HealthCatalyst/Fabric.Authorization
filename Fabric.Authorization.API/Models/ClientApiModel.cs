@@ -10,7 +10,6 @@ namespace Fabric.Authorization.API.Models
         public string Id { get; set; }
         public string Name { get; set; }
         public SecurableItemApiModel TopLevelSecurableItem { get; set; }
-        public bool IsDeleted { get; set; }
         public DateTime CreatedDateTimeUtc { get; set; }
         public DateTime? ModifiedDateTimeUtc { get; set; }
         public string CreatedBy { get; set; }

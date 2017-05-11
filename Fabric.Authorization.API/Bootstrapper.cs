@@ -54,6 +54,7 @@ namespace Fabric.Authorization.API
             container.Register<IGroupStore, InMemoryGroupStore>();
             container.Register<IClientService, ClientService>();
             container.Register<IClientStore, InMemoryClientStore>();
+            container.Register<ISecurableItemService, SecurableItemService>();
         }
     }
 }

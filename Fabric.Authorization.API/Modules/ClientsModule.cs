@@ -47,7 +47,6 @@ namespace Fabric.Authorization.API.Modules
                 this.RequiresClaims(AuthorizationManageClientsClaim, AuthorizationWriteClaim);
                 var clientApiModel = this.Bind<ClientApiModel>(model => model.CreatedBy,
                     model => model.CreatedDateTimeUtc,
-                    model => model.IsDeleted,
                     model => model.ModifiedBy,
                     model => model.ModifiedDateTimeUtc,
                     model => model.TopLevelSecurableItem);

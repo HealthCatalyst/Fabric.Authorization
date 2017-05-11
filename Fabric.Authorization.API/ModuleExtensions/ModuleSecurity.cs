@@ -23,7 +23,7 @@ namespace Fabric.Authorization.API.ModuleExtensions
             return (context) =>
             {
                 Response response = null;
-                var clientId = context.CurrentUser?.FindFirst(Claims.Scope)?.Value;
+                var clientId = context.CurrentUser?.FindFirst(Claims.ClientId)?.Value;
                 if (!clientService.DoesClientOwnItem(clientId, grain, securableItem))
                 {
                     var error = ErrorFactory.CreateError<T>($"Client: {clientId} does not have access to the requested grain/securableItem: {grain}/{securableItem} combination", HttpStatusCode.Forbidden);

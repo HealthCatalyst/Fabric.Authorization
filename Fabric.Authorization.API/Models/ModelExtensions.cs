@@ -92,7 +92,11 @@ namespace Fabric.Authorization.API.Models
             {
                 Id = securableItem.Id,
                 Name = securableItem.Name,
-                SecurableItems = securableItem.SecurableItems?.Select(s => s.ToSecurableItemApiModel()).ToList()
+                SecurableItems = securableItem.SecurableItems?.Select(s => s.ToSecurableItemApiModel()).ToList(),
+                CreatedDateTimeUtc = securableItem.CreatedDateTimeUtc,
+                CreatedBy = securableItem.CreatedBy,
+                ModifiedDateTimeUtc = securableItem.ModifiedDateTimeUtc,
+                ModifiedBy = securableItem.ModifiedBy
             };
             return securableItemApiModel;
         }
@@ -103,7 +107,11 @@ namespace Fabric.Authorization.API.Models
             {
                 Id = securableItem.Id ?? Guid.Empty,
                 Name = securableItem.Name,
-                SecurableItems = securableItem.SecurableItems?.Select(s => s.ToSecurableItemDomainModel()).ToList()
+                SecurableItems = securableItem.SecurableItems?.Select(s => s.ToSecurableItemDomainModel()).ToList(),
+                CreatedDateTimeUtc = securableItem.CreatedDateTimeUtc,
+                CreatedBy = securableItem.CreatedBy,
+                ModifiedDateTimeUtc = securableItem.ModifiedDateTimeUtc,
+                ModifiedBy = securableItem.ModifiedBy
             };
             return securableItemApiModel;
         }

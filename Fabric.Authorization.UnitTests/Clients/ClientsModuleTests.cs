@@ -17,7 +17,7 @@ using Xunit;
 
 namespace Fabric.Authorization.UnitTests.Clients
 {
-    public class ClientsModuleTests
+    public class ClientsModuleTests : ModuleTestsBase<ClientsModule>
     {
         private readonly List<Client> _existingClients;
         private readonly Mock<IClientStore> _mockClientStore;
@@ -196,25 +196,12 @@ namespace Fabric.Authorization.UnitTests.Clients
             Assert.Contains(nonexistentId, error.Message);
         }
 
-        private Browser CreateBrowser(params Claim[] claims)
+        protected override ConfigurableBootstrapper.ConfigurableBootstrapperConfigurator ConfigureBootstrapper(ConfigurableBootstrapper configurableBootstrapper, params Claim[] claims)
         {
-            return new Browser(CreateBootstrapper(claims), withDefaults => withDefaults.Accept("application/json"));
-        }
-
-        private ConfigurableBootstrapper CreateBootstrapper(params Claim[] claims)
-        {
-            return new ConfigurableBootstrapper(with =>
-            {
-                with.Module<ClientsModule>()
-                    .Dependency<IClientService>(typeof(ClientService))
-                    .Dependency(_mockLogger.Object)
-                    .Dependency(_mockClientStore.Object);
-
-                with.RequestStartup((container, pipeline, context) =>
-                {
-                    context.CurrentUser = new TestPrincipal(claims);
-                });
-            });
+            return base.ConfigureBootstrapper(configurableBootstrapper, claims)
+                .Dependency<IClientService>(typeof(ClientService))
+                .Dependency(_mockLogger.Object)
+                .Dependency(_mockClientStore.Object);
         }
 
         public static IEnumerable<object[]> BadRequestData => new[]
