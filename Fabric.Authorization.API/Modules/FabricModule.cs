@@ -13,26 +13,21 @@ namespace Fabric.Authorization.API.Modules
 {
     public abstract class FabricModule<T> : NancyModule
     {
-        protected string ReadScope => "fabric/authorization.read";
-        protected string WriteScope => "fabric/authorization.write";
-
-        protected string ManageClientsScope => "fabric/authorization.manageclients";
-
         protected AbstractValidator<T> Validator;
         protected ILogger Logger;
         protected Predicate<Claim> AuthorizationReadClaim
         {
-            get { return claim => claim.Type == Claims.Scope && claim.Value == ReadScope; }
+            get { return claim => claim.Type == Claims.Scope && claim.Value == Scopes.ReadScope; }
         }
 
         protected Predicate<Claim> AuthorizationWriteClaim
         {
-            get { return claim => claim.Type == Claims.Scope && claim.Value == WriteScope; }
+            get { return claim => claim.Type == Claims.Scope && claim.Value == Scopes.WriteScope; }
         }
 
         protected Predicate<Claim> AuthorizationManageClientsClaim
         {
-            get { return claim => claim.Type == Claims.Scope && claim.Value == ManageClientsScope; }
+            get { return claim => claim.Type == Claims.Scope && claim.Value == Scopes.ManageClientsScope; }
         }
 
         protected FabricModule()

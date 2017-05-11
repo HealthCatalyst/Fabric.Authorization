@@ -19,7 +19,7 @@ namespace Fabric.Authorization.API.Modules
         {
             Get("/", _ =>
             {
-                this.RequiresClaims(AuthorizationManageClientsClaim);
+                this.RequiresClaims(AuthorizationManageClientsClaim, AuthorizationReadClaim);
                 IEnumerable<Client> clients = clientService.GetClients();
                 return clients.Select(c => c.ToClientApiModel());
             });
@@ -29,7 +29,8 @@ namespace Fabric.Authorization.API.Modules
                 try
                 {
                     string clientIdAsString = parameters.clientid.ToString();
-                    this.RequiresClaims(AuthorizationReadClaim, GetClientIdPredicate(clientIdAsString));
+                    this.RequiresClaims(AuthorizationReadClaim);
+                    this.RequiresAnyClaim(AuthorizationManageClientsClaim, GetClientIdPredicate(clientIdAsString));
                     Client client = clientService.GetClient(clientIdAsString);
                     return client.ToClientApiModel();
                 }
@@ -43,7 +44,7 @@ namespace Fabric.Authorization.API.Modules
 
             Post("/", _ =>
             {
-                this.RequiresClaims(AuthorizationManageClientsClaim);
+                this.RequiresClaims(AuthorizationManageClientsClaim, AuthorizationWriteClaim);
                 var clientApiModel = this.Bind<ClientApiModel>(model => model.CreatedBy,
                     model => model.CreatedDateTimeUtc,
                     model => model.IsDeleted,
@@ -60,7 +61,7 @@ namespace Fabric.Authorization.API.Modules
             {
                 try
                 {
-                    this.RequiresClaims(AuthorizationManageClientsClaim);
+                    this.RequiresClaims(AuthorizationManageClientsClaim, AuthorizationWriteClaim);
                     Client client = clientService.GetClient(parameters.clientid);
                     clientService.DeleteClient(client);
                     return HttpStatusCode.NoContent;

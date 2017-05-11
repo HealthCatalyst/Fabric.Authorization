@@ -37,7 +37,7 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
         }
 
         [Fact]
-        public void PermissionsModule_DeletePermission_NotFound()
+        public void DeletePermission_NotFound()
         {
             var actual = _authorizationApi.Delete($"/permissions/{Guid.NewGuid()}").Result;
             Assert.Equal(HttpStatusCode.NotFound, actual.StatusCode);
@@ -45,14 +45,14 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
         }
 
         [Fact]
-        public void PermissionsModule_DeletePermission_ReturnsBadRequestForInvalidId()
+        public void DeletePermission_ReturnsBadRequestForInvalidId()
         {
             var actual = _authorizationApi.Delete("/permissions/notaguid").Result;
             Assert.Equal(HttpStatusCode.BadRequest, actual.StatusCode);
         }
 
         [Fact]
-        public void PermissionModule_DeletePermission_Successful()
+        public void DeletePermission_Successful()
         {
             var existingPermission = _existingPermissions.First();
             var actual = _authorizationApi.Delete($"/permissions/{existingPermission.Id}").Result;
@@ -61,7 +61,7 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
         }
 
         [Fact]
-        public void PermissionsModule_AddPermission_PermissionAlreadyExists()
+        public void AddPermission_PermissionAlreadyExists()
         {
             var existingPermission = _existingPermissions.First(p => p.Grain == "app" && p.SecurableItem =="patientsafety");
             var actual = _authorizationApi.Post("/permissions",
@@ -75,7 +75,7 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
         }
 
         [Fact]
-        public void PermissionsModule_AddPermission_PermissionAddedSuccessfully()
+        public void AddPermission_PermissionAddedSuccessfully()
         {
             var permissionToPost = new Permission
             {
@@ -98,7 +98,7 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
         }
 
         [Theory, MemberData(nameof(BadRequestData))]
-        public void PermissionModule_AddPermission_InvalidModel(string grain, string securableItem, string permissionName, int errorCount)
+        public void AddPermission_InvalidModel(string grain, string securableItem, string permissionName, int errorCount)
         {
             var permissionToPost = new Permission
             {
@@ -114,7 +114,7 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
         }
 
         [Fact]
-        public void PermissionsModule_GetPermissions_ReturnsPermissionForId()
+        public void GetPermissions_ReturnsPermissionForId()
         {
             var existingPermission = _existingPermissions.First();
             var actual = _authorizationApi.Get($"/permissions/{existingPermission.Id}").Result;
@@ -124,7 +124,7 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
         }
 
         [Theory, MemberData(nameof(RequestData))]
-        public void PermissionsModule_GetPermissions_ReturnsPermissionsForGrainAndSecurableItem(string path, int statusCode, int count)
+        public void GetPermissions_ReturnsPermissionsForGrainAndSecurableItem(string path, int statusCode, int count)
         {
             var actual = _authorizationApi.Get(path).Result;
             Assert.Equal(statusCode, (int)actual.StatusCode);
@@ -136,14 +136,14 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
         }
 
         [Fact]
-        public void PermissionsModule_GetPermissions_ReturnsNotFoundForMissingId()
+        public void GetPermissions_ReturnsNotFoundForMissingId()
         {
             var actual = _authorizationApi.Get($"/permissions/{Guid.NewGuid()}").Result;
             Assert.Equal(HttpStatusCode.NotFound, actual.StatusCode);
         }
 
         [Fact]
-        public void PermissionsModule_GetPermissions_ReturnsBadRequestForInvalidId()
+        public void GetPermissions_ReturnsBadRequestForInvalidId()
         {
             var actual = _authorizationApi.Get("/permissions/notaguid").Result;
             Assert.Equal(HttpStatusCode.BadRequest, actual.StatusCode);
