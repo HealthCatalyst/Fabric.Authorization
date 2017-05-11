@@ -34,7 +34,20 @@ namespace Fabric.Authorization.UnitTests.SecurableItems
                     TopLevelSecurableItem = new SecurableItem
                     {
                         Id = Guid.NewGuid(),
-                        Name = "sample-fabric-app"
+                        Name = "sample-fabric-app",
+                        SecurableItems = new List<SecurableItem>
+                        {
+                            new SecurableItem
+                            {
+                                Id = Guid.NewGuid(),
+                                Name = "inner-securable-1"
+                            },
+                            new SecurableItem
+                            {
+                                Id = Guid.NewGuid(),
+                                Name = "inner-securable-2"
+                            }
+                        }
                     }
                 }
             };
@@ -47,7 +60,7 @@ namespace Fabric.Authorization.UnitTests.SecurableItems
         }
 
         [Fact]
-        public void GetSecurableItem_ReturnsTopLevelItem()
+        public void GetSecurableItemByClientId_ReturnsTopLevelItem()
         {
             var existingClient = _existingClients.First();
             var securableItemsModule = CreateBrowser(new Claim(Claims.Scope, Scopes.ReadScope),
@@ -56,6 +69,59 @@ namespace Fabric.Authorization.UnitTests.SecurableItems
             Assert.Equal(HttpStatusCode.OK, result.StatusCode);
             var secureableItem = result.Body.DeserializeJson<SecurableItemApiModel>();
             Assert.Equal(existingClient.TopLevelSecurableItem.Id, secureableItem.Id);
+        }
+
+        [Fact]
+        public void GetSecurableItemByClientId_ReturnsForbidden()
+        {
+            var existingClient = _existingClients.First();
+            var securableItemsModule = CreateBrowser(new Claim(Claims.ClientId, existingClient.Id));
+            var result = securableItemsModule.Get("/securableitems").Result;
+            Assert.Equal(HttpStatusCode.Forbidden, result.StatusCode);
+        }
+
+        [Fact]
+        public void GetSecurableItemById_ReturnsItem()
+        {
+            var existingClient = _existingClients.First();
+            var innerSecurable = existingClient.TopLevelSecurableItem.SecurableItems.First();
+            var securableItemsModule = CreateBrowser(new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.ClientId, existingClient.Id));
+            var result = securableItemsModule.Get($"/securableitems/{innerSecurable.Id}").Result;
+            Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+            var secureableItem = result.Body.DeserializeJson<SecurableItemApiModel>();
+            Assert.Equal(innerSecurable.Id, secureableItem.Id);
+        }
+
+        [Fact]
+        public void GetSecurableItemByItemId_ReturnsForbidden()
+        {
+            var existingClient = _existingClients.First();
+            var innerSecurable = existingClient.TopLevelSecurableItem.SecurableItems.First();
+            var securableItemsModule = CreateBrowser(new Claim(Claims.ClientId, existingClient.Id));
+            var result = securableItemsModule.Get($"/securableitems/{innerSecurable.Id}").Result;
+            Assert.Equal(HttpStatusCode.Forbidden, result.StatusCode);
+        }
+
+        [Fact]
+        public void GetSecurableItemByItemId_ReturnsError_WithInvalidClientId()
+        {
+            var existingClient = _existingClients.First();
+            var innerSecurable = existingClient.TopLevelSecurableItem.SecurableItems.First();
+            var securableItemsModule = CreateBrowser(new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.ClientId, "nonexistentId"));
+            var result = securableItemsModule.Get($"/securableitems/{innerSecurable.Id}").Result;
+            Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
+        }
+
+        [Fact]
+        public void GetSecurableItemByItemId_ReturnsError_WithInvalidItemId()
+        {
+            var existingClient = _existingClients.First();
+            var securableItemsModule = CreateBrowser(new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.ClientId, existingClient.Id));
+            var result = securableItemsModule.Get($"/securableitems/{Guid.NewGuid()}").Result;
+            Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
         }
 
         protected override ConfigurableBootstrapper.ConfigurableBootstrapperConfigurator ConfigureBootstrapper(ConfigurableBootstrapper configurableBootstrapper,

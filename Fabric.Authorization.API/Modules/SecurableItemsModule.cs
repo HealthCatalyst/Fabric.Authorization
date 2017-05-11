@@ -42,6 +42,12 @@ namespace Fabric.Authorization.API.Modules
                     SecurableItem securableItem = securableItemService.GetSecurableItem(ClientId, securableItemId);
                     return securableItem.ToSecurableItemApiModel();
                 }
+                catch (ClientNotFoundException ex)
+                {
+                    Logger.Error(ex, ex.Message, ClientId);
+                    return CreateFailureResponse($"The specified client with id: {ClientId} was not found",
+                        HttpStatusCode.BadRequest);
+                }
                 catch (SecurableItemNotFoundException ex)
                 {
                     Logger.Error(ex, ex.Message, parameters.securableItemId);
