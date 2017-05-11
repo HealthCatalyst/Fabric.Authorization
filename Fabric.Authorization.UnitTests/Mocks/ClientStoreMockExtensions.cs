@@ -41,6 +41,12 @@ namespace Fabric.Authorization.UnitTests.Mocks
             return mockClientStore;
         }
 
+        public static Mock<IClientStore> SetupDeleteClient(this Mock<IClientStore> mockClientStore)
+        {
+            mockClientStore.Setup(clientStore => clientStore.Delete(It.IsAny<Client>())).Verifiable();
+            return mockClientStore;
+        }
+
         public static IClientStore Create(this Mock<IClientStore> mockClientStore)
         {
             return mockClientStore.Object;

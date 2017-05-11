@@ -5,7 +5,6 @@ using System.Security.Claims;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
-using Fabric.Authorization.Domain;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
@@ -16,7 +15,7 @@ using Serilog;
 using Xunit;
 using HttpStatusCode = Nancy.HttpStatusCode;
 
-namespace Fabric.Authorization.UnitTests.PermissionsTests
+namespace Fabric.Authorization.UnitTests.Permissions
 {
     public class PermissionsModuleTests
     {
@@ -57,7 +56,7 @@ namespace Fabric.Authorization.UnitTests.PermissionsTests
             var existingPermission = _existingPermissions.First();
             var actual = _authorizationApi.Delete($"/permissions/{existingPermission.Id}").Result;
             Assert.Equal(HttpStatusCode.NoContent, actual.StatusCode);
-            _mockPermissionStore.Verify();
+            _mockPermissionStore.Verify(permissionStore => permissionStore.DeletePermission(existingPermission));
         }
 
         [Fact]

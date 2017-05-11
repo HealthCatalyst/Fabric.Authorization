@@ -7,7 +7,7 @@ using Fabric.Authorization.UnitTests.Mocks;
 using Moq;
 using Xunit;
 
-namespace Fabric.Authorization.UnitTests.PermissionsTests
+namespace Fabric.Authorization.UnitTests.Permissions
 {
     public class PermissionServiceTests
     {

@@ -15,7 +15,7 @@ using Nancy.Testing;
 using Serilog;
 using Xunit;
 
-namespace Fabric.Authorization.UnitTests.ClientsTests
+namespace Fabric.Authorization.UnitTests.Clients
 {
     public class ClientsModuleTests
     {
@@ -120,7 +120,7 @@ namespace Fabric.Authorization.UnitTests.ClientsTests
         }
 
         [Theory, MemberData(nameof(BadRequestData))]
-        public void AddClient_InvalidData(Client client, int errorCount)
+        public void AddClient_InvalidDataReturnsError(Client client, int errorCount)
         {
             var clientsModule = CreateBrowser(new Claim(Claims.Scope, Scopes.ManageClientsScope),
                 new Claim(Claims.Scope, Scopes.WriteScope));
@@ -128,6 +128,72 @@ namespace Fabric.Authorization.UnitTests.ClientsTests
             Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
             var error = result.Body.DeserializeJson<Error>();
             Assert.Equal(errorCount, error.Details.Length);
+        }
+
+        [Fact]
+        public void AddClient_PreventsOverposting()
+        {
+            var clientsModule = CreateBrowser(new Claim(Claims.Scope, Scopes.ManageClientsScope),
+                new Claim(Claims.Scope, Scopes.WriteScope));
+            var clientToPost = new ClientApiModel
+            {
+                Id = "another-sample-app",
+                Name = "Another Sample App",
+                CreatedBy = "someone",
+                CreatedDateTimeUtc = DateTime.UtcNow.AddDays(-45),
+                ModifiedBy = "someone",
+                ModifiedDateTimeUtc = DateTime.UtcNow.AddDays(-45),
+                TopLevelSecurableItem = new SecurableItemApiModel
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "somesecurable"
+                }
+            };
+            var result = clientsModule.Post("/clients", with => with.JsonBody(clientToPost)).Result;
+            Assert.Equal(HttpStatusCode.Created, result.StatusCode);
+            var newClient = result.Body.DeserializeJson<ClientApiModel>();
+            Assert.NotNull(newClient.TopLevelSecurableItem);
+            Assert.Equal(clientToPost.Id, newClient.TopLevelSecurableItem.Name);
+            Assert.NotEqual(clientToPost.CreatedDateTimeUtc, newClient.CreatedDateTimeUtc);
+            Assert.NotEqual(clientToPost.ModifiedDateTimeUtc, newClient.ModifiedDateTimeUtc);
+            Assert.NotEqual(clientToPost.TopLevelSecurableItem.Id, newClient.TopLevelSecurableItem.Id);
+            Assert.True(string.IsNullOrEmpty(newClient.CreatedBy));
+            Assert.True(string.IsNullOrEmpty(newClient.ModifiedBy));
+        }
+
+        [Fact]
+        public void DeleteClient_Successful()
+        {
+            var clientsModule = CreateBrowser(new Claim(Claims.Scope, Scopes.ManageClientsScope),
+                new Claim(Claims.Scope, Scopes.WriteScope));
+            var existingClient = _existingClients.First();
+            var result = clientsModule.Delete($"/clients/{existingClient.Id}").Result;
+            Assert.Equal(HttpStatusCode.NoContent, result.StatusCode);
+            _mockClientStore.Verify(clientStore => clientStore.Delete(existingClient));
+        }
+
+        [Fact]
+        public void DeleteClient_ReturnsForbidden()
+        {
+            var existingClient = _existingClients.First();
+            var clientsModule = CreateBrowser(new Claim(Claims.ClientId, existingClient.Id),
+                new Claim(Claims.Scope, Scopes.WriteScope));
+            var result = clientsModule.Delete($"/clients/{existingClient.Id}").Result;
+            Assert.Equal(HttpStatusCode.Forbidden, result.StatusCode);
+            _mockClientStore.Verify(clientStore => clientStore.Delete(existingClient), Times.Never);
+        }
+
+        [Fact]
+        public void DeleteClient_ReturnBadRequest()
+        {
+            var clientsModule = CreateBrowser(new Claim(Claims.Scope, Scopes.ManageClientsScope),
+                new Claim(Claims.Scope, Scopes.WriteScope));
+            var nonexistentId = "nonexistentid";
+            var result = clientsModule.Delete($"/clients/{nonexistentId}").Result;
+            Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
+            var error = result.Body.DeserializeJson<Error>();
+            Assert.NotNull(error);
+            Assert.Contains(nonexistentId, error.Message);
         }
 
         private Browser CreateBrowser(params Claim[] claims)
