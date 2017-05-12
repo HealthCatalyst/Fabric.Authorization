@@ -80,6 +80,12 @@ namespace Fabric.Authorization.API.Modules
                         ex.Message,
                         HttpStatusCode.BadRequest);
                 }
+                catch (ClientNotFoundException ex)
+                {
+                    Logger.Error(ex, ex.Message, ClientId);
+                    return CreateFailureResponse($"The specified client with id: {ClientId} was not found",
+                        HttpStatusCode.Forbidden);
+                }
             });
 
             Post("/{securableItemId}", parameters =>
@@ -118,6 +124,12 @@ namespace Fabric.Authorization.API.Modules
                     return CreateFailureResponse(
                         ex.Message,
                         HttpStatusCode.BadRequest);
+                }
+                catch (ClientNotFoundException ex)
+                {
+                    Logger.Error(ex, ex.Message, ClientId);
+                    return CreateFailureResponse($"The specified client with id: {ClientId} was not found",
+                        HttpStatusCode.Forbidden);
                 }
 
             });

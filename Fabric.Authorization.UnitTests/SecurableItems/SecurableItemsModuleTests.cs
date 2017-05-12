@@ -124,6 +124,127 @@ namespace Fabric.Authorization.UnitTests.SecurableItems
             Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
         }
 
+        [Fact]
+        public void AddSecurableItemByClientId_Successful()
+        {
+            var existingClient = _existingClients.First();
+            var securableItemsModule = CreateBrowser(new Claim(Claims.ClientId, existingClient.Id),
+                new Claim(Claims.Scope, Scopes.WriteScope));
+            var securableItemToPost = new SecurableItemApiModel
+            {
+                Name = "inner-securable-3"
+            };
+            var result = securableItemsModule.Post("/securableitems", with => with.JsonBody(securableItemToPost))
+                .Result;
+            Assert.Equal(HttpStatusCode.Created, result.StatusCode);
+            var newSecurableItem = result.Body.DeserializeJson<SecurableItemApiModel>();
+            Assert.Equal(securableItemToPost.Name, newSecurableItem.Name);
+            Assert.NotNull(newSecurableItem.Id);
+        }
+
+        [Theory, MemberData(nameof(BadRequestData))]
+        public void AddSecurableItem_BadRequest(SecurableItemApiModel securableItemToPost, int errorCount, bool itemLevel)
+        {
+            var existingClient = _existingClients.First();
+            var innerSecurable1 = existingClient.TopLevelSecurableItem.SecurableItems.First(s => s.Name == "inner-securable-1");
+            var securableItemsModule = CreateBrowser(new Claim(Claims.ClientId, existingClient.Id),
+                new Claim(Claims.Scope, Scopes.WriteScope));
+            var requestUrl = "/securableitems";
+            if (itemLevel)
+            {
+                requestUrl = requestUrl + $"/{innerSecurable1.Id}";
+            }
+            var result = securableItemsModule.Post(requestUrl, with => with.JsonBody(securableItemToPost))
+                .Result;
+            Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
+            var error = result.Body.DeserializeJson<Error>();
+            Assert.NotNull(error);
+            if (errorCount > 0)
+            {
+                Assert.Equal(errorCount, error.Details.Length);
+            }
+        }
+
+        [Theory, MemberData(nameof(BadScopes))]
+        public void AddSecurableItem_ReturnsForbidden(Claim scopeClaim, Claim clientIdClaim, bool itemLevel)
+        {
+            var existingClient = _existingClients.First();
+            var innerSecurable1 = existingClient.TopLevelSecurableItem.SecurableItems.First(s => s.Name == "inner-securable-1");
+            if (clientIdClaim != null && clientIdClaim.Value =="valid")
+            {
+                clientIdClaim = new Claim(Claims.ClientId, existingClient.Id);
+            }
+            var securableItemToPost = new SecurableItemApiModel
+            {
+                Name = "inner-securable-3"
+            };
+            var securableItemsModule = CreateBrowser(scopeClaim, clientIdClaim);
+            var requestUrl = "/securableitems";
+            if (itemLevel)
+            {
+                requestUrl = requestUrl + $"/{innerSecurable1.Id}";
+            }
+            var result = securableItemsModule.Post(requestUrl, with => with.JsonBody(securableItemToPost))
+                .Result;
+            Assert.Equal(HttpStatusCode.Forbidden, result.StatusCode);
+        }
+
+        [Fact]
+        public void AddSecurableItemByItemId_Successful()
+        {
+            //Arrange
+            var existingClient = _existingClients.First();
+            var innerSecurable2 = existingClient.TopLevelSecurableItem.SecurableItems.First(s => s.Name == "inner-securable-2");
+            var securableItemsModule = CreateBrowser(new Claim(Claims.ClientId, existingClient.Id),
+                new Claim(Claims.Scope, Scopes.WriteScope), new Claim(Claims.Scope, Scopes.ReadScope));
+            var securableItemToPost = new SecurableItemApiModel
+            {
+                Name = "inner-securable-3"
+            };
+
+            //Act
+            var result = securableItemsModule.Post($"/securableitems/{innerSecurable2.Id}", with => with.JsonBody(securableItemToPost))
+                .Result;
+
+            //Assert
+            //Ensure response is correct
+            Assert.Equal(HttpStatusCode.Created, result.StatusCode);
+            var newSecurableItem = result.Body.DeserializeJson<SecurableItemApiModel>();
+            Assert.Equal(securableItemToPost.Name, newSecurableItem.Name);
+            Assert.NotNull(newSecurableItem.Id);
+
+            //Get the whole hierarchy to ensure that the new item is in the expected location
+            var getResult = securableItemsModule.Get("/securableitems").Result;
+            Assert.Equal(HttpStatusCode.OK, getResult.StatusCode);
+            var securableItemHierarchy = getResult.Body.DeserializeJson<SecurableItemApiModel>();
+            newSecurableItem = securableItemHierarchy.SecurableItems.First(s => s.Name == "inner-securable-2")
+                .SecurableItems.First(s => s.Name == securableItemToPost.Name);
+            Assert.NotNull(newSecurableItem);
+        }
+
+        
+        public static IEnumerable<object[]> BadRequestData => new[]
+        {
+            new object[] { new SecurableItemApiModel{ Name = null}, 1, false},
+            new object[] { new SecurableItemApiModel{ Name = string.Empty}, 1, false},
+            new object[] { new SecurableItemApiModel{ Name = "inner-securable-1" }, 0, false},
+            new object[] { new SecurableItemApiModel{ Name = null}, 1, true},
+            new object[] { new SecurableItemApiModel{ Name = string.Empty}, 1, true},
+            new object[] { new SecurableItemApiModel{ Name = "inner-securable-1" }, 0, true}
+        };
+
+        public static IEnumerable<object[]> BadScopes => new[]
+        {
+            new object[] { new Claim(Claims.Scope, Scopes.WriteScope), new Claim(Claims.ClientId, "invalid"), false},
+            new object[] { new Claim(Claims.Scope, Scopes.ReadScope), new Claim(Claims.ClientId, "valid"), false},
+            new object[] { new Claim(Claims.Scope, Scopes.WriteScope), null, false},
+            new object[] { null, new Claim(Claims.ClientId, "valid"), false},
+            new object[] { new Claim(Claims.Scope, Scopes.WriteScope), new Claim(Claims.ClientId, "invalid"), true},
+            new object[] { new Claim(Claims.Scope, Scopes.ReadScope), new Claim(Claims.ClientId, "valid"), true},
+            new object[] { new Claim(Claims.Scope, Scopes.WriteScope), null, true},
+            new object[] { null, new Claim(Claims.ClientId, "valid"), true},
+        };
+
         protected override ConfigurableBootstrapper.ConfigurableBootstrapperConfigurator ConfigureBootstrapper(ConfigurableBootstrapper configurableBootstrapper,
             params Claim[] claims)
         {

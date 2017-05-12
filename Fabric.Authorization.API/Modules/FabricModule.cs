@@ -30,7 +30,7 @@ namespace Fabric.Authorization.API.Modules
             get { return claim => claim.Type == Claims.Scope && claim.Value == Scopes.ManageClientsScope; }
         }
 
-        protected string ClientId => Context.CurrentUser?.FindFirst(Claims.ClientId).Value;
+        protected string ClientId => Context.CurrentUser?.FindFirst(Claims.ClientId)?.Value;
 
         protected FabricModule()
         { }
