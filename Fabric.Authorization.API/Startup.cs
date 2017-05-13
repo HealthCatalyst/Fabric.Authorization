@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
-using Fabric.Platform.Auth;
 using Fabric.Platform.Logging;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;

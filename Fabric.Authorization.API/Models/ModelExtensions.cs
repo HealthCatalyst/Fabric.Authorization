@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using Fabric.Authorization.Domain;
 using Fabric.Authorization.Domain.Models;
 using FluentValidation.Results;
 

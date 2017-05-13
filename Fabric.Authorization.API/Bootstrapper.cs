@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Security.Claims;
 using Fabric.Authorization.API.Configuration;
-using Fabric.Authorization.Domain;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Platform.Bootstrappers.Nancy;
