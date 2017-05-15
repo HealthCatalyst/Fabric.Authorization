@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Domain.Exceptions;
@@ -14,64 +15,75 @@ namespace Fabric.Authorization.API.Modules
 {
     public class ClientsModule : FabricModule<Client>
     {
+        private IClientService _clientService;
+
         public ClientsModule(IClientService clientService, ClientValidator validator, ILogger logger) : base(
             "/Clients", logger, validator)
         {
-            Get("/", _ =>
-            {
-                this.RequiresClaims(AuthorizationManageClientsClaim, AuthorizationReadClaim);
-                IEnumerable<Client> clients = clientService.GetClients();
-                return clients.Select(c => c.ToClientApiModel());
-            });
+            //private members
+            _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
 
-            Get("/{clientid}", parameters =>
-            {
-                try
-                {
-                    string clientIdAsString = parameters.clientid.ToString();
-                    this.RequiresClaims(AuthorizationReadClaim);
-                    this.RequiresAnyClaim(AuthorizationManageClientsClaim, GetClientIdPredicate(clientIdAsString));
-                    Client client = clientService.GetClient(clientIdAsString);
-                    return client.ToClientApiModel();
-                }
-                catch (ClientNotFoundException ex)
-                {
-                    Logger.Error(ex, ex.Message, parameters.clientid);
-                    return CreateFailureResponse($"The specified client with id: {parameters.clientid} was not found",
-                        HttpStatusCode.BadRequest);
-                }
-            });
+            //routes and handlers
+            Get("/", _ => GetClients());
+            Get("/{clientid}", parameters => GetClientById(parameters));
+            Post("/", _ => AddClient());
+            Delete("/{clientid}", parameters => DeleteClient(parameters));
+        }
 
-            Post("/", _ =>
+        private dynamic GetClients()
+        {
+            this.RequiresClaims(AuthorizationManageClientsClaim, AuthorizationReadClaim);
+            IEnumerable<Client> clients = _clientService.GetClients();
+            return clients.Select(c => c.ToClientApiModel());
+        }
+
+        private dynamic GetClientById(dynamic parameters)
+        {
+            try
+            {
+                string clientIdAsString = parameters.clientid.ToString();
+                this.RequiresClaims(AuthorizationReadClaim);
+                this.RequiresAnyClaim(AuthorizationManageClientsClaim, GetClientIdPredicate(clientIdAsString));
+                Client client = _clientService.GetClient(clientIdAsString);
+                return client.ToClientApiModel();
+            }
+            catch (ClientNotFoundException ex)
+            {
+                Logger.Error(ex, ex.Message, parameters.clientid);
+                return CreateFailureResponse($"The specified client with id: {parameters.clientid} was not found",
+                    HttpStatusCode.BadRequest);
+            }
+        }
+
+        private dynamic AddClient()
+        {
+            this.RequiresClaims(AuthorizationManageClientsClaim, AuthorizationWriteClaim);
+            var clientApiModel = this.Bind<ClientApiModel>(model => model.CreatedBy,
+                model => model.CreatedDateTimeUtc,
+                model => model.ModifiedBy,
+                model => model.ModifiedDateTimeUtc,
+                model => model.TopLevelSecurableItem);
+            var incomingClient = clientApiModel.ToClientDomainModel();
+            Validate(incomingClient);
+            Client client = _clientService.AddClient(incomingClient);
+            return CreateSuccessfulPostResponse(client.ToClientApiModel());
+        }
+
+        private dynamic DeleteClient(dynamic parameters)
+        {
+            try
             {
                 this.RequiresClaims(AuthorizationManageClientsClaim, AuthorizationWriteClaim);
-                var clientApiModel = this.Bind<ClientApiModel>(model => model.CreatedBy,
-                    model => model.CreatedDateTimeUtc,
-                    model => model.ModifiedBy,
-                    model => model.ModifiedDateTimeUtc,
-                    model => model.TopLevelSecurableItem);
-                var incomingClient = clientApiModel.ToClientDomainModel();
-                Validate(incomingClient);
-                Client client = clientService.AddClient(incomingClient);
-                return CreateSuccessfulPostResponse(client.ToClientApiModel());
-            });
-
-            Delete("/{clientid}", parameters =>
+                Client client = _clientService.GetClient(parameters.clientid);
+                _clientService.DeleteClient(client);
+                return HttpStatusCode.NoContent;
+            }
+            catch (ClientNotFoundException ex)
             {
-                try
-                {
-                    this.RequiresClaims(AuthorizationManageClientsClaim, AuthorizationWriteClaim);
-                    Client client = clientService.GetClient(parameters.clientid);
-                    clientService.DeleteClient(client);
-                    return HttpStatusCode.NoContent;
-                }
-                catch (ClientNotFoundException ex)
-                {
-                    Logger.Error(ex, ex.Message, parameters.clientid);
-                    return CreateFailureResponse($"The specified client with id: {parameters.clientid} was not found",
-                        HttpStatusCode.BadRequest);
-                }
-            });
+                Logger.Error(ex, ex.Message, parameters.clientid);
+                return CreateFailureResponse($"The specified client with id: {parameters.clientid} was not found",
+                    HttpStatusCode.BadRequest);
+            }
         }
     }
 }
