@@ -8,7 +8,7 @@ namespace Fabric.Authorization.Domain.Services
 {
     public class ClientService : IClientService
     {
-        public static readonly List<string> TopLevelGrains = new List<string>
+        private static readonly List<string> TopLevelGrains = new List<string>
         {
             "app",
             "patient",

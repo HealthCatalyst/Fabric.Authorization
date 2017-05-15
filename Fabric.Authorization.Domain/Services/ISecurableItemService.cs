@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.Domain.Services

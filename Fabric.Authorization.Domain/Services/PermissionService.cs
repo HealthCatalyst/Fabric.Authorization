@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
-using Fabric.Authorization.Domain.Validators;
-using FluentValidation.Results;
 
 namespace Fabric.Authorization.Domain.Services
 {
