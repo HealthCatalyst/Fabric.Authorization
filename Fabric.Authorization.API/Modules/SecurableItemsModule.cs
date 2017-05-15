@@ -74,12 +74,7 @@ namespace Fabric.Authorization.API.Modules
         private dynamic AddSecurableItem()
         {
             this.RequiresClaims(AuthorizationWriteClaim);
-            var securableItemApiModel = this.Bind<SecurableItemApiModel>(binderIgnore => binderIgnore.Id,
-                binderIgnore => binderIgnore.CreatedBy,
-                binderIgnore => binderIgnore.CreatedDateTimeUtc,
-                binderIgnore => binderIgnore.ModifiedDateTimeUtc,
-                binderIgnore => binderIgnore.ModifiedBy,
-                binderIgnore => binderIgnore.SecurableItems);
+            var securableItemApiModel = SecureBind();
             var incomingSecurableItem = securableItemApiModel.ToSecurableItemDomainModel();
             Validate(incomingSecurableItem);
 
@@ -110,12 +105,7 @@ namespace Fabric.Authorization.API.Modules
             {
                 return CreateFailureResponse("permissionId must be a guid.", HttpStatusCode.BadRequest);
             }
-            var securableItemApiModel = this.Bind<SecurableItemApiModel>(binderIgnore => binderIgnore.Id,
-                binderIgnore => binderIgnore.CreatedBy,
-                binderIgnore => binderIgnore.CreatedDateTimeUtc,
-                binderIgnore => binderIgnore.ModifiedDateTimeUtc,
-                binderIgnore => binderIgnore.ModifiedBy,
-                binderIgnore => binderIgnore.SecurableItems);
+            var securableItemApiModel = SecureBind();
             var incomingSecurableItem = securableItemApiModel.ToSecurableItemDomainModel();
             Validate(incomingSecurableItem);
 
@@ -145,6 +135,16 @@ namespace Fabric.Authorization.API.Modules
                 return CreateFailureResponse($"The specified client with id: {ClientId} was not found",
                     HttpStatusCode.Forbidden);
             }
+        }
+
+        private SecurableItemApiModel SecureBind()
+        {
+            return this.Bind<SecurableItemApiModel>(binderIgnore => binderIgnore.Id,
+                binderIgnore => binderIgnore.CreatedBy,
+                binderIgnore => binderIgnore.CreatedDateTimeUtc,
+                binderIgnore => binderIgnore.ModifiedDateTimeUtc,
+                binderIgnore => binderIgnore.ModifiedBy,
+                binderIgnore => binderIgnore.SecurableItems);
         }
     }
 }
