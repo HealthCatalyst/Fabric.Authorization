@@ -11,7 +11,7 @@ namespace Fabric.Authorization.Domain.Stores
 
         void DeleteRole(Role role);
 
-        void AddRole(Role role);
+        Role AddRole(Role role);
 
         void UpdateRole(Role role);
 

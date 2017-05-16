@@ -10,9 +10,9 @@ namespace Fabric.Authorization.Domain.Services
 
         IEnumerable<Permission> GetPermissionsForRole(Guid roleId);
 
-        void AddRole(string grain, string securableItem, string roleName);
+        Role AddRole(Role role);
 
-        void DeleteRole(Guid roleId);
+        void DeleteRole(Role role);
 
         void AddPermissionsToRole(Guid roleId, Guid[] permissionIds);
 

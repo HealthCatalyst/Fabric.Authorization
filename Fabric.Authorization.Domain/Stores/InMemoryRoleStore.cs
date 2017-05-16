@@ -38,10 +38,12 @@ namespace Fabric.Authorization.Domain.Stores
             throw new RoleNotFoundException();
         }
 
-        public void AddRole(Role role)
+        public Role AddRole(Role role)
         {
             role.Id = Guid.NewGuid();
+            role.CreatedDateTimeUtc = DateTime.UtcNow;
             Roles.TryAdd(role.Id, role);
+            return role;
         }
 
         public void DeleteRole(Role role)
@@ -52,7 +54,7 @@ namespace Fabric.Authorization.Domain.Stores
 
         public void UpdateRole(Role role)
         {
-            //do nothing since this is an in memory store
+            role.ModifiedDateTimeUtc = DateTime.UtcNow;
         }
     }
 }

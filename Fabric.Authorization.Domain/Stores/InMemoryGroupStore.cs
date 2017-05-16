@@ -14,13 +14,13 @@ namespace Fabric.Authorization.Domain.Stores
             var group1 = new Group
             {
                 Id = Guid.NewGuid().ToString(),
-                Name = "HC PatientSafety Admin",
+                Name = "Health Catalyst Viewer",
             };
 
             var group2 = new Group
             {
                 Id = Guid.NewGuid().ToString(),
-                Name = "HC SourceMartDesigner Admin",
+                Name = "Health Catalyst Editor",
             };
 
             Groups.TryAdd(group1.Name, group1);

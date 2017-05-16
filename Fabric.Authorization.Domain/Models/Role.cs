@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Fabric.Authorization.Domain.Models
 {
-    public class Role
+    public class Role : ITrackable
     {
         public Role()
         {
@@ -21,6 +21,11 @@ namespace Fabric.Authorization.Domain.Models
         public bool IsDeleted { get; set; }
         
         public ICollection<Permission> Permissions { get; set; }
+
+        public DateTime CreatedDateTimeUtc { get; set; }
+        public DateTime? ModifiedDateTimeUtc { get; set; }
+        public string CreatedBy { get; set; }
+        public string ModifiedBy { get; set; }
 
         public override string ToString()
         {

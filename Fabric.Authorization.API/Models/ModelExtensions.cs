@@ -2,6 +2,7 @@
 using System.Linq;
 using Fabric.Authorization.Domain.Models;
 using FluentValidation.Results;
+using System.Collections.Generic;
 
 namespace Fabric.Authorization.API.Models
 {
@@ -15,9 +16,30 @@ namespace Fabric.Authorization.API.Models
                 Grain = role.Grain,
                 SecurableItem = role.SecurableItem,
                 Name = role.Name,
-                Permissions = role.Permissions?.Select(p => p.ToPermissionApiModel())
+                Permissions = role.Permissions?.Select(p => p.ToPermissionApiModel()),
+                CreatedDateTimeUtc = role.CreatedDateTimeUtc,
+                ModifiedDateTimeUtc = role.ModifiedDateTimeUtc,
+                CreatedBy = role.CreatedBy,
+                ModifiedBy = role.ModifiedBy
             };
             return roleApiModel;
+        }
+
+        public static Role ToRoleDomainModel(this RoleApiModel role)
+        {
+            var roleDomainModel = new Role
+            {
+                Id = role.Id ?? Guid.Empty,
+                Grain = role.Grain,
+                SecurableItem = role.SecurableItem,
+                Name = role.Name,
+                Permissions = role.Permissions == null ? new List<Permission>() : role.Permissions.Select(p => p.ToPermissionDomainModel()).ToList(),
+                CreatedDateTimeUtc = role.CreatedDateTimeUtc,
+                ModifiedDateTimeUtc = role.ModifiedDateTimeUtc,
+                CreatedBy = role.CreatedBy,
+                ModifiedBy = role.ModifiedBy
+            };
+            return roleDomainModel;
         }
 
         public static PermissionApiModel ToPermissionApiModel(this Permission permission)

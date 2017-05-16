@@ -27,7 +27,8 @@ namespace Fabric.Authorization.API
         protected override void RequestStartup(TinyIoCContainer container, IPipelines pipelines, NancyContext context)
         {
             base.RequestStartup(container, pipelines, context);
-            var principal = context.GetOwinEnvironment()[OwinConstants.RequestUser] as ClaimsPrincipal;
+            var owinEnvironment = context.GetOwinEnvironment();
+            var principal = owinEnvironment[OwinConstants.RequestUser] as ClaimsPrincipal;
             context.CurrentUser = principal;
             var appConfig = container.Resolve<IAppConfiguration>();
             container.UseHttpClientFactory(context, appConfig.IdentityServerConfidentialClientSettings);

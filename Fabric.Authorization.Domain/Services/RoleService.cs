@@ -28,23 +28,13 @@ namespace Fabric.Authorization.Domain.Services
             return role.Permissions;
         }
 
-        public void AddRole(string grain, string securableItem, string roleName)
+        public Role AddRole(Role role)
         {
-            if (_roleStore.GetRoles(grain, securableItem, roleName).Any())
-            {
-                throw new RoleAlreadyExistsException();
-            }
-            _roleStore.AddRole(new Role
-            {
-                Grain = grain,
-                SecurableItem = securableItem,
-                Name = roleName
-            });
+            return _roleStore.AddRole(role);
         }
 
-        public void DeleteRole(Guid roleId)
+        public void DeleteRole(Role role)
         {
-            var role = _roleStore.GetRole(roleId);
             _roleStore.DeleteRole(role);
         }
 

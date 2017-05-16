@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Fabric.Authorization.API.Models
 {
-    public class RoleApiModel
+    public class RoleApiModel : IIdentifiable
     {
         public Guid? Id { get; set; }
         public string Grain { get; set; }
@@ -11,5 +11,12 @@ namespace Fabric.Authorization.API.Models
         public string Name { get; set; }
 
         public IEnumerable<PermissionApiModel> Permissions { get; set; }
+
+        public DateTime CreatedDateTimeUtc { get; set; }
+        public DateTime? ModifiedDateTimeUtc { get; set; }
+        public string CreatedBy { get; set; }
+        public string ModifiedBy { get; set; }
+
+        public string Identifier => Id.HasValue ? Id.ToString() : "";
     }
 }

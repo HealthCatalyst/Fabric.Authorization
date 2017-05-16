@@ -10,6 +10,23 @@ namespace Fabric.Authorization.Domain.Stores
     public class InMemoryClientStore : IClientStore
     {
         private static readonly ConcurrentDictionary<string, Client> Clients = new ConcurrentDictionary<string, Client>();
+
+        static InMemoryClientStore()
+        {
+            var mvcClient = new Client
+            {
+                Id = "fabric-mvcsample",
+                Name = "Sample Fabric MVC Client",
+                TopLevelSecurableItem =  new SecurableItem
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "fabric-mvcsample"
+                }
+            };
+
+            Clients.TryAdd(mvcClient.Id, mvcClient);
+        }
+
         public IEnumerable<Client> GetClients()
         {
             return Clients.Values.AsEnumerable();
