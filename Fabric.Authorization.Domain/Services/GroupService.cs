@@ -23,18 +23,22 @@ namespace Fabric.Authorization.Domain.Services
             foreach (var groupName in groupNames)
             {
                 var roles = GetRolesForGroup(groupName, grain, securableItem);
-                permissions
+                if (roles.Any())
+                {
+                    permissions
                     .AddRange(roles
                         .Where(r => r.Permissions != null && !r.IsDeleted)
-                        .SelectMany(r => r.Permissions.Where(p => !p.IsDeleted && (p.Grain == grain || grain == null) 
+                        .SelectMany(r => r.Permissions.Where(p => !p.IsDeleted && (p.Grain == grain || grain == null)
                                                         && (p.SecurableItem == securableItem || securableItem == null))
                         .Select(p => p.ToString())));
+                }
             }
             return permissions;
         }
 
         public IEnumerable<Role> GetRolesForGroup(string groupName, string grain = null, string securableItem = null)
         {
+            if (!_groupStore.GroupExists(groupName)) return new List<Role>();
             var group = _groupStore.GetGroup(groupName);
 
             var roles = group.Roles;

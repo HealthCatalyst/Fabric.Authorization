@@ -14,13 +14,13 @@ namespace Fabric.Authorization.Domain.Stores
             var group1 = new Group
             {
                 Id = Guid.NewGuid().ToString(),
-                Name = "Health Catalyst Viewer",
+                Name = @"FABRIC\Health Catalyst Viewer",
             };
 
             var group2 = new Group
             {
                 Id = Guid.NewGuid().ToString(),
-                Name = "Health Catalyst Editor",
+                Name = @"FABRIC\Health Catalyst Editor",
             };
 
             Groups.TryAdd(group1.Name, group1);
@@ -29,11 +29,16 @@ namespace Fabric.Authorization.Domain.Stores
 
         public Group GetGroup(string groupName)
         {
-            if (Groups.ContainsKey(groupName))
+            if (GroupExists(groupName))
             {
                 return Groups[groupName];
             }
             throw new GroupNotFoundException();
+        }
+
+        public bool GroupExists(string groupName)
+        {
+            return Groups.ContainsKey(groupName);
         }
     }
 }
