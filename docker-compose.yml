@@ -1,8 +1,8 @@
 version: '2'
 
 services:
-  fabric.identity.api:
-    image: fabric.identity.api
+  fabric.authorization.api:
+    image: fabric.authorization.api
     build:
-      context: ./Fabric.Identity.API
+      context: ./Fabric.Authorization.API
       dockerfile: Dockerfile

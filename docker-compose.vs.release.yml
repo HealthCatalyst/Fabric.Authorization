@@ -1,7 +1,7 @@
 version: '2'
 
 services:
-  fabric.identity.api:
+  fabric.authorization.api:
     build:
       args:
         source: ${DOCKER_BUILD_SOURCE}

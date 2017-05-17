@@ -1,8 +1,8 @@
 version: '2'
 
 services:
-  fabric.identity.api:
+  fabric.authorization.api:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     ports:
-      - "80"
+      - "5004"
