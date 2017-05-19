@@ -25,6 +25,19 @@ namespace Fabric.Authorization.Domain.Stores
             };
 
             Clients.TryAdd(mvcClient.Id, mvcClient);
+
+            var angularClient = new Client
+            {
+                Id = "fabric-angularsample",
+                Name = "Sample Fabric Angular Client",
+                TopLevelSecurableItem = new SecurableItem
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "fabric-angularsample"
+                }
+            };
+
+            Clients.TryAdd(angularClient.Id, angularClient);
         }
 
         public IEnumerable<Client> GetClients()
