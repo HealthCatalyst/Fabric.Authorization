@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
+using Fabric.Platform.Auth;
 using Fabric.Platform.Logging;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -48,7 +49,7 @@ namespace Fabric.Authorization.API
             });
             app.UseOwin()
                 .UseFabricLoggingAndMonitoring(logger, () => Task.FromResult(true), levelSwitch)
-                //.UseAuthPlatform(idServerSettings.Scopes)
+                .UseAuthPlatform(idServerSettings.Scopes)
                 .UseNancy(opt => opt.Bootstrapper = new Bootstrapper(logger, appConfig));
         }
     }

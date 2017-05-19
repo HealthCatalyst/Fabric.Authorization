@@ -4,6 +4,7 @@ using Fabric.Authorization.Domain.Services;
 using Nancy;
 using Nancy.ModelBinding;
 using System.Linq;
+using IdentityModel;
 
 namespace Fabric.Authorization.API.Modules
 {
@@ -37,7 +38,7 @@ namespace Fabric.Authorization.API.Modules
 
         private string[] GetGroupsForAuthenticatedUser()
         {
-            return Context.CurrentUser?.Claims.Where(c => c.Type == "role").Select(c => c.Value.ToString()).ToArray();
+            return Context.CurrentUser?.Claims.Where(c => c.Type == "role" || c.Type == "groups").Distinct(new ClaimComparer()).Select(c => c.Value.ToString()).ToArray();
         }
     }
 }
