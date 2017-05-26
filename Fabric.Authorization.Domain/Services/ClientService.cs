@@ -24,7 +24,10 @@ namespace Fabric.Authorization.Domain.Services
 
         public bool DoesClientOwnItem(string clientId, string grain, string securableItem)
         {
-            if (string.IsNullOrEmpty(clientId)) return false;
+            if (string.IsNullOrEmpty(clientId))
+            {
+                return false;
+            }
 
             var client = _clientStore.GetClient(clientId);
             var topLevelSecurableItem = client.TopLevelSecurableItem;

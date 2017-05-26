@@ -50,9 +50,18 @@ namespace Fabric.Authorization.Domain.Services
 
         private SecurableItem GetSecurableItemById(SecurableItem parentSecurableItem, Guid itemId)
         {
-            if (parentSecurableItem.Id == itemId) return parentSecurableItem;
+            if (parentSecurableItem.Id == itemId)
+            {
+                return parentSecurableItem;
+            }
+
             var childSecurableItems = parentSecurableItem.SecurableItems;
-            if(childSecurableItems == null || childSecurableItems.Count == 0) throw new SecurableItemNotFoundException();
+
+            if (childSecurableItems == null || childSecurableItems.Count == 0)
+            {
+                throw new SecurableItemNotFoundException();
+            }
+
             var securableItem = childSecurableItems.FirstOrDefault(item => item.Id == itemId);
             if (securableItem != null)
             {

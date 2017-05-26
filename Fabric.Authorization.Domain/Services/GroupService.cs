@@ -38,7 +38,11 @@ namespace Fabric.Authorization.Domain.Services
 
         public IEnumerable<Role> GetRolesForGroup(string groupName, string grain = null, string securableItem = null)
         {
-            if (!_groupStore.GroupExists(groupName)) return new List<Role>();
+            if (!_groupStore.GroupExists(groupName))
+            {
+                return new List<Role>();
+            }
+
             var group = _groupStore.GetGroup(groupName);
 
             var roles = group.Roles;
