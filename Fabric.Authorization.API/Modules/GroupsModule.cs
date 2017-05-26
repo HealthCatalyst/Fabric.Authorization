@@ -61,7 +61,12 @@ namespace Fabric.Authorization.API.Modules
                 try
                 {
                     var roleApiModel = this.Bind<RoleApiModel>();
-                    if (roleApiModel.Id == null) throw new RoleNotFoundException();
+
+                    if (roleApiModel.Id == null)
+                    {
+                        throw new RoleNotFoundException();
+                    }
+
                     groupService.DeleteRoleFromGroup(parameters.groupName, roleApiModel.Id.Value);
                     return HttpStatusCode.NoContent;
                 }

@@ -55,14 +55,18 @@ namespace Fabric.Authorization.API.Modules
             {
                 try
                 {
-                    var roleApiModels = this.Bind<List<PermissionApiModel>>(new BindingConfig { BodyOnly = true });
-                    roleService.AddPermissionsToRole(parameters.roleId, roleApiModels.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToArray());
+                    var roleApiModels = this.Bind<List<PermissionApiModel>>(new BindingConfig {BodyOnly = true});
+                    roleService.AddPermissionsToRole(parameters.roleId,
+                        roleApiModels.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToArray());
                     return HttpStatusCode.NoContent;
                 }
-                catch (Exception e)
+                catch (RoleNotFoundException)
                 {
-                    Console.WriteLine(e);
-                    throw;
+                    return HttpStatusCode.BadRequest;
+                }
+                catch (IncompatiblePermissionException)
+                {
+                    return HttpStatusCode.BadRequest;
                 }
             });
 
