@@ -11,6 +11,7 @@
     <PackageReference Include="Microsoft.AspNetCore" Version="1.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Owin" Version="1.1.1" />
     <PackageReference Include="Nancy" Version="2.0.0-clinteastwood" />
+    <PackageReference Include="Serilog.Extensions.Logging" Version="1.4.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fabric.Authorization.Domain\Fabric.Authorization.Domain.csproj" />
