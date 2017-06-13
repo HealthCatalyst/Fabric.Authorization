@@ -40,7 +40,7 @@ namespace Fabric.Authorization.API
             var idServerSettings = appConfig.IdentityServerConfidentialClientSettings;
 
             var levelSwitch = new LoggingLevelSwitch();
-            var logger = LogFactory.CreateLogger(levelSwitch, appConfig.ElasticSearchSettings, idServerSettings.ClientId);
+            var logger = LogFactory.CreateLogger(levelSwitch, appConfig.ElasticSearchSettings, appConfig.ClientName, idServerSettings.ClientId);
             loggerFactory.AddSerilog(logger);
 
             logger.Information("Configuration Settings: {@appConfig}", appConfig);
