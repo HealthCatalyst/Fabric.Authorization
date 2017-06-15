@@ -11,7 +11,7 @@ namespace Fabric.Authorization.UnitTests.Clients
 {
     public class ClientServiceTests
     {
-        private Client _testClient = new Client
+        private readonly Client _testClient = new Client
         {
             Id = "sampleapplication",
             TopLevelSecurableItem = new SecurableItem

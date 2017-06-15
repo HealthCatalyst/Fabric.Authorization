@@ -7,7 +7,7 @@ namespace Fabric.Authorization.Domain.Stores
 {
     public class InMemoryGroupStore : IGroupStore
     {
-        public static ConcurrentDictionary<string, Group> Groups = new ConcurrentDictionary<string, Group>();
+        private static readonly ConcurrentDictionary<string, Group> Groups = new ConcurrentDictionary<string, Group>();
 
         [Obsolete]
         static InMemoryGroupStore()

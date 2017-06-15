@@ -45,7 +45,7 @@ namespace Fabric.Authorization.UnitTests.Mocks
                     if (permissions.Any(p => p.Id == permissionId))
                     {
                         return permissions.First(p => p.Id == permissionId);
-                    };
+                    }
                     throw new PermissionNotFoundException();
                 });
             return mockPermissionStore;

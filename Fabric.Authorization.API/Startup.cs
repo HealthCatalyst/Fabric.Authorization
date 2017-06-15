@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Nancy.Owin;
+using Serilog;
 using Serilog.Core;
 
 namespace Fabric.Authorization.API
@@ -19,6 +20,7 @@ namespace Fabric.Authorization.API
         {
             var builder = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")
+                .AddEnvironmentVariables()
                 .SetBasePath(env.ContentRootPath);
 
             _config = builder.Build();
@@ -38,7 +40,10 @@ namespace Fabric.Authorization.API
             var idServerSettings = appConfig.IdentityServerConfidentialClientSettings;
 
             var levelSwitch = new LoggingLevelSwitch();
-            var logger = LogFactory.CreateLogger(levelSwitch, appConfig.ElasticSearchSettings, idServerSettings.ClientId);
+            var logger = LogFactory.CreateLogger(levelSwitch, appConfig.ElasticSearchSettings, appConfig.ClientName, idServerSettings.ClientId);
+            loggerFactory.AddSerilog(logger);
+
+            logger.Information("Configuration Settings: {@appConfig}", appConfig);
 
             app.UseIdentityServerAuthentication(new IdentityServerAuthenticationOptions
             {

@@ -15,7 +15,7 @@ namespace Fabric.Authorization.API.Modules
 {
     public class ClientsModule : FabricModule<Client>
     {
-        private IClientService _clientService;
+        private readonly IClientService _clientService;
 
         public ClientsModule(IClientService clientService, ClientValidator validator, ILogger logger) : base(
             "/Clients", logger, validator)
