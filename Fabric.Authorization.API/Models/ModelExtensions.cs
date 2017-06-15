@@ -42,6 +42,26 @@ namespace Fabric.Authorization.API.Models
             return roleDomainModel;
         }
 
+        public static GroupRoleApiModel ToGroupRoleApiModel(this Group group)
+        {
+            var groupDomainModel = new GroupRoleApiModel
+            {
+                GroupName = group.Name
+            };
+
+            return groupDomainModel;
+        }
+
+        public static Group ToGroupDomainModel(this GroupRoleApiModel groupDomainModel)
+        {
+            var group = new Group
+            {
+                Name = groupDomainModel.GroupName
+            };
+
+            return group;
+        }
+
         public static PermissionApiModel ToPermissionApiModel(this Permission permission)
         {
             var permissionApiModel = new PermissionApiModel

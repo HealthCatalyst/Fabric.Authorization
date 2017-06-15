@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Fabric.Authorization.MetadataFetcher\Fabric.Authorization.MetadataFetcher.csproj" />
     <ProjectReference Include="..\Fabric.Authorization.API\Fabric.Authorization.API.csproj" />
     <ProjectReference Include="..\Fabric.Authorization.Domain\Fabric.Authorization.Domain.csproj" />
   </ItemGroup>

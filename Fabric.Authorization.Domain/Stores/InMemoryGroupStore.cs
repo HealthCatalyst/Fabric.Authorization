@@ -9,6 +9,7 @@ namespace Fabric.Authorization.Domain.Stores
     {
         public static ConcurrentDictionary<string, Group> Groups = new ConcurrentDictionary<string, Group>();
 
+        [Obsolete]
         static InMemoryGroupStore()
         {
             var group1 = new Group
@@ -33,12 +34,37 @@ namespace Fabric.Authorization.Domain.Stores
             {
                 return Groups[groupName];
             }
-            throw new GroupNotFoundException();
+            throw new GroupNotFoundException(groupName);
         }
 
-        public bool GroupExists(string groupName)
+        public Group AddGroup(Group group)
         {
-            return Groups.ContainsKey(groupName);
+            if (GroupExists(group.Name))
+            {
+                throw new GroupAlreadyExistsException(group.Name);
+            }
+
+            group.Id = Guid.NewGuid().ToString();
+            Groups.TryAdd(group.Name, group);
+            return group;
         }
+
+        public Group DeleteGroup(string groupName)
+        {
+            if (GroupExists(groupName))
+            {
+                if (!Groups.TryRemove(groupName, out var removedGroup))
+                {
+                    //TODO: Manage exceptions
+                    throw new InvalidOperationException($"Failed to delete '{groupName}'");
+                }
+
+                return removedGroup;
+            }
+
+            throw new GroupNotFoundException(groupName);
+        }
+
+        public bool GroupExists(string groupName) => Groups.ContainsKey(groupName);
     }
 }

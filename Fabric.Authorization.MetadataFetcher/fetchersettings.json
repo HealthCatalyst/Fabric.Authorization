@@ -1,0 +1,14 @@
+﻿{
+    "Target": "",
+    "Type": "Fabric.Authorization.MetadataFetcher.LocalADGroupFetcher",
+
+    "AzureAD": {
+        "BaseURL": "https://graph.windows.net/",
+        "TenantID": "52807a8b-794c-4c07-825f-578847e1257e",
+        "Authorization": "NAIaKyRbKoxelzGxaZrP1ITvFB5hLEd8f3pC7OXaoU0=",
+        "Filter": ""
+    },
+    "ActiveDirectory": {
+        "Filter": ""
+    }
+}

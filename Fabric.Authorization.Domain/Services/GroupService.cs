@@ -74,5 +74,9 @@ namespace Fabric.Authorization.Domain.Services
                 group.Roles.Remove(role);
             }
         }
+
+        public void AddGroup(Group group) =>_groupStore.AddGroup(group);
+        public Group GetGroup(string groupName) =>  _groupStore.GetGroup(groupName);
+        public void DeleteGroup(string groupName) => _groupStore.DeleteGroup(groupName);
     }
 }
