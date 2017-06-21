@@ -59,12 +59,16 @@ if [ $REQUIRES_BINDING == true ]; then
 	if ! [ $BINDING_PASSWORD_FILE ]; then
 	   BINDING_PASSWORD_FILE="/run/secrets/ldap.pwd"
 	fi
+fi
 
-	#REST Endpoint
-	if ! [ $FABRIC_AUTH_URL ]; then
-	   FABRIC_AUTH_URL="https://localhost"
-	fi
+#REST Endpoint
+if ! [ $FABRIC_AUTH_URL ]; then
+   FABRIC_AUTH_URL="https://localhost:5004"
+fi
 
+#REST Endpoint
+if ! [ $FABRIC_IDENTITY_URL ]; then
+   FABRIC_AUTH_URL="https://localhost:5001"
 fi
 
 ################################################################################
@@ -125,13 +129,29 @@ QUERY="'(objectClass=group)'"
 
 echo -e "\nLoading groups..."
 SEARCH="ldapsearch $PARAMS $QUERY | grep -i 'CN:' | $TOKENIZER_COMMAND"
-echo $SEARCH
-GROUPS=`eval $SEARCH`
+GRP=$(eval $SEARCH)
+
+################################################################################
+# Authenticate
+
+echo "Getting access token..."
+SECRET=$(cat /run/secrets/group-fetcher.pwd)
+RESPONSE=$(curl $FABRIC_IDENTITY_URL/connect/token -d "client_id=fabric-group-fetcher&grant_type=client_credentials&scope=fabric/identity.manageresources" --data-urlencode "client_secret=$SECRET")
+
+TOKEN=$(echo $RESPONSE | grep -oP '(?<="access_token":")[^"]*')
 
 ################################################################################
 # Call Fabric.Authorization
 
 echo -e "\nAdding groups..."
-for group in $GROUPS; do
-  eval "curl -i -X POST -d \"GroupName\":\"$group\" $FABRIC_AUTH_URL/groups"
+
+POST_PAYLOAD="{"
+COUNTER=0
+for group in $GRP; do
+  POST_PAYLOAD=$POST_PAYLOAD\"GroupName[$COUNTER]\":\"$group\",
+  let COUNTER=COUNTER+1
 done
+
+POST_PAYLOAD=$POST_PAYLOAD"}"
+
+eval "curl -i -X POST -d '$POST_PAYLOAD' -H 'Authorization: Bearer $TOKEN' $FABRIC_AUTH_URL/groups"

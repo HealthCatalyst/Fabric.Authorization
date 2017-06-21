@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 
@@ -66,5 +67,7 @@ namespace Fabric.Authorization.Domain.Stores
         }
 
         public bool GroupExists(string groupName) => Groups.ContainsKey(groupName);
+
+        public IEnumerable<Group> GetAllGroups() => Groups.Values;
     }
 }

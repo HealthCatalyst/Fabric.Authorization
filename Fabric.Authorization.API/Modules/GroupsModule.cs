@@ -1,22 +1,29 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Domain.Exceptions;
+using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
+using Fabric.Authorization.Domain.Validators;
 using Nancy;
 using Nancy.ModelBinding;
+using Nancy.Security;
+using Serilog;
 
 namespace Fabric.Authorization.API.Modules
 {
-    public class GroupsModule : NancyModule
+    public class GroupsModule : FabricModule<Group>
     {
         private IGroupService GroupService { get; }
 
-        public GroupsModule(IGroupService groupService) : base("/groups")
+        public GroupsModule(IGroupService groupService, GroupValidator validator, ILogger logger) : base(
+            "/Groups", logger, validator)
         {
             this.GroupService = groupService;
 
             base.Post("/", _ => this.AddGroup());
+            base.Post("/UpdateGroups", _ => this.UpdateGroupList());
             base.Get("/{groupName}", _ => this.GetGroup());
             base.Delete("/{groupName}", _ => this.DeleteGroup());
 
@@ -29,6 +36,7 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
+                this.RequiresClaims(this.AuthorizationManageClientsClaim, this.AuthorizationReadClaim);
                 var group = this.GroupService.GetGroup(this.Bind<GroupRoleApiModel>().GroupName);
                 return group.ToGroupRoleApiModel();
             }
@@ -42,6 +50,7 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
+                this.RequiresClaims(this.AuthorizationManageClientsClaim, this.AuthorizationWriteClaim);
                 this.GroupService.DeleteGroup(this.Bind<GroupRoleApiModel>().GroupName);
                 return HttpStatusCode.NoContent;
             }
@@ -55,6 +64,7 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
+                this.RequiresClaims(this.AuthorizationManageClientsClaim, this.AuthorizationWriteClaim);
                 var group = this.Bind<GroupRoleApiModel>();
                 this.GroupService.AddGroup(group.ToGroupDomainModel());
                 return HttpStatusCode.NoContent;
@@ -65,11 +75,26 @@ namespace Fabric.Authorization.API.Modules
             }
         }
 
+        private HttpStatusCode UpdateGroupList()
+        {
+            try
+            {
+                this.RequiresClaims(this.AuthorizationManageClientsClaim, this.AuthorizationWriteClaim);
+                var group = this.Bind<List<GroupRoleApiModel>>();
+                this.GroupService.UpdateGroupList(group.Select(g => g.ToGroupDomainModel()).ToList());
+                return HttpStatusCode.NoContent;
+            }
+            catch (GroupAlreadyExistsException)
+            {
+                return HttpStatusCode.BadRequest;
+            }
+        }
 
         private dynamic GetRolesFromGroup()
         {
             try
             {
+                this.RequiresClaims(this.AuthorizationManageClientsClaim, this.AuthorizationReadClaim);
                 var groupInfoRequest = this.Bind<GroupInfoRequest>();
                 var roles = this.GroupService.GetRolesForGroup(groupInfoRequest.GroupName, groupInfoRequest.Grain,
                     groupInfoRequest.SecurableItem);
@@ -92,6 +117,7 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
+                this.RequiresClaims(this.AuthorizationManageClientsClaim, this.AuthorizationWriteClaim);
                 var roleApiModel = this.Bind<RoleApiModel>();
                 if (roleApiModel.Id == null)
                 {
@@ -115,6 +141,7 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
+                this.RequiresClaims(this.AuthorizationManageClientsClaim, this.AuthorizationWriteClaim);
                 var roleApiModel = this.Bind<RoleApiModel>();
                 if (roleApiModel.Id == null)
                 {

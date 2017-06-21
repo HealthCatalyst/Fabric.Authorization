@@ -14,8 +14,12 @@ namespace Fabric.Authorization.Domain.Services
 
         void DeleteRoleFromGroup(string groupName, Guid roleId);
 
-        void AddGroup(Group group);
         Group GetGroup(string groupName);
+
+        void AddGroup(Group group);
+
+        void UpdateGroupList(IEnumerable<Group> group);
+
         void DeleteGroup(string groupName);
     }
 }

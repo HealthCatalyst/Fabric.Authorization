@@ -7,34 +7,26 @@ using FluentValidation;
 
 namespace Fabric.Authorization.Domain.Validators
 {
-    public class ClientValidator : AbstractValidator<Client>
+    public class GroupValidator : AbstractValidator<Group>
     {
-        private readonly IClientStore _clientStore;
+        private readonly IGroupStore _GroupStore;
 
-        public ClientValidator(IClientStore clientStore)
+        public GroupValidator(IGroupStore GroupStore)
         {
-            _clientStore = clientStore ?? throw new ArgumentNullException(nameof(clientStore));
+            _GroupStore = GroupStore ?? throw new ArgumentNullException(nameof(GroupStore));
             ConfigureRules();
         }
 
         private void ConfigureRules()
         {
-            RuleFor(client => client.Id)
+            RuleFor(Group => Group.Name)
                 .NotEmpty()
-                .WithMessage("Please specify an Id for this client");
-
-            RuleFor(client => client.Id)
-                .Must(BeUnique)
-                .When(client => !string.IsNullOrEmpty(client.Id));
-
-            RuleFor(client => client.Name)
-                .NotEmpty()
-                .WithMessage("Please specify a Name for this client");
+                .WithMessage("Please specify a Name for this Group");
         }
 
-        private bool BeUnique(string clientId)
+        private bool BeUnique(string GroupId)
         {
-            return !_clientStore.ClientExists(clientId);
+            return !_GroupStore.GroupExists(GroupId);
         }
     }
 }

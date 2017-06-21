@@ -80,7 +80,26 @@ namespace Fabric.Authorization.Domain.Services
         }
 
         public void AddGroup(Group group) =>_groupStore.AddGroup(group);
+
         public Group GetGroup(string groupName) =>  _groupStore.GetGroup(groupName);
+
         public void DeleteGroup(string groupName) => _groupStore.DeleteGroup(groupName);
+
+        public void DeleteGroup(Group group) => _groupStore.DeleteGroup(group.Name);
+
+        public void UpdateGroupList(IEnumerable<Group> groups)
+        {
+            var allGroups = _groupStore.GetAllGroups();
+
+            var groupNames = groups.Select(g => g.Name);
+            var storedGroupNames = allGroups.Select(g => g.Name);
+
+            var toDelete = allGroups.Where(g => !groupNames.Contains(g.Name));
+            var toAdd = groups.Where(g => !storedGroupNames.Contains(g.Name));
+
+            // TODO: This must be transactional or fault tolerant.
+            toDelete.ToList().ForEach(this.DeleteGroup);
+            toAdd.ToList().ForEach(this.AddGroup);
+        }
     }
 }

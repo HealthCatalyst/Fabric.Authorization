@@ -1,10 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Security.Claims;
+using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
+using Moq;
 using Nancy;
 using Nancy.Testing;
+using Serilog;
 using Xunit;
 
 namespace Fabric.Authorization.IntegrationTests
@@ -13,8 +18,24 @@ namespace Fabric.Authorization.IntegrationTests
     {
         public GroupsTests()
         {
-            var groupService = new GroupService(new InMemoryGroupStore(), new InMemoryRoleStore());
-            this.Browser = new Browser(with => with.Module(new GroupsModule(groupService)));
+            var store = new InMemoryGroupStore();
+            var groupService = new GroupService(store, new InMemoryRoleStore());
+            this.Browser = new Browser(with =>
+            {
+                with.Module(new GroupsModule(
+                        groupService,
+                        new Domain.Validators.GroupValidator(store),
+                        new Mock<ILogger>().Object));
+                with.RequestStartup((_, __, context) =>
+                {
+                    context.CurrentUser = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>()
+                    {
+                        new Claim(Claims.Scope, Scopes.ManageClientsScope),
+                        new Claim(Claims.Scope, Scopes.ReadScope),
+                        new Claim(Claims.Scope, Scopes.WriteScope),
+                    }, "testprincipal"));
+                });
+            });
         }
 
         [Theory]
@@ -52,6 +73,111 @@ namespace Fabric.Authorization.IntegrationTests
             Assert.Equal(HttpStatusCode.NoContent, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
             Assert.True(getResponse.Body.AsString().Contains(groupName));
+        }
+
+        [Theory]
+        [InlineData("BatchGroup1")]
+        [InlineData("BatchGroup2")]
+        [InlineData("6AC32A47-36C1-23BF-AA22-6C1028AA5DC3")]
+        public void TestAddNewGroupBatch_Success(string groupName)
+        {
+            var postResponse = this.Browser.Post("/groups/UpdateGroups", with =>
+            {
+                with.HttpRequest();
+                with.FormValue("GroupName[0]", groupName+"_0");
+                with.FormValue("GroupName[1]", groupName+"_1");
+                with.FormValue("GroupName[2]", groupName+"_2");
+            }).Result;
+
+            var getResponse0 = this.Browser.Get($"/groups/{groupName}_0", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            var getResponse1 = this.Browser.Get($"/groups/{groupName}_1", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            var getResponse2 = this.Browser.Get($"/groups/{groupName}_2", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.NoContent, postResponse.StatusCode);
+
+            Assert.Equal(HttpStatusCode.OK, getResponse0.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, getResponse1.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, getResponse2.StatusCode);
+
+
+            Assert.True(getResponse0.Body.AsString().Contains(groupName + "_0"));
+            Assert.True(getResponse1.Body.AsString().Contains(groupName + "_1"));
+            Assert.True(getResponse2.Body.AsString().Contains(groupName + "_2"));
+        }
+
+        [Theory]
+        [InlineData("BatchUpdateGroup1")]
+        [InlineData("BatchUpdateGroup2")]
+        public void TestUpdateGroupBatch_Success(string groupName)
+        {
+            var postResponse = this.Browser.Post("/groups/UpdateGroups", with =>
+            {
+                with.HttpRequest();
+                with.FormValue("GroupName[0]", groupName + "_0");
+                with.FormValue("GroupName[1]", groupName + "_1");
+                with.FormValue("GroupName[2]", groupName + "_2");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.NoContent, postResponse.StatusCode);
+
+            // Replace groups. _0 should be removed and _3 should be added.
+            postResponse = this.Browser.Post("/groups/UpdateGroups", with =>
+            {
+                with.HttpRequest();
+                with.FormValue("GroupName[0]", groupName + "_1");
+                with.FormValue("GroupName[1]", groupName + "_2");
+                with.FormValue("GroupName[2]", groupName + "_3");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.NoContent, postResponse.StatusCode);
+
+            var getResponse0 = this.Browser.Get($"/groups/{groupName}_0", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            var getResponse1 = this.Browser.Get($"/groups/{groupName}_1", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            var getResponse2 = this.Browser.Get($"/groups/{groupName}_2", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            var getResponse3 = this.Browser.Get($"/groups/{groupName}_3", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+
+            Assert.Equal(HttpStatusCode.NotFound, getResponse0.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, getResponse1.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, getResponse2.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, getResponse3.StatusCode);
+
+            Assert.True(getResponse1.Body.AsString().Contains(groupName + "_1"));
+            Assert.True(getResponse2.Body.AsString().Contains(groupName + "_2"));
+            Assert.True(getResponse3.Body.AsString().Contains(groupName + "_3"));
         }
 
         [Theory]
