@@ -6,7 +6,7 @@ COPY ${source:-obj/Docker/publish} .
 
 RUN mkdir -p /usr/local/bin
  
-COPY ${source:-scripts/setup-crontab.sh} 
+COPY ${source:-scripts/setup-crontab.sh} .
 COPY ${source:-scripts/update-groups.sh} /usr/local/bin
 
 RUN chmod a+x ./setup-crontab.sh
