@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Domain.Services;
@@ -7,6 +8,7 @@ using Nancy.Extensions;
 using Nancy.Responses;
 using Nancy.Security;
 using Fabric.Authorization.API.Constants;
+using Fabric.Authorization.Domain.Exceptions;
 
 namespace Fabric.Authorization.API.ModuleExtensions
 {
@@ -24,14 +26,27 @@ namespace Fabric.Authorization.API.ModuleExtensions
             {
                 Response response = null;
                 var clientId = context.CurrentUser?.FindFirst(Claims.ClientId)?.Value;
-                if (!clientService.DoesClientOwnItem(clientId, grain, securableItem))
+                try
                 {
-                    var error = ErrorFactory.CreateError<T>($"Client: {clientId} does not have access to the requested grain/securableItem: {grain}/{securableItem} combination", HttpStatusCode.Forbidden);
-                    response = new JsonResponse(error, new DefaultJsonSerializer(context.Environment),
-                        context.Environment) {StatusCode = HttpStatusCode.Forbidden};
+                    if (!clientService.DoesClientOwnItem(clientId, grain, securableItem))
+                    {
+                        response = CreateForbiddenResponse<T>(clientId, grain, securableItem, context);
+                    }
+                }
+                catch (ClientNotFoundException)
+                {
+                    response = CreateForbiddenResponse<T>(clientId, grain, securableItem, context);
                 }
                 return response;
             };
+        }
+
+        private static JsonResponse CreateForbiddenResponse<T>(string clientId, string grain, string securableItem, NancyContext context)
+        {
+            var error = ErrorFactory.CreateError<T>($"Client: {clientId} does not have access to the requested grain/securableItem: {grain}/{securableItem} combination", HttpStatusCode.Forbidden);
+            return new JsonResponse(error, new DefaultJsonSerializer(context.Environment),
+                    context.Environment)
+                { StatusCode = HttpStatusCode.Forbidden };
         }
     }
 }

@@ -8,14 +8,16 @@ namespace Fabric.Authorization.Domain.Services
     {
         IEnumerable<Role> GetRoles(string grain = null, string securableItem = null, string roleName = null);
 
+        Role GetRole(Guid roleId);
+
         IEnumerable<Permission> GetPermissionsForRole(Guid roleId);
 
         Role AddRole(Role role);
 
         void DeleteRole(Role role);
 
-        void AddPermissionsToRole(Guid roleId, Guid[] permissionIds);
+        Role AddPermissionsToRole(Role role, Guid[] permissionIds);
 
-        void RemovePermissionsFromRole(Guid roleId, Guid[] permissionIds);
+        Role RemovePermissionsFromRole(Role role, Guid[] permissionIds);
     }
 }

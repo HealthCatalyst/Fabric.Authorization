@@ -20,82 +20,117 @@ namespace Fabric.Authorization.API.Modules
 
         public RolesModule(IRoleService roleService, IClientService clientService, ILogger logger, RoleValidator validator) : base("/roles", logger, validator)
         {
+            //private members
             _roleService = roleService ?? throw new ArgumentNullException(nameof(roleService));
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
 
-            Get("/{grain}/{securableItem}", parameters =>
-            {
-                CheckAccess(_clientService, parameters.grain, parameters.securableItem, AuthorizationReadClaim);
-                IEnumerable<Role> roles = roleService.GetRoles(parameters.grain, parameters.securableItem);
-                return roles.Select(r => r.ToRoleApiModel());
-            });
+            //routes and handlers
+            Get("/{grain}/{securableItem}", parameters => GetRolesForSecurableItem(parameters));
+            Get("/{grain}/{securableItem}/{roleName}", parameters => GetRoleByName(parameters));
+            Post("/", parameters => AddRole());
+            Delete("/{roleId}", parameters => DeleteRole(parameters));
+            Post("/{roleId}/permissions", parameters => AddPermissionsToRole(parameters));
+            Delete("/{roleId}/permissions", parameters => DeletePermissionsFromRole(parameters));
+        }
 
-            Get("/{grain}/{securableItem}/{roleName}", parameters =>
-            {
-                CheckAccess(_clientService, parameters.grain, parameters.securableItem, AuthorizationReadClaim);
-                IEnumerable<Role> roles = roleService.GetRoles(parameters.grain, parameters.securableItem, parameters.roleName);
-                return roles.Select(r => r.ToRoleApiModel());
-            });
+        private dynamic GetRolesForSecurableItem(dynamic parameters)
+        {
+            CheckAccess(_clientService, parameters.grain, parameters.securableItem, AuthorizationReadClaim);
+            IEnumerable<Role> roles = _roleService.GetRoles(parameters.grain, parameters.securableItem);
+            return roles.Select(r => r.ToRoleApiModel());
+        }
 
-            Post("/", parameters =>
-            {
-                var roleApiModel = this.Bind<RoleApiModel>(binderIgnore => binderIgnore.Id,
-                    binderIgnore => binderIgnore.CreatedBy,
-                    binderIgnore => binderIgnore.CreatedDateTimeUtc,
-                    binderIgnore => binderIgnore.ModifiedDateTimeUtc,
-                    binderIgnore => binderIgnore.ModifiedBy);
+        private dynamic GetRoleByName(dynamic parameters)
+        {
+            CheckAccess(_clientService, parameters.grain, parameters.securableItem, AuthorizationReadClaim);
+            IEnumerable<Role> roles = _roleService.GetRoles(parameters.grain, parameters.securableItem, parameters.roleName);
+            return roles.Select(r => r.ToRoleApiModel());
+        }
 
-                var incomingRole = roleApiModel.ToRoleDomainModel();
-                Validate(incomingRole);
-                Role role = _roleService.AddRole(incomingRole);
-                return CreateSuccessfulPostResponse(role.ToRoleApiModel());
-            });
+        private dynamic AddRole()
+        {
+            var roleApiModel = this.Bind<RoleApiModel>(binderIgnore => binderIgnore.Id,
+                binderIgnore => binderIgnore.CreatedBy,
+                binderIgnore => binderIgnore.CreatedDateTimeUtc,
+                binderIgnore => binderIgnore.ModifiedDateTimeUtc,
+                binderIgnore => binderIgnore.ModifiedBy);
 
-            Post("/{roleId}/permissions", parameters =>
-            {
-                try
-                {
-                    var roleApiModels = this.Bind<List<PermissionApiModel>>(new BindingConfig {BodyOnly = true});
-                    roleService.AddPermissionsToRole(parameters.roleId,
-                        roleApiModels.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToArray());
-                    return HttpStatusCode.NoContent;
-                }
-                catch (RoleNotFoundException)
-                {
-                    return HttpStatusCode.BadRequest;
-                }
-                catch (IncompatiblePermissionException)
-                {
-                    return HttpStatusCode.BadRequest;
-                }
-            });
+            var incomingRole = roleApiModel.ToRoleDomainModel();
+            Validate(incomingRole);
+            CheckAccess(_clientService, roleApiModel.Grain, roleApiModel.SecurableItem, AuthorizationWriteClaim);
+            Role role = _roleService.AddRole(incomingRole);
+            return CreateSuccessfulPostResponse(role.ToRoleApiModel());
+        }
 
-            Delete("/{roleId}", parameters =>
+        private dynamic DeleteRole(dynamic parameters)
+        {
+            try
             {
-                try
+                if (!Guid.TryParse(parameters.roleId, out Guid roleId))
                 {
-                    roleService.DeleteRole(parameters.roleId);
-                    return HttpStatusCode.NoContent;
+                    return CreateFailureResponse("roleId must be a guid.", HttpStatusCode.BadRequest);
                 }
-                catch (RoleNotFoundException)
-                {
-                    return HttpStatusCode.BadRequest;
-                }
-            });
 
-            Delete("/{roleId}/permissions", parameters =>
+                Role roleToDelete = _roleService.GetRole(roleId);
+                CheckAccess(_clientService, roleToDelete.Grain, roleToDelete.SecurableItem, AuthorizationWriteClaim);
+                _roleService.DeleteRole(roleToDelete);
+                return HttpStatusCode.NoContent;
+            }
+            catch (RoleNotFoundException ex)
             {
-                try
+                Logger.Error(ex, ex.Message, parameters.roleId);
+                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
+            }
+        }
+
+        private dynamic AddPermissionsToRole(dynamic parameters)
+        {
+            try
+            {
+                if (!Guid.TryParse(parameters.roleId, out Guid roleId))
                 {
-                    var roleApiModels = this.Bind<List<PermissionApiModel>>(new BindingConfig { BodyOnly = true });
-                    roleService.RemovePermissionsFromRole(parameters.roleId, roleApiModels.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToArray());
-                    return HttpStatusCode.NoContent;
+                    return CreateFailureResponse("roleId must be a guid.", HttpStatusCode.BadRequest);
                 }
-                catch (RoleNotFoundException)
+
+                Role roleToUpdate = _roleService.GetRole(roleId);
+                CheckAccess(_clientService, roleToUpdate.Grain, roleToUpdate.SecurableItem, AuthorizationWriteClaim);
+                var roleApiModels = this.Bind<List<PermissionApiModel>>(new BindingConfig { BodyOnly = true });
+                Role updatedRole = _roleService.AddPermissionsToRole(roleToUpdate,
+                    roleApiModels.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToArray());
+                return CreateSuccessfulPostResponse(updatedRole.ToRoleApiModel(), HttpStatusCode.OK);
+            }
+            catch (RoleNotFoundException ex)
+            {
+                Logger.Error(ex, ex.Message, parameters.roleId);
+                return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
+            }
+            catch (IncompatiblePermissionException ex)
+            {
+                Logger.Error(ex, ex.Message, parameters.roleId);
+                return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
+            }
+        }
+
+        private dynamic DeletePermissionsFromRole(dynamic parameters)
+        {
+            try
+            {
+                if (!Guid.TryParse(parameters.roleId, out Guid roleId))
                 {
-                    return HttpStatusCode.BadRequest;
+                    return CreateFailureResponse("roleId must be a guid.", HttpStatusCode.BadRequest);
                 }
-            });
+
+                Role roleToUpdate = _roleService.GetRole(roleId);
+                CheckAccess(_clientService, roleToUpdate.Grain, roleToUpdate.SecurableItem, AuthorizationWriteClaim);
+                var roleApiModels = this.Bind<List<PermissionApiModel>>(new BindingConfig { BodyOnly = true });
+                Role updatedRole = _roleService.RemovePermissionsFromRole(roleToUpdate, roleApiModels.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToArray());
+                return CreateSuccessfulPostResponse(updatedRole.ToRoleApiModel(), HttpStatusCode.OK);
+            }
+            catch (RoleNotFoundException ex)
+            {
+                Logger.Error(ex, ex.Message, parameters.roleId);
+                return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
+            }
         }
     }
 }

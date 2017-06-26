@@ -41,7 +41,7 @@ namespace Fabric.Authorization.API.Modules
             Logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        protected Negotiator CreateSuccessfulPostResponse(IIdentifiable model)
+        protected Negotiator CreateSuccessfulPostResponse(IIdentifiable model, HttpStatusCode statusCode = HttpStatusCode.Created)
         {
             var uriBuilder = new UriBuilder(Request.Url.Scheme,
                 Request.Url.HostName,
@@ -52,7 +52,7 @@ namespace Fabric.Authorization.API.Modules
 
             return Negotiate
                 .WithModel(model)
-                .WithStatusCode(HttpStatusCode.Created)
+                .WithStatusCode(statusCode)
                 .WithHeader(HttpResponseHeaders.Location, selfLink);
         }
 

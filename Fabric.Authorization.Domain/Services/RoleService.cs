@@ -22,6 +22,11 @@ namespace Fabric.Authorization.Domain.Services
             return _roleStore.GetRoles(grain, securableItem, roleName);
         }
 
+        public Role GetRole(Guid roleId)
+        {
+            return _roleStore.GetRole(roleId);
+        }
+
         public IEnumerable<Permission> GetPermissionsForRole(Guid roleId)
         {
             var role = _roleStore.GetRole(roleId);
@@ -38,9 +43,8 @@ namespace Fabric.Authorization.Domain.Services
             _roleStore.DeleteRole(role);
         }
 
-        public void AddPermissionsToRole(Guid roleId, Guid[] permissionIds)
+        public Role AddPermissionsToRole(Role role, Guid[] permissionIds)
         {
-            var role = _roleStore.GetRole(roleId);
             var permissionsToAdd = new List<Permission>();
             foreach (var permissionId in permissionIds)
             {
@@ -59,11 +63,11 @@ namespace Fabric.Authorization.Domain.Services
                 role.Permissions.Add(permission);
             }
             _roleStore.UpdateRole(role);
+            return role;
         }
 
-        public void RemovePermissionsFromRole(Guid roleId, Guid[] permissionIds)
+        public Role RemovePermissionsFromRole(Role role, Guid[] permissionIds)
         {
-            var role = _roleStore.GetRole(roleId);
             foreach (var permissionId in permissionIds)
             {
                 if (role.Permissions.All(p => p.Id != permissionId))
@@ -77,6 +81,7 @@ namespace Fabric.Authorization.Domain.Services
                 role.Permissions.Remove(permission);
             }
             _roleStore.UpdateRole(role);
+            return role;
         }
     }
 }

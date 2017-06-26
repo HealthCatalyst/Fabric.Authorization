@@ -94,7 +94,7 @@ namespace Fabric.Authorization.API.Modules
                     return CreateFailureResponse("permissionId must be a guid.", HttpStatusCode.BadRequest);
                 }
                 Permission permission = _permissionService.GetPermission(permissionId);
-                CheckAccess(_clientService, permission.Grain, permission.SecurableItem, AuthorizationReadClaim);
+                CheckAccess(_clientService, permission.Grain, permission.SecurableItem, AuthorizationWriteClaim);
                 _permissionService.DeletePermission(permission);
                 return HttpStatusCode.NoContent;
             }

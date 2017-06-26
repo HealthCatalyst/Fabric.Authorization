@@ -35,7 +35,7 @@ namespace Fabric.Authorization.Domain.Stores
             {
                 return Roles[roleId];
             }
-            throw new RoleNotFoundException();
+            throw new RoleNotFoundException($"The specified role with id: {roleId} was not found.");
         }
 
         public Role AddRole(Role role)
