@@ -6,10 +6,10 @@ COPY ${source:-obj/Docker/publish} .
 
 RUN mkdir -p /usr/local/bin
  
-COPY ${source:-scripts/setup-crontab.sh} setup-crontab.sh
-COPY ${source:-scripts/update-groups.sh} /usr/local/bin/update-groups.sh
+COPY ${source:-scripts/setup-crontab.sh} 
+COPY ${source:-scripts/update-groups.sh} /usr/local/bin
 
-RUN chmod a+x setup-crontab.sh
+RUN chmod a+x ./setup-crontab.sh
 RUN chmod a+x /usr/local/bin/update-groups.sh
 
 RUN  ["/bin/bash", "-c", "apt-get update"]
