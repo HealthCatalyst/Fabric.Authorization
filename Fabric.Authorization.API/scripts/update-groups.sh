@@ -129,7 +129,7 @@ QUERY="'(objectClass=group)'"
 # Execute query
 
 echo -e "\nLoading groups..."
-echo "ldapsearch $PARAMS $QUERY | grep -i 'CN:' | $TOKENIZER_COMMAND"
+
 SEARCH="ldapsearch $PARAMS $QUERY | grep -i 'CN:' | $TOKENIZER_COMMAND"
 GRP=$(eval $SEARCH)
 
@@ -138,12 +138,9 @@ GRP=$(eval $SEARCH)
 
 echo "Getting access token..."
 SECRET=$(cat /run/secrets/group-fetcher.pwd)
-echo 'curl $FABRIC_IDENTITY_URL/connect/token -X POST -d "client_id=fabric-group-fetcher&grant_type=client_credentials&scope=fabric/authorization.write" --data-urlencode "client_secret=$SECRET"'
 RESPONSE=$(curl $FABRIC_IDENTITY_URL/connect/token -X POST -d "client_id=fabric-group-fetcher&grant_type=client_credentials&scope=fabric/authorization.write" --data-urlencode "client_secret=$SECRET")
 
-echo $RESPONSE
 TOKEN=$(echo $RESPONSE | grep -oP '(?<="access_token":")[^"]*')
-echo $TOKEN
 
 ################################################################################
 # Call Fabric.Authorization
