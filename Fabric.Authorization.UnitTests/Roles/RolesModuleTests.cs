@@ -431,11 +431,8 @@ namespace Fabric.Authorization.UnitTests.Roles
 
         private void DeletePermissionAndAssert(string clientId, string roleId, Permission permission, HttpStatusCode expectedStatusCode, string scope = null)
         {
-            if (string.IsNullOrEmpty(scope))
-            {
-                scope = Scopes.WriteScope;
-            }
-            var rolesModule = CreateBrowser(new Claim(Claims.Scope, scope),
+            var requestScope = string.IsNullOrEmpty(scope) ? Scopes.WriteScope : scope;
+            var rolesModule = CreateBrowser(new Claim(Claims.Scope, requestScope),
                 new Claim(Claims.ClientId, clientId));
             var result = rolesModule.Delete($"/roles/{roleId}/permissions",
                     with => with.JsonBody(new List<Permission> { permission }))
@@ -445,11 +442,8 @@ namespace Fabric.Authorization.UnitTests.Roles
         
         private void PostPermissionAndAssert(Role role, Permission permission, string clientId, HttpStatusCode expectedStatusCode, string scope = null)
         {
-            if (string.IsNullOrEmpty(scope))
-            {
-                scope = Scopes.WriteScope;
-            }
-            var rolesModule = CreateBrowser(new Claim(Claims.Scope, scope),
+            var requestScope = string.IsNullOrEmpty(scope) ? Scopes.WriteScope : scope;
+            var rolesModule = CreateBrowser(new Claim(Claims.Scope, requestScope),
                 new Claim(Claims.ClientId, clientId));
             var result = rolesModule.Post($"/roles/{role.Id}/permissions",
                     with => with.JsonBody(new List<Permission> { permission }))

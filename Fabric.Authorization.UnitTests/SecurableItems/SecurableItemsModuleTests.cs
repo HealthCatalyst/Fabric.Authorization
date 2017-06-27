@@ -170,15 +170,14 @@ namespace Fabric.Authorization.UnitTests.SecurableItems
         {
             var existingClient = _existingClients.First();
             var innerSecurable1 = existingClient.TopLevelSecurableItem.SecurableItems.First(s => s.Name == "inner-securable-1");
-            if (clientIdClaim != null && clientIdClaim.Value =="valid")
-            {
-                clientIdClaim = new Claim(Claims.ClientId, existingClient.Id);
-            }
+            var requestClientIdClaim = (clientIdClaim != null && clientIdClaim.Value == "valid")
+                ? new Claim(Claims.ClientId, existingClient.Id)
+                : clientIdClaim;
             var securableItemToPost = new SecurableItemApiModel
             {
                 Name = "inner-securable-3"
             };
-            var securableItemsModule = CreateBrowser(scopeClaim, clientIdClaim);
+            var securableItemsModule = CreateBrowser(scopeClaim, requestClientIdClaim);
             var requestUrl = "/securableitems";
             if (itemLevel)
             {

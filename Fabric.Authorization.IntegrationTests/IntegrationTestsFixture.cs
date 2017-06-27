@@ -18,11 +18,7 @@ namespace Fabric.Authorization.IntegrationTests
 {
     public class IntegrationTestsFixture : IDisposable
     {
-
-        public IntegrationTestsFixture()
-        {
-        }
-
+        
         public Browser Browser { get; set; }
 
         #region IDisposable implementation
