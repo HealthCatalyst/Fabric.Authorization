@@ -87,14 +87,22 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
+                var roleApiModels = this.Bind<List<PermissionApiModel>>(new BindingConfig { BodyOnly = true });
+
                 if (!Guid.TryParse(parameters.roleId, out Guid roleId))
                 {
                     return CreateFailureResponse("roleId must be a guid.", HttpStatusCode.BadRequest);
                 }
 
+                if (roleApiModels.Count == 0)
+                {
+                    return CreateFailureResponse(
+                        "No permissions specified to add, ensure an array of permissions is included in the request.",
+                        HttpStatusCode.BadRequest);
+                }
+
                 Role roleToUpdate = _roleService.GetRole(roleId);
                 CheckAccess(_clientService, roleToUpdate.Grain, roleToUpdate.SecurableItem, AuthorizationWriteClaim);
-                var roleApiModels = this.Bind<List<PermissionApiModel>>(new BindingConfig { BodyOnly = true });
                 Role updatedRole = _roleService.AddPermissionsToRole(roleToUpdate,
                     roleApiModels.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToArray());
                 return CreateSuccessfulPostResponse(updatedRole.ToRoleApiModel(), HttpStatusCode.OK);
@@ -102,6 +110,11 @@ namespace Fabric.Authorization.API.Modules
             catch (RoleNotFoundException ex)
             {
                 Logger.Error(ex, ex.Message, parameters.roleId);
+                return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
+            }
+            catch (PermissionNotFoundException ex)
+            {
+                Logger.Error(ex, ex.Message);
                 return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
             }
             catch (IncompatiblePermissionException ex)
@@ -115,18 +128,32 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
+                var roleApiModels = this.Bind<List<PermissionApiModel>>(new BindingConfig { BodyOnly = true });
+
                 if (!Guid.TryParse(parameters.roleId, out Guid roleId))
                 {
                     return CreateFailureResponse("roleId must be a guid.", HttpStatusCode.BadRequest);
                 }
 
+                if (roleApiModels.Count == 0)
+                {
+                    return CreateFailureResponse(
+                        "No permissions specified to add, ensure an array of permissions is included in the request.",
+                        HttpStatusCode.BadRequest);
+                }
+
                 Role roleToUpdate = _roleService.GetRole(roleId);
                 CheckAccess(_clientService, roleToUpdate.Grain, roleToUpdate.SecurableItem, AuthorizationWriteClaim);
-                var roleApiModels = this.Bind<List<PermissionApiModel>>(new BindingConfig { BodyOnly = true });
-                Role updatedRole = _roleService.RemovePermissionsFromRole(roleToUpdate, roleApiModels.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToArray());
+                Role updatedRole = _roleService.RemovePermissionsFromRole(roleToUpdate,
+                    roleApiModels.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToArray());
                 return CreateSuccessfulPostResponse(updatedRole.ToRoleApiModel(), HttpStatusCode.OK);
             }
             catch (RoleNotFoundException ex)
+            {
+                Logger.Error(ex, ex.Message, parameters.roleId);
+                return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
+            }
+            catch (PermissionNotFoundException ex)
             {
                 Logger.Error(ex, ex.Message, parameters.roleId);
                 return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);

@@ -126,10 +126,7 @@ namespace Fabric.Authorization.UnitTests.Roles
             var rolesModule = CreateBrowser(new Claim(Claims.Scope, Scopes.ReadScope),
                 new Claim(Claims.ClientId, existingClient.Id));
             var result = rolesModule.Get($"/roles/app/{existingClient.Id}").Result;
-            Assert.Equal(HttpStatusCode.OK, result.StatusCode);
-            var roles = result.Body.DeserializeJson<List<RoleApiModel>>();
-            Assert.Equal(1, roles.Count);
-            Assert.Equal(existingRole.Id, roles.First().Id);
+            AssertRolesOK(result, 1, existingRole.Id);
         }
 
         [Fact]
@@ -141,32 +138,19 @@ namespace Fabric.Authorization.UnitTests.Roles
             var rolesModule = CreateBrowser(new Claim(Claims.Scope, Scopes.ReadScope),
                 new Claim(Claims.ClientId, existingClient.Id));
             var result = rolesModule.Get($"/roles/app/{existingRole.SecurableItem}/{existingRole.Name}").Result;
-            Assert.Equal(HttpStatusCode.OK, result.StatusCode);
-            var roles = result.Body.DeserializeJson<List<RoleApiModel>>();
-            Assert.Equal(1, roles.Count);
-            Assert.Equal(existingRole.Id, roles.First().Id);
+            AssertRolesOK(result, 1, existingRole.Id);
         }
 
-        [Fact]
-        public void GetRoles_ReturnsNotAllowedForIncorrectCredentials()
+        [Theory, MemberData(nameof(GetRolesForbiddenData))]
+        public void GetRoles_ReturnsNotAllowedForIncorrectCredentials(string scope, string clientId)
         {
             var existingClient = _existingClients.First();
-            var rolesModule = CreateBrowser(new Claim(Claims.Scope, Scopes.ReadScope),
-                new Claim(Claims.ClientId, existingClient.Id));
-            var result = rolesModule.Get($"/roles/app/notmysecurable").Result;
-            Assert.Equal(HttpStatusCode.Forbidden, result.StatusCode);
-        }
-
-        [Fact]
-        public void GetRoles_ReturnsNotAllowedForIncorrectScope()
-        {
-            var existingClient = _existingClients.First();
-            var rolesModule = CreateBrowser(new Claim(Claims.Scope, "badscope"),
-                new Claim(Claims.ClientId, existingClient.Id));
+            var rolesModule = CreateBrowser(new Claim(Claims.Scope, scope),
+                new Claim(Claims.ClientId, clientId));
             var result = rolesModule.Get($"/roles/app/{existingClient.Id}").Result;
             Assert.Equal(HttpStatusCode.Forbidden, result.StatusCode);
         }
-
+        
         [Fact]
         public void AddRole_Succeeds()
         {
@@ -217,30 +201,21 @@ namespace Fabric.Authorization.UnitTests.Roles
         {
             var existingClient = _existingClients.First();
             var existingRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
-            var rolesModule = CreateBrowser(new Claim(Claims.Scope, Scopes.WriteScope),
-                new Claim(Claims.ClientId, existingClient.Id));
-            var result = rolesModule.Delete($"/roles/{existingRole.Id}").Result;
-            Assert.Equal(HttpStatusCode.NoContent, result.StatusCode);
+            AssertDeleteRole(HttpStatusCode.NoContent, existingClient.Id, existingRole.Id.ToString(), Scopes.WriteScope);
         }
 
         [Fact]
         public void DeleteRole_ReturnsNotFound()
         {
             var existingClient = _existingClients.First();
-            var rolesModule = CreateBrowser(new Claim(Claims.Scope, Scopes.WriteScope),
-                new Claim(Claims.ClientId, existingClient.Id));
-            var result = rolesModule.Delete($"/roles/{Guid.NewGuid()}").Result;
-            Assert.Equal(HttpStatusCode.NotFound, result.StatusCode);
+            AssertDeleteRole(HttpStatusCode.NotFound, existingClient.Id, Guid.NewGuid().ToString(), Scopes.WriteScope);
         }
 
         [Fact]
         public void DeleteRole_ReturnsBadRequest()
         {
             var existingClient = _existingClients.First();
-            var rolesModule = CreateBrowser(new Claim(Claims.Scope, Scopes.WriteScope),
-                new Claim(Claims.ClientId, existingClient.Id));
-            var result = rolesModule.Delete($"/roles/notaguid").Result;
-            Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
+            AssertDeleteRole(HttpStatusCode.BadRequest, existingClient.Id, "notaguid", Scopes.WriteScope);
         }
 
         [Fact]
@@ -248,10 +223,7 @@ namespace Fabric.Authorization.UnitTests.Roles
         {
             var existingClient = _existingClients.First();
             var existingRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
-            var rolesModule = CreateBrowser(new Claim(Claims.Scope, Scopes.ReadScope),
-                new Claim(Claims.ClientId, existingClient.Id));
-            var result = rolesModule.Delete($"/roles/{existingRole.Id}").Result;
-            Assert.Equal(HttpStatusCode.Forbidden, result.StatusCode);
+            AssertDeleteRole(HttpStatusCode.Forbidden, existingClient.Id, existingRole.Id.ToString(), Scopes.ReadScope);
         }
 
         [Theory, MemberData(nameof(DeleteRoleForbiddenData))]
@@ -263,6 +235,250 @@ namespace Fabric.Authorization.UnitTests.Roles
                 new Claim(Claims.ClientId, cliendId));
             var result = rolesModule.Delete($"/roles/{existingRole.Id}").Result;
             Assert.Equal(HttpStatusCode.Forbidden, result.StatusCode);
+        }
+
+        [Fact]
+        public void AddPermissionsToRole_Succeeds()
+        {
+            var existingClient = _existingClients.First();
+            var existingRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
+            var existingPermission =
+                _existingPermissions.First(p => p.Grain == existingRole.Grain &&
+                                                p.SecurableItem == existingRole.SecurableItem);
+            var rolesModule = CreateBrowser(new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.ClientId, existingClient.Id));
+            var result = rolesModule.Post($"/roles/{existingRole.Id}/permissions",
+                    with => with.JsonBody(new List<Permission>{existingPermission}))
+                .Result;
+            AssertRoleOK(result, 1);
+        }
+
+        [Fact]
+        public void AddPermissionsToRole_BadRequest()
+        {
+            var existingClient = _existingClients.First();
+            var existingRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
+            var existingPermission =
+                _existingPermissions.First(p => p.Grain == existingRole.Grain &&
+                                                p.SecurableItem == existingRole.SecurableItem);
+            var rolesModule = CreateBrowser(new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.ClientId, existingClient.Id));
+            var result = rolesModule.Post($"/roles/{existingRole.Id}/permissions",
+                    with => with.JsonBody(existingPermission))
+                .Result;
+            Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
+        }
+
+        [Fact]
+        public void AddPermissionsToRole_RoleNotFound()
+        {
+            var existingClient = _existingClients.First();
+            var role = new Role
+            {
+                Id = Guid.NewGuid(),
+                Grain = "app",
+                SecurableItem = "patientsafety",
+                Name = "notfound"
+            };
+            var existingPermission =
+                _existingPermissions.First(p => p.Grain == role.Grain &&
+                                                p.SecurableItem == role.SecurableItem);
+            PostPermissionAndAssert(role, existingPermission, existingClient.Id, HttpStatusCode.BadRequest);
+        }
+
+        [Fact]
+        public void AddPermissionsToRole_PermissionNotFound()
+        {
+            var existingClient = _existingClients.First();
+            var existingRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
+            var permission = new Permission
+            {
+                Id = Guid.NewGuid(),
+                Grain = "app",
+                SecurableItem = "patientsafety",
+                Name = "notfound"
+            };
+            PostPermissionAndAssert(existingRole, permission, existingClient.Id, HttpStatusCode.BadRequest);
+        }
+
+        [Fact]
+        public void AddPermissionsToRole_IncompatiblePermission_PermissionAlreadyExists()
+        {
+            var existingClient = _existingClients.First();
+            var existingRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
+            var existingPermission =
+                _existingPermissions.First(p => p.Grain == existingRole.Grain &&
+                                                p.SecurableItem == existingRole.SecurableItem);
+            existingRole.Permissions.Add(existingPermission);
+            PostPermissionAndAssert(existingRole, existingPermission, existingClient.Id, HttpStatusCode.BadRequest);
+        }
+
+        [Fact]
+        public void AddPermissionsToRole_IncompatiblePermission_WrongSecurable()
+        {
+            var existingClient = _existingClients.First();
+            var existingRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
+            var existingPermission =
+                _existingPermissions.First(p => p.Grain == existingRole.Grain &&
+                                                p.SecurableItem != existingRole.SecurableItem);
+            PostPermissionAndAssert(existingRole, existingPermission, existingClient.Id, HttpStatusCode.BadRequest);
+        }
+
+        [Theory, MemberData(nameof(AddPermissionToRoleForbiddenData))]
+        public void AddPermissionsToRole_Forbidden(string clientId, string securableItem, string scope)
+        {
+            var role = _existingRoles.First(r => r.Grain == "app" && r.SecurableItem == securableItem);
+            var permission =
+                _existingPermissions.First(p => p.Grain == role.Grain && p.SecurableItem == role.SecurableItem);
+            PostPermissionAndAssert(role, permission, clientId, HttpStatusCode.Forbidden, scope);
+        }
+
+        [Fact]
+        public void DeletePermissionFromRole_Succeeds()
+        {
+            var existingClient = _existingClients.First();
+            var existingRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
+            var existingPermission =
+                _existingPermissions.First(p => p.Grain == existingRole.Grain &&
+                                                p.SecurableItem == existingRole.SecurableItem);
+            existingRole.Permissions.Add(existingPermission);
+            var rolesModule = CreateBrowser(new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.ClientId, existingClient.Id));
+            var result = rolesModule.Delete($"/roles/{existingRole.Id}/permissions",
+                    with => with.JsonBody(new List<Permission> { existingPermission }))
+                .Result;
+            AssertRoleOK(result, 0);
+        }
+
+        [Fact]
+        public void DeletePermissionFromRole_IncorrectFormat_BadRequest()
+        {
+            var existingClient = _existingClients.First();
+            var existingRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
+            var existingPermission =
+                _existingPermissions.First(p => p.Grain == existingRole.Grain &&
+                                                p.SecurableItem == existingRole.SecurableItem);
+            existingRole.Permissions.Add(existingPermission);
+            var rolesModule = CreateBrowser(new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.ClientId, existingClient.Id));
+            var result = rolesModule.Delete($"/roles/{existingRole.Id}/permissions",
+                    with => with.JsonBody(existingPermission))
+                .Result;
+            Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
+        }
+
+        [Fact]
+        public void DeletePermissionFromRole_RoleNotFound()
+        {
+            var existingClient = _existingClients.First();
+            var notFoundRole = new Role
+            {
+                Id = Guid.NewGuid(),
+                Grain = "app",
+                SecurableItem = existingClient.Id,
+                Name = "notfound"
+            };
+            var existingPermission =
+                _existingPermissions.First(p => p.Grain == notFoundRole.Grain &&
+                                                p.SecurableItem == notFoundRole.SecurableItem);
+            notFoundRole.Permissions.Add(existingPermission);
+            DeletePermissionAndAssert(existingClient.Id, notFoundRole.Id.ToString(), existingPermission, HttpStatusCode.BadRequest);
+        }
+
+        [Fact]
+        public void DeletePermissionFromRole_PermissionNotFound()
+        {
+            var existingClient = _existingClients.First();
+            var existingRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
+            var existingPermission =
+                _existingPermissions.First(p => p.Grain == existingRole.Grain &&
+                                                p.SecurableItem == existingRole.SecurableItem);
+            DeletePermissionAndAssert(existingClient.Id, existingRole.Id.ToString(), existingPermission, HttpStatusCode.BadRequest);
+        }
+
+        [Fact]
+        public void DeletePermissionFromRole_Forbidden()
+        {
+            var existingClient = _existingClients.First();
+            var notFoundRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
+            var existingPermission =
+                _existingPermissions.First(p => p.Grain == notFoundRole.Grain &&
+                                                p.SecurableItem == notFoundRole.SecurableItem);
+            DeletePermissionAndAssert("sourcemartdesigner", notFoundRole.Id.ToString(), existingPermission, HttpStatusCode.Forbidden);
+        }
+
+        [Fact]
+        public void DeletePermissionFromRole_WrongScope_Forbidden()
+        {
+            var existingClient = _existingClients.First();
+            var existingRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
+            var existingPermission =
+                _existingPermissions.First(p => p.Grain == existingRole.Grain &&
+                                                p.SecurableItem == existingRole.SecurableItem);
+            DeletePermissionAndAssert(existingClient.Id, existingRole.Id.ToString(), existingPermission, HttpStatusCode.Forbidden, Scopes.ReadScope);
+        }
+
+        [Fact]
+        public void DeletePermissionFromRole_BadRequest()
+        {
+            var existingClient = _existingClients.First();
+            var existingRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
+            var existingPermission =
+                _existingPermissions.First(p => p.Grain == existingRole.Grain &&
+                                                p.SecurableItem == existingRole.SecurableItem);
+            DeletePermissionAndAssert(existingClient.Id, "notaguid", existingPermission, HttpStatusCode.BadRequest, Scopes.WriteScope);
+        }
+
+        private void DeletePermissionAndAssert(string clientId, string roleId, Permission permission, HttpStatusCode expectedStatusCode, string scope = null)
+        {
+            if (string.IsNullOrEmpty(scope))
+            {
+                scope = Scopes.WriteScope;
+            }
+            var rolesModule = CreateBrowser(new Claim(Claims.Scope, scope),
+                new Claim(Claims.ClientId, clientId));
+            var result = rolesModule.Delete($"/roles/{roleId}/permissions",
+                    with => with.JsonBody(new List<Permission> { permission }))
+                .Result;
+            Assert.Equal(expectedStatusCode, result.StatusCode);
+        }
+        
+        private void PostPermissionAndAssert(Role role, Permission permission, string clientId, HttpStatusCode expectedStatusCode, string scope = null)
+        {
+            if (string.IsNullOrEmpty(scope))
+            {
+                scope = Scopes.WriteScope;
+            }
+            var rolesModule = CreateBrowser(new Claim(Claims.Scope, scope),
+                new Claim(Claims.ClientId, clientId));
+            var result = rolesModule.Post($"/roles/{role.Id}/permissions",
+                    with => with.JsonBody(new List<Permission> { permission }))
+                .Result;
+            Assert.Equal(expectedStatusCode, result.StatusCode);
+        }
+
+        private void AssertRoleOK(BrowserResponse result, int expectedPermissionCount)
+        {
+            Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+            var updatedRole = result.Body.DeserializeJson<RoleApiModel>();
+            Assert.NotNull(updatedRole);
+            Assert.Equal(expectedPermissionCount, updatedRole.Permissions.Count());
+        }
+
+        private void AssertRolesOK(BrowserResponse result, int expectedRolesCount, Guid expectedId)
+        {
+            Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+            var roles = result.Body.DeserializeJson<List<RoleApiModel>>();
+            Assert.Equal(expectedRolesCount, roles.Count);
+            Assert.Equal(expectedId, roles.First().Id);
+        }
+        
+        private void AssertDeleteRole(HttpStatusCode expectedStatusCode, string clientId, string roleId, string scope)
+        {
+            var rolesModule = CreateBrowser(new Claim(Claims.Scope, scope),
+                new Claim(Claims.ClientId, clientId));
+            var result = rolesModule.Delete($"/roles/{roleId}").Result;
+            Assert.Equal(expectedStatusCode, result.StatusCode);
         }
 
         public static IEnumerable<object[]> AddRoleBadRequestData => new[]
@@ -284,8 +500,18 @@ namespace Fabric.Authorization.UnitTests.Roles
             new object[] {"sourcemartdesigner"},
             new object[] {"notaclient"},
         };
-        
 
+        public static IEnumerable<object[]> AddPermissionToRoleForbiddenData => new[]
+        {
+            new object[] { "patientsafety", "patientsafety", Scopes.ReadScope}, 
+            new object[] { "patientsafety", "sourcemartdesigner", Scopes.WriteScope}, 
+        };
+
+        public static IEnumerable<object[]> GetRolesForbiddenData => new[]
+        {
+            new object[] {"badscope", "patientsafety"},
+            new object[] {Scopes.ReadScope, "sourcemartdesigner"},
+        };
 
         protected override ConfigurableBootstrapper.ConfigurableBootstrapperConfigurator ConfigureBootstrapper(ConfigurableBootstrapper configurableBootstrapper,
             params Claim[] claims)
