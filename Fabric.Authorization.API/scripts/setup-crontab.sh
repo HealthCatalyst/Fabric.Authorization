@@ -45,4 +45,4 @@ fi
 ################################################################################
 # Setup crontab
 
-eval "(crontab -l 2>/dev/null; echo '$FREQUENCY $SCRIPT_LOCATION/update-roles.sh') | crontab -"
+eval "(crontab -l 2>/dev/null; echo '$FREQUENCY $SCRIPT_LOCATION/update-roles.sh') | crontab -" 
