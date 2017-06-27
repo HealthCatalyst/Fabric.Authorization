@@ -11,10 +11,11 @@ RUN apt-get update -y && \
 
 COPY ${source:-obj/Docker/publish} .
 
-RUN mkdir -p /usr/local/bin; \
-	mv scripts/update-groups.sh /usr/local/bin/update-groups.sh; \
-	chmod a+x scripts/setup-crontab.sh; \
-	chmod a+x /usr/local/bin/update-groups.sh; \
-	./scripts/setup-crontab.sh
+RUN mkdir -p /usr/local/bin \
+	&& mv scripts/update-groups.sh /usr/local/bin/update-groups.sh \
+	&& chmod a+x scripts/setup-crontab.sh \
+	&& chmod a+x /usr/local/bin/update-groups.sh
+
+RUN	./scripts/setup-crontab.sh
 
 ENTRYPOINT ["dotnet", "Fabric.Authorization.API.dll"]
