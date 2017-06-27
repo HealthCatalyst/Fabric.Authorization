@@ -2,126 +2,25 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
-using System.Text;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
-using Fabric.Authorization.Domain.Stores;
-using Fabric.Authorization.UnitTests.Mocks;
-using Moq;
 using Nancy;
 using Nancy.Testing;
-using Serilog;
 using Xunit;
 
 namespace Fabric.Authorization.UnitTests.Roles
 {
     public class RolesModuleTests : ModuleTestsBase<RolesModule>
     {
-        private readonly List<Permission> _existingPermissions;
-        private readonly List<Role> _existingRoles;
-        private readonly List<Client> _existingClients;
-        private readonly Mock<IPermissionStore> _mockPermissionStore;
-        private readonly Mock<IRoleStore> _mockRoleStore;
-        private readonly Mock<IClientStore> _mockClientStore;
-        private readonly Mock<ILogger> _mockLogger;
-
-        public RolesModuleTests()
-        {
-            _existingClients = new List<Client>
-            {
-                new Client
-                {
-                    Id = "patientsafety",
-                    TopLevelSecurableItem = new SecurableItem
-                    {
-                        Id = Guid.NewGuid(),
-                        Name = "patientsafety"
-                    }
-                },
-                new Client
-                {
-                    Id = "sourcemartdesigner",
-                    TopLevelSecurableItem = new SecurableItem
-                    {
-                        Id = Guid.NewGuid(),
-                        Name = "sourcemartdesigner"
-                    }
-                }
-            };
-
-            _mockClientStore = new Mock<IClientStore>()
-                .SetupGetClient(_existingClients)
-                .SetupAddClient();
-
-            _existingPermissions = new List<Permission>
-            {
-                new Permission
-                {
-                    Id = Guid.NewGuid(),
-                    Grain = "app",
-                    SecurableItem = "patientsafety",
-                    Name = "manageusers"
-                },
-                new Permission
-                {
-                    Id = Guid.NewGuid(),
-                    Grain = "app",
-                    SecurableItem = "patientsafety",
-                    Name = "updatepatient"
-                },
-                new Permission
-                {
-                    Id = Guid.NewGuid(),
-                    Grain = "app",
-                    SecurableItem = "sourcemartdesigner",
-                    Name = "manageusers"
-                },
-                new Permission
-                {
-                    Id = Guid.NewGuid(),
-                    Grain = "patient",
-                    SecurableItem = "Patient",
-                    Name ="read"
-                }
-            };
-            
-            _mockPermissionStore = new Mock<IPermissionStore>()
-                .SetupGetPermissions(_existingPermissions)
-                .SetupAddPermissions();
-
-            _existingRoles = new List<Role>
-            {
-                new Role
-                {
-                    Id = Guid.NewGuid(),
-                    Grain = "app",
-                    SecurableItem = "patientsafety",
-                    Name = "admin"
-                },
-                new Role
-                {
-                    Id = Guid.NewGuid(),
-                    Grain = "app",
-                    SecurableItem = "sourcemartdesigner",
-                    Name = "admin"
-                }
-            };
-
-            _mockRoleStore = new Mock<IRoleStore>()
-                .SetupGetRoles(_existingRoles)
-                .SetupAddRole();
-
-            _mockLogger = new Mock<ILogger>();
-        }
 
         [Fact]
         public void GetRoles_ReturnsRolesForGrainAndSecurableItem()
         {
-            var existingClient = _existingClients.First();
-            var existingRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
+            var existingClient = ExistingClients.First();
+            var existingRole = ExistingRoles.First(r => r.SecurableItem == existingClient.Id);
             Assert.NotNull(existingRole);
             var rolesModule = CreateBrowser(new Claim(Claims.Scope, Scopes.ReadScope),
                 new Claim(Claims.ClientId, existingClient.Id));
@@ -132,8 +31,8 @@ namespace Fabric.Authorization.UnitTests.Roles
         [Fact]
         public void GetRoles_ReturnsRoleForRoleName()
         {
-            var existingClient = _existingClients.First();
-            var existingRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
+            var existingClient = ExistingClients.First();
+            var existingRole = ExistingRoles.First(r => r.SecurableItem == existingClient.Id);
             Assert.NotNull(existingRole);
             var rolesModule = CreateBrowser(new Claim(Claims.Scope, Scopes.ReadScope),
                 new Claim(Claims.ClientId, existingClient.Id));
@@ -144,7 +43,7 @@ namespace Fabric.Authorization.UnitTests.Roles
         [Theory, MemberData(nameof(GetRolesForbiddenData))]
         public void GetRoles_ReturnsNotAllowedForIncorrectCredentials(string scope, string clientId)
         {
-            var existingClient = _existingClients.First();
+            var existingClient = ExistingClients.First();
             var rolesModule = CreateBrowser(new Claim(Claims.Scope, scope),
                 new Claim(Claims.ClientId, clientId));
             var result = rolesModule.Get($"/roles/app/{existingClient.Id}").Result;
@@ -154,7 +53,7 @@ namespace Fabric.Authorization.UnitTests.Roles
         [Fact]
         public void AddRole_Succeeds()
         {
-            var existingClient = _existingClients.First();
+            var existingClient = ExistingClients.First();
             var rolesModule = CreateBrowser(new Claim(Claims.Scope, Scopes.WriteScope),
                 new Claim(Claims.ClientId, existingClient.Id));
             var roleToPost = new RoleApiModel
@@ -173,7 +72,7 @@ namespace Fabric.Authorization.UnitTests.Roles
         [Theory, MemberData(nameof(AddRoleBadRequestData))]
         public void AddRole_ReturnsBadRequest(RoleApiModel roleToPost, int errorCount)
         {
-            var existingClient = _existingClients.First();
+            var existingClient = ExistingClients.First();
             var rolesModule = CreateBrowser(new Claim(Claims.Scope, Scopes.WriteScope),
                 new Claim(Claims.ClientId, existingClient.Id));
             var result = rolesModule.Post($"/roles", with => with.JsonBody(roleToPost)).Result;
@@ -189,7 +88,7 @@ namespace Fabric.Authorization.UnitTests.Roles
         [Theory, MemberData(nameof(AddRoleForbiddenData))]
         public void AddRole_ReturnsForbidden(RoleApiModel roleToPost, string scope)
         {
-            var existingClient = _existingClients.First();
+            var existingClient = ExistingClients.First();
             var rolesModule = CreateBrowser(new Claim(Claims.Scope, scope),
                 new Claim(Claims.ClientId, existingClient.Id));
             var result = rolesModule.Post($"/roles", with => with.JsonBody(roleToPost)).Result;
@@ -199,38 +98,38 @@ namespace Fabric.Authorization.UnitTests.Roles
         [Fact]
         public void DeleteRole_Succeeds()
         {
-            var existingClient = _existingClients.First();
-            var existingRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
+            var existingClient = ExistingClients.First();
+            var existingRole = ExistingRoles.First(r => r.SecurableItem == existingClient.Id);
             AssertDeleteRole(HttpStatusCode.NoContent, existingClient.Id, existingRole.Id.ToString(), Scopes.WriteScope);
         }
 
         [Fact]
         public void DeleteRole_ReturnsNotFound()
         {
-            var existingClient = _existingClients.First();
+            var existingClient = ExistingClients.First();
             AssertDeleteRole(HttpStatusCode.NotFound, existingClient.Id, Guid.NewGuid().ToString(), Scopes.WriteScope);
         }
 
         [Fact]
         public void DeleteRole_ReturnsBadRequest()
         {
-            var existingClient = _existingClients.First();
+            var existingClient = ExistingClients.First();
             AssertDeleteRole(HttpStatusCode.BadRequest, existingClient.Id, "notaguid", Scopes.WriteScope);
         }
 
         [Fact]
         public void DeleteRole_WrongScope_ReturnsForbidden()
         {
-            var existingClient = _existingClients.First();
-            var existingRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
+            var existingClient = ExistingClients.First();
+            var existingRole = ExistingRoles.First(r => r.SecurableItem == existingClient.Id);
             AssertDeleteRole(HttpStatusCode.Forbidden, existingClient.Id, existingRole.Id.ToString(), Scopes.ReadScope);
         }
 
         [Theory, MemberData(nameof(DeleteRoleForbiddenData))]
         public void DeleteRole_WrongClient_ReturnsForbidden(string cliendId)
         {
-            var existingClient = _existingClients.First();
-            var existingRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
+            var existingClient = ExistingClients.First();
+            var existingRole = ExistingRoles.First(r => r.SecurableItem == existingClient.Id);
             var rolesModule = CreateBrowser(new Claim(Claims.Scope, Scopes.WriteScope),
                 new Claim(Claims.ClientId, cliendId));
             var result = rolesModule.Delete($"/roles/{existingRole.Id}").Result;
@@ -240,10 +139,10 @@ namespace Fabric.Authorization.UnitTests.Roles
         [Fact]
         public void AddPermissionsToRole_Succeeds()
         {
-            var existingClient = _existingClients.First();
-            var existingRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
+            var existingClient = ExistingClients.First();
+            var existingRole = ExistingRoles.First(r => r.SecurableItem == existingClient.Id);
             var existingPermission =
-                _existingPermissions.First(p => p.Grain == existingRole.Grain &&
+                ExistingPermissions.First(p => p.Grain == existingRole.Grain &&
                                                 p.SecurableItem == existingRole.SecurableItem);
             var rolesModule = CreateBrowser(new Claim(Claims.Scope, Scopes.WriteScope),
                 new Claim(Claims.ClientId, existingClient.Id));
@@ -256,10 +155,10 @@ namespace Fabric.Authorization.UnitTests.Roles
         [Fact]
         public void AddPermissionsToRole_BadRequest()
         {
-            var existingClient = _existingClients.First();
-            var existingRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
+            var existingClient = ExistingClients.First();
+            var existingRole = ExistingRoles.First(r => r.SecurableItem == existingClient.Id);
             var existingPermission =
-                _existingPermissions.First(p => p.Grain == existingRole.Grain &&
+                ExistingPermissions.First(p => p.Grain == existingRole.Grain &&
                                                 p.SecurableItem == existingRole.SecurableItem);
             var rolesModule = CreateBrowser(new Claim(Claims.Scope, Scopes.WriteScope),
                 new Claim(Claims.ClientId, existingClient.Id));
@@ -272,7 +171,7 @@ namespace Fabric.Authorization.UnitTests.Roles
         [Fact]
         public void AddPermissionsToRole_RoleNotFound()
         {
-            var existingClient = _existingClients.First();
+            var existingClient = ExistingClients.First();
             var role = new Role
             {
                 Id = Guid.NewGuid(),
@@ -281,7 +180,7 @@ namespace Fabric.Authorization.UnitTests.Roles
                 Name = "notfound"
             };
             var existingPermission =
-                _existingPermissions.First(p => p.Grain == role.Grain &&
+                ExistingPermissions.First(p => p.Grain == role.Grain &&
                                                 p.SecurableItem == role.SecurableItem);
             PostPermissionAndAssert(role, existingPermission, existingClient.Id, HttpStatusCode.BadRequest);
         }
@@ -289,8 +188,8 @@ namespace Fabric.Authorization.UnitTests.Roles
         [Fact]
         public void AddPermissionsToRole_PermissionNotFound()
         {
-            var existingClient = _existingClients.First();
-            var existingRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
+            var existingClient = ExistingClients.First();
+            var existingRole = ExistingRoles.First(r => r.SecurableItem == existingClient.Id);
             var permission = new Permission
             {
                 Id = Guid.NewGuid(),
@@ -304,10 +203,10 @@ namespace Fabric.Authorization.UnitTests.Roles
         [Fact]
         public void AddPermissionsToRole_IncompatiblePermission_PermissionAlreadyExists()
         {
-            var existingClient = _existingClients.First();
-            var existingRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
+            var existingClient = ExistingClients.First();
+            var existingRole = ExistingRoles.First(r => r.SecurableItem == existingClient.Id);
             var existingPermission =
-                _existingPermissions.First(p => p.Grain == existingRole.Grain &&
+                ExistingPermissions.First(p => p.Grain == existingRole.Grain &&
                                                 p.SecurableItem == existingRole.SecurableItem);
             existingRole.Permissions.Add(existingPermission);
             PostPermissionAndAssert(existingRole, existingPermission, existingClient.Id, HttpStatusCode.BadRequest);
@@ -316,10 +215,10 @@ namespace Fabric.Authorization.UnitTests.Roles
         [Fact]
         public void AddPermissionsToRole_IncompatiblePermission_WrongSecurable()
         {
-            var existingClient = _existingClients.First();
-            var existingRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
+            var existingClient = ExistingClients.First();
+            var existingRole = ExistingRoles.First(r => r.SecurableItem == existingClient.Id);
             var existingPermission =
-                _existingPermissions.First(p => p.Grain == existingRole.Grain &&
+                ExistingPermissions.First(p => p.Grain == existingRole.Grain &&
                                                 p.SecurableItem != existingRole.SecurableItem);
             PostPermissionAndAssert(existingRole, existingPermission, existingClient.Id, HttpStatusCode.BadRequest);
         }
@@ -327,19 +226,19 @@ namespace Fabric.Authorization.UnitTests.Roles
         [Theory, MemberData(nameof(AddPermissionToRoleForbiddenData))]
         public void AddPermissionsToRole_Forbidden(string clientId, string securableItem, string scope)
         {
-            var role = _existingRoles.First(r => r.Grain == "app" && r.SecurableItem == securableItem);
+            var role = ExistingRoles.First(r => r.Grain == "app" && r.SecurableItem == securableItem);
             var permission =
-                _existingPermissions.First(p => p.Grain == role.Grain && p.SecurableItem == role.SecurableItem);
+                ExistingPermissions.First(p => p.Grain == role.Grain && p.SecurableItem == role.SecurableItem);
             PostPermissionAndAssert(role, permission, clientId, HttpStatusCode.Forbidden, scope);
         }
 
         [Fact]
         public void DeletePermissionFromRole_Succeeds()
         {
-            var existingClient = _existingClients.First();
-            var existingRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
+            var existingClient = ExistingClients.First();
+            var existingRole = ExistingRoles.First(r => r.SecurableItem == existingClient.Id);
             var existingPermission =
-                _existingPermissions.First(p => p.Grain == existingRole.Grain &&
+                ExistingPermissions.First(p => p.Grain == existingRole.Grain &&
                                                 p.SecurableItem == existingRole.SecurableItem);
             existingRole.Permissions.Add(existingPermission);
             var rolesModule = CreateBrowser(new Claim(Claims.Scope, Scopes.WriteScope),
@@ -353,10 +252,10 @@ namespace Fabric.Authorization.UnitTests.Roles
         [Fact]
         public void DeletePermissionFromRole_IncorrectFormat_BadRequest()
         {
-            var existingClient = _existingClients.First();
-            var existingRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
+            var existingClient = ExistingClients.First();
+            var existingRole = ExistingRoles.First(r => r.SecurableItem == existingClient.Id);
             var existingPermission =
-                _existingPermissions.First(p => p.Grain == existingRole.Grain &&
+                ExistingPermissions.First(p => p.Grain == existingRole.Grain &&
                                                 p.SecurableItem == existingRole.SecurableItem);
             existingRole.Permissions.Add(existingPermission);
             var rolesModule = CreateBrowser(new Claim(Claims.Scope, Scopes.WriteScope),
@@ -370,7 +269,7 @@ namespace Fabric.Authorization.UnitTests.Roles
         [Fact]
         public void DeletePermissionFromRole_RoleNotFound()
         {
-            var existingClient = _existingClients.First();
+            var existingClient = ExistingClients.First();
             var notFoundRole = new Role
             {
                 Id = Guid.NewGuid(),
@@ -379,7 +278,7 @@ namespace Fabric.Authorization.UnitTests.Roles
                 Name = "notfound"
             };
             var existingPermission =
-                _existingPermissions.First(p => p.Grain == notFoundRole.Grain &&
+                ExistingPermissions.First(p => p.Grain == notFoundRole.Grain &&
                                                 p.SecurableItem == notFoundRole.SecurableItem);
             notFoundRole.Permissions.Add(existingPermission);
             DeletePermissionAndAssert(existingClient.Id, notFoundRole.Id.ToString(), existingPermission, HttpStatusCode.BadRequest);
@@ -388,10 +287,10 @@ namespace Fabric.Authorization.UnitTests.Roles
         [Fact]
         public void DeletePermissionFromRole_PermissionNotFound()
         {
-            var existingClient = _existingClients.First();
-            var existingRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
+            var existingClient = ExistingClients.First();
+            var existingRole = ExistingRoles.First(r => r.SecurableItem == existingClient.Id);
             var existingPermission =
-                _existingPermissions.First(p => p.Grain == existingRole.Grain &&
+                ExistingPermissions.First(p => p.Grain == existingRole.Grain &&
                                                 p.SecurableItem == existingRole.SecurableItem);
             DeletePermissionAndAssert(existingClient.Id, existingRole.Id.ToString(), existingPermission, HttpStatusCode.BadRequest);
         }
@@ -399,10 +298,10 @@ namespace Fabric.Authorization.UnitTests.Roles
         [Fact]
         public void DeletePermissionFromRole_Forbidden()
         {
-            var existingClient = _existingClients.First();
-            var notFoundRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
+            var existingClient = ExistingClients.First();
+            var notFoundRole = ExistingRoles.First(r => r.SecurableItem == existingClient.Id);
             var existingPermission =
-                _existingPermissions.First(p => p.Grain == notFoundRole.Grain &&
+                ExistingPermissions.First(p => p.Grain == notFoundRole.Grain &&
                                                 p.SecurableItem == notFoundRole.SecurableItem);
             DeletePermissionAndAssert("sourcemartdesigner", notFoundRole.Id.ToString(), existingPermission, HttpStatusCode.Forbidden);
         }
@@ -410,10 +309,10 @@ namespace Fabric.Authorization.UnitTests.Roles
         [Fact]
         public void DeletePermissionFromRole_WrongScope_Forbidden()
         {
-            var existingClient = _existingClients.First();
-            var existingRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
+            var existingClient = ExistingClients.First();
+            var existingRole = ExistingRoles.First(r => r.SecurableItem == existingClient.Id);
             var existingPermission =
-                _existingPermissions.First(p => p.Grain == existingRole.Grain &&
+                ExistingPermissions.First(p => p.Grain == existingRole.Grain &&
                                                 p.SecurableItem == existingRole.SecurableItem);
             DeletePermissionAndAssert(existingClient.Id, existingRole.Id.ToString(), existingPermission, HttpStatusCode.Forbidden, Scopes.ReadScope);
         }
@@ -421,10 +320,10 @@ namespace Fabric.Authorization.UnitTests.Roles
         [Fact]
         public void DeletePermissionFromRole_BadRequest()
         {
-            var existingClient = _existingClients.First();
-            var existingRole = _existingRoles.First(r => r.SecurableItem == existingClient.Id);
+            var existingClient = ExistingClients.First();
+            var existingRole = ExistingRoles.First(r => r.SecurableItem == existingClient.Id);
             var existingPermission =
-                _existingPermissions.First(p => p.Grain == existingRole.Grain &&
+                ExistingPermissions.First(p => p.Grain == existingRole.Grain &&
                                                 p.SecurableItem == existingRole.SecurableItem);
             DeletePermissionAndAssert(existingClient.Id, "notaguid", existingPermission, HttpStatusCode.BadRequest, Scopes.WriteScope);
         }
@@ -513,10 +412,10 @@ namespace Fabric.Authorization.UnitTests.Roles
             return base.ConfigureBootstrapper(configurableBootstrapper, claims)
                 .Dependency<IRoleService>(typeof(RoleService))
                 .Dependency<IClientService>(typeof(ClientService))
-                .Dependency(_mockLogger.Object)
-                .Dependency(_mockClientStore.Object)
-                .Dependency(_mockPermissionStore.Object)
-                .Dependency(_mockRoleStore.Object);
+                .Dependency(MockLogger.Object)
+                .Dependency(MockClientStore.Object)
+                .Dependency(MockPermissionStore.Object)
+                .Dependency(MockRoleStore.Object);
         }
     }
 }
