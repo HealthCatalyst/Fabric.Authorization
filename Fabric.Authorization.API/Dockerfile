@@ -3,23 +3,17 @@ ARG source
 WORKDIR /app
 EXPOSE 5004
 
+RUN apt-get update -y && \
+	apt-get install -y \
+	cron \
+	ldap-utils
+
 COPY ${source:-obj/Docker/publish} .
 
-RUN mkdir -p /usr/local/bin
- 
-#TODO: Fix execution of scripts below.
-#COPY scripts/setup-crontab.sh .
-#COPY scripts/update-groups.sh /usr/local/bin
-
-#RUN chmod a+x ./setup-crontab.sh
-#RUN chmod a+x /usr/local/bin/update-groups.sh
-#RUN  ["/bin/bash", "-c", "cat setup-crontab.sh | bash"]
-
-
-#Install cron and ldapsearch
-RUN  ["/bin/bash", "-c", "apt-get update"]
-RUN  ["/bin/bash", "-c", "apt-get -y install cron"]
-RUN  ["/bin/bash", "-c", "apt-get -y install ldap-utils"]
-
+RUN mkdir -p /usr/local/bin \
+	&& mv scripts/update-groups.sh /usr/local/bin/update-groups.sh \
+	&& chmod a+x scripts/setup-crontab.sh \
+	&& chmod a+x /usr/local/bin/update-groups.sh \
+	&& cat scripts/setup-crontab.sh | bash
 
 ENTRYPOINT ["dotnet", "Fabric.Authorization.API.dll"]
