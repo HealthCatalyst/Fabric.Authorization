@@ -10,8 +10,9 @@
 #        - REQUIRES_TLS           default: false
 #        - REQUIRES_BINDING       default: false
 #        - BINDING_DN             default: CN=admin
-#        - BINDING_PASSWORD_FILE  default: /run/secrets/ldap 'use default
-#        - FABRIC_AUTH_URL        default: https://localhost
+#        - BINDING_PASSWORD_FILE  default: /run/secrets/ldap.pwd 'use default
+#        - FABRIC_AUTH_URL        default: http://localhost:5004
+#        - FABRIC_IDENTITY_URL    default: http://localhost:5001
 
 ################################################################################
 # Configuration
@@ -37,7 +38,7 @@ if ! [ $LDAP_PORT ]; then
    LDAP_PORT=389
 fi
 
-if ! [ $BASE_DN ]; then
+if ! [ "$BASE_DN" ]; then
    BASE_DN="DN=com"
 fi
 
@@ -52,23 +53,23 @@ fi
 
 if [ $REQUIRES_BINDING == true ]; then
 
-	if ! [ $BINDING_DN ]; then
+	if ! [ "$BINDING_DN" ]; then
 	   BINDING_DN="CN=admin"
 	fi
 
-	if ! [ $BINDING_PASSWORD_FILE ]; then
+	if ! [ "$BINDING_PASSWORD_FILE" ]; then
 	   BINDING_PASSWORD_FILE="/run/secrets/ldap.pwd"
 	fi
 fi
 
 #REST Endpoint
 if ! [ $FABRIC_AUTH_URL ]; then
-   FABRIC_AUTH_URL="https://localhost:5004"
+   FABRIC_AUTH_URL="http://localhost:5004"
 fi
 
 #REST Endpoint
 if ! [ $FABRIC_IDENTITY_URL ]; then
-   FABRIC_AUTH_URL="https://localhost:5001"
+   FABRIC_IDENTITY_URL="http://localhost:5001"
 fi
 
 ################################################################################
@@ -128,6 +129,7 @@ QUERY="'(objectClass=group)'"
 # Execute query
 
 echo -e "\nLoading groups..."
+echo "ldapsearch $PARAMS $QUERY | grep -i 'CN:' | $TOKENIZER_COMMAND"
 SEARCH="ldapsearch $PARAMS $QUERY | grep -i 'CN:' | $TOKENIZER_COMMAND"
 GRP=$(eval $SEARCH)
 
@@ -136,9 +138,12 @@ GRP=$(eval $SEARCH)
 
 echo "Getting access token..."
 SECRET=$(cat /run/secrets/group-fetcher.pwd)
-RESPONSE=$(curl $FABRIC_IDENTITY_URL/connect/token -d "client_id=fabric-group-fetcher&grant_type=client_credentials&scope=fabric/identity.manageresources" --data-urlencode "client_secret=$SECRET")
+echo 'curl $FABRIC_IDENTITY_URL/connect/token -X POST -d "client_id=fabric-group-fetcher&grant_type=client_credentials&scope=fabric/authorization.write" --data-urlencode "client_secret=$SECRET"'
+RESPONSE=$(curl $FABRIC_IDENTITY_URL/connect/token -X POST -d "client_id=fabric-group-fetcher&grant_type=client_credentials&scope=fabric/authorization.write" --data-urlencode "client_secret=$SECRET")
 
+echo $RESPONSE
 TOKEN=$(echo $RESPONSE | grep -oP '(?<="access_token":")[^"]*')
+echo $TOKEN
 
 ################################################################################
 # Call Fabric.Authorization
@@ -152,6 +157,6 @@ for group in $GRP; do
   let COUNTER=COUNTER+1
 done
 
-POST_PAYLOAD=$POST_PAYLOAD"}"
+POST_PAYLOAD=${POST_PAYLOAD%,}"}"
 
 eval "curl -i -X POST -d '$POST_PAYLOAD' -H 'Authorization: Bearer $TOKEN' $FABRIC_AUTH_URL/groups"
