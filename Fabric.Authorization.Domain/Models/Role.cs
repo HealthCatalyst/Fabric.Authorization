@@ -8,6 +8,8 @@ namespace Fabric.Authorization.Domain.Models
         public Role()
         {
             Permissions = new List<Permission>();
+            DeniedPermissions = new List<Permission>();
+            ChildRoles = new List<Role>();
         }
 
         public Guid Id { get; set; }
@@ -19,8 +21,14 @@ namespace Fabric.Authorization.Domain.Models
         public string SecurableItem { get; set; }
 
         public bool IsDeleted { get; set; }
+
+        public Role ParentRole { get; set; }
         
+        public ICollection<Role> ChildRoles { get; set; }
+
         public ICollection<Permission> Permissions { get; set; }
+
+        public ICollection<Permission> DeniedPermissions { get; set; }
 
         public DateTime CreatedDateTimeUtc { get; set; }
         public DateTime? ModifiedDateTimeUtc { get; set; }
