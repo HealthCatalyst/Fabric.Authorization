@@ -21,7 +21,7 @@ namespace Fabric.Authorization.Domain.Services
 
         public SecurableItem GetTopLevelSecurableItem(string clientId)
         {
-            var client = _clientStore.GetClient(clientId);
+            var client = _clientStore.Get(clientId);
             return client.TopLevelSecurableItem;
         }
 
@@ -29,7 +29,7 @@ namespace Fabric.Authorization.Domain.Services
         {
             item.CreatedDateTimeUtc = DateTime.UtcNow;
             item.Id = Guid.NewGuid();
-            var client = _clientStore.GetClient(clientId);
+            var client = _clientStore.Get(clientId);
             CheckUniqueness(client.TopLevelSecurableItem, item);
             client.TopLevelSecurableItem.SecurableItems.Add(item);
             _clientStore.UpdateClient(client);
@@ -40,7 +40,7 @@ namespace Fabric.Authorization.Domain.Services
         {
             item.CreatedDateTimeUtc = DateTime.UtcNow;
             item.Id = Guid.NewGuid();
-            var client = _clientStore.GetClient(clientId);
+            var client = _clientStore.Get(clientId);
             var parentSecurableItem = GetSecurableItemById(client.TopLevelSecurableItem, itemId);
             CheckUniqueness(parentSecurableItem, item);
             parentSecurableItem.SecurableItems.Add(item);

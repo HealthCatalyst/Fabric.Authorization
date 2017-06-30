@@ -11,9 +11,9 @@ namespace Fabric.Authorization.Domain.Validators
     {
         private readonly IGroupStore _GroupStore;
 
-        public GroupValidator(IGroupStore GroupStore)
+        public GroupValidator(IGroupStore groupStore)
         {
-            _GroupStore = GroupStore ?? throw new ArgumentNullException(nameof(GroupStore));
+            _GroupStore = groupStore ?? throw new ArgumentNullException(nameof(groupStore));
             ConfigureRules();
         }
 
@@ -24,9 +24,9 @@ namespace Fabric.Authorization.Domain.Validators
                 .WithMessage("Please specify a Name for this Group");
         }
 
-        private bool BeUnique(string GroupId)
+        private bool BeUnique(string groupId)
         {
-            return !_GroupStore.GroupExists(GroupId);
+            return !_GroupStore.Exists(groupId);
         }
     }
 }

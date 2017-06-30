@@ -1,18 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.Domain.Stores
 {
-    public interface IGroupStore
+    public interface IGroupStore : IGenericStore<string, Group>
     {
-        Group GetGroup(string groupName);
-
-        IEnumerable<Group> GetAllGroups();
-
-        Group AddGroup(Group group);
-
-        Group DeleteGroup(string groupName);
-
-        bool GroupExists(string groupName);
     }
 }

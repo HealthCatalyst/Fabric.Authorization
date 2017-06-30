@@ -23,7 +23,7 @@ namespace Fabric.Authorization.UnitTests.Mocks
 
         public static Mock<IRoleStore> SetupGetRole(this Mock<IRoleStore> mockRoleStore, List<Role> roles)
         {
-            mockRoleStore.Setup(roleStore => roleStore.GetRole(It.IsAny<Guid>()))
+            mockRoleStore.Setup(roleStore => roleStore.Get(It.IsAny<Guid>()))
                 .Returns((Guid roleId) =>
                 {
                     if (roles.Any(r => r.Id == roleId))
@@ -38,7 +38,7 @@ namespace Fabric.Authorization.UnitTests.Mocks
 
         public static Mock<IRoleStore> SetupAddRole(this Mock<IRoleStore> mockRoleStore)
         {
-            mockRoleStore.Setup(roleStore => roleStore.AddRole(It.IsAny<Role>()))
+            mockRoleStore.Setup(roleStore => roleStore.Add(It.IsAny<Role>()))
                 .Returns((Role r) =>
                 {
                     r.Id = Guid.NewGuid();

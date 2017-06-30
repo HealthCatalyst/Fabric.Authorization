@@ -54,6 +54,36 @@ namespace Fabric.Authorization.API
             //container registrations
             container.Register(_appConfig);
             container.Register(_logger);
+            container.Register<IRoleStore, CouchDBRoleStore>();
+            container.Register<IRoleService, RoleService>();
+            container.Register<IPermissionService, PermissionService>();
+            container.Register<IPermissionStore, CouchDBPermissionStore>();
+            container.Register<IGroupService, GroupService>();
+            container.Register<IGroupStore, CouchDBGroupStore>();
+            container.Register<IClientService, ClientService>();
+            container.Register<IClientStore, CouchDBClientStore>();
+            container.Register<ISecurableItemService, SecurableItemService>();
+        }
+
+        protected void ApplicationStartupForTests(TinyIoCContainer container, IPipelines pipelines)
+        {
+            base.ApplicationStartup(container, pipelines);
+            pipelines.OnError.AddItemToEndOfPipeline((ctx, ex) =>
+            {
+                _logger.Error(ex, "Unhandled error on request: @{Url}. Error Message: @{Message}", ctx.Request.Url, ex.Message);
+                return ctx.Response;
+            });
+
+            pipelines.AfterRequest += ctx =>
+            {
+                ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
+                ctx.Response.Headers.Add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+                ctx.Response.Headers.Add("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+            };
+
+            //container registrations
+            container.Register(_appConfig);
+            container.Register(_logger);
             container.Register<IRoleStore, InMemoryRoleStore>();
             container.Register<IRoleService, RoleService>();
             container.Register<IPermissionService, PermissionService>();

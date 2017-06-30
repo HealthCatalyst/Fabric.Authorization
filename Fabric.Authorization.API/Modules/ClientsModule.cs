@@ -51,7 +51,7 @@ namespace Fabric.Authorization.API.Modules
             {
                 Logger.Error(ex, ex.Message, parameters.clientid);
                 return CreateFailureResponse($"The specified client with id: {parameters.clientid} was not found",
-                    HttpStatusCode.BadRequest);
+                    HttpStatusCode.NotFound);
             }
         }
 
@@ -82,7 +82,7 @@ namespace Fabric.Authorization.API.Modules
             {
                 Logger.Error(ex, ex.Message, parameters.clientid);
                 return CreateFailureResponse($"The specified client with id: {parameters.clientid} was not found",
-                    HttpStatusCode.BadRequest);
+                    HttpStatusCode.NotFound);
             }
         }
     }

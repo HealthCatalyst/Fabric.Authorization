@@ -41,7 +41,7 @@ namespace Fabric.Authorization.API.Modules
             {
                 Logger.Error(ex, ex.Message, ClientId);
                 return CreateFailureResponse($"The specified client with id: {ClientId} was not found",
-                    HttpStatusCode.BadRequest);
+                    HttpStatusCode.NotFound);
             }
         }
 
@@ -61,13 +61,13 @@ namespace Fabric.Authorization.API.Modules
             {
                 Logger.Error(ex, ex.Message, ClientId);
                 return CreateFailureResponse($"The specified client with id: {ClientId} was not found",
-                    HttpStatusCode.BadRequest);
+                    HttpStatusCode.NotFound);
             }
             catch (SecurableItemNotFoundException ex)
             {
                 Logger.Error(ex, ex.Message, parameters.securableItemId);
                 return CreateFailureResponse($"The specified securableItem with id: {parameters.securableItemId} was not found",
-                    HttpStatusCode.BadRequest);
+                    HttpStatusCode.NotFound);
             }
         }
 
@@ -120,7 +120,7 @@ namespace Fabric.Authorization.API.Modules
                 Logger.Error(ex, ex.Message, parameters.securableItemId);
                 return CreateFailureResponse(
                     $"The specified securableItem with id: {parameters.securableItemId} was not found",
-                    HttpStatusCode.BadRequest);
+                    HttpStatusCode.NotFound);
             }
             catch (SecurableItemAlreadyExistsException ex)
             {

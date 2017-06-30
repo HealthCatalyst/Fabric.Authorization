@@ -25,7 +25,7 @@ namespace Fabric.Authorization.UnitTests.Users
         {
             SetupTestData();
             _mockGroupStore = new Mock<IGroupStore>();
-            _mockGroupStore.SetupGetGroup(_existingGroups)
+            _mockGroupStore.SetupGetGroups(_existingGroups)
                 .SetupGroupExists(_existingGroups);
         }
 

@@ -29,7 +29,7 @@ namespace Fabric.Authorization.Domain.Services
                 return false;
             }
 
-            var client = _clientStore.GetClient(clientId);
+            var client = _clientStore.Get(clientId);
             var topLevelSecurableItem = client.TopLevelSecurableItem;
 
             if (topLevelSecurableItem == null)
@@ -48,12 +48,12 @@ namespace Fabric.Authorization.Domain.Services
 
         public IEnumerable<Client> GetClients()
         {
-            return _clientStore.GetClients();
+            return _clientStore.GetAll();
         }
 
         public Client GetClient(string id)
         {
-            return _clientStore.GetClient(id);
+            return _clientStore.Get(id);
         }
 
         public Client AddClient(Client client)

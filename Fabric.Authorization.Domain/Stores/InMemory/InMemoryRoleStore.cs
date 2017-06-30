@@ -29,24 +29,24 @@ namespace Fabric.Authorization.Domain.Stores
             return roles.Where(r => !r.IsDeleted);
         }
 
-        public Role GetRole(Guid roleId)
+        public Role Get(Guid roleId)
         {
-            if (Roles.ContainsKey(roleId))
+            if (Exists(roleId))
             {
                 return Roles[roleId];
             }
             throw new RoleNotFoundException($"The specified role with id: {roleId} was not found.");
         }
 
-        public Role AddRole(Role role)
+        public Role Add(Role role)
         {
+            role.Track(creation: true);
             role.Id = Guid.NewGuid();
-            role.CreatedDateTimeUtc = DateTime.UtcNow;
             Roles.TryAdd(role.Id, role);
             return role;
         }
 
-        public void DeleteRole(Role role)
+        public void Delete(Role role)
         {
             role.IsDeleted = true;
             UpdateRole(role);
@@ -54,7 +54,23 @@ namespace Fabric.Authorization.Domain.Stores
 
         public void UpdateRole(Role role)
         {
-            role.ModifiedDateTimeUtc = DateTime.UtcNow;
+            role.Track();
+
+            if (this.Exists(role.Id))
+            {
+                if (!Roles.TryUpdate(role.Id, role, this.Get(role.Id)))
+                {
+                    throw new CouldNotCompleteOperationException();
+                }
+            }
+            else
+            {
+                throw new RoleNotFoundException(role.Id.ToString());
+            }
         }
+
+        public IEnumerable<Role> GetAll() => this.GetRoles();
+
+        public bool Exists(Guid id) => Roles.ContainsKey(id);
     }
 }

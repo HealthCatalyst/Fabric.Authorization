@@ -56,7 +56,7 @@ namespace Fabric.Authorization.UnitTests.Permissions
             var existingPermission = _existingPermissions.First();
             var actual = _authorizationApi.Delete($"/permissions/{existingPermission.Id}").Result;
             Assert.Equal(HttpStatusCode.NoContent, actual.StatusCode);
-            _mockPermissionStore.Verify(permissionStore => permissionStore.DeletePermission(existingPermission));
+            _mockPermissionStore.Verify(permissionStore => permissionStore.Delete(existingPermission));
         }
 
         [Fact]

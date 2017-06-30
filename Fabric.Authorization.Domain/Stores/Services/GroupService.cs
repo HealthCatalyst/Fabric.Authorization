@@ -38,12 +38,12 @@ namespace Fabric.Authorization.Domain.Services
 
         public IEnumerable<Role> GetRolesForGroup(string groupName, string grain = null, string securableItem = null)
         {
-            if (!_groupStore.GroupExists(groupName))
+            if (!_groupStore.Exists(groupName))
             {
                 return new List<Role>();
             }
 
-            var group = _groupStore.GetGroup(groupName);
+            var group = _groupStore.Get(groupName);
 
             var roles = group.Roles;
             if (!string.IsNullOrEmpty(grain))
@@ -59,8 +59,8 @@ namespace Fabric.Authorization.Domain.Services
 
         public void AddRoleToGroup(string groupName, Guid roleId)
         {
-            var group = _groupStore.GetGroup(groupName);
-            var role = _roleStore.GetRole(roleId);
+            var group = _groupStore.Get(groupName);
+            var role = _roleStore.Get(roleId);
 
             if (group.Roles.All(r => r.Id != roleId))
             {
@@ -70,8 +70,8 @@ namespace Fabric.Authorization.Domain.Services
 
         public void DeleteRoleFromGroup(string groupName, Guid roleId)
         {
-            var group = _groupStore.GetGroup(groupName);
-            var role = _roleStore.GetRole(roleId);
+            var group = _groupStore.Get(groupName);
+            var role = _roleStore.Get(roleId);
 
             if (group.Roles.Any(r => r.Id == roleId))
             {
@@ -79,17 +79,15 @@ namespace Fabric.Authorization.Domain.Services
             }
         }
 
-        public void AddGroup(Group group) =>_groupStore.AddGroup(group);
+        public void AddGroup(Group group) =>_groupStore.Add(group);
 
-        public Group GetGroup(string groupName) =>  _groupStore.GetGroup(groupName);
+        public Group GetGroup(string id) =>  _groupStore.Get(id);
 
-        public void DeleteGroup(string groupName) => _groupStore.DeleteGroup(groupName);
-
-        public void DeleteGroup(Group group) => _groupStore.DeleteGroup(group.Name);
+        public void DeleteGroup(Group group) => _groupStore.Delete(group);
 
         public void UpdateGroupList(IEnumerable<Group> groups)
         {
-            var allGroups = _groupStore.GetAllGroups();
+            var allGroups = _groupStore.GetAll();
 
             var groupNames = groups.Select(g => g.Name);
             var storedGroupNames = allGroups.Select(g => g.Name);

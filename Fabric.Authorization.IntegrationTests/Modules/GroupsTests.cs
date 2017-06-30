@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Security.Claims;
+using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
+using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
+using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
@@ -20,6 +23,7 @@ namespace Fabric.Authorization.IntegrationTests
         {
             var store = new InMemoryGroupStore();
             var groupService = new GroupService(store, new InMemoryRoleStore());
+
             this.Browser = new Browser(with =>
             {
                 with.Module(new GroupsModule(
@@ -61,6 +65,7 @@ namespace Fabric.Authorization.IntegrationTests
             var postResponse = this.Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
+                with.FormValue("Id", groupName);
                 with.FormValue("GroupName", groupName);
             }).Result;
 
@@ -70,7 +75,7 @@ namespace Fabric.Authorization.IntegrationTests
                     with.Header("Accept", "application/json");
                 }).Result;
 
-            Assert.Equal(HttpStatusCode.NoContent, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
             Assert.True(getResponse.Body.AsString().Contains(groupName));
         }
@@ -84,6 +89,10 @@ namespace Fabric.Authorization.IntegrationTests
             var postResponse = this.Browser.Post("/groups/UpdateGroups", with =>
             {
                 with.HttpRequest();
+                with.FormValue("Id[0]", groupName);
+                with.FormValue("Id[1]", groupName);
+                with.FormValue("Id[2]", groupName);
+
                 with.FormValue("GroupName[0]", groupName+"_0");
                 with.FormValue("GroupName[1]", groupName+"_1");
                 with.FormValue("GroupName[2]", groupName+"_2");
@@ -127,6 +136,9 @@ namespace Fabric.Authorization.IntegrationTests
             var postResponse = this.Browser.Post("/groups/UpdateGroups", with =>
             {
                 with.HttpRequest();
+                with.FormValue("Id[0]", groupName);
+                with.FormValue("Id[1]", groupName);
+                with.FormValue("Id[2]", groupName);
                 with.FormValue("GroupName[0]", groupName + "_0");
                 with.FormValue("GroupName[1]", groupName + "_1");
                 with.FormValue("GroupName[2]", groupName + "_2");
@@ -138,6 +150,9 @@ namespace Fabric.Authorization.IntegrationTests
             postResponse = this.Browser.Post("/groups/UpdateGroups", with =>
             {
                 with.HttpRequest();
+                with.FormValue("Id[0]", groupName);
+                with.FormValue("Id[1]", groupName);
+                with.FormValue("Id[2]", groupName);
                 with.FormValue("GroupName[0]", groupName + "_1");
                 with.FormValue("GroupName[1]", groupName + "_2");
                 with.FormValue("GroupName[2]", groupName + "_3");
@@ -188,6 +203,7 @@ namespace Fabric.Authorization.IntegrationTests
             this.Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
+                with.FormValue("Id", groupName);
                 with.FormValue("GroupName", groupName);
             }).Wait();
 
@@ -195,6 +211,7 @@ namespace Fabric.Authorization.IntegrationTests
             var postResponse = this.Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
+                with.FormValue("Id", groupName);
                 with.FormValue("GroupName", groupName);
             }).Result;
 
@@ -209,6 +226,7 @@ namespace Fabric.Authorization.IntegrationTests
             this.Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
+                with.FormValue("Id", groupName);
                 with.FormValue("GroupName", groupName);
             }).Wait();
 

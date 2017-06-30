@@ -24,20 +24,20 @@ namespace Fabric.Authorization.API.Modules
 
             base.Post("/", _ => this.AddGroup());
             base.Post("/UpdateGroups", _ => this.UpdateGroupList());
-            base.Get("/{groupName}", _ => this.GetGroup());
-            base.Delete("/{groupName}", _ => this.DeleteGroup());
+            base.Get("/{groupName}", p => this.GetGroup(p));
+            base.Delete("/{groupName}", p => this.DeleteGroup(p));
 
             base.Get("/{groupName}/roles", _ => this.GetRolesFromGroup());
             base.Post("/{groupName}/roles", p => this.AddRoleToGroup(p));
             base.Delete("/{groupName}/roles", p => this.DeleteRoleFromGroup(p));
         }
 
-        private dynamic GetGroup()
+        private dynamic GetGroup(dynamic parameters)
         {
             try
             {
                 this.RequiresClaims(this.AuthorizationManageClientsClaim, this.AuthorizationReadClaim);
-                var group = this.GroupService.GetGroup(this.Bind<GroupRoleApiModel>().GroupName);
+                var group = this.GroupService.GetGroup(parameters.groupName);
                 return group.ToGroupRoleApiModel();
             }
             catch (GroupNotFoundException)
@@ -46,12 +46,13 @@ namespace Fabric.Authorization.API.Modules
             }
         }
 
-        private dynamic DeleteGroup()
+        private dynamic DeleteGroup(dynamic parameters)
         {
             try
             {
                 this.RequiresClaims(this.AuthorizationManageClientsClaim, this.AuthorizationWriteClaim);
-                this.GroupService.DeleteGroup(this.Bind<GroupRoleApiModel>().GroupName);
+                Group group = GroupService.GetGroup(parameters.groupName);
+                this.GroupService.DeleteGroup(group);
                 return HttpStatusCode.NoContent;
             }
             catch (GroupNotFoundException)
@@ -67,7 +68,7 @@ namespace Fabric.Authorization.API.Modules
                 this.RequiresClaims(this.AuthorizationManageClientsClaim, this.AuthorizationWriteClaim);
                 var group = this.Bind<GroupRoleApiModel>();
                 this.GroupService.AddGroup(group.ToGroupDomainModel());
-                return HttpStatusCode.NoContent;
+                return HttpStatusCode.Created;
             }
             catch (GroupAlreadyExistsException)
             {

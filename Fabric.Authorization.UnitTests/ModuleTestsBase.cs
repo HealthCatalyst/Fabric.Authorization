@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Security.Claims;
-using System.Text;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.UnitTests.Mocks;
@@ -12,34 +11,42 @@ using Serilog;
 
 namespace Fabric.Authorization.UnitTests
 {
-    public abstract class ModuleTestsBase<T> where T: NancyModule
+    public abstract class ModuleTestsBase<T> where T : NancyModule
     {
         protected readonly List<Client> ExistingClients;
         protected readonly List<Role> ExistingRoles;
+        protected readonly List<Group> ExistingGroups;
         protected readonly List<Permission> ExistingPermissions;
         protected readonly Mock<ILogger> MockLogger;
         protected readonly Mock<IPermissionStore> MockPermissionStore;
         protected readonly Mock<IRoleStore> MockRoleStore;
+        protected readonly Mock<IGroupStore> MockGroupStore;
         protected readonly Mock<IClientStore> MockClientStore;
 
         protected ModuleTestsBase()
         {
-            ExistingClients = CreateClients();
-            ExistingRoles = CreateRoles();
-            ExistingPermissions = CreatePermissions();
-            MockLogger = new Mock<ILogger>();
-            MockClientStore = new Mock<IClientStore>()
+            this.ExistingClients = CreateClients();
+            this.ExistingRoles = CreateRoles();
+            this.ExistingGroups = CreateGroups();
+            this.ExistingPermissions = CreatePermissions();
+            this.MockLogger = new Mock<ILogger>();
+            this.MockClientStore = new Mock<IClientStore>()
                 .SetupGetClient(ExistingClients)
                 .SetupAddClient();
 
-            MockPermissionStore = new Mock<IPermissionStore>()
+            this.MockPermissionStore = new Mock<IPermissionStore>()
                 .SetupGetPermissions(ExistingPermissions)
                 .SetupAddPermissions();
 
-            MockRoleStore = new Mock<IRoleStore>()
+            this.MockRoleStore = new Mock<IRoleStore>()
                 .SetupGetRoles(ExistingRoles)
                 .SetupAddRole();
+
+            this.MockGroupStore = new Mock<IGroupStore>()
+                .SetupGetGroups(ExistingGroups)
+                .SetupAddGroup();
         }
+
         protected Browser CreateBrowser(params Claim[] claims)
         {
             return new Browser(CreateBootstrapper(claims), withDefaults => withDefaults.Accept("application/json"));
@@ -105,6 +112,25 @@ namespace Fabric.Authorization.UnitTests
                     Grain = "app",
                     SecurableItem = "sourcemartdesigner",
                     Name = "admin"
+                }
+            };
+        }
+
+        private List<Group> CreateGroups()
+        {
+            return new List<Group>
+            {
+                new Group
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    IsDeleted = false,
+                    Roles = this.CreateRoles()
+                },
+                new Group
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    IsDeleted = false,
+                    Roles = this.CreateRoles()
                 }
             };
         }

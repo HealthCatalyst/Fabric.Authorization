@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Fabric.Authorization.Domain.Models
 {
-    public class Group
+    public class Group : ITrackable
     {
         public Group()
         {
-            Roles = new List<Role>();
+            this.Roles = new List<Role>();
         }
 
         public string Id { get; set; }
@@ -16,5 +17,13 @@ namespace Fabric.Authorization.Domain.Models
         public bool IsDeleted { get; set; }
 
         public ICollection<Role> Roles { get; set; }
+
+        public DateTime CreatedDateTimeUtc { get; set; }
+
+        public DateTime? ModifiedDateTimeUtc { get; set; }
+
+        public string CreatedBy { get; set; }
+
+        public string ModifiedBy { get; set; }
     }
 }

@@ -29,45 +29,54 @@ namespace Fabric.Authorization.Domain.Stores
             Groups.TryAdd(group2.Name, group2);
         }
 
-        public Group GetGroup(string groupName)
+        public Group Get(string id)
         {
-            if (GroupExists(groupName))
+            if (Exists(id))
             {
-                return Groups[groupName];
+                return Groups[id];
             }
-            throw new GroupNotFoundException(groupName);
+
+            throw new GroupNotFoundException(id);
         }
 
-        public Group AddGroup(Group group)
+        public Group Add(Group group)
         {
-            if (GroupExists(group.Name))
+            group.Track(creation: true);
+
+            if (Exists(group.Id))
             {
-                throw new GroupAlreadyExistsException(group.Name);
+                throw new GroupAlreadyExistsException(group.Id);
             }
 
-            group.Id = Guid.NewGuid().ToString();
-            Groups.TryAdd(group.Name, group);
+            Groups.TryAdd(group.Id, group);
             return group;
         }
 
-        public Group DeleteGroup(string groupName)
+        public void Delete(Group group)
         {
-            if (GroupExists(groupName))
-            {
-                if (!Groups.TryRemove(groupName, out var removedGroup))
-                {
-                    //TODO: Manage exceptions
-                    throw new InvalidOperationException($"Failed to delete '{groupName}'");
-                }
-
-                return removedGroup;
-            }
-
-            throw new GroupNotFoundException(groupName);
+            group.IsDeleted = true;
+            UpdateGroup(group);
         }
 
-        public bool GroupExists(string groupName) => Groups.ContainsKey(groupName);
+        public void UpdateGroup(Group group)
+        {
+            group.Track();
 
-        public IEnumerable<Group> GetAllGroups() => Groups.Values;
+            if (this.Exists(group.Id))
+            {
+                if (!Groups.TryUpdate(group.Id, group, this.Get(group.Id)))
+                {
+                    throw new CouldNotCompleteOperationException();
+                }
+            }
+            else
+            {
+                throw new GroupNotFoundException(group.Id.ToString());
+            }
+        }
+
+        public bool Exists(string id) => Groups.ContainsKey(id);
+
+        public IEnumerable<Group> GetAll() => Groups.Values;
     }
 }

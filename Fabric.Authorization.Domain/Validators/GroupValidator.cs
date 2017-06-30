@@ -34,7 +34,7 @@ namespace Fabric.Authorization.Domain.Validators
 
         private bool BeUnique(string clientId)
         {
-            return !_clientStore.ClientExists(clientId);
+            return !_clientStore.Exists(clientId);
         }
     }
 }

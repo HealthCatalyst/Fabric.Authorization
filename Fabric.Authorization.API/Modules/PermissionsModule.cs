@@ -19,8 +19,8 @@ namespace Fabric.Authorization.API.Modules
 
         public PermissionsModule(IPermissionService permissionService,
             IClientService clientService,
-            ILogger logger,
-            PermissionValidator validator) : base("/Permissions", logger, validator)
+            PermissionValidator validator,
+            ILogger logger) : base("/Permissions", logger, validator)
         {
             //private members
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));

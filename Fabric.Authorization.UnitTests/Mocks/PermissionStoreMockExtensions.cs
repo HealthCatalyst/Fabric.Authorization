@@ -13,7 +13,7 @@ namespace Fabric.Authorization.UnitTests.Mocks
 
         public static Mock<IPermissionStore> SetupAddPermissions(this Mock<IPermissionStore> mockPermissionStore)
         {
-            mockPermissionStore.Setup(permissionStore => permissionStore.AddPermission(It.IsAny<Permission>()))
+            mockPermissionStore.Setup(permissionStore => permissionStore.Add(It.IsAny<Permission>()))
                 .Returns((Permission p) =>
                 {
                     p.Id = Guid.NewGuid();
@@ -40,7 +40,7 @@ namespace Fabric.Authorization.UnitTests.Mocks
         private static Mock<IPermissionStore> SetupGetPermission(this Mock<IPermissionStore> mockPermissionStore,
             List<Permission> permissions)
         {
-            mockPermissionStore.Setup(permissionStore => permissionStore.GetPermission(It.IsAny<Guid>()))
+            mockPermissionStore.Setup(permissionStore => permissionStore.Get(It.IsAny<Guid>()))
                 .Returns((Guid permissionId) => {
                     if (permissions.Any(p => p.Id == permissionId))
                     {
@@ -53,7 +53,7 @@ namespace Fabric.Authorization.UnitTests.Mocks
 
         public static Mock<IPermissionStore> SetupDeletePermission(this Mock<IPermissionStore> mockPermissionStore)
         {
-            mockPermissionStore.Setup(permissionStore => permissionStore.DeletePermission(It.IsAny<Permission>())).Verifiable();
+            mockPermissionStore.Setup(permissionStore => permissionStore.Delete(It.IsAny<Permission>())).Verifiable();
             return mockPermissionStore;
         }
 

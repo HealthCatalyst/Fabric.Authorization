@@ -20,17 +20,17 @@ namespace Fabric.Authorization.Domain.Services
 
         public Permission GetPermission(Guid permissionId)
         {
-            return _permissionStore.GetPermission(permissionId);
+            return _permissionStore.Get(permissionId);
         }
 
         public Permission AddPermission(Permission permission)
         {
-            return _permissionStore.AddPermission(permission);
+            return _permissionStore.Add(permission);
         }
 
         public void DeletePermission(Permission permission)
         {
-            _permissionStore.DeletePermission(permission);
+            _permissionStore.Delete(permission);
         }
     }
 }

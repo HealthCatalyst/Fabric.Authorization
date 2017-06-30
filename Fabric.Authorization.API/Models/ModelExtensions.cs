@@ -46,7 +46,8 @@ namespace Fabric.Authorization.API.Models
         {
             var groupDomainModel = new GroupRoleApiModel
             {
-                GroupName = group.Name
+                GroupName = group.Name,
+                Id = group.Id,
             };
 
             return groupDomainModel;
@@ -56,6 +57,7 @@ namespace Fabric.Authorization.API.Models
         {
             var group = new Group
             {
+                Id = groupDomainModel.Id,
                 Name = groupDomainModel.GroupName
             };
 

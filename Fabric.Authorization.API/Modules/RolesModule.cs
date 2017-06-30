@@ -18,7 +18,7 @@ namespace Fabric.Authorization.API.Modules
         private readonly IRoleService _roleService;
         private readonly IClientService _clientService;
 
-        public RolesModule(IRoleService roleService, IClientService clientService, ILogger logger, RoleValidator validator) : base("/roles", logger, validator)
+        public RolesModule(IRoleService roleService, IClientService clientService, RoleValidator validator, ILogger logger) : base("/roles", logger, validator)
         {
             //private members
             _roleService = roleService ?? throw new ArgumentNullException(nameof(roleService));
@@ -110,12 +110,12 @@ namespace Fabric.Authorization.API.Modules
             catch (RoleNotFoundException ex)
             {
                 Logger.Error(ex, ex.Message, parameters.roleId);
-                return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
+                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
             }
             catch (PermissionNotFoundException ex)
             {
                 Logger.Error(ex, ex.Message);
-                return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
+                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
             }
             catch (IncompatiblePermissionException ex)
             {
@@ -151,12 +151,12 @@ namespace Fabric.Authorization.API.Modules
             catch (RoleNotFoundException ex)
             {
                 Logger.Error(ex, ex.Message, parameters.roleId);
-                return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
+                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
             }
             catch (PermissionNotFoundException ex)
             {
                 Logger.Error(ex, ex.Message, parameters.roleId);
-                return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
+                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
             }
         }
     }

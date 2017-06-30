@@ -40,29 +40,40 @@ namespace Fabric.Authorization.Domain.Stores
             Clients.TryAdd(angularClient.Id, angularClient);
         }
 
-        public IEnumerable<Client> GetClients()
+        public IEnumerable<Client> GetAll()
         {
             return Clients.Values.AsEnumerable();
         }
 
-        public Client GetClient(string clientId)
+        public Client Get(string clientId)
         {
-            if (Clients.ContainsKey(clientId))
+            if (this.Exists(clientId))
             {
                 return Clients[clientId];
             }
-            throw new ClientNotFoundException();
+
+            throw new ClientNotFoundException(clientId);
         }
 
-        public bool ClientExists(string clientId)
+        public bool Exists(string clientId)
         {
             return Clients.ContainsKey(clientId);
         }
 
         public Client Add(Client client)
         {
-            client.CreatedDateTimeUtc = DateTime.UtcNow;
-            Clients.TryAdd(client.Id, client);
+            client.Track(true);
+            
+            if (this.Exists(client.Id))
+            {
+                throw new ClientAlreadyExistsException(client.Id);
+            }
+
+            if (!Clients.TryAdd(client.Id, client))
+            {
+                throw new CouldNotCompleteOperationException();
+            }
+
             return client;
         }
 
@@ -74,7 +85,19 @@ namespace Fabric.Authorization.Domain.Stores
 
         public void UpdateClient(Client client)
         {
-            client.ModifiedDateTimeUtc = DateTime.UtcNow;
+            client.Track();
+
+            if (this.Exists(client.Id) )
+            {
+                if(!Clients.TryUpdate(client.Id, client, this.Get(client.Id)))
+                {
+                    throw new CouldNotCompleteOperationException();
+                }
+            }
+            else
+            {
+                throw new ClientNotFoundException(client.Id.ToString());
+            }
         }
     }
 }

@@ -11,9 +11,9 @@ namespace Fabric.Authorization.UnitTests.Mocks
 {
     public static class GroupStoreMockExtensions
     {
-        public static Mock<IGroupStore> SetupGetGroup(this Mock<IGroupStore> mockGroupStore, List<Group> groups)
+        public static Mock<IGroupStore> SetupGetGroups(this Mock<IGroupStore> mockGroupStore, List<Group> groups)
         {
-            mockGroupStore.Setup(groupStore => groupStore.GetGroup(It.IsAny<string>()))
+            mockGroupStore.Setup(groupStore => groupStore.Get(It.IsAny<string>()))
                 .Returns((string groupName) =>
                 {
                     if (groups.Any(g => g.Name == groupName))
@@ -27,10 +27,20 @@ namespace Fabric.Authorization.UnitTests.Mocks
 
         public static Mock<IGroupStore> SetupGroupExists(this Mock<IGroupStore> mockGroupStore, List<Group> groups)
         {
-            mockGroupStore.Setup(groupStore => groupStore.GroupExists(It.IsAny<string>()))
+            mockGroupStore.Setup(groupStore => groupStore.Exists(It.IsAny<string>()))
                 .Returns((string groupName) =>
                 {
                     return groups.Any(g => g.Name == groupName);
+                });
+            return mockGroupStore;
+        }
+        public static Mock<IGroupStore> SetupAddGroup(this Mock<IGroupStore> mockGroupStore)
+        {
+            mockGroupStore.Setup(GroupStore => GroupStore.Add(It.IsAny<Group>()))
+                .Returns((Group g) =>
+                {
+                    g.Id = Guid.NewGuid().ToString();
+                    return g;
                 });
             return mockGroupStore;
         }

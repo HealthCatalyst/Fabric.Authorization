@@ -28,7 +28,7 @@ namespace Fabric.Authorization.Domain.Stores
             return permissions.Where(p => !p.IsDeleted);
         }
 
-        public Permission GetPermission(Guid permissionId)
+        public Permission Get(Guid permissionId)
         {
             if (Permissions.ContainsKey(permissionId))
             {
@@ -37,15 +37,16 @@ namespace Fabric.Authorization.Domain.Stores
             throw new PermissionNotFoundException();
         }
 
-        public Permission AddPermission(Permission permission)
+        public Permission Add(Permission permission)
         {
+            permission.Track(creation: true);
+
             permission.Id = Guid.NewGuid();
-            permission.CreatedDateTimeUtc = DateTime.UtcNow;
             Permissions.TryAdd(permission.Id, permission);
             return permission;
         }
 
-        public void DeletePermission(Permission permission)
+        public void Delete(Permission permission)
         {
             permission.IsDeleted = true;
             UpdatePermission(permission);
@@ -53,7 +54,21 @@ namespace Fabric.Authorization.Domain.Stores
 
         public void UpdatePermission(Permission permission)
         {
-            permission.ModifiedDateTimeUtc = DateTime.UtcNow;
+
+            if (this.Exists(permission.Id))
+            {
+                if (!Permissions.TryUpdate(permission.Id, permission, this.Get(permission.Id)))
+                {
+                    throw new CouldNotCompleteOperationException();
+                }
+            }
+            else
+            {
+                throw new PermissionNotFoundException(permission.Id.ToString());
+            }
         }
+
+        public IEnumerable<Permission> GetAll() => this.GetPermissions();
+        public bool Exists(Guid id) => false;
     }
 }

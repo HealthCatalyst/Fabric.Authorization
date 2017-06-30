@@ -20,6 +20,6 @@ namespace Fabric.Authorization.Domain.Services
 
         void UpdateGroupList(IEnumerable<Group> group);
 
-        void DeleteGroup(string groupName);
+        void DeleteGroup(Group group);
     }
 }

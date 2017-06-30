@@ -12,7 +12,7 @@ namespace Fabric.Authorization.UnitTests.Mocks
     {
         public static Mock<IClientStore> SetupGetClient(this Mock<IClientStore> mockClientStore, List<Client> clients)
         {
-            mockClientStore.Setup(clientStore => clientStore.GetClient(It.IsAny<string>()))
+            mockClientStore.Setup(clientStore => clientStore.Get(It.IsAny<string>()))
                 .Returns((string clientId) =>
                 {
                     if (clients.Any(c => c.Id == clientId))
@@ -21,9 +21,9 @@ namespace Fabric.Authorization.UnitTests.Mocks
                     }
                     throw new ClientNotFoundException();
                 });
-            mockClientStore.Setup(clientStore => clientStore.ClientExists(It.IsAny<string>()))
+            mockClientStore.Setup(clientStore => clientStore.Exists(It.IsAny<string>()))
                 .Returns((string clientId) => clients.Any(c => c.Id == clientId));
-            mockClientStore.Setup(clientStore => clientStore.GetClients())
+            mockClientStore.Setup(clientStore => clientStore.GetAll())
                 .Returns(() => clients);
             return mockClientStore;
         }
