@@ -19,6 +19,8 @@ namespace Fabric.Authorization.IntegrationTests
 
         private static object Lock = Guid.NewGuid().ToString();
 
+        private static readonly string CouchDbServerEnvironmentVariable = "COUCHDBSETTINGS__SERVER";
+
         protected Func<IDocumentDbService> DbService { get; } = () =>
          {
              if (dbService == null)
@@ -30,6 +32,12 @@ namespace Fabric.Authorization.IntegrationTests
                      Password = "",
                      Server = "http://127.0.0.1:5984"
                  };
+
+                 var couchDbServer = Environment.GetEnvironmentVariable(CouchDbServerEnvironmentVariable);
+                 if (!string.IsNullOrEmpty(couchDbServer))
+                 {
+                     config.Server = couchDbServer;
+                 }
 
                  lock(Lock)
                  {

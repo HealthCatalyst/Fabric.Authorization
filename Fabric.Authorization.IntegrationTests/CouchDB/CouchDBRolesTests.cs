@@ -2,7 +2,7 @@
 {
     public class CouchDBRolesTests : RolesTests
     {
-        public CouchDBRolesTests() : base(useInMemoryDB: true)
+        public CouchDBRolesTests() : base(useInMemoryDB: false)
         {
         }
     }
