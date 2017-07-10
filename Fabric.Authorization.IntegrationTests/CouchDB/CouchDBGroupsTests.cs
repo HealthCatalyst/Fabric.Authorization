@@ -2,7 +2,7 @@
 {
     public class CouchDBGroupsTests : GroupsTests
     {
-        public CouchDBGroupsTests() : base(useInMemoryDB: false)
+        public CouchDBGroupsTests() : base(useInMemoryDB: true)
         {
         }
     }
