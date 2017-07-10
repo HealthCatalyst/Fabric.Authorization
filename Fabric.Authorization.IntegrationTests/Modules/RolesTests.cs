@@ -4,10 +4,8 @@ using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
-using Moq;
 using Nancy;
 using Nancy.Testing;
-using Serilog;
 using Xunit;
 
 namespace Fabric.Authorization.IntegrationTests
@@ -42,16 +40,16 @@ namespace Fabric.Authorization.IntegrationTests
                         new Claim(Claims.Scope, Scopes.ManageClientsScope),
                         new Claim(Claims.Scope, Scopes.ReadScope),
                         new Claim(Claims.Scope, Scopes.WriteScope),
-                        new Claim(Claims.ClientId, "rolesPrincipal"),
-                    }, "rolesPrincipal"));
+                        new Claim(Claims.ClientId, "rolesprincipal"),
+                    }, "rolesprincipal"));
                 });
             });
 
             this.Browser.Post("/clients", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", "rolesPrincipal");
-                with.FormValue("Name", "rolesPrincipal");
+                with.FormValue("Id", "rolesprincipal");
+                with.FormValue("Name", "rolesprincipal");
                 with.Header("Accept", "application/json");
             }).Wait();
         }
@@ -61,7 +59,7 @@ namespace Fabric.Authorization.IntegrationTests
         [InlineData("C5247AA4-0063-4E68-B1E4-55BD5E0E177E")]
         public void TestGetRole_Fail(string name)
         {
-            var get = this.Browser.Get($"/roles/app/rolesPrincipal/{name}", with =>
+            var get = this.Browser.Get($"/roles/app/rolesprincipal/{name}", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -82,11 +80,11 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
                 with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "rolesPrincipal");
+                with.FormValue("SecurableItem", "rolesprincipal");
                 with.FormValue("Name", name);
             }).Result;
 
-            var getResponse = this.Browser.Get($"/roles/app/rolesPrincipal/{name}", with =>
+            var getResponse = this.Browser.Get($"/roles/app/rolesprincipal/{name}", with =>
                 {
                     with.HttpRequest();
                     with.Header("Accept", "application/json");
@@ -95,6 +93,80 @@ namespace Fabric.Authorization.IntegrationTests
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
             Assert.True(getResponse.Body.AsString().Contains(name));
+        }
+
+        [Theory]
+        [InlineData("NewRole1")]
+        [InlineData("NewRole2")]
+        public void TestAddGetRole_Success(string name)
+        {
+            var postResponse = this.Browser.Post("/roles", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "rolesprincipal");
+                with.FormValue("Name", name);
+            }).Result;
+
+            // Get by name
+            var getResponse = this.Browser.Get($"/roles/app/rolesprincipal/{name}", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+            Assert.True(getResponse.Body.AsString().Contains(name));
+
+            // Get by secitem
+            getResponse = this.Browser.Get($"/roles/app/rolesprincipal", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+            Assert.True(getResponse.Body.AsString().Contains(name));
+        }
+
+        [Theory]
+        [InlineData("SecItemRole1")]
+        [InlineData("SecItemRole2")]
+        public void TestGetRoleBySecItem_Success(string name)
+        {
+            var postResponse = this.Browser.Post("/roles", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "rolesprincipal");
+                with.FormValue("Name", name + "_1");
+            }).Result;
+
+            postResponse = this.Browser.Post("/roles", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "rolesprincipal");
+                with.FormValue("Name", name + "_2");
+            }).Result;
+
+            var getResponse = this.Browser.Get($"/roles/app/rolesprincipal", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+            // Both roles must be found.
+            Assert.True(getResponse.Body.AsString().Contains(name + "_1"));
+            Assert.True(getResponse.Body.AsString().Contains(name + "_2"));
         }
 
         [Theory]
@@ -107,7 +179,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
                 with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "rolesPrincipal");
+                with.FormValue("SecurableItem", "rolesprincipal");
                 with.FormValue("Name", id);
                 with.FormValue("Id", id);
             }).Wait();
@@ -118,7 +190,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
                 with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "rolesPrincipal");
+                with.FormValue("SecurableItem", "rolesprincipal");
                 with.FormValue("Name", id);
                 with.FormValue("Id", id);
             }).Result;

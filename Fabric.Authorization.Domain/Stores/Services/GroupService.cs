@@ -28,8 +28,10 @@ namespace Fabric.Authorization.Domain.Services
                     permissions
                     .AddRange(roles
                         .Where(r => r.Permissions != null && !r.IsDeleted)
-                        .SelectMany(r => r.Permissions.Where(p => !p.IsDeleted && (p.Grain == grain || grain == null)
-                                                        && (p.SecurableItem == securableItem || securableItem == null))
+                        .SelectMany(r => r.Permissions.Where(p => 
+                            !p.IsDeleted && 
+                            (p.Grain == grain || grain == null) &&
+                            (p.SecurableItem == securableItem || securableItem == null))
                         .Select(p => p.ToString())));
                 }
             }

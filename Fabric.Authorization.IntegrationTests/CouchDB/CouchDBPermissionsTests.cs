@@ -2,7 +2,7 @@
 {
     public class CouchDBPermissionsTests : PermissionsTests
     {
-        public CouchDBPermissionsTests() : base(useInMemoryDB: true)
+        public CouchDBPermissionsTests() : base(useInMemoryDB: false)
         {
         }
     }

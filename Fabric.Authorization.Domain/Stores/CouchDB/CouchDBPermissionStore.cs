@@ -22,10 +22,13 @@ namespace Fabric.Authorization.Domain.Stores
         }
 
         public override void Delete(Permission model) => base.Delete(model.Id.ToString(), model);
-        public IEnumerable<Permission> GetPermissions(string grain = null, string securableItem = null, string permissionName = null)
+
+        public IEnumerable<Permission> GetPermissions(string grain, string securableItem = null, string permissionName = null)
         {
             var customParams = grain+securableItem+permissionName;
-            return _dbService.GetDocuments<Permission>("permissions", "byname", customParams).Result;
+            return permissionName != null ?
+                  _dbService.GetDocuments<Permission>("permissions", "byname", customParams).Result :
+                  _dbService.GetDocuments<Permission>("permissions", "bysecitem", customParams).Result;
         }
 
         protected override void AddViews()
@@ -36,7 +39,14 @@ namespace Fabric.Authorization.Domain.Stores
                     "byname",
                     new Dictionary<string, string>()
                     {
-                        { "map", "function(doc) { return emit(doc.Grain+doc.SecurableItem+doc.Name, doc); }" },
+                        { "map", "function(doc) { emit(doc.Grain+doc.SecurableItem+doc.Name, doc) }" },
+                    }
+                },
+                {
+                    "bysecitem",
+                    new Dictionary<string, string>()
+                    {
+                        { "map", "function(doc) { emit(doc.Grain+doc.SecurableItem, doc) }" },
                     }
                 }
             };

@@ -2,7 +2,7 @@
 {
     public class CouchClientTests : ClientTests
     {
-        public CouchClientTests() : base(useInMemoryDB: true)
+        public CouchClientTests() : base(useInMemoryDB: false)
         {
         }
     }

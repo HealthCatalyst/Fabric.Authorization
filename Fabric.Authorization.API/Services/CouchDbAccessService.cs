@@ -263,7 +263,7 @@ namespace Fabric.Authorization.API.Services
 
                 foreach (var responseRow in result.Rows)
                 {
-                    if (responseRow.Key.ToString() == key)
+                    if (responseRow.Key != null && responseRow.Key.ToString() == key)
                     {
                         var resultRow = JsonConvert.DeserializeObject<T>(responseRow.Value);
                         results.Add(resultRow);

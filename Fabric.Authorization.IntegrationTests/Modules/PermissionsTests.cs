@@ -4,10 +4,8 @@ using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
-using Moq;
 using Nancy;
 using Nancy.Testing;
-using Serilog;
 using Xunit;
 
 namespace Fabric.Authorization.IntegrationTests
@@ -82,6 +80,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Name", permission);
             }).Result;
 
+            // Get by name
             var getResponse = this.Browser.Get($"/permissions/app/permissionprincipal/{permission}", with =>
                 {
                     with.HttpRequest();
@@ -91,6 +90,80 @@ namespace Fabric.Authorization.IntegrationTests
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
             Assert.True(getResponse.Body.AsString().Contains(permission));
+        }
+
+        [Theory]
+        [InlineData("NewPerm1")]
+        [InlineData("NewPerm2")]
+        public void TestGetPermission_Success(string permission)
+        {
+            var postResponse = this.Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "permissionprincipal");
+                with.FormValue("Name", permission);
+            }).Result;
+
+            // Get by name
+            var getResponse = this.Browser.Get($"/permissions/app/permissionprincipal/{permission}", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+            Assert.True(getResponse.Body.AsString().Contains(permission));
+
+            // Get by secitem
+            getResponse = this.Browser.Get($"/permissions/app/permissionprincipal", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+            Assert.True(getResponse.Body.AsString().Contains(permission));
+        }
+
+        [Theory]
+        [InlineData("SecItemPerm1")]
+        [InlineData("SecItemPerm2")]
+        public void TestGetPermissionForSecItem_Success(string permission)
+        {
+            var postResponse = this.Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "permissionprincipal");
+                with.FormValue("Name", permission + "_1");
+            }).Result;
+
+            postResponse = this.Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "permissionprincipal");
+                with.FormValue("Name", permission + "_2");
+            }).Result;
+
+            // Get by secitem
+            var getResponse = this.Browser.Get($"/permissions/app/permissionprincipal", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+            Assert.True(getResponse.Body.AsString().Contains(permission + "_1"));
+            Assert.True(getResponse.Body.AsString().Contains(permission + "_2"));
         }
 
         [Theory]
