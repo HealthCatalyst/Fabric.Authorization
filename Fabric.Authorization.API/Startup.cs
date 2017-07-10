@@ -67,7 +67,7 @@ namespace Fabric.Authorization.API
           
             return await Task.Run(() =>
              {
-                 var result = clientStore.GetClients();
+                 var result = clientStore.GetAll();
                  return result.Any();
              });
         }
