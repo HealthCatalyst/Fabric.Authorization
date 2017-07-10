@@ -9,9 +9,9 @@ namespace Fabric.Authorization.Domain.Stores
 {
     public class InMemoryClientStore : IClientStore
     {
-        private static readonly ConcurrentDictionary<string, Client> Clients = new ConcurrentDictionary<string, Client>();
+        private readonly ConcurrentDictionary<string, Client> Clients = new ConcurrentDictionary<string, Client>();
 
-        static InMemoryClientStore()
+        public InMemoryClientStore()
         {
             var mvcClient = new Client
             {

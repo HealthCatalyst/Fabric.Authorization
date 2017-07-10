@@ -9,7 +9,7 @@ namespace Fabric.Authorization.Domain.Stores
 {
     public class InMemoryPermissionStore : IPermissionStore
     {
-        private static readonly ConcurrentDictionary<Guid, Permission> Permissions = new ConcurrentDictionary<Guid, Permission>();
+        private readonly ConcurrentDictionary<Guid, Permission> Permissions = new ConcurrentDictionary<Guid, Permission>();
         public IEnumerable<Permission> GetPermissions(string grain = null, string securableItem = null, string permissionName = null)
         {
             var permissions = Permissions.Select(kvp => kvp.Value);

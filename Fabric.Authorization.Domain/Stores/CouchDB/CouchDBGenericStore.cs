@@ -28,9 +28,9 @@ namespace Fabric.Authorization.Domain.Stores
             {
                 _dbService.AddDocument<T>(id, model);
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
-                throw new AlreadyExistsException<T>(model, "Object not found!");
+                throw new AlreadyExistsException<T>(model, "Object already exists!");
             }
 
             return model;

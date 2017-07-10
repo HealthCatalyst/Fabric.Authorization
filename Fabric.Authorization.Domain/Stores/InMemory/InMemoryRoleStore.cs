@@ -9,7 +9,7 @@ namespace Fabric.Authorization.Domain.Stores
 {
     public class InMemoryRoleStore : IRoleStore
     {
-        private static readonly ConcurrentDictionary<Guid, Role> Roles = new ConcurrentDictionary<Guid, Role>();
+        private readonly ConcurrentDictionary<Guid, Role> Roles = new ConcurrentDictionary<Guid, Role>();
         
         public IEnumerable<Role> GetRoles(string grain = null, string securableItem = null, string roleName = null)
         {
