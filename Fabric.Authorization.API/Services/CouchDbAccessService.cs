@@ -9,6 +9,7 @@ using Serilog;
 using System;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.Domain.Stores;
+using System.Linq;
 
 namespace Fabric.Authorization.API.Services
 {
@@ -52,11 +53,15 @@ namespace Fabric.Authorization.API.Services
             {
                 if (!client.Database.GetAsync().Result.IsSuccess)
                 {
-                    client.Database.PutAsync().Wait();
+                    var creation = client.Database.PutAsync().Result;
+                    if (!creation.IsSuccess)
+                    {
+                        throw new ArgumentException(creation.Error);
+                    }
                 }
             }
 
-            }
+        }
 
             public Task<T> GetDocument<T>(string documentId)
         {
@@ -189,6 +194,83 @@ namespace Fabric.Authorization.API.Services
                 {
                     _logger.Error($"There was an error deleting document:{documentId}, error: {response.Reason}");
                 }
+            }
+        }
+
+        public void AddViews(string documentId, CouchDBViews views)
+        {
+            var fullDocumentId = $"_design/{documentId}";
+
+            using (var client = new MyCouchClient(DbConnectionInfo))
+            {
+                var existingDoc = client.Documents.GetAsync(fullDocumentId).Result;
+                var docJson = JsonConvert.SerializeObject(views);
+
+                if (!string.IsNullOrEmpty(existingDoc.Id))
+                {
+                    return;
+                }
+
+                var response = client.Documents.PutAsync(fullDocumentId, docJson).Result;
+
+                if (!response.IsSuccess)
+                {
+                    _logger.Error($"unable to add or update document: {documentId} - error: {response.Reason}");
+                }
+            }
+        }
+
+        public Task<IEnumerable<T>> GetDocuments<T>(string designdoc, string viewName, Dictionary<string, object> customParams)
+        {
+            using (var client = new MyCouchClient(DbConnectionInfo))
+            {
+                var viewQuery = new QueryViewRequest(designdoc, viewName);
+                viewQuery.CustomQueryParameters = customParams;
+                ViewQueryResponse result = client.Views.QueryAsync(viewQuery).Result;
+
+                if (!result.IsSuccess)
+                {
+                    _logger.Error($"unable to execute view: {viewName} - error: {result.Reason}");
+                    return Task.FromResult(default(IEnumerable<T>));
+                }
+
+                var results = new List<T>();
+
+                foreach (var responseRow in result.Rows)
+                {
+                    var resultRow = JsonConvert.DeserializeObject<T>(responseRow.IncludedDoc);
+                    results.Add(resultRow);
+                }
+
+                return Task.FromResult((IEnumerable<T>)results);
+            }
+        }
+        
+        public Task<IEnumerable<T>> GetDocuments<T>(string designdoc, string viewName, string key)
+        {
+            using (var client = new MyCouchClient(DbConnectionInfo))
+            {
+                var viewQuery = new QueryViewRequest(designdoc, viewName);
+                ViewQueryResponse result = client.Views.QueryAsync(viewQuery).Result;
+
+                if (!result.IsSuccess)
+                {
+                    _logger.Error($"unable to execute view: {viewName} - error: {result.Reason}");
+                    return Task.FromResult(default(IEnumerable<T>));
+                }
+
+                var results = new List<T>();
+
+                foreach (var responseRow in result.Rows)
+                {
+                    if (responseRow.Key.ToString() == key)
+                    {
+                        var resultRow = JsonConvert.DeserializeObject<T>(responseRow.Value);
+                        results.Add(resultRow);
+                    }
+                }
+
+                return Task.FromResult((IEnumerable<T>)results);
             }
         }
     }

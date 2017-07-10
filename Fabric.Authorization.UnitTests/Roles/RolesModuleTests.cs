@@ -182,7 +182,7 @@ namespace Fabric.Authorization.UnitTests.Roles
             var existingPermission =
                 ExistingPermissions.First(p => p.Grain == role.Grain &&
                                                 p.SecurableItem == role.SecurableItem);
-            PostPermissionAndAssert(role, existingPermission, existingClient.Id, HttpStatusCode.BadRequest);
+            PostPermissionAndAssert(role, existingPermission, existingClient.Id, HttpStatusCode.NotFound);
         }
 
         [Fact]
@@ -197,7 +197,7 @@ namespace Fabric.Authorization.UnitTests.Roles
                 SecurableItem = "patientsafety",
                 Name = "notfound"
             };
-            PostPermissionAndAssert(existingRole, permission, existingClient.Id, HttpStatusCode.BadRequest);
+            PostPermissionAndAssert(existingRole, permission, existingClient.Id, HttpStatusCode.NotFound);
         }
 
         [Fact]
@@ -281,7 +281,7 @@ namespace Fabric.Authorization.UnitTests.Roles
                 ExistingPermissions.First(p => p.Grain == notFoundRole.Grain &&
                                                 p.SecurableItem == notFoundRole.SecurableItem);
             notFoundRole.Permissions.Add(existingPermission);
-            DeletePermissionAndAssert(existingClient.Id, notFoundRole.Id.ToString(), existingPermission, HttpStatusCode.BadRequest);
+            DeletePermissionAndAssert(existingClient.Id, notFoundRole.Id.ToString(), existingPermission, HttpStatusCode.NotFound);
         }
 
         [Fact]
@@ -292,7 +292,7 @@ namespace Fabric.Authorization.UnitTests.Roles
             var existingPermission =
                 ExistingPermissions.First(p => p.Grain == existingRole.Grain &&
                                                 p.SecurableItem == existingRole.SecurableItem);
-            DeletePermissionAndAssert(existingClient.Id, existingRole.Id.ToString(), existingPermission, HttpStatusCode.BadRequest);
+            DeletePermissionAndAssert(existingClient.Id, existingRole.Id.ToString(), existingPermission, HttpStatusCode.NotFound);
         }
 
         [Fact]

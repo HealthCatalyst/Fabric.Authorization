@@ -111,7 +111,7 @@ namespace Fabric.Authorization.UnitTests.SecurableItems
             var securableItemsModule = CreateBrowser(new Claim(Claims.Scope, Scopes.ReadScope),
                 new Claim(Claims.ClientId, "nonexistentId"));
             var result = securableItemsModule.Get($"/securableitems/{innerSecurable.Id}").Result;
-            Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, result.StatusCode);
         }
 
         [Fact]
@@ -121,7 +121,7 @@ namespace Fabric.Authorization.UnitTests.SecurableItems
             var securableItemsModule = CreateBrowser(new Claim(Claims.Scope, Scopes.ReadScope),
                 new Claim(Claims.ClientId, existingClient.Id));
             var result = securableItemsModule.Get($"/securableitems/{Guid.NewGuid()}").Result;
-            Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, result.StatusCode);
         }
 
         [Fact]

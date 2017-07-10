@@ -14,6 +14,5 @@ namespace Fabric.Authorization.Domain.Stores
 
         public override void Delete(Client client) => this.Delete(client.Id, client);
 
-        public void UpdateClient(Client client) => throw new NotImplementedException();
     }
 }

@@ -4,19 +4,17 @@ using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
-using Moq;
 using Nancy;
 using Nancy.Testing;
-using Serilog;
 using Xunit;
 
 namespace Fabric.Authorization.IntegrationTests
 {
     public class ClientTests : IntegrationTestsFixture
     {
-        public ClientTests()
+        public ClientTests(bool useInMemoryDB = true)
         {
-            var store = new InMemoryClientStore();
+            var store = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDBClientStore(this.DbService(), this.Logger); ;
             var clientService = new ClientService(store);
 
             this.Browser = new Browser(with =>
@@ -24,7 +22,8 @@ namespace Fabric.Authorization.IntegrationTests
                 with.Module(new ClientsModule(
                         clientService,
                         new Domain.Validators.ClientValidator(store),
-                        new Mock<ILogger>().Object));
+                        this.Logger));
+
                 with.RequestStartup((_, __, context) =>
                 {
                     context.CurrentUser = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>()
@@ -93,6 +92,7 @@ namespace Fabric.Authorization.IntegrationTests
             var postResponse = this.Browser.Post("/clients", with =>
             {
                 with.HttpRequest();
+                with.Header("Accept", "application/json");
                 with.FormValue("Id", Id);
                 with.FormValue("Name", Id);
             }).Result;

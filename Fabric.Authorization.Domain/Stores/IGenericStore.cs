@@ -13,6 +13,9 @@ namespace Fabric.Authorization.Domain.Stores
 
         void Delete(T model);
 
+        void Update(T model);
+
         bool Exists(K id);
+
     }
 }

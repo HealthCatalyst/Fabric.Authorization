@@ -1,4 +1,5 @@
-﻿using Fabric.Authorization.Domain.Models;
+﻿using System.Collections.Generic;
+using Fabric.Authorization.Domain.Models;
 using Serilog;
 
 namespace Fabric.Authorization.Domain.Stores
@@ -12,5 +13,10 @@ namespace Fabric.Authorization.Domain.Stores
         public override Group Add(Group group) => this.Add(group.Id, group);
 
         public override void Delete(Group group) => this.Delete(group.Id, group);
+
+        public override IEnumerable<Group> GetAll()
+        {
+            return _dbService.GetDocuments<Group>("group").Result;
+        }
     }
 }

@@ -19,7 +19,7 @@ namespace Fabric.Authorization.UnitTests.Mocks
                     {
                         return clients.First(c => c.Id == clientId);
                     }
-                    throw new ClientNotFoundException();
+                    throw new NotFoundException<Client>();
                 });
             mockClientStore.Setup(clientStore => clientStore.Exists(It.IsAny<string>()))
                 .Returns((string clientId) => clients.Any(c => c.Id == clientId));

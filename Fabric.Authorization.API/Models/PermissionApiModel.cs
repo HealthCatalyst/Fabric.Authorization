@@ -1,4 +1,5 @@
 ﻿using System;
+using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.API.Models
 {

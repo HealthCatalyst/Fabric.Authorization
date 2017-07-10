@@ -32,7 +32,7 @@ namespace Fabric.Authorization.Domain.Services
             var client = _clientStore.Get(clientId);
             CheckUniqueness(client.TopLevelSecurableItem, item);
             client.TopLevelSecurableItem.SecurableItems.Add(item);
-            _clientStore.UpdateClient(client);
+            _clientStore.Update(client);
             return item;
         }
 
@@ -44,8 +44,22 @@ namespace Fabric.Authorization.Domain.Services
             var parentSecurableItem = GetSecurableItemById(client.TopLevelSecurableItem, itemId);
             CheckUniqueness(parentSecurableItem, item);
             parentSecurableItem.SecurableItems.Add(item);
-            _clientStore.UpdateClient(client);
+            _clientStore.Update(client);
             return item;
+        }
+
+        private bool TryGetSecurableItemById(SecurableItem parentSecurableItem, Guid itemId, out SecurableItem item)
+        {
+            try
+            {
+                item = GetSecurableItemById(parentSecurableItem, itemId);
+                return true;
+            }
+            catch(NotFoundException<SecurableItem>)
+            {
+                item = null;
+                return false;
+            }
         }
 
         private SecurableItem GetSecurableItemById(SecurableItem parentSecurableItem, Guid itemId)
@@ -59,7 +73,7 @@ namespace Fabric.Authorization.Domain.Services
 
             if (childSecurableItems == null || childSecurableItems.Count == 0)
             {
-                throw new SecurableItemNotFoundException();
+                throw new NotFoundException<SecurableItem>(itemId.ToString());
             }
 
             var securableItem = childSecurableItems.FirstOrDefault(item => item.Id == itemId);
@@ -67,18 +81,24 @@ namespace Fabric.Authorization.Domain.Services
             {
                 return securableItem;
             }
+
             foreach (var childSecurableItem in childSecurableItems)
             {
-                return GetSecurableItemById(childSecurableItem, itemId);
+                SecurableItem item;
+                if (TryGetSecurableItemById(childSecurableItem, itemId, out item))
+                {
+                    return item;
+                }
             }
-            throw new SecurableItemNotFoundException();
+
+            throw new NotFoundException<SecurableItem>(itemId.ToString());
         }
 
         private void CheckUniqueness(SecurableItem parentSecurableItem, SecurableItem item)
         {
             if (parentSecurableItem.Name == item.Name || parentSecurableItem.SecurableItems.Any(s => s.Name == item.Name))
             {
-                throw new SecurableItemAlreadyExistsException(
+                throw new AlreadyExistsException<SecurableItem>(
                     $"The SecurableItem {item.Name} already exists within or has the same name as the parent item: {parentSecurableItem.Name}");
             }
         }

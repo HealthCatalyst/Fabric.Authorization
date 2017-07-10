@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Fabric.Authorization.Domain.Models
 {
-    public class Group : ITrackable
+    public class Group : ITrackable, IIdentifiable
     {
         public Group()
         {
@@ -25,5 +25,7 @@ namespace Fabric.Authorization.Domain.Models
         public string CreatedBy { get; set; }
 
         public string ModifiedBy { get; set; }
+
+        public string Identifier => Id;
     }
 }

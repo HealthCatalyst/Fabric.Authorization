@@ -8,6 +8,7 @@ using Fabric.Authorization.API.ModuleExtensions;
 using Fabric.Authorization.Domain.Services;
 using FluentValidation;
 using Serilog;
+using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.API.Modules
 {

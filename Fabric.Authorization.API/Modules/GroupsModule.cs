@@ -37,10 +37,10 @@ namespace Fabric.Authorization.API.Modules
             try
             {
                 this.RequiresClaims(this.AuthorizationManageClientsClaim, this.AuthorizationReadClaim);
-                var group = this.GroupService.GetGroup(parameters.groupName);
+                Group group = this.GroupService.GetGroup(parameters.groupName);
                 return group.ToGroupRoleApiModel();
             }
-            catch (GroupNotFoundException)
+            catch (NotFoundException<Group>)
             {
                 return HttpStatusCode.NotFound;
             }
@@ -55,7 +55,7 @@ namespace Fabric.Authorization.API.Modules
                 this.GroupService.DeleteGroup(group);
                 return HttpStatusCode.NoContent;
             }
-            catch (GroupNotFoundException)
+            catch (NotFoundException<Group>)
             {
                 return HttpStatusCode.NotFound;
             }
@@ -70,7 +70,7 @@ namespace Fabric.Authorization.API.Modules
                 this.GroupService.AddGroup(group.ToGroupDomainModel());
                 return HttpStatusCode.Created;
             }
-            catch (GroupAlreadyExistsException)
+            catch (AlreadyExistsException<Group>)
             {
                 return HttpStatusCode.BadRequest;
             }
@@ -85,7 +85,7 @@ namespace Fabric.Authorization.API.Modules
                 this.GroupService.UpdateGroupList(group.Select(g => g.ToGroupDomainModel()).ToList());
                 return HttpStatusCode.NoContent;
             }
-            catch (GroupAlreadyExistsException)
+            catch (AlreadyExistsException<Group>)
             {
                 return HttpStatusCode.BadRequest;
             }
@@ -102,13 +102,13 @@ namespace Fabric.Authorization.API.Modules
 
                 return new GroupRoleApiModel
                 {
-                    RequestedGrain = groupInfoRequest.Grain,
-                    RequestedSecurableItem = groupInfoRequest.SecurableItem,
+                   // RequestedGrain = groupInfoRequest.Grain,
+                   // RequestedSecurableItem = groupInfoRequest.SecurableItem,
                     GroupName = groupInfoRequest.GroupName,
                     Roles = roles.Select(r => r.ToRoleApiModel())
                 };
             }
-            catch (GroupNotFoundException)
+            catch (NotFoundException<Group>)
             {
                 return HttpStatusCode.NotFound;
             }
@@ -122,17 +122,17 @@ namespace Fabric.Authorization.API.Modules
                 var roleApiModel = this.Bind<RoleApiModel>();
                 if (roleApiModel.Id == null)
                 {
-                    throw new RoleNotFoundException();
+                    throw new NotFoundException<Role>();
                 }
 
                 this.GroupService.AddRoleToGroup(parameters.groupName, roleApiModel.Id.Value);
                 return HttpStatusCode.NoContent;
             }
-            catch (GroupNotFoundException)
+            catch (NotFoundException<Group>)
             {
                 return HttpStatusCode.NotFound;
             }
-            catch (RoleNotFoundException)
+            catch (NotFoundException<Role>)
             {
                 return HttpStatusCode.BadRequest;
             }
@@ -146,17 +146,17 @@ namespace Fabric.Authorization.API.Modules
                 var roleApiModel = this.Bind<RoleApiModel>();
                 if (roleApiModel.Id == null)
                 {
-                    throw new RoleNotFoundException();
+                    throw new NotFoundException<Role>();
                 }
 
                 this.GroupService.DeleteRoleFromGroup(parameters.groupName, roleApiModel.Id.Value);
                 return HttpStatusCode.NoContent;
             }
-            catch (GroupNotFoundException)
+            catch (NotFoundException<Group>)
             {
                 return HttpStatusCode.NotFound;
             }
-            catch (RoleNotFoundException)
+            catch (NotFoundException<Role>)
             {
                 return HttpStatusCode.BadRequest;
             }

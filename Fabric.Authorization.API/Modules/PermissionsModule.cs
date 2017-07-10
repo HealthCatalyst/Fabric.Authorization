@@ -62,7 +62,7 @@ namespace Fabric.Authorization.API.Modules
                 CheckAccess(_clientService, permission.Grain, permission.SecurableItem, AuthorizationReadClaim);
                 return permission.ToPermissionApiModel();
             }
-            catch (PermissionNotFoundException ex)
+            catch (NotFoundException<Permission> ex)
             {
 
                 Logger.Error(ex, ex.Message, parameters.permissionId);
@@ -79,8 +79,10 @@ namespace Fabric.Authorization.API.Modules
                 binderIgnore => binderIgnore.ModifiedBy);
 
             var incomingPermission = permissionApiModel.ToPermissionDomainModel();
+
             Validate(incomingPermission);
             CheckAccess(_clientService, permissionApiModel.Grain, permissionApiModel.SecurableItem, AuthorizationWriteClaim);
+
             Permission permission = _permissionService.AddPermission(incomingPermission);
             return CreateSuccessfulPostResponse(permission.ToPermissionApiModel());
         }
@@ -98,7 +100,7 @@ namespace Fabric.Authorization.API.Modules
                 _permissionService.DeletePermission(permission);
                 return HttpStatusCode.NoContent;
             }
-            catch (PermissionNotFoundException ex)
+            catch (NotFoundException<Permission> ex)
             {
                 Logger.Error(ex, ex.Message, parameters.permissionId);
                 return CreateFailureResponse($"The specified permission with id: {parameters.permissionId} was not found.", HttpStatusCode.NotFound);

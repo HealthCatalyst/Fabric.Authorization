@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.API.Models
 {

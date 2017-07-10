@@ -29,53 +29,53 @@ namespace Fabric.Authorization.Domain.Stores
             Groups.TryAdd(group2.Name, group2);
         }
 
-        public Group Get(string id)
+        public Group Get(string name)
         {
-            if (Exists(id))
+            if (Exists(name) && !Groups[name].IsDeleted)
             {
-                return Groups[id];
+                return Groups[name];
             }
 
-            throw new GroupNotFoundException(id);
+            throw new NotFoundException<Group>(name);
         }
 
         public Group Add(Group group)
         {
             group.Track(creation: true);
 
-            if (Exists(group.Id))
+            if (Exists(group.Name))
             {
-                throw new GroupAlreadyExistsException(group.Id);
+                throw new AlreadyExistsException<Group>(group, group.Name);
             }
 
-            Groups.TryAdd(group.Id, group);
+            Groups.TryAdd(group.Name, group);
             return group;
         }
 
         public void Delete(Group group)
         {
             group.IsDeleted = true;
-            UpdateGroup(group);
+            Update(group);
         }
 
-        public void UpdateGroup(Group group)
+        public void Update(Group group)
         {
             group.Track();
 
-            if (this.Exists(group.Id))
+            if (this.Exists(group.Name))
             {
-                if (!Groups.TryUpdate(group.Id, group, this.Get(group.Id)))
+                if (!Groups.TryUpdate(group.Name, group, Groups[group.Name]))
                 {
                     throw new CouldNotCompleteOperationException();
                 }
             }
             else
             {
-                throw new GroupNotFoundException(group.Id.ToString());
+                throw new NotFoundException<Group>(group, group.Name.ToString());
             }
         }
 
-        public bool Exists(string id) => Groups.ContainsKey(id);
+        public bool Exists(string name) => Groups.ContainsKey(name);
 
         public IEnumerable<Group> GetAll() => Groups.Values;
     }

@@ -1,25 +1,44 @@
 ﻿using System;
-using System.IO;
-using System.Net.Http;
-using Fabric.Authorization.API;
+using System.Threading;
 using Fabric.Authorization.API.Configuration;
-using Fabric.Authorization.API.Modules;
-using Fabric.Authorization.Domain.Services;
+using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Stores;
-using Fabric.Platform.Logging;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Moq;
-using Nancy;
 using Nancy.Testing;
-using Serilog.Core;
+using Serilog;
 
 namespace Fabric.Authorization.IntegrationTests
 {
     public class IntegrationTestsFixture : IDisposable
     {
-        
         public Browser Browser { get; set; }
+
+        public ILogger Logger { get; set; } = new Mock<ILogger>().Object;
+
+        private static IDocumentDbService dbService;
+
+        private static object Lock = Guid.NewGuid().ToString();
+
+        protected Func<IDocumentDbService> DbService { get; } = () =>
+         {
+             if (dbService == null)
+             {
+                 ICouchDbSettings config = new CouchDbSettings()
+                 {
+                     DatabaseName = "integration-"+DateTime.UtcNow.Ticks.ToString(),
+                     Username = "",
+                     Password = "",
+                     Server = "http://127.0.0.1:5984"
+                 };
+
+                 lock(Lock)
+                 {
+                     dbService = new CouchDbAccessService(config, new Mock<ILogger>().Object);
+                 }
+             }
+
+             return dbService;
+         };
 
         #region IDisposable implementation
 

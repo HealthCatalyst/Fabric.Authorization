@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 namespace Fabric.Authorization.Domain.Models
 {
-    public class Role : ITrackable
+    public class Role : ITrackable, IIdentifiable
     {
         public Role()
         {
             Permissions = new List<Permission>();
             DeniedPermissions = new List<Permission>();
-            ChildRoles = new List<Role>();
+            ChildRoles = new List<Guid>();
         }
 
         public Guid Id { get; set; }
@@ -22,9 +22,9 @@ namespace Fabric.Authorization.Domain.Models
 
         public bool IsDeleted { get; set; }
 
-        public Role ParentRole { get; set; }
+        public Guid? ParentRole { get; set; }
         
-        public ICollection<Role> ChildRoles { get; set; }
+        public ICollection<Guid> ChildRoles { get; set; }
 
         public ICollection<Permission> Permissions { get; set; }
 
@@ -34,6 +34,7 @@ namespace Fabric.Authorization.Domain.Models
         public DateTime? ModifiedDateTimeUtc { get; set; }
         public string CreatedBy { get; set; }
         public string ModifiedBy { get; set; }
+        public string Identifier => Id.ToString();
 
         public override string ToString()
         {

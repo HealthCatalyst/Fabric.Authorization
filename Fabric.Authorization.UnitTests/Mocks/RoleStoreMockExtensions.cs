@@ -30,7 +30,7 @@ namespace Fabric.Authorization.UnitTests.Mocks
                     {
                         return roles.First(r => r.Id == roleId);
                     }
-                    throw new RoleNotFoundException();
+                    throw new NotFoundException<Role>();
                 });
 
             return mockRoleStore;

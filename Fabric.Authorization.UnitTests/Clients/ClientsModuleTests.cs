@@ -86,9 +86,9 @@ namespace Fabric.Authorization.UnitTests.Clients
             var clientsModule = CreateBrowser(new Claim(Claims.ClientId, nonExistentClientId),
                 new Claim(Claims.Scope, Scopes.ReadScope));
             var result = clientsModule.Get($"/clients/{nonExistentClientId}").Result;
-            Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, result.StatusCode);
             var error = result.Body.DeserializeJson<Error>();
-            Assert.Equal(Enum.GetName(typeof(HttpStatusCode), HttpStatusCode.BadRequest), error.Code);
+            Assert.Equal(Enum.GetName(typeof(HttpStatusCode), HttpStatusCode.NotFound), error.Code);
             Assert.Equal(typeof(Client).Name, error.Target);
         }
 
@@ -184,13 +184,13 @@ namespace Fabric.Authorization.UnitTests.Clients
         }
 
         [Fact]
-        public void DeleteClient_ReturnBadRequest()
+        public void DeleteClient_ReturnNotFound()
         {
             var clientsModule = CreateBrowser(new Claim(Claims.Scope, Scopes.ManageClientsScope),
                 new Claim(Claims.Scope, Scopes.WriteScope));
             var nonexistentId = "nonexistentid";
             var result = clientsModule.Delete($"/clients/{nonexistentId}").Result;
-            Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, result.StatusCode);
             var error = result.Body.DeserializeJson<Error>();
             Assert.NotNull(error);
             Assert.Contains(nonexistentId, error.Message);

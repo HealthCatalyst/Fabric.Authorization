@@ -1,27 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Security.Claims;
-using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
-using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
-using Fabric.Authorization.API.Services;
-using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
-using Moq;
 using Nancy;
 using Nancy.Testing;
-using Serilog;
 using Xunit;
 
 namespace Fabric.Authorization.IntegrationTests
 {
     public class GroupsTests : IntegrationTestsFixture
     {
-        public GroupsTests()
+        public GroupsTests(bool useInMemoryDB = true)
         {
-            var store = new InMemoryGroupStore();
+            var store = useInMemoryDB ? new InMemoryGroupStore() : (IGroupStore)new CouchDBGroupStore(this.DbService(), this.Logger); ;
             var groupService = new GroupService(store, new InMemoryRoleStore());
 
             this.Browser = new Browser(with =>
@@ -29,7 +22,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.Module(new GroupsModule(
                         groupService,
                         new Domain.Validators.GroupValidator(store),
-                        new Mock<ILogger>().Object));
+                        this.Logger));
                 with.RequestStartup((_, __, context) =>
                 {
                     context.CurrentUser = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>()
@@ -89,13 +82,13 @@ namespace Fabric.Authorization.IntegrationTests
             var postResponse = this.Browser.Post("/groups/UpdateGroups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id[0]", groupName);
-                with.FormValue("Id[1]", groupName);
-                with.FormValue("Id[2]", groupName);
+                with.FormValue("Id[0]", groupName + "_0");
+                with.FormValue("Id[1]", groupName + "_1");
+                with.FormValue("Id[2]", groupName + "_2");
 
-                with.FormValue("GroupName[0]", groupName+"_0");
-                with.FormValue("GroupName[1]", groupName+"_1");
-                with.FormValue("GroupName[2]", groupName+"_2");
+                with.FormValue("GroupName[0]", groupName + "_0");
+                with.FormValue("GroupName[1]", groupName + "_1");
+                with.FormValue("GroupName[2]", groupName + "_2");
             }).Result;
 
             var getResponse0 = this.Browser.Get($"/groups/{groupName}_0", with =>
@@ -122,7 +115,6 @@ namespace Fabric.Authorization.IntegrationTests
             Assert.Equal(HttpStatusCode.OK, getResponse1.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse2.StatusCode);
 
-
             Assert.True(getResponse0.Body.AsString().Contains(groupName + "_0"));
             Assert.True(getResponse1.Body.AsString().Contains(groupName + "_1"));
             Assert.True(getResponse2.Body.AsString().Contains(groupName + "_2"));
@@ -136,9 +128,9 @@ namespace Fabric.Authorization.IntegrationTests
             var postResponse = this.Browser.Post("/groups/UpdateGroups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id[0]", groupName);
-                with.FormValue("Id[1]", groupName);
-                with.FormValue("Id[2]", groupName);
+                with.FormValue("Id[0]", groupName + "_0");
+                with.FormValue("Id[1]", groupName + "_1");
+                with.FormValue("Id[2]", groupName + "_2");
                 with.FormValue("GroupName[0]", groupName + "_0");
                 with.FormValue("GroupName[1]", groupName + "_1");
                 with.FormValue("GroupName[2]", groupName + "_2");
@@ -150,9 +142,9 @@ namespace Fabric.Authorization.IntegrationTests
             postResponse = this.Browser.Post("/groups/UpdateGroups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id[0]", groupName);
-                with.FormValue("Id[1]", groupName);
-                with.FormValue("Id[2]", groupName);
+                with.FormValue("Id[0]", groupName + "_1");
+                with.FormValue("Id[1]", groupName + "_2");
+                with.FormValue("Id[2]", groupName + "_3");
                 with.FormValue("GroupName[0]", groupName + "_1");
                 with.FormValue("GroupName[1]", groupName + "_2");
                 with.FormValue("GroupName[2]", groupName + "_3");
@@ -183,7 +175,6 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
             }).Result;
-
 
             Assert.Equal(HttpStatusCode.NotFound, getResponse0.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse1.StatusCode);

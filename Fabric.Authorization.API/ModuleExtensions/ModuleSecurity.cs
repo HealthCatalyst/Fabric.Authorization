@@ -9,6 +9,7 @@ using Nancy.Responses;
 using Nancy.Security;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.Domain.Exceptions;
+using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.API.ModuleExtensions
 {
@@ -33,7 +34,7 @@ namespace Fabric.Authorization.API.ModuleExtensions
                         response = CreateForbiddenResponse<T>(clientId, grain, securableItem, context);
                     }
                 }
-                catch (ClientNotFoundException)
+                catch (NotFoundException<Client>)
                 {
                     response = CreateForbiddenResponse<T>(clientId, grain, securableItem, context);
                 }

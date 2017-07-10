@@ -126,7 +126,7 @@ namespace Fabric.Authorization.UnitTests.Roles
 
 
             var roleService = new RoleService(mockRoleStore, mockPermissionStore);
-            Assert.Throws<PermissionNotFoundException>(() => roleService.RemovePermissionsFromRole(existingRole, new[] { permissionToRemove.Id }));
+            Assert.Throws<NotFoundException<Permission>>(() => roleService.RemovePermissionsFromRole(existingRole, new[] { permissionToRemove.Id }));
         }
 
         public static IEnumerable<object[]> IncompatiblePermissionData()

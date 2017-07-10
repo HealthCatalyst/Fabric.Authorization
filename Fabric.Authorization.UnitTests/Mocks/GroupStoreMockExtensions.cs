@@ -20,7 +20,7 @@ namespace Fabric.Authorization.UnitTests.Mocks
                     {
                         return groups.First(g => g.Name == groupName);
                     }
-                    throw new GroupNotFoundException();
+                    throw new NotFoundException<Group>();
                 });
             return mockGroupStore;
         }

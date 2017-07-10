@@ -47,7 +47,7 @@ namespace Fabric.Authorization.API.Modules
                 Client client = _clientService.GetClient(clientIdAsString);
                 return client.ToClientApiModel();
             }
-            catch (ClientNotFoundException ex)
+            catch (NotFoundException<Client> ex)
             {
                 Logger.Error(ex, ex.Message, parameters.clientid);
                 return CreateFailureResponse($"The specified client with id: {parameters.clientid} was not found",
@@ -57,6 +57,7 @@ namespace Fabric.Authorization.API.Modules
 
         private dynamic AddClient()
         {
+
             this.RequiresClaims(AuthorizationManageClientsClaim, AuthorizationWriteClaim);
             var clientApiModel = this.Bind<ClientApiModel>(model => model.CreatedBy,
                 model => model.CreatedDateTimeUtc,
@@ -78,7 +79,7 @@ namespace Fabric.Authorization.API.Modules
                 _clientService.DeleteClient(client);
                 return HttpStatusCode.NoContent;
             }
-            catch (ClientNotFoundException ex)
+            catch (NotFoundException<Client> ex)
             {
                 Logger.Error(ex, ex.Message, parameters.clientid);
                 return CreateFailureResponse($"The specified client with id: {parameters.clientid} was not found",

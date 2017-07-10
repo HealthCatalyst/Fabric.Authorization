@@ -34,7 +34,7 @@ namespace Fabric.Authorization.Domain.Stores
             {
                 return Permissions[permissionId];
             }
-            throw new PermissionNotFoundException();
+            throw new NotFoundException<Permission>(permissionId.ToString());
         }
 
         public Permission Add(Permission permission)
@@ -49,10 +49,10 @@ namespace Fabric.Authorization.Domain.Stores
         public void Delete(Permission permission)
         {
             permission.IsDeleted = true;
-            UpdatePermission(permission);
+            Update(permission);
         }
 
-        public void UpdatePermission(Permission permission)
+        public void Update(Permission permission)
         {
 
             if (this.Exists(permission.Id))
@@ -64,7 +64,7 @@ namespace Fabric.Authorization.Domain.Stores
             }
             else
             {
-                throw new PermissionNotFoundException(permission.Id.ToString());
+                throw new NotFoundException<Permission>(permission.Id.ToString());
             }
         }
 

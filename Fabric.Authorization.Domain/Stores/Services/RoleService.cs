@@ -62,7 +62,7 @@ namespace Fabric.Authorization.Domain.Services
             {
                 role.Permissions.Add(permission);
             }
-            _roleStore.UpdateRole(role);
+            _roleStore.Update(role);
             return role;
         }
 
@@ -72,7 +72,7 @@ namespace Fabric.Authorization.Domain.Services
             {
                 if (role.Permissions.All(p => p.Id != permissionId))
                 {
-                    throw new PermissionNotFoundException($"Permission with id {permissionId} not found on role {role.Id}");
+                    throw new NotFoundException<Permission>($"Permission with id {permissionId} not found on role {role.Id}");
                 }
             }
             foreach (var permissionId in permissionIds)
@@ -80,7 +80,7 @@ namespace Fabric.Authorization.Domain.Services
                 var permission = _permissionStore.Get(permissionId);
                 role.Permissions.Remove(permission);
             }
-            _roleStore.UpdateRole(role);
+            _roleStore.Update(role);
             return role;
         }
     }

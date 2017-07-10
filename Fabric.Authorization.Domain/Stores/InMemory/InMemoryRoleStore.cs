@@ -35,7 +35,7 @@ namespace Fabric.Authorization.Domain.Stores
             {
                 return Roles[roleId];
             }
-            throw new RoleNotFoundException($"The specified role with id: {roleId} was not found.");
+            throw new NotFoundException<Role>($"The specified role with id: {roleId} was not found.");
         }
 
         public Role Add(Role role)
@@ -49,10 +49,10 @@ namespace Fabric.Authorization.Domain.Stores
         public void Delete(Role role)
         {
             role.IsDeleted = true;
-            UpdateRole(role);
+            Update(role);
         }
 
-        public void UpdateRole(Role role)
+        public void Update(Role role)
         {
             role.Track();
 
@@ -65,7 +65,7 @@ namespace Fabric.Authorization.Domain.Stores
             }
             else
             {
-                throw new RoleNotFoundException(role.Id.ToString());
+                throw new NotFoundException<Role>(role, role.Id.ToString());
             }
         }
 

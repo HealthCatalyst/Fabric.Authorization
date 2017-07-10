@@ -1,4 +1,4 @@
-﻿namespace Fabric.Authorization.API.Models
+﻿namespace Fabric.Authorization.Domain.Models
 {
     public interface IIdentifiable
     {

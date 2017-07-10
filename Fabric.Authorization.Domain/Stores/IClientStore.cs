@@ -5,6 +5,5 @@ namespace Fabric.Authorization.Domain.Stores
 {
     public interface IClientStore : IGenericStore<string, Client>
     {
-        void UpdateClient(Client client);
     }
 }

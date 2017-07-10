@@ -52,7 +52,7 @@ namespace Fabric.Authorization.Domain.Stores
                 return Clients[clientId];
             }
 
-            throw new ClientNotFoundException(clientId);
+            throw new NotFoundException<Client>(clientId);
         }
 
         public bool Exists(string clientId)
@@ -66,7 +66,7 @@ namespace Fabric.Authorization.Domain.Stores
             
             if (this.Exists(client.Id))
             {
-                throw new ClientAlreadyExistsException(client.Id);
+                throw new AlreadyExistsException<Client>(client, client.Id);
             }
 
             if (!Clients.TryAdd(client.Id, client))
@@ -80,10 +80,10 @@ namespace Fabric.Authorization.Domain.Stores
         public void Delete(Client client)
         {
             client.IsDeleted = true;
-            UpdateClient(client);
+            Update(client);
         }
 
-        public void UpdateClient(Client client)
+        public void Update(Client client)
         {
             client.Track();
 
@@ -96,7 +96,7 @@ namespace Fabric.Authorization.Domain.Stores
             }
             else
             {
-                throw new ClientNotFoundException(client.Id.ToString());
+                throw new NotFoundException<Client>(client.Id.ToString());
             }
         }
     }

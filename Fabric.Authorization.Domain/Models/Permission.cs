@@ -2,7 +2,7 @@
 
 namespace Fabric.Authorization.Domain.Models
 {
-    public class Permission : ITrackable
+    public class Permission : ITrackable, IIdentifiable
     {
         public Guid Id { get; set; }
 
@@ -21,6 +21,8 @@ namespace Fabric.Authorization.Domain.Models
         public string CreatedBy { get; set; }
 
         public string ModifiedBy { get; set; }
+
+        public string Identifier => Id.ToString();
 
         public override string ToString()
         {

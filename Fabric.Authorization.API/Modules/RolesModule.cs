@@ -76,7 +76,7 @@ namespace Fabric.Authorization.API.Modules
                 _roleService.DeleteRole(roleToDelete);
                 return HttpStatusCode.NoContent;
             }
-            catch (RoleNotFoundException ex)
+            catch (NotFoundException<Role> ex)
             {
                 Logger.Error(ex, ex.Message, parameters.roleId);
                 return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
@@ -107,12 +107,12 @@ namespace Fabric.Authorization.API.Modules
                     roleApiModels.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToArray());
                 return CreateSuccessfulPostResponse(updatedRole.ToRoleApiModel(), HttpStatusCode.OK);
             }
-            catch (RoleNotFoundException ex)
+            catch (NotFoundException<Role> ex)
             {
                 Logger.Error(ex, ex.Message, parameters.roleId);
                 return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
             }
-            catch (PermissionNotFoundException ex)
+            catch (NotFoundException<Permission> ex)
             {
                 Logger.Error(ex, ex.Message);
                 return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
@@ -148,12 +148,12 @@ namespace Fabric.Authorization.API.Modules
                     roleApiModels.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToArray());
                 return CreateSuccessfulPostResponse(updatedRole.ToRoleApiModel(), HttpStatusCode.OK);
             }
-            catch (RoleNotFoundException ex)
+            catch (NotFoundException<Role> ex)
             {
                 Logger.Error(ex, ex.Message, parameters.roleId);
                 return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
             }
-            catch (PermissionNotFoundException ex)
+            catch (NotFoundException<Permission> ex)
             {
                 Logger.Error(ex, ex.Message, parameters.roleId);
                 return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);

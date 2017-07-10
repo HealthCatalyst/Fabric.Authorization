@@ -79,15 +79,15 @@ namespace Fabric.Authorization.Domain.Services
             }
         }
 
-        public void AddGroup(Group group) =>_groupStore.Add(group);
+        public void AddGroup(Group group) => _groupStore.Add(group);
 
-        public Group GetGroup(string id) =>  _groupStore.Get(id);
+        public Group GetGroup(string id) => _groupStore.Get(id);
 
         public void DeleteGroup(Group group) => _groupStore.Delete(group);
 
         public void UpdateGroupList(IEnumerable<Group> groups)
         {
-            var allGroups = _groupStore.GetAll();
+            var allGroups = _groupStore.GetAll() ?? Enumerable.Empty<Group>();
 
             var groupNames = groups.Select(g => g.Name);
             var storedGroupNames = allGroups.Select(g => g.Name);
