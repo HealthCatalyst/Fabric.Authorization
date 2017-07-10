@@ -1,5 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
+using Fabric.Authorization.Domain.Services;
+using Fabric.Authorization.Domain.Stores;
 using Fabric.Platform.Auth;
 using Fabric.Platform.Logging;
 using Microsoft.AspNetCore.Builder;
@@ -53,9 +56,20 @@ namespace Fabric.Authorization.API
                 ApiName = idServerSettings.ClientId
             });
             app.UseOwin()
-                .UseFabricLoggingAndMonitoring(logger, () => Task.FromResult(true), levelSwitch)
+                .UseFabricLoggingAndMonitoring(logger, HealthCheck, levelSwitch)
                 .UseAuthPlatform(idServerSettings.Scopes)
                 .UseNancy(opt => opt.Bootstrapper = new Bootstrapper(logger, appConfig));
+        }
+
+        public async Task<bool> HealthCheck()
+        {
+            IClientStore clientStore = new InMemoryClientStore();
+          
+            return await Task.Run(() =>
+             {
+                 var result = clientStore.GetClients();
+                 return result.Any();
+             });
         }
     }
 }
