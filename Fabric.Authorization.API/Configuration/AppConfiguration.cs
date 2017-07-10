@@ -7,5 +7,6 @@ namespace Fabric.Authorization.API.Configuration
         public string ClientName { get; set; }
         public ElasticSearchSettings ElasticSearchSettings { get; set; }
         public IdentityServerConfidentialClientSettings IdentityServerConfidentialClientSettings { get; set; }
+        public CouchDbSettings CouchDbSettings { get; set; }
     }
 }

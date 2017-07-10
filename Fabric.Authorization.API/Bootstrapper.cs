@@ -2,6 +2,8 @@
 using System.Runtime.InteropServices.ComTypes;
 using System.Security.Claims;
 using Fabric.Authorization.API.Configuration;
+using Fabric.Authorization.API.Services;
+using Fabric.Authorization.Domain.Events;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Platform.Bootstrappers.Nancy;
@@ -54,6 +56,16 @@ namespace Fabric.Authorization.API
             //container registrations
             container.Register(_appConfig);
             container.Register(_logger);
+            container.Register<ICouchDbSettings>(_appConfig.CouchDbSettings);
+            container.Register<IEventService, EventService>();
+            container.Register<IEventContextResolverService, EventContextResolverService>();
+            container.Register<IEventWriter, SerilogEventWriter>();
+            container.Register<IDocumentDbService, CouchDbAccessService>("inner");
+            container.Register<IDocumentDbService>(
+                (c, p) => c.Resolve<AuditingDocumentDbService>(new NamedParameterOverloads
+                {
+                    {"innerDocumentDbService", c.Resolve<IDocumentDbService>("inner")}
+                }));
             container.Register<IRoleStore, CouchDBRoleStore>();
             container.Register<IRoleService, RoleService>();
             container.Register<IPermissionService, PermissionService>();

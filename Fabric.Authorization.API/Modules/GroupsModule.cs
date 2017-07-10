@@ -95,7 +95,7 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
-                this.RequiresClaims(this.AuthorizationManageClientsClaim, this.AuthorizationReadClaim);
+                this.RequiresClaims(this.AuthorizationReadClaim);
                 var groupInfoRequest = this.Bind<GroupInfoRequest>();
                 var roles = this.GroupService.GetRolesForGroup(groupInfoRequest.GroupName, groupInfoRequest.Grain,
                     groupInfoRequest.SecurableItem);
@@ -118,7 +118,7 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
-                this.RequiresClaims(this.AuthorizationManageClientsClaim, this.AuthorizationWriteClaim);
+                this.RequiresClaims(this.AuthorizationWriteClaim);
                 var roleApiModel = this.Bind<RoleApiModel>();
                 if (roleApiModel.Id == null)
                 {
@@ -142,7 +142,7 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
-                this.RequiresClaims(this.AuthorizationManageClientsClaim, this.AuthorizationWriteClaim);
+                this.RequiresClaims(this.AuthorizationWriteClaim);
                 var roleApiModel = this.Bind<RoleApiModel>();
                 if (roleApiModel.Id == null)
                 {
