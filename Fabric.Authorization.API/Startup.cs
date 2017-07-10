@@ -1,10 +1,11 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
-using Fabric.Authorization.Domain.Services;
+using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Platform.Auth;
 using Fabric.Platform.Logging;
+using Fabric.Platform.Shared.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -13,20 +14,32 @@ using Microsoft.Extensions.Logging;
 using Nancy.Owin;
 using Serilog;
 using Serilog.Core;
+using ILogger = Serilog.ILogger;
 
 namespace Fabric.Authorization.API
 {
     public class Startup
     {
-        private readonly IConfiguration _config;
+        private readonly IAppConfiguration _appConfig;
+        private readonly LoggingLevelSwitch _levelSwitch;
+        private readonly ILogger _logger;
+        private readonly IdentityServerConfidentialClientSettings _idServerSettings;
+
         public Startup(IHostingEnvironment env)
         {
-            var builder = new ConfigurationBuilder()
+            var config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")
                 .AddEnvironmentVariables()
-                .SetBasePath(env.ContentRootPath);
+                .SetBasePath(env.ContentRootPath)
+                .Build();
+            
+            _appConfig = new AppConfiguration();
+            ConfigurationBinder.Bind(config, _appConfig);
 
-            _config = builder.Build();
+            _levelSwitch = new LoggingLevelSwitch();
+            _idServerSettings = _appConfig.IdentityServerConfidentialClientSettings;
+            _logger = LogFactory.CreateLogger(_levelSwitch, _appConfig.ElasticSearchSettings, _appConfig.ClientName, _idServerSettings.ClientId);
+
         }
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
@@ -38,38 +51,34 @@ namespace Fabric.Authorization.API
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            var appConfig = new AppConfiguration();
-            ConfigurationBinder.Bind(_config, appConfig);
-            var idServerSettings = appConfig.IdentityServerConfidentialClientSettings;
+            loggerFactory.AddSerilog(_logger);
 
-            var levelSwitch = new LoggingLevelSwitch();
-            var logger = LogFactory.CreateLogger(levelSwitch, appConfig.ElasticSearchSettings, appConfig.ClientName, idServerSettings.ClientId);
-            loggerFactory.AddSerilog(logger);
-
-            logger.Information("Configuration Settings: {@appConfig}", appConfig);
+            _logger.Information("Configuration Settings: {@appConfig}", _appConfig);
 
             app.UseIdentityServerAuthentication(new IdentityServerAuthenticationOptions
             {
-                Authority = idServerSettings.Authority,
+                Authority = _idServerSettings.Authority,
                 RequireHttpsMetadata = false,
 
-                ApiName = idServerSettings.ClientId
+                ApiName = _idServerSettings.ClientId
             });
             app.UseOwin()
-                .UseFabricLoggingAndMonitoring(logger, HealthCheck, levelSwitch)
-                .UseAuthPlatform(idServerSettings.Scopes)
-                .UseNancy(opt => opt.Bootstrapper = new Bootstrapper(logger, appConfig));
+                .UseFabricLoggingAndMonitoring(_logger, HealthCheck, _levelSwitch)
+                .UseAuthPlatform(_idServerSettings.Scopes)
+                .UseNancy(opt => opt.Bootstrapper = new Bootstrapper(_logger, _appConfig));
         }
 
         public async Task<bool> HealthCheck()
         {
-            IClientStore clientStore = new InMemoryClientStore();
-          
+            var clientStore = _appConfig.UseInMemoryStores
+                ? (IClientStore) new InMemoryClientStore()
+                : new CouchDBClientStore(new CouchDbAccessService(_appConfig.CouchDbSettings, _logger), _logger);
+            
             return await Task.Run(() =>
              {
                  var result = clientStore.GetAll();
                  return result.Any();
-             });
+             }).ConfigureAwait(false);
         }
     }
 }

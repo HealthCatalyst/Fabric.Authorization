@@ -9,7 +9,6 @@ using Serilog;
 using System;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.Domain.Stores;
-using System.Linq;
 
 namespace Fabric.Authorization.API.Services
 {

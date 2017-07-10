@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Runtime.InteropServices.ComTypes;
 using System.Security.Claims;
 using Fabric.Authorization.API.Configuration;
-using Fabric.Authorization.API.Services;
-using Fabric.Authorization.Domain.Events;
-using Fabric.Authorization.Domain.Services;
-using Fabric.Authorization.Domain.Stores;
+using Fabric.Authorization.API.Extensions;
 using Fabric.Platform.Bootstrappers.Nancy;
 using Nancy;
 using Nancy.Bootstrapper;
@@ -42,39 +38,24 @@ namespace Fabric.Authorization.API
             base.ApplicationStartup(container, pipelines);
             pipelines.OnError.AddItemToEndOfPipeline((ctx, ex) =>
             {
-                _logger.Error(ex, "Unhandled error on request: @{Url}. Error Message: @{Message}", ctx.Request.Url, ex.Message);
+                _logger.Error(ex, "Unhandled error on request: @{Url}. Error Message: @{Message}", ctx.Request.Url,
+                    ex.Message);
                 return ctx.Response;
             });
 
             pipelines.AfterRequest += ctx =>
             {
                 ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
-                ctx.Response.Headers.Add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+                ctx.Response.Headers.Add("Access-Control-Allow-Headers",
+                    "Origin, X-Requested-With, Content-Type, Accept, Authorization");
                 ctx.Response.Headers.Add("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
             };
 
             //container registrations
             container.Register(_appConfig);
             container.Register(_logger);
-            container.Register<ICouchDbSettings>(_appConfig.CouchDbSettings);
-            container.Register<IEventService, EventService>();
-            container.Register<IEventContextResolverService, EventContextResolverService>();
-            container.Register<IEventWriter, SerilogEventWriter>();
-            container.Register<IDocumentDbService, CouchDbAccessService>("inner");
-            container.Register<IDocumentDbService>(
-                (c, p) => c.Resolve<AuditingDocumentDbService>(new NamedParameterOverloads
-                {
-                    {"innerDocumentDbService", c.Resolve<IDocumentDbService>("inner")}
-                }));
-            container.Register<IRoleStore, CouchDBRoleStore>();
-            container.Register<IRoleService, RoleService>();
-            container.Register<IPermissionService, PermissionService>();
-            container.Register<IPermissionStore, CouchDBPermissionStore>();
-            container.Register<IGroupService, GroupService>();
-            container.Register<IGroupStore, CouchDBGroupStore>();
-            container.Register<IClientService, ClientService>();
-            container.Register<IClientStore, CouchDBClientStore>();
-            container.Register<ISecurableItemService, SecurableItemService>();
+            RegisterStores(container);
+            container.RegisterServices();
         }
 
         protected void ApplicationStartupForTests(TinyIoCContainer container, IPipelines pipelines)
@@ -96,15 +77,22 @@ namespace Fabric.Authorization.API
             //container registrations
             container.Register(_appConfig);
             container.Register(_logger);
-            container.Register<IRoleStore, InMemoryRoleStore>();
-            container.Register<IRoleService, RoleService>();
-            container.Register<IPermissionService, PermissionService>();
-            container.Register<IPermissionStore, InMemoryPermissionStore>();
-            container.Register<IGroupService, GroupService>();
-            container.Register<IGroupStore, InMemoryGroupStore>();
-            container.Register<IClientService, ClientService>();
-            container.Register<IClientStore, InMemoryClientStore>();
-            container.Register<ISecurableItemService, SecurableItemService>();
+            container.RegisterServices();
+            container.RegisterInMemoryStores();
+        }
+
+        private void RegisterStores(TinyIoCContainer container)
+        {
+            if (_appConfig.UseInMemoryStores)
+            {
+                container.RegisterInMemoryStores();
+            }
+            else
+            {
+                container.RegisterCouchDbStores(_appConfig.CouchDbSettings);
+            }
         }
     }
+
+    
 }
