@@ -68,6 +68,7 @@ namespace Fabric.Authorization.Domain.Services
             {
                 group.Roles.Add(role);
             }
+            _groupStore.Update(group);
         }
 
         public void DeleteRoleFromGroup(string groupName, Guid roleId)
@@ -79,6 +80,7 @@ namespace Fabric.Authorization.Domain.Services
             {
                 group.Roles.Remove(role);
             }
+            _groupStore.Update(group);
         }
 
         public void AddGroup(Group group) => _groupStore.Add(group);
