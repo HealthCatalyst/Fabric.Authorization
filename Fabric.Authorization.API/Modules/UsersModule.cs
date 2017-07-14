@@ -22,7 +22,7 @@ namespace Fabric.Authorization.API.Modules
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
 
             //Get all the permissions for a user
-            Get("/permissions", async parameters => await this.GetUserPermissions());
+            Get("/permissions", async parameters => await this.GetUserPermissions().ConfigureAwait(false));
         }
 
         private async Task<dynamic> GetUserPermissions()

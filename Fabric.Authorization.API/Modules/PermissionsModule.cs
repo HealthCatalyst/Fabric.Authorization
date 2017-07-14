@@ -28,11 +28,11 @@ namespace Fabric.Authorization.API.Modules
             _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
 
             //routes and handlers
-            Get("/{grain}/{securableItem}", async parameters => await this.GetPermissionsForSecurableItem(parameters));
-            Get("/{grain}/{securableItem}/{permissionName}", async parameters => await this.GetPermissionByName(parameters));
-            Get("/{permissionId}", async parameters => await this.GetPermissionById(parameters));
-            Post("/", async parameters => await this.AddPermission());
-            Delete("/{permissionId}", async parameters => await this.DeletePermission(parameters));
+            Get("/{grain}/{securableItem}", async parameters => await this.GetPermissionsForSecurableItem(parameters).ConfigureAwait(false));
+            Get("/{grain}/{securableItem}/{permissionName}", async parameters => await this.GetPermissionByName(parameters).ConfigureAwait(false));
+            Get("/{permissionId}", async parameters => await this.GetPermissionById(parameters).ConfigureAwait(false));
+            Post("/", async parameters => await this.AddPermission().ConfigureAwait(false));
+            Delete("/{permissionId}", async parameters => await this.DeletePermission(parameters).ConfigureAwait(false));
         }
 
         private async Task<dynamic> GetPermissionsForSecurableItem(dynamic parameters)

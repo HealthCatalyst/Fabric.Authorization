@@ -21,10 +21,10 @@ namespace Fabric.Authorization.API.Modules
             ILogger logger) : base("/SecurableItems", logger, validator)
         {
             _securableItemService = securableItemService ?? throw new ArgumentNullException(nameof(securableItemService));
-            Get("/", async _ => await this.GetSecurableItem());
-            Get("/{securableItemId}", async parameters => await this.GetSecurableItem(parameters));
-            Post("/", async _ => await this.AddSecurableItem());
-            Post("/{securableItemId}", async parameters => await this.AddSecurableItem(parameters));
+            Get("/", async _ => await this.GetSecurableItem().ConfigureAwait(false));
+            Get("/{securableItemId}", async parameters => await this.GetSecurableItem(parameters).ConfigureAwait(false));
+            Post("/", async _ => await this.AddSecurableItem().ConfigureAwait(false));
+            Post("/{securableItemId}", async parameters => await this.AddSecurableItem(parameters).ConfigureAwait(false));
         }
 
         private async Task<dynamic> GetSecurableItem()

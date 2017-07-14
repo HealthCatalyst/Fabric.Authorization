@@ -24,13 +24,13 @@ namespace Fabric.Authorization.API.Modules
             _groupService = groupService;
 
             base.Post("/", async _ => await this.AddGroup());
-            base.Post("/UpdateGroups", async _ => await this.UpdateGroupList());
-            base.Get("/{groupName}", async p => await this.GetGroup(p));
-            base.Delete("/{groupName}", async p => await this.DeleteGroup(p));
+            base.Post("/UpdateGroups", async _ => await this.UpdateGroupList().ConfigureAwait(false));
+            base.Get("/{groupName}", async p => await this.GetGroup(p).ConfigureAwait(false));
+            base.Delete("/{groupName}", async p => await this.DeleteGroup(p).ConfigureAwait(false));
 
-            base.Get("/{groupName}/roles", async _ => await this.GetRolesFromGroup());
-            base.Post("/{groupName}/roles", async p => await this.AddRoleToGroup(p));
-            base.Delete("/{groupName}/roles", async p => await this.DeleteRoleFromGroup(p));
+            base.Get("/{groupName}/roles", async _ => await this.GetRolesFromGroup().ConfigureAwait(false));
+            base.Post("/{groupName}/roles", async p => await this.AddRoleToGroup(p).ConfigureAwait(false));
+            base.Delete("/{groupName}/roles", async p => await this.DeleteRoleFromGroup(p).ConfigureAwait(false));
         }
 
         private async Task<dynamic> GetGroup(dynamic parameters)

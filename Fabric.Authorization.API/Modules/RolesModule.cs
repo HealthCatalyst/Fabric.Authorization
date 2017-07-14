@@ -25,12 +25,12 @@ namespace Fabric.Authorization.API.Modules
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
 
             //routes and handlers
-            Get("/{grain}/{securableItem}", async parameters => await this.GetRolesForSecurableItem(parameters));
-            Get("/{grain}/{securableItem}/{roleName}", async parameters => await this.GetRoleByName(parameters));
-            Post("/", async parameters => await this.AddRole());
-            Delete("/{roleId}", async parameters => await this.DeleteRole(parameters));
-            Post("/{roleId}/permissions", async parameters => await this.AddPermissionsToRole(parameters));
-            Delete("/{roleId}/permissions", async parameters => await this.DeletePermissionsFromRole(parameters));
+            Get("/{grain}/{securableItem}", async parameters => await this.GetRolesForSecurableItem(parameters).ConfigureAwait(false));
+            Get("/{grain}/{securableItem}/{roleName}", async parameters => await this.GetRoleByName(parameters).ConfigureAwait(false));
+            Post("/", async parameters => await this.AddRole().ConfigureAwait(false));
+            Delete("/{roleId}", async parameters => await this.DeleteRole(parameters).ConfigureAwait(false));
+            Post("/{roleId}/permissions", async parameters => await this.AddPermissionsToRole(parameters).ConfigureAwait(false));
+            Delete("/{roleId}/permissions", async parameters => await this.DeletePermissionsFromRole(parameters).ConfigureAwait(false));
         }
 
         private async Task<dynamic> GetRolesForSecurableItem(dynamic parameters)
