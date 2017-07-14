@@ -37,7 +37,7 @@ namespace Fabric.Authorization.IntegrationTests
                 });
             });
 
-            Console.WriteLine("Finished setup");
+            Console.WriteLine("Finished Clients setup");
         }
 
         [Theory]

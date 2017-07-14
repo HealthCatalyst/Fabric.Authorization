@@ -37,7 +37,7 @@ namespace Fabric.Authorization.IntegrationTests
                 });
             });
 
-            Console.WriteLine("Finished setup");
+            Console.WriteLine("Finished Groups setup");
         }
 
         [Theory]
@@ -154,8 +154,6 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("GroupName[1]", groupName + "_2");
                 with.FormValue("GroupName[2]", groupName + "_3");
             }).Result;
-
-            Task.Delay(500).Wait();
 
             Assert.Equal(HttpStatusCode.NoContent, postResponse.StatusCode);
 

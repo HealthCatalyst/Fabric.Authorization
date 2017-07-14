@@ -22,19 +22,19 @@ namespace Fabric.Authorization.API.Modules
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
 
             //Get all the permissions for a user
-            Get("/permissions", parameters => GetUserPermissions());
+            Get("/permissions", async parameters => await this.GetUserPermissions());
         }
 
-        private dynamic GetUserPermissions()
+        private async Task<dynamic> GetUserPermissions()
         {
             var userPermissionRequest = this.Bind<UserInfoRequest>();
-            this.SetDefaultRequest(userPermissionRequest).Wait();
+            await this.SetDefaultRequest(userPermissionRequest);
 
-            CheckAccess(_clientService, userPermissionRequest.Grain, userPermissionRequest.SecurableItem,
-                AuthorizationReadClaim);
-            var groups = GetGroupsForAuthenticatedUser();
-            var permissions = _groupService.GetPermissionsForGroups(groups,
-                userPermissionRequest.Grain, userPermissionRequest.SecurableItem).Result;
+            CheckAccess(_clientService, userPermissionRequest.Grain, userPermissionRequest.SecurableItem, AuthorizationReadClaim);
+            var groups = this.GetGroupsForAuthenticatedUser();
+            var permissions = await _groupService.GetPermissionsForGroups(groups,
+                userPermissionRequest.Grain, userPermissionRequest.SecurableItem);
+
             return new UserPermissionsApiModel
             {
                 RequestedGrain = userPermissionRequest.Grain,

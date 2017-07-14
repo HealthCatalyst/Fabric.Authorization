@@ -25,45 +25,38 @@ namespace Fabric.Authorization.API.Modules
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
 
             //routes and handlers
-            Get("/", _ => GetClients());
-            Get("/{clientid}", parameters => GetClientById(parameters));
-            Post("/", _ => AddClient());
-            Delete("/{clientid}", parameters => DeleteClient(parameters));
+            Get("/", async _ => await GetClients());
+            Get("/{clientid}", async parameters => await GetClientById(parameters));
+            Post("/", async _ => await AddClient());
+            Delete("/{clientid}", async parameters => await DeleteClient(parameters));
         }
 
-        private dynamic GetClients()
+        private async Task<dynamic> GetClients()
         {
             this.RequiresClaims(AuthorizationManageClientsClaim, AuthorizationReadClaim);
-            IEnumerable<Client> clients = _clientService.GetClients().Result;
+            IEnumerable<Client> clients = await _clientService.GetClients();
             return clients.Select(c => c.ToClientApiModel());
         }
 
-        private dynamic GetClientById(dynamic parameters)
+        private async Task<dynamic> GetClientById(dynamic parameters)
         {
             try
             {
                 string clientIdAsString = parameters.clientid.ToString();
                 this.RequiresClaims(AuthorizationReadClaim);
                 this.RequiresAnyClaim(AuthorizationManageClientsClaim, GetClientIdPredicate(clientIdAsString));
-                Client client = _clientService.GetClient(clientIdAsString).Result;
+                Client client = await _clientService.GetClient(clientIdAsString);
                 return client.ToClientApiModel();
             }
-            catch (AggregateException ex)
+            catch (NotFoundException<Client> ex)
             {
-                if (ex.InnerException is NotFoundException<Client>)
-                {
-                    Logger.Error(ex, ex.Message, parameters.clientid);
-                    return CreateFailureResponse($"The specified client with id: {parameters.clientid} was not found",
-                        HttpStatusCode.NotFound);
-                }
-                else
-                {
-                    throw;
-                }
+                Logger.Error(ex, ex.Message, parameters.clientid);
+                return CreateFailureResponse($"The specified client with id: {parameters.clientid} was not found",
+                    HttpStatusCode.NotFound);
             }
         }
 
-        private dynamic AddClient()
+        private async Task<dynamic> AddClient()
         {
             this.RequiresClaims(AuthorizationManageClientsClaim, AuthorizationWriteClaim);
             var clientApiModel = this.Bind<ClientApiModel>(model => model.CreatedBy,
@@ -75,45 +68,31 @@ namespace Fabric.Authorization.API.Modules
             Validate(incomingClient);
             try
             {
-                Client client = _clientService.AddClient(incomingClient).Result;
+                Client client = await _clientService.AddClient(incomingClient);
                 return CreateSuccessfulPostResponse(client.ToClientApiModel());
             }
-            catch (AggregateException ex)
+            catch (AlreadyExistsException<Client> ex)
             {
-                if (ex.InnerException is AlreadyExistsException<Client>)
-                {
-                    Logger.Error(ex, ex.Message, incomingClient.Id);
-                    return CreateFailureResponse($"The specified client with id: {incomingClient.Id} already exists.",
-                        HttpStatusCode.BadRequest);
-                }
-                else
-                {
-                    throw;
-                }
+                Logger.Error(ex, ex.Message, incomingClient.Id);
+                return CreateFailureResponse($"The specified client with id: {incomingClient.Id} already exists.",
+                    HttpStatusCode.BadRequest);
             }
         }
 
-        private dynamic DeleteClient(dynamic parameters)
+        private async Task<dynamic> DeleteClient(dynamic parameters)
         {
             try
             {
                 this.RequiresClaims(AuthorizationManageClientsClaim, AuthorizationWriteClaim);
-                Client client = _clientService.GetClient(parameters.clientid).Result;
-                _clientService.DeleteClient(client).Wait();
+                Client client = await _clientService.GetClient(parameters.clientid);
+                await _clientService.DeleteClient(client);
                 return HttpStatusCode.NoContent;
             }
-            catch (AggregateException ex)
+            catch (NotFoundException<Client> ex)
             {
-                if (ex.InnerException is NotFoundException<Client>)
-                {
-                    Logger.Error(ex, ex.Message, parameters.clientid);
-                    return CreateFailureResponse($"The specified client with id: {parameters.clientid} was not found",
-                        HttpStatusCode.NotFound);
-                }
-                else
-                {
-                    throw;
-                }
+                Logger.Error(ex, ex.Message, parameters.clientid);
+                return CreateFailureResponse($"The specified client with id: {parameters.clientid} was not found",
+                    HttpStatusCode.NotFound);
             }
         }
     }

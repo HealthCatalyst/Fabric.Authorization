@@ -80,7 +80,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.Header("Accept", "application/json");
             }).Wait();
 
-            Console.WriteLine("Finished setup");
+            Console.WriteLine("Finished User setup");
         }
 
         [Fact]

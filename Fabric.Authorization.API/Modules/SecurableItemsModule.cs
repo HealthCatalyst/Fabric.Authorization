@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
@@ -20,35 +21,28 @@ namespace Fabric.Authorization.API.Modules
             ILogger logger) : base("/SecurableItems", logger, validator)
         {
             _securableItemService = securableItemService ?? throw new ArgumentNullException(nameof(securableItemService));
-            Get("/", _ => GetSecurableItem());
-            Get("/{securableItemId}", parameters => GetSecurableItem(parameters));
-            Post("/", _ => AddSecurableItem());
-            Post("/{securableItemId}", parameters => AddSecurableItem(parameters));
+            Get("/", async _ => await this.GetSecurableItem());
+            Get("/{securableItemId}", async parameters => await this.GetSecurableItem(parameters));
+            Post("/", async _ => await this.AddSecurableItem());
+            Post("/{securableItemId}", async parameters => await this.AddSecurableItem(parameters));
         }
 
-        private dynamic GetSecurableItem()
+        private async Task<dynamic> GetSecurableItem()
         {
             try
             {
                 this.RequiresClaims(AuthorizationReadClaim);
-                return _securableItemService.GetTopLevelSecurableItem(ClientId).Result.ToSecurableItemApiModel();
+                return (await _securableItemService.GetTopLevelSecurableItem(ClientId)).ToSecurableItemApiModel();
             }
-            catch (AggregateException ex)
+            catch (NotFoundException<Client> ex)
             {
-                if (ex.InnerException is NotFoundException<Client>)
-                {
-                    Logger.Error(ex, ex.Message, ClientId);
-                    return CreateFailureResponse($"The specified client with id: {ClientId} was not found",
-                        HttpStatusCode.NotFound);
-                }
-                else
-                {
-                    throw;
-                }
+                Logger.Error(ex, ex.Message, ClientId);
+                return CreateFailureResponse($"The specified client with id: {ClientId} was not found",
+                    HttpStatusCode.NotFound);
             }
         }
 
-        private dynamic GetSecurableItem(dynamic parameters)
+        private async Task<dynamic> GetSecurableItem(dynamic parameters)
         {
             try
             {
@@ -57,32 +51,24 @@ namespace Fabric.Authorization.API.Modules
                 {
                     return CreateFailureResponse("permissionId must be a guid.", HttpStatusCode.BadRequest);
                 }
-                SecurableItem securableItem = _securableItemService.GetSecurableItem(ClientId, securableItemId).Result;
+                SecurableItem securableItem = await _securableItemService.GetSecurableItem(ClientId, securableItemId);
                 return securableItem.ToSecurableItemApiModel();
             }
-            catch (AggregateException ex)
+            catch (NotFoundException<Client> ex)
             {
-                Logger.Error(ex, ex.Message, parameters.roleId);
-                if (ex.InnerException is NotFoundException<Client>)
-                {
-                    Logger.Error(ex, ex.Message, ClientId);
-                    return CreateFailureResponse($"The specified client with id: {ClientId} was not found",
-                        HttpStatusCode.NotFound);
-                }
-                else if (ex.InnerException is NotFoundException<SecurableItem>)
-                {
-                    Logger.Error(ex, ex.Message, parameters.securableItemId);
-                    return CreateFailureResponse($"The specified securableItem with id: {parameters.securableItemId} was not found",
-                        HttpStatusCode.NotFound);
-                }
-                else
-                {
-                    throw;
-                }
+                Logger.Error(ex, ex.Message, ClientId);
+                return CreateFailureResponse($"The specified client with id: {ClientId} was not found",
+                    HttpStatusCode.NotFound);
+            }
+            catch (NotFoundException<SecurableItem> ex)
+            {
+                Logger.Error(ex, ex.Message, parameters.securableItemId);
+                return CreateFailureResponse($"The specified securableItem with id: {parameters.securableItemId} was not found",
+                    HttpStatusCode.NotFound);
             }
         }
 
-        private dynamic AddSecurableItem()
+        private async Task<dynamic> AddSecurableItem()
         {
             this.RequiresClaims(AuthorizationWriteClaim);
             var securableItemApiModel = SecureBind();
@@ -91,32 +77,26 @@ namespace Fabric.Authorization.API.Modules
 
             try
             {
-                SecurableItem securableItem = _securableItemService.AddSecurableItem(ClientId, incomingSecurableItem).Result;
+                SecurableItem securableItem = await _securableItemService.AddSecurableItem(ClientId, incomingSecurableItem);
                 return CreateSuccessfulPostResponse(securableItem.ToSecurableItemApiModel());
             }
-            catch (AggregateException ex)
+            catch (NotFoundException<Client> ex)
             {
-                if (ex.InnerException is NotFoundException<Client>)
-                {
-                    Logger.Error(ex, ex.Message, ClientId);
-                    return CreateFailureResponse($"The specified client with id: {ClientId} was not found",
-                        HttpStatusCode.Forbidden);
-                }
-                else if (ex.InnerException is AlreadyExistsException<SecurableItem>)
-                {
-                    Logger.Error(ex, "The posted securable item {@securableItemApiModel} already exists.", securableItemApiModel);
-                    return CreateFailureResponse(
-                        ex.Message,
-                        HttpStatusCode.BadRequest);
-                }
-                else
-                {
-                    throw;
-                }
+                Logger.Error(ex, ex.Message, ClientId);
+                return CreateFailureResponse($"The specified client with id: {ClientId} was not found",
+                    HttpStatusCode.Forbidden);
             }
+            catch (AlreadyExistsException<SecurableItem> ex)
+            {
+                Logger.Error(ex, "The posted securable item {@securableItemApiModel} already exists.", securableItemApiModel);
+                return CreateFailureResponse(
+                    ex.Message,
+                    HttpStatusCode.BadRequest);
+            }
+
         }
 
-        private dynamic AddSecurableItem(dynamic parameters)
+        private async Task<dynamic> AddSecurableItem(dynamic parameters)
         {
             this.RequiresClaims(AuthorizationWriteClaim);
             if (!Guid.TryParse(parameters.securableItemId, out Guid securableItemId))
@@ -131,34 +111,27 @@ namespace Fabric.Authorization.API.Modules
             try
             {
                 SecurableItem securableItem =
-                    _securableItemService.AddSecurableItem(ClientId, securableItemId, incomingSecurableItem).Result;
+                    await _securableItemService.AddSecurableItem(ClientId, securableItemId, incomingSecurableItem);
                 return CreateSuccessfulPostResponse(securableItem.ToSecurableItemApiModel());
             }
-            catch (AggregateException ex)
+            catch (NotFoundException<Client> ex)
             {
-                if (ex.InnerException is NotFoundException<Client>)
-                {
-                    Logger.Error(ex, ex.Message, ClientId);
-                    return CreateFailureResponse($"The specified client with id: {ClientId} was not found",
-                        HttpStatusCode.Forbidden);
-                }
-                else if (ex.InnerException is AlreadyExistsException<SecurableItem>)
-                {
-                    Logger.Error(ex, "The posted securable item {@securableItemApiModel} already exists.", securableItemApiModel);
-                    return CreateFailureResponse(
-                        ex.Message,
-                        HttpStatusCode.BadRequest);
-                }
-                else if (ex.InnerException is NotFoundException<SecurableItem>)
-                {
-                    Logger.Error(ex, ex.Message, parameters.securableItemId);
-                    return CreateFailureResponse($"The specified securableItem with id: {parameters.securableItemId} was not found",
-                        HttpStatusCode.NotFound);
-                }
-                else
-                {
-                    throw;
-                }
+                Logger.Error(ex, ex.Message, ClientId);
+                return CreateFailureResponse($"The specified client with id: {ClientId} was not found",
+                    HttpStatusCode.Forbidden);
+            }
+            catch (AlreadyExistsException<SecurableItem> ex)
+            {
+                Logger.Error(ex, "The posted securable item {@securableItemApiModel} already exists.", securableItemApiModel);
+                return CreateFailureResponse(
+                    ex.Message,
+                    HttpStatusCode.BadRequest);
+            }
+            catch (NotFoundException<SecurableItem> ex)
+            {
+                Logger.Error(ex, ex.Message, parameters.securableItemId);
+                return CreateFailureResponse($"The specified securableItem with id: {parameters.securableItemId} was not found",
+                    HttpStatusCode.NotFound);
             }
         }
 
