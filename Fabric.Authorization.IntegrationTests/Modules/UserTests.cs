@@ -90,7 +90,7 @@ namespace Fabric.Authorization.IntegrationTests
             var group = Guid.Parse("A9CA0300-1006-40B1-ABF1-E0C3B396F95F").ToString();
 
             // Adding permissions
-
+            Console.WriteLine("Adding Permissions");
             var post = this.Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
@@ -147,7 +147,7 @@ namespace Fabric.Authorization.IntegrationTests
             var sonperm = post.Body.DeserializeJson<PermissionApiModel>();
 
             // Adding Roles
-
+            Console.WriteLine("Adding Roles");
             var role = new RoleApiModel()
             {
                 Grain = "app",
@@ -214,7 +214,7 @@ namespace Fabric.Authorization.IntegrationTests
             var son = post.Body.DeserializeJson<RoleApiModel>();
 
             // Adding groups
-
+            Console.WriteLine("Adding Groups");
             this.Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
@@ -230,13 +230,14 @@ namespace Fabric.Authorization.IntegrationTests
             }).Wait();
 
             // Get the permissions
-
+            Console.WriteLine("Get the permissions");
             var get = this.Browser.Get($"/user/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
             }).Result;
 
+            Console.WriteLine("Checking results");
             Assert.Equal(HttpStatusCode.OK, get.StatusCode);
             Assert.True(get.Body.AsString().Contains("greatgrandfatherpermissions"));
             Assert.True(get.Body.AsString().Contains("grandfatherpermissions"));

@@ -46,7 +46,6 @@ namespace Fabric.Authorization.IntegrationTests
         [InlineData("InexistentClient2")]
         public void TestGetClient_Fail(string Id)
         {
-            Console.WriteLine($"TestGetClient_Fail {Id}");
             var get = this.Browser.Get($"/clients/{Id}", with =>
             {
                 with.HttpRequest();
@@ -62,7 +61,6 @@ namespace Fabric.Authorization.IntegrationTests
         [InlineData("6BC32347-36A1-44CF-AA0E-6C1038AA1DF3")]
         public void TestAddNewClient_Success(string Id)
         {
-            Console.WriteLine($"TestAddNewClient_Success {Id}");
             var postResponse = this.Browser.Post("/clients", with =>
             {
                 with.HttpRequest();
@@ -71,15 +69,11 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Name", Id);
             }).Result;
 
-            Console.WriteLine($"TestAddNewClient_Success Created {Id}");
-
             var getResponse = this.Browser.Get($"/clients/{Id}", with =>
                 {
                     with.HttpRequest();
                     with.Header("Accept", "application/json");
                 }).Result;
-
-            Console.WriteLine($"TestAddNewClient_Success Read {Id}");
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
@@ -91,7 +85,6 @@ namespace Fabric.Authorization.IntegrationTests
         [InlineData("RepeatedClient2")]
         public void TestAddNewClient_Fail(string Id)
         {
-            Console.WriteLine($"TestAddNewClient_Fail {Id}");
             this.Browser.Post("/clients", with =>
             {
                 with.HttpRequest();
@@ -117,7 +110,6 @@ namespace Fabric.Authorization.IntegrationTests
         [InlineData("ClientToBeDeleted2")]
         public void TestDeleteClient_Success(string Id)
         {
-            Console.WriteLine($"TestDeleteClient_Success {Id}");
             this.Browser.Post("/clients", with =>
             {
                 with.HttpRequest();
@@ -140,7 +132,6 @@ namespace Fabric.Authorization.IntegrationTests
         [InlineData("InexistentClient2")]
         public void TestDeleteClient_Fail(string Id)
         {
-            Console.WriteLine($"TestDeleteClient_Fail {Id}");
             var delete = this.Browser.Delete($"/clients/{Id}", with =>
             {
                 with.HttpRequest();
