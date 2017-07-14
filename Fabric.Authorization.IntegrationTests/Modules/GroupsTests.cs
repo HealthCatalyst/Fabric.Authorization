@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Constants;
@@ -15,6 +16,7 @@ namespace Fabric.Authorization.IntegrationTests
     {
         public GroupsTests(bool useInMemoryDB = true)
         {
+            Console.WriteLine($"Starting Groups Tests. Memory: {useInMemoryDB}");
             var store = useInMemoryDB ? new InMemoryGroupStore() : (IGroupStore)new CouchDBGroupStore(this.DbService(), this.Logger); ;
             var groupService = new GroupService(store, new InMemoryRoleStore());
 
@@ -34,6 +36,8 @@ namespace Fabric.Authorization.IntegrationTests
                     }, "testprincipal"));
                 });
             });
+
+            Console.WriteLine("Finished setup");
         }
 
         [Theory]
@@ -63,8 +67,6 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("GroupName", groupName);
             }).Result;
 
-            Task.Delay(200).Wait();
-
             var getResponse = this.Browser.Get($"/groups/{groupName}", with =>
                 {
                     with.HttpRequest();
@@ -93,8 +95,6 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("GroupName[1]", groupName + "_1");
                 with.FormValue("GroupName[2]", groupName + "_2");
             }).Result;
-
-            Task.Delay(200).Wait();
 
             var getResponse0 = this.Browser.Get($"/groups/{groupName}_0", with =>
             {
@@ -141,7 +141,6 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("GroupName[2]", groupName + "_2");
             }).Result;
 
-            Task.Delay(200).Wait();
             Assert.Equal(HttpStatusCode.NoContent, postResponse.StatusCode);
 
             // Replace groups. _0 should be removed and _3 should be added.
@@ -206,8 +205,6 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("GroupName", groupName);
             }).Wait();
 
-            Task.Delay(200).Wait();
-
             // Repeat
             var postResponse = this.Browser.Post("/groups", with =>
             {
@@ -230,8 +227,6 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Id", groupName);
                 with.FormValue("GroupName", groupName);
             }).Wait();
-
-            Task.Delay(200).Wait();
 
             var delete = this.Browser.Delete($"/groups/{groupName}", with =>
             {

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Services;
@@ -16,6 +15,7 @@ namespace Fabric.Authorization.IntegrationTests
     {
         public PermissionsTests(bool useInMemoryDB = true)
         {
+            Console.WriteLine($"Starting Permissions Tests. Memory: {useInMemoryDB}");
             var store = useInMemoryDB ? new InMemoryPermissionStore() : (IPermissionStore)new CouchDBPermissionStore(this.DbService(), this.Logger);
             var clientStore = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDBClientStore(this.DbService(), this.Logger);
 
@@ -52,6 +52,8 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Name", "permissionprincipal");
                 with.Header("Accept", "application/json");
             }).Wait();
+
+            Console.WriteLine("Finished setup");
         }
 
         [Theory]
@@ -83,8 +85,6 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Name", permission);
             }).Result;
 
-            Task.Delay(200).Wait();
-
             // Get by name
             var getResponse = this.Browser.Get($"/permissions/app/permissionprincipal/{permission}", with =>
                 {
@@ -110,8 +110,6 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("SecurableItem", "permissionprincipal");
                 with.FormValue("Name", permission);
             }).Result;
-
-            Task.Delay(200).Wait();
 
             // Get by name
             var getResponse = this.Browser.Get($"/permissions/app/permissionprincipal/{permission}", with =>
@@ -159,8 +157,6 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Name", permission + "_2");
             }).Result;
 
-            Task.Delay(200).Wait();
-
             // Get by secitem
             var getResponse = this.Browser.Get($"/permissions/app/permissionprincipal", with =>
             {
@@ -188,8 +184,6 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("SecurableItem", "permissionprincipal");
                 with.FormValue("Name", permission);
             }).Wait();
-
-            Task.Delay(200).Wait();
 
             // Repeat
             var postResponse = this.Browser.Post("/permissions", with =>
@@ -220,8 +214,6 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("SecurableItem", "permissionprincipal");
                 with.FormValue("Name", permission);
             }).Wait();
-
-            Task.Delay(200).Wait();
 
             var delete = this.Browser.Delete($"/permissions/{id.ToString()}", with =>
             {

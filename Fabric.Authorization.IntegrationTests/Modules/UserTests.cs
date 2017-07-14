@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
@@ -18,6 +17,7 @@ namespace Fabric.Authorization.IntegrationTests
     {
         public UserTests(bool useInMemoryDB = true)
         {
+            Console.WriteLine($"Starting Client Tests. Memory: {useInMemoryDB}");
             var roleStore = useInMemoryDB ? new InMemoryRoleStore() : (IRoleStore)new CouchDBRoleStore(this.DbService(), this.Logger);
             var groupStore = useInMemoryDB ? new InMemoryGroupStore() : (IGroupStore)new CouchDBGroupStore(this.DbService(), this.Logger);
             var clientStore = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDBClientStore(this.DbService(), this.Logger);
@@ -72,7 +72,6 @@ namespace Fabric.Authorization.IntegrationTests
                 });
             });
 
-
             this.Browser.Post("/clients", with =>
             {
                 with.HttpRequest();
@@ -81,6 +80,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.Header("Accept", "application/json");
             }).Wait();
 
+            Console.WriteLine("Finished setup");
         }
 
         [Fact]
@@ -227,8 +227,6 @@ namespace Fabric.Authorization.IntegrationTests
                 with.Header("Accept", "application/json");
                 with.FormValue("Id", hs.Identifier);
             }).Result;
-
-            Task.Delay(200).Wait();
 
             // Get the permissions
 
