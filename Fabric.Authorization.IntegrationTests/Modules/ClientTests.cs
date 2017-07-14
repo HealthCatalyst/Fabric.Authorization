@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Services;
@@ -11,10 +11,12 @@ using Xunit;
 
 namespace Fabric.Authorization.IntegrationTests
 {
+    [Collection("InMemoryTests")]
     public class ClientTests : IntegrationTestsFixture
     {
         public ClientTests(bool useInMemoryDB = true)
         {
+            Console.WriteLine($"Starting Client Tests. Memory: {useInMemoryDB}");
             var store = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDBClientStore(this.DbService(), this.Logger); ;
             var clientService = new ClientService(store);
 
@@ -35,6 +37,8 @@ namespace Fabric.Authorization.IntegrationTests
                     }, "testprincipal"));
                 });
             });
+
+            Console.WriteLine("Finished Clients setup");
         }
 
         [Theory]
@@ -65,8 +69,6 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Name", Id);
             }).Result;
 
-            Task.Delay(200).Wait();
-
             var getResponse = this.Browser.Get($"/clients/{Id}", with =>
                 {
                     with.HttpRequest();
@@ -90,8 +92,6 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Id", Id);
                 with.FormValue("Name", Id);
             }).Wait();
-
-            Task.Delay(200).Wait();
 
             // Repeat
             var postResponse = this.Browser.Post("/clients", with =>
@@ -117,8 +117,6 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Id", Id);
                 with.FormValue("Name", Id);
             }).Wait();
-
-            Task.Delay(200).Wait();
 
             var delete = this.Browser.Delete($"/clients/{Id}", with =>
             {

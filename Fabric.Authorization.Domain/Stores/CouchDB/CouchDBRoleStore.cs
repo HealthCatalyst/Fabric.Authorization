@@ -35,9 +35,12 @@ namespace Fabric.Authorization.Domain.Stores
             while (queue.Any())
             {
                 var topId = queue.Dequeue();
-                if (await this.Exists(topId))
+                Console.WriteLine($"Checking role {topId}");
+                if (await this.Exists(topId).ConfigureAwait(false))
                 {
-                    var role = await this.Get(topId);
+                    Console.WriteLine($"Role exists, getting {topId}");
+                    var role = await this.Get(topId).ConfigureAwait(false);
+                    Console.WriteLine($"Got role {topId}");
                     roleHierarchy.Add(role);
                     if (role.ParentRole.HasValue)
                     {

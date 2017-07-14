@@ -20,6 +20,8 @@ namespace Fabric.Authorization.API.Services
         private readonly ICouchDbSettings _couchDbSettings;
         private const string HighestUnicodeChar = "\ufff0";
 
+        private bool initialized = false;
+
         private string GetFullDocumentId<T>(string documentId)
         {
             return $"{typeof(T).Name.ToLowerInvariant()}:{documentId}";
@@ -49,12 +51,15 @@ namespace Fabric.Authorization.API.Services
 
             _logger.Debug(
                 $"couchDb configuration properties: Server: {config.Server} -- DatabaseName: {config.DatabaseName}");
+        }
 
+        public async Task Initialize()
+        {
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
-                if (!client.Database.GetAsync().Result.IsSuccess)
+                if (!(await client.Database.GetAsync()).IsSuccess)
                 {
-                    var creation = client.Database.PutAsync().Result;
+                    var creation = await client.Database.PutAsync();
                     if (!creation.IsSuccess)
                     {
                         throw new ArgumentException(creation.Error);
@@ -65,6 +70,11 @@ namespace Fabric.Authorization.API.Services
 
         public async Task<T> GetDocument<T>(string documentId)
         {
+            if (!initialized)
+            {
+                await Initialize();
+            }
+
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
                 var documentResponse = await client.Documents.GetAsync(GetFullDocumentId<T>(documentId));
@@ -84,6 +94,11 @@ namespace Fabric.Authorization.API.Services
 
         public async Task<IEnumerable<T>> GetDocuments<T>(string documentType)
         {
+            if (!initialized)
+            {
+                await Initialize();
+            }
+
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
                 var viewQuery = new QueryViewRequest(SystemViewIdentity.AllDocs)
@@ -114,6 +129,11 @@ namespace Fabric.Authorization.API.Services
 
         public async Task<int> GetDocumentCount(string documentType)
         {
+            if (!initialized)
+            {
+                await Initialize();
+            }
+
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
                 var viewQuery = new QueryViewRequest("TODO", documentType);
@@ -129,6 +149,11 @@ namespace Fabric.Authorization.API.Services
 
         public async Task AddDocument<T>(string documentId, T documentObject)
         {
+            if (!initialized)
+            {
+                await Initialize();
+            }
+
             var fullDocumentId = GetFullDocumentId<T>(documentId);
 
             using (var client = new MyCouchClient(DbConnectionInfo))
@@ -152,6 +177,11 @@ namespace Fabric.Authorization.API.Services
 
         public async Task UpdateDocument<T>(string documentId, T documentObject)
         {
+            if (!initialized)
+            {
+                await Initialize();
+            }
+
             var fullDocumentId = GetFullDocumentId<T>(documentId);
 
             using (var client = new MyCouchClient(DbConnectionInfo))
@@ -175,6 +205,11 @@ namespace Fabric.Authorization.API.Services
 
         public async Task DeleteDocument<T>(string documentId)
         {
+            if (!initialized)
+            {
+                await Initialize();
+            }
+
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
                 var documentResponse = await client.Documents.GetAsync(GetFullDocumentId<T>(documentId));
@@ -185,6 +220,11 @@ namespace Fabric.Authorization.API.Services
 
         private async Task Delete(string documentId, string rev)
         {
+            if (!initialized)
+            {
+                await Initialize();
+            }
+
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
                 var response = await client.Documents.DeleteAsync(documentId, rev);
@@ -198,6 +238,11 @@ namespace Fabric.Authorization.API.Services
 
         public async Task AddViews(string documentId, CouchDBViews views)
         {
+            if (!initialized)
+            {
+                await Initialize();
+            }
+
             var fullDocumentId = $"_design/{documentId}";
 
             using (var client = new MyCouchClient(DbConnectionInfo))
@@ -221,6 +266,11 @@ namespace Fabric.Authorization.API.Services
 
         public async Task<IEnumerable<T>> GetDocuments<T>(string designdoc, string viewName, Dictionary<string, object> customParams)
         {
+            if (!initialized)
+            {
+                await Initialize();
+            }
+
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
                 var viewQuery = new QueryViewRequest(designdoc, viewName);
@@ -230,7 +280,7 @@ namespace Fabric.Authorization.API.Services
                 if (!result.IsSuccess)
                 {
                     _logger.Error($"unable to execute view: {viewName} - error: {result.Reason}");
-                    return default(IEnumerable<T>);
+                    return new List<T>();
                 }
 
                 var results = new List<T>();
@@ -247,6 +297,11 @@ namespace Fabric.Authorization.API.Services
 
         public async Task<IEnumerable<T>> GetDocuments<T>(string designdoc, string viewName, string key)
         {
+            if (!initialized)
+            {
+                await Initialize();
+            }
+
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
                 var viewQuery = new QueryViewRequest(designdoc, viewName);
@@ -255,7 +310,7 @@ namespace Fabric.Authorization.API.Services
                 if (!result.IsSuccess)
                 {
                     _logger.Error($"unable to execute view: {viewName} - error: {result.Reason}");
-                    return default(IEnumerable<T>);
+                    return new List<T>();
                 }
 
                 var results = new List<T>();

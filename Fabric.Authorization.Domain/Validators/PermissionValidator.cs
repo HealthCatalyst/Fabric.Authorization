@@ -9,6 +9,7 @@ namespace Fabric.Authorization.Domain.Validators
     public class PermissionValidator : AbstractValidator<Permission>
     {
         private readonly IPermissionStore _permissionStore;
+
         public PermissionValidator(IPermissionStore permissionStore)
         {
             _permissionStore = permissionStore ?? throw new ArgumentNullException(nameof(permissionStore));

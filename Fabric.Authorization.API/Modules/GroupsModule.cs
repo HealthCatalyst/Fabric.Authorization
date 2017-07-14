@@ -23,112 +23,82 @@ namespace Fabric.Authorization.API.Modules
         {
             _groupService = groupService;
 
-            base.Post("/", _ => this.AddGroup());
-            base.Post("/UpdateGroups", _ => this.UpdateGroupList());
-            base.Get("/{groupName}", p => this.GetGroup(p));
-            base.Delete("/{groupName}", p => this.DeleteGroup(p));
+            base.Post("/", async _ => await this.AddGroup());
+            base.Post("/UpdateGroups", async _ => await this.UpdateGroupList().ConfigureAwait(false));
+            base.Get("/{groupName}", async p => await this.GetGroup(p).ConfigureAwait(false));
+            base.Delete("/{groupName}", async p => await this.DeleteGroup(p).ConfigureAwait(false));
 
-            base.Get("/{groupName}/roles", _ => this.GetRolesFromGroup());
-            base.Post("/{groupName}/roles", p => this.AddRoleToGroup(p));
-            base.Delete("/{groupName}/roles", p => this.DeleteRoleFromGroup(p));
+            base.Get("/{groupName}/roles", async _ => await this.GetRolesFromGroup().ConfigureAwait(false));
+            base.Post("/{groupName}/roles", async p => await this.AddRoleToGroup(p).ConfigureAwait(false));
+            base.Delete("/{groupName}/roles", async p => await this.DeleteRoleFromGroup(p).ConfigureAwait(false));
         }
 
-        private dynamic GetGroup(dynamic parameters)
+        private async Task<dynamic> GetGroup(dynamic parameters)
         {
             try
             {
                 this.RequiresClaims(this.AuthorizationManageClientsClaim, this.AuthorizationReadClaim);
-                Group group = this._groupService.GetGroup(parameters.groupName).Result;
+                Group group = await _groupService.GetGroup(parameters.groupName);
                 return group.ToGroupRoleApiModel();
             }
-            catch (AggregateException ex)
+            catch (NotFoundException<Group>)
             {
-                if (ex.InnerException is NotFoundException<Group>)
-                {
-                    return HttpStatusCode.NotFound;
-                }
-                else
-                {
-                    throw;
-                }
+                return HttpStatusCode.NotFound;
             }
         }
 
-        private dynamic DeleteGroup(dynamic parameters)
+        private async Task<dynamic> DeleteGroup(dynamic parameters)
         {
             try
             {
                 this.RequiresClaims(this.AuthorizationManageClientsClaim, this.AuthorizationWriteClaim);
-                Group group = _groupService.GetGroup(parameters.groupName).Result;
-                _groupService.DeleteGroup(group).Wait();
+                Group group = await _groupService.GetGroup(parameters.groupName);
+                await _groupService.DeleteGroup(group);
                 return HttpStatusCode.NoContent;
             }
-            catch (AggregateException ex)
+            catch (NotFoundException<Group>)
             {
-                if (ex.InnerException is NotFoundException<Group>)
-                {
-                    return HttpStatusCode.NotFound;
-                }
-                else
-                {
-                    throw;
-                }
+                return HttpStatusCode.NotFound;
             }
         }
 
-        private HttpStatusCode AddGroup()
+        private async Task<HttpStatusCode> AddGroup()
         {
             try
             {
                 this.RequiresClaims(this.AuthorizationManageClientsClaim, this.AuthorizationWriteClaim);
                 var group = this.Bind<GroupRoleApiModel>();
-                _groupService.AddGroup(group.ToGroupDomainModel()).Wait();
+                await _groupService.AddGroup(group.ToGroupDomainModel());
                 return HttpStatusCode.Created;
             }
-            catch (AggregateException ex)
+            catch (AlreadyExistsException<Group>)
             {
-                if (ex.InnerException is AlreadyExistsException<Group>)
-                {
-                    return HttpStatusCode.BadRequest;
-                }
-                else
-                {
-                    throw;
-                }
+                return HttpStatusCode.BadRequest;
             }
-
         }
 
-        private HttpStatusCode UpdateGroupList()
+        private async Task<HttpStatusCode> UpdateGroupList()
         {
             try
             {
                 this.RequiresClaims(this.AuthorizationManageClientsClaim, this.AuthorizationWriteClaim);
                 var group = this.Bind<List<GroupRoleApiModel>>();
-                _groupService.UpdateGroupList(group.Select(g => g.ToGroupDomainModel())).Wait();
+                await _groupService.UpdateGroupList(group.Select(g => g.ToGroupDomainModel()));
                 return HttpStatusCode.NoContent;
             }
-            catch (AggregateException ex)
+            catch (AlreadyExistsException<Group>)
             {
-                if (ex.InnerException is AlreadyExistsException<Group>)
-                {
-                    return HttpStatusCode.BadRequest;
-                }
-                else
-                {
-                    throw;
-                }
+                return HttpStatusCode.BadRequest;
             }
         }
 
-        private dynamic GetRolesFromGroup()
+        private async Task<dynamic> GetRolesFromGroup()
         {
             try
             {
                 this.RequiresClaims(this.AuthorizationReadClaim);
                 var groupInfoRequest = this.Bind<GroupInfoRequest>();
-                var roles = _groupService.GetRolesForGroup(groupInfoRequest.GroupName, groupInfoRequest.Grain,
-                    groupInfoRequest.SecurableItem).Result;
+                var roles = await _groupService.GetRolesForGroup(groupInfoRequest.GroupName, groupInfoRequest.Grain, groupInfoRequest.SecurableItem);
 
                 return new GroupRoleApiModel
                 {
@@ -138,20 +108,13 @@ namespace Fabric.Authorization.API.Modules
                     Roles = roles.Select(r => r.ToRoleApiModel())
                 };
             }
-            catch (AggregateException ex)
+            catch (NotFoundException<Group>)
             {
-                if (ex.InnerException is NotFoundException<Group>)
-                {
-                    return HttpStatusCode.NotFound;
-                }
-                else
-                {
-                    throw;
-                }
+                return HttpStatusCode.NotFound;
             }
         }
 
-        private HttpStatusCode AddRoleToGroup(dynamic parameters)
+        private async Task<HttpStatusCode> AddRoleToGroup(dynamic parameters)
         {
             try
             {
@@ -162,27 +125,20 @@ namespace Fabric.Authorization.API.Modules
                     throw new NotFoundException<Role>();
                 }
 
-                _groupService.AddRoleToGroup(parameters.groupName, roleApiModel.Id.Value).Wait();
+                await _groupService.AddRoleToGroup(parameters.groupName, roleApiModel.Id.Value);
                 return HttpStatusCode.NoContent;
             }
-            catch (AggregateException ex)
+            catch (NotFoundException<Group>)
             {
-                if (ex.InnerException is NotFoundException<Group>)
-                {
-                    return HttpStatusCode.NotFound;
-                }
-                if (ex.InnerException is NotFoundException<Role>)
-                {
-                    return HttpStatusCode.BadRequest;
-                }
-                else
-                {
-                    throw;
-                }
+                return HttpStatusCode.NotFound;
+            }
+            catch (NotFoundException<Role>)
+            {
+                return HttpStatusCode.BadRequest;
             }
         }
 
-        private HttpStatusCode DeleteRoleFromGroup(dynamic parameters)
+        private async Task<HttpStatusCode> DeleteRoleFromGroup(dynamic parameters)
         {
             try
             {
@@ -193,23 +149,16 @@ namespace Fabric.Authorization.API.Modules
                     throw new NotFoundException<Role>();
                 }
 
-                _groupService.DeleteRoleFromGroup(parameters.groupName, roleApiModel.Id.Value).Wait();
+                await _groupService.DeleteRoleFromGroup(parameters.groupName, roleApiModel.Id.Value);
                 return HttpStatusCode.NoContent;
             }
-            catch (AggregateException ex)
+            catch (NotFoundException<Group>)
             {
-                if (ex.InnerException is NotFoundException<Group>)
-                {
-                    return HttpStatusCode.NotFound;
-                }
-                if (ex.InnerException is NotFoundException<Role>)
-                {
-                    return HttpStatusCode.BadRequest;
-                }
-                else
-                {
-                    throw;
-                }
+                return HttpStatusCode.NotFound;
+            }
+            catch (NotFoundException<Role>)
+            {
+                return HttpStatusCode.BadRequest;
             }
         }
     }

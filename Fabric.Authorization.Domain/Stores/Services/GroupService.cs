@@ -23,9 +23,18 @@ namespace Fabric.Authorization.Domain.Services
             var permissions = new List<string>();
             foreach (var groupName in groupNames)
             {
-                var roles = await this.GetRolesForGroup(groupName, grain, securableItem);
-                roles = roles.SelectMany(r => _roleStore.GetRoleHierarchy(r.Id).Result);
+                Console.WriteLine($"Getting roles for {groupName}");
+                var baseRoles = await this.GetRolesForGroup(groupName, grain, securableItem).ConfigureAwait(false);
+                var roles = new HashSet<Role>();
+                Console.WriteLine($"Got {baseRoles.Count()} roles. Checking role hierarchy now.");
+                foreach (var role in baseRoles)
+                {
+                    var hierarchy = await _roleStore.GetRoleHierarchy(role.Id).ConfigureAwait(false);
+                    roles.UnionWith(hierarchy);
+                }
 
+                roles.UnionWith(baseRoles);
+                Console.WriteLine($"Done, total roles: {roles.Count()}");
                 if (roles.Any())
                 {
                     permissions

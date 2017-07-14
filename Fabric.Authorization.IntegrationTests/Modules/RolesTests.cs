@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Services;
@@ -11,10 +11,12 @@ using Xunit;
 
 namespace Fabric.Authorization.IntegrationTests
 {
+    [Collection("InMemoryTests")]
     public class RolesTests : IntegrationTestsFixture
     {
         public RolesTests(bool useInMemoryDB = true)
         {
+            Console.WriteLine($"Starting Roles Tests. Memory: {useInMemoryDB}");
             var store = useInMemoryDB ? new InMemoryRoleStore() : (IRoleStore)new CouchDBRoleStore(this.DbService(), this.Logger);
             var clientStore = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDBClientStore(this.DbService(), this.Logger);
 
@@ -54,6 +56,7 @@ namespace Fabric.Authorization.IntegrationTests
                     with.Header("Accept", "application/json");
                 }).Wait();
 
+            Console.WriteLine("Finished Roles setup");
         }
 
         [Theory]
@@ -86,8 +89,6 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Name", name);
             }).Result;
 
-            Task.Delay(200).Wait();
-
             var getResponse = this.Browser.Get($"/roles/app/rolesprincipal/{name}", with =>
                 {
                     with.HttpRequest();
@@ -113,8 +114,6 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Name", name);
             }).Result;
 
-            Task.Delay(200).Wait();
-            
             // Get by name
             var getResponse = this.Browser.Get($"/roles/app/rolesprincipal/{name}", with =>
             {
@@ -161,8 +160,6 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Name", name + "_2");
             }).Result;
 
-            Task.Delay(200).Wait();
-
             var getResponse = this.Browser.Get($"/roles/app/rolesprincipal", with =>
             {
                 with.HttpRequest();
@@ -191,8 +188,6 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Name", id);
                 with.FormValue("Id", id);
             }).Wait();
-
-            Task.Delay(200).Wait();
 
             // Repeat
             var postResponse = this.Browser.Post("/roles", with =>

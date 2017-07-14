@@ -25,29 +25,29 @@ namespace Fabric.Authorization.API.Modules
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
 
             //routes and handlers
-            Get("/{grain}/{securableItem}", parameters => GetRolesForSecurableItem(parameters));
-            Get("/{grain}/{securableItem}/{roleName}", parameters => GetRoleByName(parameters));
-            Post("/", parameters => AddRole());
-            Delete("/{roleId}", parameters => DeleteRole(parameters));
-            Post("/{roleId}/permissions", parameters => AddPermissionsToRole(parameters));
-            Delete("/{roleId}/permissions", parameters => DeletePermissionsFromRole(parameters));
+            Get("/{grain}/{securableItem}", async parameters => await this.GetRolesForSecurableItem(parameters).ConfigureAwait(false));
+            Get("/{grain}/{securableItem}/{roleName}", async parameters => await this.GetRoleByName(parameters).ConfigureAwait(false));
+            Post("/", async parameters => await this.AddRole().ConfigureAwait(false));
+            Delete("/{roleId}", async parameters => await this.DeleteRole(parameters).ConfigureAwait(false));
+            Post("/{roleId}/permissions", async parameters => await this.AddPermissionsToRole(parameters).ConfigureAwait(false));
+            Delete("/{roleId}/permissions", async parameters => await this.DeletePermissionsFromRole(parameters).ConfigureAwait(false));
         }
 
-        private dynamic GetRolesForSecurableItem(dynamic parameters)
+        private async Task<dynamic> GetRolesForSecurableItem(dynamic parameters)
         {
-            CheckAccess(_clientService, parameters.grain, parameters.securableItem, AuthorizationReadClaim);
-            IEnumerable<Role> roles = _roleService.GetRoles(parameters.grain, parameters.securableItem).Result;
+            await CheckAccess(_clientService, parameters.grain, parameters.securableItem, AuthorizationReadClaim);
+            IEnumerable<Role> roles = await _roleService.GetRoles(parameters.grain, parameters.securableItem);
             return roles.Select(r => r.ToRoleApiModel());
         }
 
-        private dynamic GetRoleByName(dynamic parameters)
+        private async Task<dynamic> GetRoleByName(dynamic parameters)
         {
-            CheckAccess(_clientService, parameters.grain, parameters.securableItem, AuthorizationReadClaim);
-            IEnumerable<Role> roles = _roleService.GetRoles(parameters.grain, parameters.securableItem, parameters.roleName).Result;
+            await CheckAccess(_clientService, parameters.grain, parameters.securableItem, AuthorizationReadClaim);
+            IEnumerable<Role> roles = await _roleService.GetRoles(parameters.grain, parameters.securableItem, parameters.roleName);
             return roles.Select(r => r.ToRoleApiModel());
         }
 
-        private dynamic AddRole()
+        private async Task<dynamic> AddRole()
         {
             var roleApiModel = this.Bind<RoleApiModel>(binderIgnore => binderIgnore.Id,
                 binderIgnore => binderIgnore.CreatedBy,
@@ -57,12 +57,12 @@ namespace Fabric.Authorization.API.Modules
 
             var incomingRole = roleApiModel.ToRoleDomainModel();
             Validate(incomingRole);
-            CheckAccess(_clientService, roleApiModel.Grain, roleApiModel.SecurableItem, AuthorizationWriteClaim);
-            Role role = _roleService.AddRole(incomingRole).Result;
+            await CheckAccess(_clientService, roleApiModel.Grain, roleApiModel.SecurableItem, AuthorizationWriteClaim);
+            Role role = await _roleService.AddRole(incomingRole);
             return CreateSuccessfulPostResponse(role.ToRoleApiModel());
         }
 
-        private dynamic DeleteRole(dynamic parameters)
+        private async Task<dynamic> DeleteRole(dynamic parameters)
         {
             try
             {
@@ -71,26 +71,19 @@ namespace Fabric.Authorization.API.Modules
                     return CreateFailureResponse("roleId must be a guid.", HttpStatusCode.BadRequest);
                 }
 
-                var roleToDelete = _roleService.GetRole(roleId).Result;
-                CheckAccess(_clientService, roleToDelete.Grain, roleToDelete.SecurableItem, AuthorizationWriteClaim);
-                _roleService.DeleteRole(roleToDelete).Wait();
+                var roleToDelete = await _roleService.GetRole(roleId);
+                await CheckAccess(_clientService, roleToDelete.Grain, roleToDelete.SecurableItem, AuthorizationWriteClaim);
+                await _roleService.DeleteRole(roleToDelete);
                 return HttpStatusCode.NoContent;
             }
-            catch (AggregateException ex)
+            catch (NotFoundException<Role> ex)
             {
-                if (ex.InnerException is NotFoundException<Role>)
-                {
-                    Logger.Error(ex, ex.Message, parameters.roleId);
-                    return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
-                }
-                else
-                {
-                    throw;
-                }
+                Logger.Error(ex, ex.Message, parameters.roleId);
+                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
             }
         }
 
-        private dynamic AddPermissionsToRole(dynamic parameters)
+        private async Task<dynamic> AddPermissionsToRole(dynamic parameters)
         {
             try
             {
@@ -108,36 +101,28 @@ namespace Fabric.Authorization.API.Modules
                         HttpStatusCode.BadRequest);
                 }
 
-                Role roleToUpdate = _roleService.GetRole(roleId).Result;
-                CheckAccess(_clientService, roleToUpdate.Grain, roleToUpdate.SecurableItem, AuthorizationWriteClaim);
-                Role updatedRole = _roleService.AddPermissionsToRole(roleToUpdate,
-                    roleApiModels.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToArray()).Result;
+                Role roleToUpdate = await _roleService.GetRole(roleId);
+                await CheckAccess(_clientService, roleToUpdate.Grain, roleToUpdate.SecurableItem, AuthorizationWriteClaim);
+                Role updatedRole = await _roleService.AddPermissionsToRole(roleToUpdate,
+                    roleApiModels.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToArray());
                 return CreateSuccessfulPostResponse(updatedRole.ToRoleApiModel(), HttpStatusCode.OK);
             }
-            catch (AggregateException ex)
+            catch (NotFoundException<Role> ex)
             {
-                Logger.Error(ex, ex.Message, parameters.roleId);
-                if (ex.InnerException is NotFoundException<Role>)
-                {
-                    return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
-                }
-                else if (ex.InnerException is NotFoundException<Permission>)
-                {
-                    return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
-                }
-                else if (ex.InnerException is IncompatiblePermissionException)
-                {
-                    return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
-                }
-                else
-                {
-                    throw;
-                }
+                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
+            }
+            catch (NotFoundException<Permission> ex)
+            {
+                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
+            }
+            catch (IncompatiblePermissionException ex)
+            {
+                return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
             }
 
         }
 
-        private dynamic DeletePermissionsFromRole(dynamic parameters)
+        private async Task<dynamic> DeletePermissionsFromRole(dynamic parameters)
         {
             try
             {
@@ -155,27 +140,19 @@ namespace Fabric.Authorization.API.Modules
                         HttpStatusCode.BadRequest);
                 }
 
-                Role roleToUpdate = _roleService.GetRole(roleId).Result;
-                CheckAccess(_clientService, roleToUpdate.Grain, roleToUpdate.SecurableItem, AuthorizationWriteClaim);
-                Role updatedRole = _roleService.RemovePermissionsFromRole(roleToUpdate,
-                    roleApiModels.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToArray()).Result;
+                Role roleToUpdate = await _roleService.GetRole(roleId);
+                await CheckAccess(_clientService, roleToUpdate.Grain, roleToUpdate.SecurableItem, AuthorizationWriteClaim);
+                Role updatedRole = await _roleService.RemovePermissionsFromRole(roleToUpdate,
+                    roleApiModels.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToArray());
                 return CreateSuccessfulPostResponse(updatedRole.ToRoleApiModel(), HttpStatusCode.OK);
             }
-            catch (AggregateException ex)
+            catch (NotFoundException<Role> ex)
             {
-                Logger.Error(ex, ex.Message, parameters.roleId);
-                if (ex.InnerException is NotFoundException<Role>)
-                {
-                    return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
-                }
-                else if (ex.InnerException is NotFoundException<Permission>)
-                {
-                    return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
-                }
-                else
-                {
-                    throw;
-                }
+                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
+            }
+            catch (NotFoundException<Permission> ex)
+            {
+                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
             }
         }
     }

@@ -1,5 +1,8 @@
-﻿namespace Fabric.Authorization.IntegrationTests.CouchDB
+﻿using Xunit;
+
+namespace Fabric.Authorization.IntegrationTests.CouchDB
 {
+    [Collection("CouchTests")]
     public class CouchClientTests : ClientTests
     {
         public CouchClientTests() : base(useInMemoryDB: false)

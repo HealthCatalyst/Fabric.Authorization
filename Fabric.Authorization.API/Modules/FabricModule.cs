@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.ModuleExtensions;
+using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
 using FluentValidation;
@@ -64,27 +66,38 @@ namespace Fabric.Authorization.API.Modules
             return Negotiate.WithModel(error).WithStatusCode(statusCode);
         }
 
-        protected void CheckAccess(ClientService clientService, dynamic grain, dynamic securableItem,
-            params Predicate<Claim>[] requiredClaims)
+        protected async Task CheckAccess(ClientService clientService, dynamic grain, dynamic securableItem, params Predicate<Claim>[] requiredClaims)
         {
             string grainAsString = grain.ToString();
             string securableItemAsString = securableItem.ToString();
-            this.RequiresOwnershipAndClaims<T>(clientService, grainAsString, securableItemAsString, requiredClaims);
-        }
+            bool doesClientOwnItem = false;
 
-        protected void Validate(T model)
-        {
-            var validationResults = Validator.Validate(model);
-            if (!validationResults.IsValid)
+            try
             {
-                Logger.Information("Validation failed for model: {@model}. ValidationResults: {@validationResults}.", model, validationResults);
-                this.CreateValidationFailureResponse<T>(validationResults);
+                doesClientOwnItem =
+                    await clientService.DoesClientOwnItem(ClientId, grainAsString, securableItemAsString);
             }
+            catch (NotFoundException<Client>)
+            {
+                doesClientOwnItem = false;
+            }
+
+            this.RequiresOwnershipAndClaims<T>(doesClientOwnItem, grainAsString, securableItemAsString, requiredClaims);
         }
 
-        protected Predicate<Claim> GetClientIdPredicate(string clientId)
+    protected void Validate(T model)
+    {
+        var validationResults = Validator.Validate(model);
+        if (!validationResults.IsValid)
         {
-            return claim => claim.Type == Claims.ClientId && claim.Value == clientId;
+            Logger.Information("Validation failed for model: {@model}. ValidationResults: {@validationResults}.", model, validationResults);
+            this.CreateValidationFailureResponse<T>(validationResults);
         }
     }
+
+    protected Predicate<Claim> GetClientIdPredicate(string clientId)
+    {
+        return claim => claim.Type == Claims.ClientId && claim.Value == clientId;
+    }
+}
 }

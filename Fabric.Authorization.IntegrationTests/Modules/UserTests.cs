@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
@@ -14,10 +13,12 @@ using Xunit;
 
 namespace Fabric.Authorization.IntegrationTests
 {
+    [Collection("InMemoryTests")]
     public class UserTests : IntegrationTestsFixture
     {
         public UserTests(bool useInMemoryDB = true)
         {
+            Console.WriteLine($"Starting Client Tests. Memory: {useInMemoryDB}");
             var roleStore = useInMemoryDB ? new InMemoryRoleStore() : (IRoleStore)new CouchDBRoleStore(this.DbService(), this.Logger);
             var groupStore = useInMemoryDB ? new InMemoryGroupStore() : (IGroupStore)new CouchDBGroupStore(this.DbService(), this.Logger);
             var clientStore = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDBClientStore(this.DbService(), this.Logger);
@@ -72,7 +73,6 @@ namespace Fabric.Authorization.IntegrationTests
                 });
             });
 
-
             this.Browser.Post("/clients", with =>
             {
                 with.HttpRequest();
@@ -81,6 +81,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.Header("Accept", "application/json");
             }).Wait();
 
+            Console.WriteLine("Finished User setup");
         }
 
         [Fact]
@@ -89,7 +90,7 @@ namespace Fabric.Authorization.IntegrationTests
             var group = Guid.Parse("A9CA0300-1006-40B1-ABF1-E0C3B396F95F").ToString();
 
             // Adding permissions
-
+            Console.WriteLine("Adding Permissions");
             var post = this.Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
@@ -146,7 +147,7 @@ namespace Fabric.Authorization.IntegrationTests
             var sonperm = post.Body.DeserializeJson<PermissionApiModel>();
 
             // Adding Roles
-
+            Console.WriteLine("Adding Roles");
             var role = new RoleApiModel()
             {
                 Grain = "app",
@@ -213,7 +214,7 @@ namespace Fabric.Authorization.IntegrationTests
             var son = post.Body.DeserializeJson<RoleApiModel>();
 
             // Adding groups
-
+            Console.WriteLine("Adding Groups");
             this.Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
@@ -221,23 +222,22 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("GroupName", group);
             }).Wait();
 
-            var p = this.Browser.Post($"/groups/{group}/roles", with =>
+            this.Browser.Post($"/groups/{group}/roles", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
                 with.FormValue("Id", hs.Identifier);
-            }).Result;
-
-            Task.Delay(200).Wait();
+            }).Wait();
 
             // Get the permissions
-
+            Console.WriteLine("Get the permissions");
             var get = this.Browser.Get($"/user/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
             }).Result;
 
+            Console.WriteLine("Checking results");
             Assert.Equal(HttpStatusCode.OK, get.StatusCode);
             Assert.True(get.Body.AsString().Contains("greatgrandfatherpermissions"));
             Assert.True(get.Body.AsString().Contains("grandfatherpermissions"));

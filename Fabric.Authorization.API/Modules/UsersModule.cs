@@ -22,19 +22,21 @@ namespace Fabric.Authorization.API.Modules
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
 
             //Get all the permissions for a user
-            Get("/permissions", parameters => GetUserPermissions());
+            Get("/permissions", async parameters => await this.GetUserPermissions().ConfigureAwait(false));
         }
 
-        private dynamic GetUserPermissions()
+        private async Task<dynamic> GetUserPermissions()
         {
             var userPermissionRequest = this.Bind<UserInfoRequest>();
-            this.SetDefaultRequest(userPermissionRequest).Wait();
+            Console.WriteLine("Setting default Request");
+            await this.SetDefaultRequest(userPermissionRequest);
+            Console.WriteLine("Checking access");
+            await CheckAccess(_clientService, userPermissionRequest.Grain, userPermissionRequest.SecurableItem, AuthorizationReadClaim);
+            var groups = this.GetGroupsForAuthenticatedUser();
+            Console.WriteLine("Getting permissions");
+            var permissions = await _groupService.GetPermissionsForGroups(groups,
+                userPermissionRequest.Grain, userPermissionRequest.SecurableItem);
 
-            CheckAccess(_clientService, userPermissionRequest.Grain, userPermissionRequest.SecurableItem,
-                AuthorizationReadClaim);
-            var groups = GetGroupsForAuthenticatedUser();
-            var permissions = _groupService.GetPermissionsForGroups(groups,
-                userPermissionRequest.Grain, userPermissionRequest.SecurableItem).Result;
             return new UserPermissionsApiModel
             {
                 RequestedGrain = userPermissionRequest.Grain,
@@ -52,6 +54,7 @@ namespace Fabric.Authorization.API.Modules
         {
             if (string.IsNullOrEmpty(request.Grain) && string.IsNullOrEmpty(request.SecurableItem))
             {
+                Console.WriteLine("Getting client");
                 var client = await _clientService.GetClient(ClientId);
                 request.Grain = Constants.TopLevelGrains.AppGrain;
                 request.SecurableItem = client.TopLevelSecurableItem.Name;
