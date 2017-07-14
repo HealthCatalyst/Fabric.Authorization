@@ -28,14 +28,29 @@ namespace Fabric.Authorization.Domain.Stores
             // return await _dbService.GetDocuments<Role>("roles", "resolvepermissions", roleId.ToString());
 
             var queue = new Queue<Guid>();
+            queue.Enqueue(Guid.Empty);
             queue.Enqueue(roleId);
 
-            var roleHierarchy = new HashSet<Role>();
+            int level = 0;
 
-            while (queue.Any())
+            var roleHierarchy = new HashSet<Role>();
+            var visited = new HashSet<Guid>();
+
+            while (queue.Any() && level < 10)
             {
                 var topId = queue.Dequeue();
-                Console.WriteLine($"Checking role {topId}");
+                if (topId == Guid.Empty)
+                {
+                    level++;
+                    queue.Enqueue(Guid.Empty);
+                    continue;
+                }
+
+                if (visited.Contains(topId))
+                {
+                    continue;
+                }
+
                 if (await this.Exists(topId).ConfigureAwait(false))
                 {
                     Console.WriteLine($"Role exists, getting {topId}");
