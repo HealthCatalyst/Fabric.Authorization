@@ -28,10 +28,12 @@ namespace Fabric.Authorization.API.Modules
         private async Task<dynamic> GetUserPermissions()
         {
             var userPermissionRequest = this.Bind<UserInfoRequest>();
+            Console.WriteLine("Setting default Request");
             await this.SetDefaultRequest(userPermissionRequest);
-
+            Console.WriteLine("Checking access");
             CheckAccess(_clientService, userPermissionRequest.Grain, userPermissionRequest.SecurableItem, AuthorizationReadClaim);
             var groups = this.GetGroupsForAuthenticatedUser();
+            Console.WriteLine("Getting permissions");
             var permissions = await _groupService.GetPermissionsForGroups(groups,
                 userPermissionRequest.Grain, userPermissionRequest.SecurableItem);
 
@@ -52,6 +54,7 @@ namespace Fabric.Authorization.API.Modules
         {
             if (string.IsNullOrEmpty(request.Grain) && string.IsNullOrEmpty(request.SecurableItem))
             {
+                Console.WriteLine("Getting client");
                 var client = await _clientService.GetClient(ClientId);
                 request.Grain = Constants.TopLevelGrains.AppGrain;
                 request.SecurableItem = client.TopLevelSecurableItem.Name;
