@@ -222,12 +222,12 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("GroupName", group);
             }).Wait();
 
-            var p = this.Browser.Post($"/groups/{group}/roles", with =>
+            this.Browser.Post($"/groups/{group}/roles", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
                 with.FormValue("Id", hs.Identifier);
-            }).Result;
+            }).Wait();
 
             // Get the permissions
 
