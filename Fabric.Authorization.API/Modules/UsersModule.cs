@@ -31,7 +31,7 @@ namespace Fabric.Authorization.API.Modules
             Console.WriteLine("Setting default Request");
             await this.SetDefaultRequest(userPermissionRequest);
             Console.WriteLine("Checking access");
-            CheckAccess(_clientService, userPermissionRequest.Grain, userPermissionRequest.SecurableItem, AuthorizationReadClaim);
+            await CheckAccess(_clientService, userPermissionRequest.Grain, userPermissionRequest.SecurableItem, AuthorizationReadClaim);
             var groups = this.GetGroupsForAuthenticatedUser();
             Console.WriteLine("Getting permissions");
             var permissions = await _groupService.GetPermissionsForGroups(groups,

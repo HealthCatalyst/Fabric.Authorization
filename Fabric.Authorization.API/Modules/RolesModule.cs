@@ -35,14 +35,14 @@ namespace Fabric.Authorization.API.Modules
 
         private async Task<dynamic> GetRolesForSecurableItem(dynamic parameters)
         {
-            CheckAccess(_clientService, parameters.grain, parameters.securableItem, AuthorizationReadClaim);
+            await CheckAccess(_clientService, parameters.grain, parameters.securableItem, AuthorizationReadClaim);
             IEnumerable<Role> roles = await _roleService.GetRoles(parameters.grain, parameters.securableItem);
             return roles.Select(r => r.ToRoleApiModel());
         }
 
         private async Task<dynamic> GetRoleByName(dynamic parameters)
         {
-            CheckAccess(_clientService, parameters.grain, parameters.securableItem, AuthorizationReadClaim);
+            await CheckAccess(_clientService, parameters.grain, parameters.securableItem, AuthorizationReadClaim);
             IEnumerable<Role> roles = await _roleService.GetRoles(parameters.grain, parameters.securableItem, parameters.roleName);
             return roles.Select(r => r.ToRoleApiModel());
         }
@@ -57,7 +57,7 @@ namespace Fabric.Authorization.API.Modules
 
             var incomingRole = roleApiModel.ToRoleDomainModel();
             Validate(incomingRole);
-            CheckAccess(_clientService, roleApiModel.Grain, roleApiModel.SecurableItem, AuthorizationWriteClaim);
+            await CheckAccess(_clientService, roleApiModel.Grain, roleApiModel.SecurableItem, AuthorizationWriteClaim);
             Role role = await _roleService.AddRole(incomingRole);
             return CreateSuccessfulPostResponse(role.ToRoleApiModel());
         }
@@ -72,7 +72,7 @@ namespace Fabric.Authorization.API.Modules
                 }
 
                 var roleToDelete = await _roleService.GetRole(roleId);
-                CheckAccess(_clientService, roleToDelete.Grain, roleToDelete.SecurableItem, AuthorizationWriteClaim);
+                await CheckAccess(_clientService, roleToDelete.Grain, roleToDelete.SecurableItem, AuthorizationWriteClaim);
                 await _roleService.DeleteRole(roleToDelete);
                 return HttpStatusCode.NoContent;
             }
@@ -102,7 +102,7 @@ namespace Fabric.Authorization.API.Modules
                 }
 
                 Role roleToUpdate = await _roleService.GetRole(roleId);
-                CheckAccess(_clientService, roleToUpdate.Grain, roleToUpdate.SecurableItem, AuthorizationWriteClaim);
+                await CheckAccess(_clientService, roleToUpdate.Grain, roleToUpdate.SecurableItem, AuthorizationWriteClaim);
                 Role updatedRole = await _roleService.AddPermissionsToRole(roleToUpdate,
                     roleApiModels.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToArray());
                 return CreateSuccessfulPostResponse(updatedRole.ToRoleApiModel(), HttpStatusCode.OK);
@@ -141,7 +141,7 @@ namespace Fabric.Authorization.API.Modules
                 }
 
                 Role roleToUpdate = await _roleService.GetRole(roleId);
-                CheckAccess(_clientService, roleToUpdate.Grain, roleToUpdate.SecurableItem, AuthorizationWriteClaim);
+                await CheckAccess(_clientService, roleToUpdate.Grain, roleToUpdate.SecurableItem, AuthorizationWriteClaim);
                 Role updatedRole = await _roleService.RemovePermissionsFromRole(roleToUpdate,
                     roleApiModels.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToArray());
                 return CreateSuccessfulPostResponse(updatedRole.ToRoleApiModel(), HttpStatusCode.OK);
