@@ -18,7 +18,7 @@ describe("authorization tests", function(){
         }
     }   
 
-    var newIdentityClient = {
+    var identityClientFuncTest = {
         "clientId": "func-test",
         "clientName": "Functional Test Client",
         "requireConsent": "false",
@@ -30,41 +30,41 @@ describe("authorization tests", function(){
         ]    
     }
 
-    var newAuthClient = {
+    var authClientFuncTest = {
         "id": "func-test",
         "name": "Functional Test Client",
         "topLevelSecurableItem": { "name": "func-test" }
     }
 
-    var newGroupFoo = {
+    var groupFoo = {
         "id": "roleFoo",
         "groupName": "roleFoo"
     }
 
-    var newGroupBar = {
+    var groupBar = {
         "id": "roleBar",
         "groupName": "roleBar"
     }
 
-    var newRoleFoo = {
+    var roleFoo = {
         "Grain": "app",
         "SecurableItem": "func-test",
         "Name": "roleFoo"
     }
 
-    var newRoleBar = {
+    var roleBar = {
         "Grain": "app",
         "SecurableItem": "func-test",
         "Name": "roleBar"
     }    
 
-    var newPermissionUserCanView = {
+    var userCanViewPermission = {
         "Grain": "app",
         "SecurableItem": "func-test",
         "Name": "userCanView"
     }
 
-    var newPermissionUserCanEdit = {
+    var userCanEditPermission = {
         "Grain": "app",
         "SecurableItem": "func-test",
         "Name": "userCanEdit"
@@ -175,7 +175,7 @@ describe("authorization tests", function(){
     describe("register client", function(){      
         
         it("should register a client", function(){        
-           return chakram.post(baseIdentityUrl + "/api/client", newIdentityClient, authRequestOptions)
+           return chakram.post(baseIdentityUrl + "/api/client", identityClientFuncTest, authRequestOptions)
             .then(function(clientResponse){
                 expect(clientResponse).to.have.status(201);                                    
                 return getAccessTokenForAuthClient(clientResponse.body.clientSecret);
@@ -184,7 +184,7 @@ describe("authorization tests", function(){
                 newAuthClientAccessToken = authClientAccessToken;
             })    
             .then(function(){
-                return chakram.post(baseAuthUrl + "/clients", newAuthClient, authRequestOptions);           
+                return chakram.post(baseAuthUrl + "/clients", authClientFuncTest, authRequestOptions);           
             }) 
             .then(function(clientResponse){                
                 expect(clientResponse).to.have.status(201);    
@@ -195,12 +195,12 @@ describe("authorization tests", function(){
 
     describe("register groups", function(){
         it("should register group foo", function(){
-            var registerGroupFooResponse = chakram.post(baseAuthUrl + "/groups", newGroupFoo, authRequestOptions);
+            var registerGroupFooResponse = chakram.post(baseAuthUrl + "/groups", groupFoo, authRequestOptions);
             return expect(registerGroupFooResponse).to.have.status(201);            
         });
 
         it("should register group bar", function(){
-            var registerGroupBarResponse = chakram.post(baseAuthUrl + "/groups", newGroupBar, authRequestOptions);
+            var registerGroupBarResponse = chakram.post(baseAuthUrl + "/groups", groupBar, authRequestOptions);
             return expect(registerGroupBarResponse).to.have.status(201);           
         });
     });
@@ -209,14 +209,14 @@ describe("authorization tests", function(){
         it("should register role foo", function(){
             authRequestOptions.headers.Authorization = newAuthClientAccessToken;
             
-            var registerRoleFooResponse = chakram.post(baseAuthUrl + "/roles", newRoleFoo, authRequestOptions);            
+            var registerRoleFooResponse = chakram.post(baseAuthUrl + "/roles", roleFoo, authRequestOptions);            
             return expect(registerRoleFooResponse).to.have.status(201);
         });
 
         it("should register role bar", function(){
             authRequestOptions.headers.Authorization = newAuthClientAccessToken;
             
-            var registerRoleBarResponse = chakram.post(baseAuthUrl + "/roles", newRoleBar, authRequestOptions);            
+            var registerRoleBarResponse = chakram.post(baseAuthUrl + "/roles", roleBar, authRequestOptions);            
             return expect(registerRoleBarResponse).to.have.status(201);
         });
     });
@@ -225,14 +225,14 @@ describe("authorization tests", function(){
         it("should register permission userCanView", function(){
             authRequestOptions.headers.Authorization = newAuthClientAccessToken;
 
-            var registerPermissionResponse = chakram.post(baseAuthUrl + "/Permissions", newPermissionUserCanView, authRequestOptions);
+            var registerPermissionResponse = chakram.post(baseAuthUrl + "/Permissions", userCanViewPermission, authRequestOptions);
             return expect(registerPermissionResponse).to.have.status(201);
         });
 
          it("should register permission userCanEdit", function(){
             authRequestOptions.headers.Authorization = newAuthClientAccessToken;
 
-            var registerPermissionResponse = chakram.post(baseAuthUrl + "/Permissions", newPermissionUserCanEdit, authRequestOptions);
+            var registerPermissionResponse = chakram.post(baseAuthUrl + "/Permissions", userCanEditPermission, authRequestOptions);
             return expect(registerPermissionResponse).to.have.status(201);
         });
     });
@@ -241,14 +241,14 @@ describe("authorization tests", function(){
         it("should associate group foo with role foo", function(){
             authRequestOptions.headers.Authorization = newAuthClientAccessToken;
             
-            return chakram.get(baseAuthUrl + "/roles/"+ newRoleFoo.Grain + "/" + newRoleFoo.SecurableItem + "/" + newRoleFoo.Name, authRequestOptions)
+            return chakram.get(baseAuthUrl + "/roles/"+ roleFoo.Grain + "/" + roleFoo.SecurableItem + "/" + roleFoo.Name, authRequestOptions)
             .then(function(getResponse){            
                 expect(getResponse).to.have.status(200);
                 expect(getResponse).to.comprise.of.json([{name:"roleFoo"}]);              
                 return getResponse.body;                
             })
             .then(function(role){                
-                return chakram.post(baseAuthUrl + "/groups/" + newGroupFoo.groupName + "/roles", role[0], authRequestOptions);
+                return chakram.post(baseAuthUrl + "/groups/" + groupFoo.groupName + "/roles", role[0], authRequestOptions);
             })
             .then(function(postResponse){
                 expect(postResponse).to.have.status(204);
@@ -258,18 +258,47 @@ describe("authorization tests", function(){
         it("should associate group bar with role bar", function(){
             authRequestOptions.headers.Authorization = newAuthClientAccessToken;
             
-            return chakram.get(baseAuthUrl + "/roles/"+ newRoleBar.Grain + "/" + newRoleBar.SecurableItem + "/" + newRoleBar.Name, authRequestOptions)
+            return chakram.get(baseAuthUrl + "/roles/"+ roleBar.Grain + "/" + roleBar.SecurableItem + "/" + roleBar.Name, authRequestOptions)
             .then(function(getResponse){            
                 expect(getResponse).to.have.status(200);
                 expect(getResponse).to.comprise.of.json([{name:"roleBar"}]);              
                 return getResponse.body;                
             })
             .then(function(role){                
-                return chakram.post(baseAuthUrl + "/groups/" + newGroupBar.groupName + "/roles", role[0], authRequestOptions);
+                return chakram.post(baseAuthUrl + "/groups/" + groupBar.groupName + "/roles", role[0], authRequestOptions);
             })
             .then(function(postResponse){
                 expect(postResponse).to.have.status(204);
             });            
         });
     });  
+
+    describe("associate roles to permissions", function(){
+        it("should associate roleFoo with userCanViewPermission", function(){
+            authRequestOptions.headers.Authorization = newAuthClientAccessToken;
+            var permission = {};
+            chakram.startDebug();
+            return chakram.get(baseAuthUrl + "/permissions/" + userCanViewPermission.Grain + "/" + userCanViewPermission.SecurableItem + "/" + userCanViewPermission.Name, authRequestOptions)
+            .then(function(getResponse){
+                expect(getResponse).to.have.status(200);
+                permission = getResponse.body[0];
+
+                return chakram.get(baseAuthUrl + "/roles/"+ roleFoo.Grain + "/" + roleFoo.SecurableItem + "/" + roleFoo.Name, authRequestOptions)
+            })            
+            .then(function(getResponse){
+                expect(getResponse).to.have.status(200);
+                expect(getResponse).to.comprise.of.json([{name:"roleFoo"}]);  
+                return getResponse.body;                
+            })            
+            .then(function(role){
+                console.log("role returned: " + JSON.stringify(role));
+                var roleId = role[0].id;
+                return chakram.post(baseAuthUrl + "/roles/" + roleId + "/permissions",  [permission], authRequestOptions);
+            })
+            .then(function(postResponse){
+                chakram.stopDebug();
+                expect(postResponse).to.have.status(200);
+            });            
+        });
+    });
 });
