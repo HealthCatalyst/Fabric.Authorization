@@ -94,35 +94,6 @@ describe("authorization tests", function(){
         return chakram.post(baseIdentityUrl + "/api/apiresource", registrationApi, requestOptions);
     }
 
-    function bootstrapIdentityServer(){
-        return registerRegistrationApi()
-        .then(registerAuthorizationApi())
-        .then(function(){
-            var installerClient = { 
-                "clientId": "fabric-installer",
-                "clientName": "Fabric Installer",
-                "requireConsent": "false",
-                "allowedGrantTypes": ["client_credentials"], 
-                "allowedScopes": [
-                    "fabric/identity.manageresources", 
-                    "fabric/authorization.read", 
-                    "fabric/authorization.write", 
-                    "fabric/authorization.manageclients"]
-            }
-        
-            return chakram.post(baseIdentityUrl + "/api/client", installerClient, requestOptions);             
-        })
-        .then(function(postResponse){            
-            return postResponse.body.clientSecret;                        
-        })
-        .then(function(installerSecret){            
-            return getAccessTokenForInstaller(installerSecret);
-        })
-        .then(function(retrievedAccessToken){                                   
-            authRequestOptions.headers.Authorization = retrievedAccessToken;            
-        });
-    }
-
     function getAccessToken(clientData){
         return chakram.post(baseIdentityUrl + "/connect/token", undefined, clientData)
             .then(function(postResponse){  
@@ -156,6 +127,35 @@ describe("authorization tests", function(){
         }
 
         return getAccessToken(clientData);
+    }
+
+    function bootstrapIdentityServer(){
+        return registerRegistrationApi()
+        .then(registerAuthorizationApi())
+        .then(function(){
+            var installerClient = { 
+                "clientId": "fabric-installer",
+                "clientName": "Fabric Installer",
+                "requireConsent": "false",
+                "allowedGrantTypes": ["client_credentials"], 
+                "allowedScopes": [
+                    "fabric/identity.manageresources", 
+                    "fabric/authorization.read", 
+                    "fabric/authorization.write", 
+                    "fabric/authorization.manageclients"]
+            }
+        
+            return chakram.post(baseIdentityUrl + "/api/client", installerClient, requestOptions);             
+        })
+        .then(function(postResponse){            
+            return postResponse.body.clientSecret;                        
+        })
+        .then(function(installerSecret){            
+            return getAccessTokenForInstaller(installerSecret);
+        })
+        .then(function(retrievedAccessToken){                                   
+            authRequestOptions.headers.Authorization = retrievedAccessToken;            
+        });
     }
 
     before("running before", function(){
@@ -240,18 +240,32 @@ describe("authorization tests", function(){
     describe("associate groups to roles", function(){
         it("should associate group foo with role foo", function(){
             authRequestOptions.headers.Authorization = newAuthClientAccessToken;
-
-            console.log("new role foo: " + JSON.stringify(newRoleFoo));
-            chakram.startDebug();
+            
             return chakram.get(baseAuthUrl + "/roles/"+ newRoleFoo.Grain + "/" + newRoleFoo.SecurableItem + "/" + newRoleFoo.Name, authRequestOptions)
-            .then(function(getResponse){
-                chakram.stopDebug();
-                expect(getResponse).to.have.status(200);                
+            .then(function(getResponse){            
+                expect(getResponse).to.have.status(200);
+                expect(getResponse).to.comprise.of.json([{name:"roleFoo"}]);              
                 return getResponse.body;                
             })
-            .then(function(role){
-                console.log("role foo response body: " + JSON.stringify(role));                
-                return chakram.post(baseAuthUrl + "/groups/" + newGroupFoo.groupName + "/roles", role, authRequestOptions);
+            .then(function(role){                
+                return chakram.post(baseAuthUrl + "/groups/" + newGroupFoo.groupName + "/roles", role[0], authRequestOptions);
+            })
+            .then(function(postResponse){
+                expect(postResponse).to.have.status(204);
+            });            
+        });
+
+        it("should associate group bar with role bar", function(){
+            authRequestOptions.headers.Authorization = newAuthClientAccessToken;
+            
+            return chakram.get(baseAuthUrl + "/roles/"+ newRoleBar.Grain + "/" + newRoleBar.SecurableItem + "/" + newRoleBar.Name, authRequestOptions)
+            .then(function(getResponse){            
+                expect(getResponse).to.have.status(200);
+                expect(getResponse).to.comprise.of.json([{name:"roleBar"}]);              
+                return getResponse.body;                
+            })
+            .then(function(role){                
+                return chakram.post(baseAuthUrl + "/groups/" + newGroupBar.groupName + "/roles", role[0], authRequestOptions);
             })
             .then(function(postResponse){
                 expect(postResponse).to.have.status(204);
