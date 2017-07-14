@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 
@@ -17,7 +18,7 @@ namespace Fabric.Authorization.Domain.Stores
             {
                 Id = "fabric-mvcsample",
                 Name = "Sample Fabric MVC Client",
-                TopLevelSecurableItem =  new SecurableItem
+                TopLevelSecurableItem = new SecurableItem
                 {
                     Id = Guid.NewGuid(),
                     Name = "fabric-mvcsample"
@@ -40,14 +41,14 @@ namespace Fabric.Authorization.Domain.Stores
             Clients.TryAdd(angularClient.Id, angularClient);
         }
 
-        public IEnumerable<Client> GetAll()
+        public Task<IEnumerable<Client>> GetAll()
         {
-            return Clients.Values.AsEnumerable();
+            return Task.FromResult(Clients.Values.Where(c => !c.IsDeleted));
         }
 
-        public Client Get(string clientId)
+        public async Task<Client> Get(string clientId)
         {
-            if (this.Exists(clientId))
+            if (await this.Exists(clientId) && !Clients[clientId].IsDeleted)
             {
                 return Clients[clientId];
             }
@@ -55,16 +56,13 @@ namespace Fabric.Authorization.Domain.Stores
             throw new NotFoundException<Client>(clientId);
         }
 
-        public bool Exists(string clientId)
-        {
-            return Clients.ContainsKey(clientId);
-        }
+        public Task<bool> Exists(string clientId) => Task.FromResult(Clients.ContainsKey(clientId));
 
-        public Client Add(Client client)
+        public async Task<Client> Add(Client client)
         {
             client.Track(true);
-            
-            if (this.Exists(client.Id))
+
+            if (await this.Exists(client.Id))
             {
                 throw new AlreadyExistsException<Client>(client, client.Id);
             }
@@ -77,19 +75,19 @@ namespace Fabric.Authorization.Domain.Stores
             return client;
         }
 
-        public void Delete(Client client)
+        public async Task Delete(Client client)
         {
             client.IsDeleted = true;
-            Update(client);
+            await Update(client);
         }
 
-        public void Update(Client client)
+        public async Task Update(Client client)
         {
             client.Track();
 
-            if (this.Exists(client.Id) )
+            if (await this.Exists(client.Id))
             {
-                if(!Clients.TryUpdate(client.Id, client, this.Get(client.Id)))
+                if (!Clients.TryUpdate(client.Id, client, Clients[client.Id]))
                 {
                     throw new CouldNotCompleteOperationException();
                 }

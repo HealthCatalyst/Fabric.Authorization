@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
@@ -18,7 +19,7 @@ namespace Fabric.Authorization.UnitTests.Mocks
                 {
                     if (groups.Any(g => g.Name == groupName))
                     {
-                        return groups.First(g => g.Name == groupName);
+                        return Task.FromResult(groups.First(g => g.Name == groupName));
                     }
                     throw new NotFoundException<Group>();
                 });
@@ -30,7 +31,7 @@ namespace Fabric.Authorization.UnitTests.Mocks
             mockGroupStore.Setup(groupStore => groupStore.Exists(It.IsAny<string>()))
                 .Returns((string groupName) =>
                 {
-                    return groups.Any(g => g.Name == groupName);
+                    return Task.FromResult(groups.Any(g => g.Name == groupName));
                 });
             return mockGroupStore;
         }
@@ -40,7 +41,7 @@ namespace Fabric.Authorization.UnitTests.Mocks
                 .Returns((Group g) =>
                 {
                     g.Id = Guid.NewGuid().ToString();
-                    return g;
+                    return Task.FromResult(g);
                 });
             return mockGroupStore;
         }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
 using FluentValidation;
@@ -24,9 +25,9 @@ namespace Fabric.Authorization.Domain.Validators
                 .WithMessage("Please specify a Name for this Group");
         }
 
-        private bool BeUnique(string groupId)
+        private async Task<bool> BeUnique(string groupId)
         {
-            return !_GroupStore.Exists(groupId);
+            return ! await _GroupStore.Exists(groupId);
         }
     }
 }

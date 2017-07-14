@@ -43,6 +43,7 @@ namespace Fabric.Authorization.Domain.Validators
         {
             return !_roleStore
                     .GetRoles(role.Grain, role.SecurableItem, role.Name)
+                    .Result
                     .Any();
         }
     }

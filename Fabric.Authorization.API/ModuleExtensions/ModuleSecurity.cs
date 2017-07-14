@@ -10,18 +10,19 @@ using Nancy.Security;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
+using System.Threading.Tasks;
 
 namespace Fabric.Authorization.API.ModuleExtensions
 {
     public static class ModuleSecurity
     {
-        public static void RequiresOwnershipAndClaims<T>(this NancyModule module, IClientService clientService, string grain, string securableItem, params Predicate<Claim>[] requiredClaims)
+        public static void RequiresOwnershipAndClaims<T>(this NancyModule module, ClientService clientService, string grain, string securableItem, params Predicate<Claim>[] requiredClaims)
         {
             module.RequiresClaims(requiredClaims);
             module.AddBeforeHookOrExecute(RequiresOwnership<T>(clientService, grain, securableItem));
         }
 
-        public static Func<NancyContext, Response> RequiresOwnership<T>(IClientService clientService, string grain, string securableItem)
+        public static Func<NancyContext, Response> RequiresOwnership<T>(ClientService clientService, string grain, string securableItem)
         {
             return (context) =>
             {
@@ -29,15 +30,24 @@ namespace Fabric.Authorization.API.ModuleExtensions
                 var clientId = context.CurrentUser?.FindFirst(Claims.ClientId)?.Value;
                 try
                 {
-                    if (!clientService.DoesClientOwnItem(clientId, grain, securableItem))
+                    if (!clientService.DoesClientOwnItem(clientId, grain, securableItem).Result)
                     {
                         response = CreateForbiddenResponse<T>(clientId, grain, securableItem, context);
                     }
                 }
-                catch (NotFoundException<Client>)
+                catch (AggregateException ex)
                 {
-                    response = CreateForbiddenResponse<T>(clientId, grain, securableItem, context);
+                    if (ex.InnerException is NotFoundException<Client>)
+                    {
+                        response = CreateForbiddenResponse<T>(clientId, grain, securableItem, context);
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                    
                 }
+
                 return response;
             };
         }

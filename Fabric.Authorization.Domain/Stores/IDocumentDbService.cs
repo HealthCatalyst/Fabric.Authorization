@@ -12,13 +12,13 @@ namespace Fabric.Authorization.Domain.Stores
 
         Task<int> GetDocumentCount(string documentType);
 
-        void AddDocument<T>(string documentId, T documentObject);
+        Task AddDocument<T>(string documentId, T documentObject);
 
-        void UpdateDocument<T>(string documentId, T documentObject);
+        Task UpdateDocument<T>(string documentId, T documentObject);
 
-        void DeleteDocument<T>(string documentId);
+        Task DeleteDocument<T>(string documentId);
 
-        void AddViews(string documentId, CouchDBViews views);
+        Task AddViews(string documentId, CouchDBViews views);
 
         Task<IEnumerable<T>> GetDocuments<T>(string designdoc, string viewName, Dictionary<string, object> customParams);
 

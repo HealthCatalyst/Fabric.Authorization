@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Serilog;
@@ -19,45 +20,49 @@ namespace Fabric.Authorization.Domain.Stores
             this.AddViews();
         }
 
-        public abstract T Add(T model);
+        public abstract Task<T> Add(T model);
 
-        public virtual T Add(string id, T model)
+        public virtual async Task<T> Add(string id, T model)
         {
             model.Track(creation: true);
-            try
-            {
-                _dbService.AddDocument<T>(id, model);
-            }
-            catch (ArgumentException)
-            {
-                throw new AlreadyExistsException<T>(model, "Object already exists!");
-            }
+            await _dbService.AddDocument<T>(id, model);
 
             return model;
         }
 
-        public virtual void Update(T model)
+        public virtual async Task Update(T model)
         {
-            _dbService.UpdateDocument<T>(model.Identifier, model);
+            await _dbService.UpdateDocument<T>(model.Identifier, model);
         }
 
-        public abstract void Delete(T model);
+        public abstract Task Delete(T model);
 
-        public virtual void Delete(string id, T model)
+        public virtual async Task Delete(string id, T model)
         {
             model.Track();
-            _dbService.DeleteDocument<T>(id);
+            if (model is ISoftDelete)
+            {
+                (model as ISoftDelete).IsDeleted = true;
+                await this.Update(model);
+            }
+            else
+            {
+                _logger.Information($"Hard deleting {model.GetType()} {model.Identifier}");
+                await _dbService.DeleteDocument<T>(id);
+            }
         }
 
-        public virtual bool Exists(K id)
+        public virtual async Task<bool> Exists(K id)
         {
-            return _dbService.GetDocument<T>(id.ToString()).Result != null;
+            var result = await _dbService.GetDocument<T>(id.ToString());
+            return (result != null && 
+                    (!(result is ISoftDelete) || !(result as ISoftDelete).IsDeleted));
         }
 
-        public virtual T Get(K id)
+        public virtual async Task<T> Get(K id)
         {
-            var result = _dbService.GetDocument<T>(id.ToString()).Result;
-            if (result == null)
+            var result = await _dbService.GetDocument<T>(id.ToString());
+            if (result == null || ((result is ISoftDelete) && (result as ISoftDelete).IsDeleted))
             {
                 throw new NotFoundException<T>();
             }
@@ -65,11 +70,11 @@ namespace Fabric.Authorization.Domain.Stores
             return result;
         }
 
-        public virtual IEnumerable<T> GetAll()
-        {
-            return Enumerable.Empty<T>();
-        }
+        public virtual Task<IEnumerable<T>> GetAll() => Task.FromResult(Enumerable.Empty<T>());
 
+        /// <summary>
+        ///
+        /// </summary>
         protected virtual void AddViews()
         {
         }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
 using FluentValidation;
@@ -34,7 +35,7 @@ namespace Fabric.Authorization.Domain.Validators
 
         private bool BeUnique(string clientId)
         {
-            return !_clientStore.Exists(clientId);
+            return !_clientStore.Exists(clientId).Result;
         }
     }
 }

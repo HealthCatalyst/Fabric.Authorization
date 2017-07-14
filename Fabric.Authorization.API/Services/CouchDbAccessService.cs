@@ -1,14 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Fabric.Authorization.API.Configuration;
+using Fabric.Authorization.Domain.Exceptions;
+using Fabric.Authorization.Domain.Stores;
 using MyCouch;
 using MyCouch.Net;
 using MyCouch.Requests;
 using MyCouch.Responses;
 using Newtonsoft.Json;
 using Serilog;
-using System;
-using Fabric.Authorization.API.Configuration;
-using Fabric.Authorization.Domain.Stores;
 
 namespace Fabric.Authorization.API.Services
 {
@@ -59,30 +61,28 @@ namespace Fabric.Authorization.API.Services
                     }
                 }
             }
-
         }
 
-            public Task<T> GetDocument<T>(string documentId)
+        public async Task<T> GetDocument<T>(string documentId)
         {
-
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
-                var documentResponse = client.Documents.GetAsync(GetFullDocumentId<T>(documentId)).Result;
+                var documentResponse = await client.Documents.GetAsync(GetFullDocumentId<T>(documentId));
 
                 if (!documentResponse.IsSuccess)
                 {
                     _logger.Debug($"unable to find document: {GetFullDocumentId<T>(documentId)} - message: {documentResponse.Reason}");
-                    return Task.FromResult(default(T));
+                    return default(T);
                 }
 
                 var json = documentResponse.Content;
                 var document = JsonConvert.DeserializeObject<T>(json);
 
-                return Task.FromResult(document);
+                return document;
             }
         }
 
-        public Task<IEnumerable<T>> GetDocuments<T>(string documentType)
+        public async Task<IEnumerable<T>> GetDocuments<T>(string documentType)
         {
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
@@ -92,12 +92,12 @@ namespace Fabric.Authorization.API.Services
                         .StartKey(documentType)
                         .EndKey($"{documentType}{HighestUnicodeChar}"));
 
-                ViewQueryResponse result = client.Views.QueryAsync(viewQuery).Result;
+                ViewQueryResponse result = await client.Views.QueryAsync(viewQuery);
 
                 if (!result.IsSuccess)
                 {
                     _logger.Error($"unable to find documents for type: {documentType} - error: {result.Reason}");
-                    return Task.FromResult(default(IEnumerable<T>));
+                    return default(IEnumerable<T>);
                 }
 
                 var results = new List<T>();
@@ -108,40 +108,40 @@ namespace Fabric.Authorization.API.Services
                     results.Add(resultRow);
                 }
 
-                return Task.FromResult((IEnumerable<T>)results);
+                return results;
             }
         }
 
-        public Task<int> GetDocumentCount(string documentType)
+        public async Task<int> GetDocumentCount(string documentType)
         {
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
-                var viewQuery = new QueryViewRequest("TODO",
-                    documentType);
-                var result = client.Views.QueryAsync<int>(viewQuery).Result;
-                if (result.Rows != null && result.Rows.Length > 0)
+                var viewQuery = new QueryViewRequest("TODO", documentType);
+                var result = await client.Views.QueryAsync<int>(viewQuery);
+                if (result.Rows != null && result.Rows.Any())
                 {
-                    return Task.FromResult(result.Rows[0].Value);
+                    return result.Rows.First().Value;
                 }
-                return Task.FromResult(0);
+
+                return -1;
             }
         }
 
-        public void AddDocument<T>(string documentId, T documentObject)
+        public async Task AddDocument<T>(string documentId, T documentObject)
         {
             var fullDocumentId = GetFullDocumentId<T>(documentId);
 
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
-                var existingDoc = client.Documents.GetAsync(fullDocumentId).Result;
+                var existingDoc = await client.Documents.GetAsync(fullDocumentId);
                 var docJson = JsonConvert.SerializeObject(documentObject);
 
                 if (!string.IsNullOrEmpty(existingDoc.Id))
                 {
-                    throw new ArgumentException($"Document with id {documentId} already exists.");
+                    throw new AlreadyExistsException<T>($"Document with id {documentId} already exists.");
                 }
 
-                var response = client.Documents.PutAsync(fullDocumentId, docJson).Result;
+                var response = await client.Documents.PutAsync(fullDocumentId, docJson);
 
                 if (!response.IsSuccess)
                 {
@@ -150,13 +150,13 @@ namespace Fabric.Authorization.API.Services
             }
         }
 
-        public void UpdateDocument<T>(string documentId, T documentObject)
+        public async Task UpdateDocument<T>(string documentId, T documentObject)
         {
             var fullDocumentId = GetFullDocumentId<T>(documentId);
 
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
-                var existingDoc = client.Documents.GetAsync(fullDocumentId).Result;
+                var existingDoc = await client.Documents.GetAsync(fullDocumentId);
                 var docJson = JsonConvert.SerializeObject(documentObject);
 
                 if (existingDoc.IsEmpty)
@@ -164,7 +164,7 @@ namespace Fabric.Authorization.API.Services
                     throw new ArgumentException($"Document with id {documentId} does not exist.");
                 }
 
-                var response = client.Documents.PutAsync(fullDocumentId, existingDoc.Rev, docJson).Result;
+                var response = await client.Documents.PutAsync(fullDocumentId, existingDoc.Rev, docJson);
 
                 if (!response.IsSuccess)
                 {
@@ -173,21 +173,21 @@ namespace Fabric.Authorization.API.Services
             }
         }
 
-        public void DeleteDocument<T>(string documentId)
+        public async Task DeleteDocument<T>(string documentId)
         {
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
-                var documentResponse = client.Documents.GetAsync(GetFullDocumentId<T>(documentId)).Result;
+                var documentResponse = await client.Documents.GetAsync(GetFullDocumentId<T>(documentId));
 
-                Delete(documentResponse.Id, documentResponse.Rev);
+                await Delete(documentResponse.Id, documentResponse.Rev);
             }
         }
 
-        private void Delete(string documentId, string rev)
+        private async Task Delete(string documentId, string rev)
         {
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
-                var response = client.Documents.DeleteAsync(documentId, rev).Result;
+                var response = await client.Documents.DeleteAsync(documentId, rev);
 
                 if (!response.IsSuccess)
                 {
@@ -196,13 +196,13 @@ namespace Fabric.Authorization.API.Services
             }
         }
 
-        public void AddViews(string documentId, CouchDBViews views)
+        public async Task AddViews(string documentId, CouchDBViews views)
         {
             var fullDocumentId = $"_design/{documentId}";
 
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
-                var existingDoc = client.Documents.GetAsync(fullDocumentId).Result;
+                var existingDoc = await client.Documents.GetAsync(fullDocumentId);
                 var docJson = JsonConvert.SerializeObject(views);
 
                 if (!string.IsNullOrEmpty(existingDoc.Id))
@@ -210,7 +210,7 @@ namespace Fabric.Authorization.API.Services
                     return;
                 }
 
-                var response = client.Documents.PutAsync(fullDocumentId, docJson).Result;
+                var response = await client.Documents.PutAsync(fullDocumentId, docJson);
 
                 if (!response.IsSuccess)
                 {
@@ -219,18 +219,18 @@ namespace Fabric.Authorization.API.Services
             }
         }
 
-        public Task<IEnumerable<T>> GetDocuments<T>(string designdoc, string viewName, Dictionary<string, object> customParams)
+        public async Task<IEnumerable<T>> GetDocuments<T>(string designdoc, string viewName, Dictionary<string, object> customParams)
         {
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
                 var viewQuery = new QueryViewRequest(designdoc, viewName);
                 viewQuery.CustomQueryParameters = customParams;
-                ViewQueryResponse result = client.Views.QueryAsync(viewQuery).Result;
+                ViewQueryResponse result = await client.Views.QueryAsync(viewQuery);
 
                 if (!result.IsSuccess)
                 {
                     _logger.Error($"unable to execute view: {viewName} - error: {result.Reason}");
-                    return Task.FromResult(default(IEnumerable<T>));
+                    return default(IEnumerable<T>);
                 }
 
                 var results = new List<T>();
@@ -241,21 +241,21 @@ namespace Fabric.Authorization.API.Services
                     results.Add(resultRow);
                 }
 
-                return Task.FromResult((IEnumerable<T>)results);
+                return results;
             }
         }
-        
-        public Task<IEnumerable<T>> GetDocuments<T>(string designdoc, string viewName, string key)
+
+        public async Task<IEnumerable<T>> GetDocuments<T>(string designdoc, string viewName, string key)
         {
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
                 var viewQuery = new QueryViewRequest(designdoc, viewName);
-                ViewQueryResponse result = client.Views.QueryAsync(viewQuery).Result;
+                ViewQueryResponse result = await client.Views.QueryAsync(viewQuery);
 
                 if (!result.IsSuccess)
                 {
                     _logger.Error($"unable to execute view: {viewName} - error: {result.Reason}");
-                    return Task.FromResult(default(IEnumerable<T>));
+                    return default(IEnumerable<T>);
                 }
 
                 var results = new List<T>();
@@ -269,7 +269,7 @@ namespace Fabric.Authorization.API.Services
                     }
                 }
 
-                return Task.FromResult((IEnumerable<T>)results);
+                return results;
             }
         }
     }

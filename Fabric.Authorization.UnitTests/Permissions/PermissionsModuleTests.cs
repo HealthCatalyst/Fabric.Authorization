@@ -171,8 +171,8 @@ namespace Fabric.Authorization.UnitTests.Permissions
             return new ConfigurableBootstrapper(with =>
             {
                 with.Module<PermissionsModule>()
-                    .Dependency<IPermissionService>(typeof(PermissionService))
-                    .Dependency<IClientService>(typeof(ClientService))
+                    .Dependency<PermissionService>(typeof(PermissionService))
+                    .Dependency<ClientService>(typeof(ClientService))
                     .Dependency(mockLogger)
                     .Dependency(mockPermissionStore)
                     .Dependency(mockClientStore);

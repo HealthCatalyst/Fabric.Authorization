@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.Domain.Stores
 {
     public interface IRoleStore : IGenericStore<Guid, Role>
     {
-        IEnumerable<Role> GetRoles(string grain, string securableItem = null, string roleName = null);
+        Task<IEnumerable<Role>> GetRoles(string grain, string securableItem = null, string roleName = null);
+
+        Task<IEnumerable<Role>> GetRoleHierarchy(Guid roleId);
     }
 }

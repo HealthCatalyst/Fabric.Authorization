@@ -248,7 +248,7 @@ namespace Fabric.Authorization.UnitTests.SecurableItems
             params Claim[] claims)
         {
             return base.ConfigureBootstrapper(configurableBootstrapper, claims)
-                .Dependency<ISecurableItemService>(typeof(SecurableItemService))
+                .Dependency<SecurableItemService>(typeof(SecurableItemService))
                 .Dependency(_mockClientStore.Object)
                 .Dependency(_mockLogger.Object);
         }

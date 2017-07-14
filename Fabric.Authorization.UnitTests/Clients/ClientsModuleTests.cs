@@ -199,7 +199,7 @@ namespace Fabric.Authorization.UnitTests.Clients
         protected override ConfigurableBootstrapper.ConfigurableBootstrapperConfigurator ConfigureBootstrapper(ConfigurableBootstrapper configurableBootstrapper, params Claim[] claims)
         {
             return base.ConfigureBootstrapper(configurableBootstrapper, claims)
-                .Dependency<IClientService>(typeof(ClientService))
+                .Dependency<ClientService>(typeof(ClientService))
                 .Dependency(_mockLogger.Object)
                 .Dependency(_mockClientStore.Object);
         }

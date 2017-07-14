@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Security.Claims;
-using Fabric.Authorization.API.Models;
-using Nancy;
-using Nancy.Responses.Negotiation;
 using Fabric.Authorization.API.Constants;
+using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.ModuleExtensions;
+using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
 using FluentValidation;
+using Nancy;
+using Nancy.Responses.Negotiation;
 using Serilog;
-using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.API.Modules
 {
@@ -16,6 +16,7 @@ namespace Fabric.Authorization.API.Modules
     {
         protected AbstractValidator<T> Validator;
         protected ILogger Logger;
+
         protected Predicate<Claim> AuthorizationReadClaim
         {
             get { return claim => claim.Type == Claims.Scope && claim.Value == Scopes.ReadScope; }
@@ -63,7 +64,7 @@ namespace Fabric.Authorization.API.Modules
             return Negotiate.WithModel(error).WithStatusCode(statusCode);
         }
 
-        protected void CheckAccess(IClientService clientService, dynamic grain, dynamic securableItem,
+        protected void CheckAccess(ClientService clientService, dynamic grain, dynamic securableItem,
             params Predicate<Claim>[] requiredClaims)
         {
             string grainAsString = grain.ToString();

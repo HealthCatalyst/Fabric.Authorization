@@ -37,28 +37,28 @@ namespace Fabric.Authorization.Domain.Stores
             return _innerDocumentDbService.GetDocumentCount(documentType);
         }
 
-        public void AddDocument<T>(string documentId, T documentObject)
+        public Task AddDocument<T>(string documentId, T documentObject)
         {
-            _innerDocumentDbService.AddDocument(documentId, documentObject);
             _eventService.RaiseEventAsync(new EntityAuditEvent<T>(EventTypes.EntityCreatedEvent, documentId, documentObject)).ConfigureAwait(false);
+            return _innerDocumentDbService.AddDocument(documentId, documentObject);
         }
 
-        public void UpdateDocument<T>(string documentId, T documentObject)
-        {
-            _innerDocumentDbService.UpdateDocument(documentId, documentObject);
+        public Task UpdateDocument<T>(string documentId, T documentObject)
+        {            
             _eventService.RaiseEventAsync(new EntityAuditEvent<T>(EventTypes.EntityUpdatedEvent, documentId, documentObject));
+            return _innerDocumentDbService.UpdateDocument(documentId, documentObject);
         }
 
-        public void DeleteDocument<T>(string documentId)
-        {
-            _innerDocumentDbService.DeleteDocument<T>(documentId);
+        public Task DeleteDocument<T>(string documentId)
+        {            
             _eventService.RaiseEventAsync(new EntityAuditEvent<T>(EventTypes.EntityDeletedEvent, documentId))
                 .ConfigureAwait(false);
+            return _innerDocumentDbService.DeleteDocument<T>(documentId);
         }
 
-        public void AddViews(string documentId, CouchDBViews views)
+        public Task AddViews(string documentId, CouchDBViews views)
         {
-            _innerDocumentDbService.AddViews(documentId, views);
+            return _innerDocumentDbService.AddViews(documentId, views);
         }
 
         public Task<IEnumerable<T>> GetDocuments<T>(string designdoc, string viewName, Dictionary<string, object> customParams)

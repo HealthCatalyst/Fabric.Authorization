@@ -74,11 +74,8 @@ namespace Fabric.Authorization.API
                 ? (IClientStore) new InMemoryClientStore()
                 : new CouchDBClientStore(new CouchDbAccessService(_appConfig.CouchDbSettings, _logger), _logger);
             
-            return await Task.Run(() =>
-             {
-                 var result = clientStore.GetAll();
-                 return result.Any();
-             }).ConfigureAwait(false);
+            var result = await clientStore.GetAll();
+            return result.Any();
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 
@@ -10,8 +11,8 @@ namespace Fabric.Authorization.Domain.Stores
     public class InMemoryRoleStore : IRoleStore
     {
         private readonly ConcurrentDictionary<Guid, Role> Roles = new ConcurrentDictionary<Guid, Role>();
-        
-        public IEnumerable<Role> GetRoles(string grain = null, string securableItem = null, string roleName = null)
+
+        public Task<IEnumerable<Role>> GetRoles(string grain = null, string securableItem = null, string roleName = null)
         {
             var roles = Roles.Select(kvp => kvp.Value);
             if (!string.IsNullOrEmpty(grain))
@@ -26,39 +27,39 @@ namespace Fabric.Authorization.Domain.Stores
             {
                 roles = roles.Where(r => r.Name == roleName);
             }
-            return roles.Where(r => !r.IsDeleted);
+            return Task.FromResult(roles.Where(r => !r.IsDeleted));
         }
 
-        public Role Get(Guid roleId)
+        public async Task<Role> Get(Guid roleId)
         {
-            if (Exists(roleId))
+            if (await Exists(roleId))
             {
                 return Roles[roleId];
             }
             throw new NotFoundException<Role>($"The specified role with id: {roleId} was not found.");
         }
 
-        public Role Add(Role role)
+        public Task<Role> Add(Role role)
         {
             role.Track(creation: true);
             role.Id = Guid.NewGuid();
             Roles.TryAdd(role.Id, role);
-            return role;
+            return Task.FromResult(role);
         }
 
-        public void Delete(Role role)
+        public async Task Delete(Role role)
         {
             role.IsDeleted = true;
-            Update(role);
+            await Update(role);
         }
 
-        public void Update(Role role)
+        public async Task Update(Role role)
         {
             role.Track();
 
-            if (this.Exists(role.Id))
+            if (await this.Exists(role.Id))
             {
-                if (!Roles.TryUpdate(role.Id, role, this.Get(role.Id)))
+                if (!Roles.TryUpdate(role.Id, role, await this.Get(role.Id)))
                 {
                     throw new CouldNotCompleteOperationException();
                 }
@@ -69,8 +70,32 @@ namespace Fabric.Authorization.Domain.Stores
             }
         }
 
-        public IEnumerable<Role> GetAll() => this.GetRoles();
+        public Task<IEnumerable<Role>> GetAll() => this.GetRoles();
 
-        public bool Exists(Guid id) => Roles.ContainsKey(id);
+        public Task<bool> Exists(Guid id) => Task.FromResult(Roles.ContainsKey(id));
+
+        public async Task<IEnumerable<Role>> GetRoleHierarchy(Guid roleId)
+        {
+            var queue = new Queue<Guid>();
+            queue.Enqueue(roleId);
+
+            var roleHierarchy = new HashSet<Role>();
+
+            while (queue.Any())
+            {
+                var topId = queue.Dequeue();
+                if (await this.Exists(topId))
+                {
+                    var role = await this.Get(topId);
+                    roleHierarchy.Add(role);
+                    if (role.ParentRole.HasValue)
+                    {
+                        queue.Enqueue(role.ParentRole.Value);
+                    }
+                }
+            }
+
+            return roleHierarchy;
+        }
     }
 }

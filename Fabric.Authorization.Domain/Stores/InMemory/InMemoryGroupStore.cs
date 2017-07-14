@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 
@@ -29,9 +31,9 @@ namespace Fabric.Authorization.Domain.Stores
             Groups.TryAdd(group2.Name, group2);
         }
 
-        public Group Get(string name)
+        public async Task<Group> Get(string name)
         {
-            if (Exists(name) && !Groups[name].IsDeleted)
+            if (await Exists(name) && !Groups[name].IsDeleted)
             {
                 return Groups[name];
             }
@@ -39,11 +41,11 @@ namespace Fabric.Authorization.Domain.Stores
             throw new NotFoundException<Group>(name);
         }
 
-        public Group Add(Group group)
+        public async Task<Group> Add(Group group)
         {
             group.Track(creation: true);
 
-            if (Exists(group.Name))
+            if (await Exists(group.Name))
             {
                 throw new AlreadyExistsException<Group>(group, group.Name);
             }
@@ -52,17 +54,17 @@ namespace Fabric.Authorization.Domain.Stores
             return group;
         }
 
-        public void Delete(Group group)
+        public async Task Delete(Group group)
         {
             group.IsDeleted = true;
-            Update(group);
+            await Update(group);
         }
 
-        public void Update(Group group)
+        public async Task Update(Group group)
         {
             group.Track();
 
-            if (this.Exists(group.Name))
+            if (await this.Exists(group.Name))
             {
                 if (!Groups.TryUpdate(group.Name, group, Groups[group.Name]))
                 {
@@ -75,8 +77,8 @@ namespace Fabric.Authorization.Domain.Stores
             }
         }
 
-        public bool Exists(string name) => Groups.ContainsKey(name);
+        public Task<bool> Exists(string name) => Task.FromResult(Groups.ContainsKey(name));
 
-        public IEnumerable<Group> GetAll() => Groups.Values;
+        public Task<IEnumerable<Group>> GetAll() => Task.FromResult(Groups.Values.Where(g => !g.IsDeleted));
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Fabric.Authorization.Domain.Models
 {
-    public class Group : ITrackable, IIdentifiable
+    public class Group : ITrackable, IIdentifiable, ISoftDelete
     {
         public Group()
         {

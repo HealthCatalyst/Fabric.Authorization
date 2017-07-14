@@ -38,7 +38,7 @@ namespace Fabric.Authorization.UnitTests.Roles
                 .SetupGetPermissions(new List<Permission> { permissionToAdd })
                 .Create();
             var roleService = new RoleService(mockRoleStore, mockPermissionStore);
-            var updatedRole = roleService.AddPermissionsToRole(existingRole, new Guid[] { permissionToAdd.Id });
+            var updatedRole = roleService.AddPermissionsToRole(existingRole, new Guid[] { permissionToAdd.Id }).Result;
             Assert.Equal(1, updatedRole.Permissions.Count);
             Assert.Equal(permissionToAdd.Id, updatedRole.Permissions.First().Id);
         }
@@ -63,7 +63,7 @@ namespace Fabric.Authorization.UnitTests.Roles
             .Create();
             
             var roleService = new RoleService(mockRoleStore, mockPermissionStore);
-            Assert.Throws<IncompatiblePermissionException>(() => roleService.AddPermissionsToRole(existingRole, new Guid[] { permissionToAdd.Id }));
+            Assert.Throws<AggregateException>(() => roleService.AddPermissionsToRole(existingRole, new Guid[] { permissionToAdd.Id }).Result);
         }
 
         [Fact]
@@ -94,7 +94,7 @@ namespace Fabric.Authorization.UnitTests.Roles
 
             
             var roleService = new RoleService(mockRoleStore, mockPermissionStore);
-            var updatedRole = roleService.RemovePermissionsFromRole(existingRole, new []{permissionToRemove.Id});
+            var updatedRole = roleService.RemovePermissionsFromRole(existingRole, new []{permissionToRemove.Id}).Result;
             Assert.False(updatedRole.Permissions.Any());
 
         }
@@ -126,7 +126,7 @@ namespace Fabric.Authorization.UnitTests.Roles
 
 
             var roleService = new RoleService(mockRoleStore, mockPermissionStore);
-            Assert.Throws<NotFoundException<Permission>>(() => roleService.RemovePermissionsFromRole(existingRole, new[] { permissionToRemove.Id }));
+            Assert.Throws<AggregateException>(() => roleService.RemovePermissionsFromRole(existingRole, new[] { permissionToRemove.Id }).Result);
         }
 
         public static IEnumerable<object[]> IncompatiblePermissionData()
