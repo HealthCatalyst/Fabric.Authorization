@@ -77,31 +77,6 @@ namespace Fabric.Authorization.Domain.Stores
                     {
                         { "map", "function(doc) { return emit(doc.Grain+doc.SecurableItem, doc); }" },
                     }
-                },
-                {
-                    "resolvepermissions",
-                    new Dictionary<string, string>()
-                    {
-                        { "map", @"function(doc) {
-                                     var queue = [];
-                                     var hierarchy = [];
-                                     queue.push(doc.Id);
-
-                                     while (queue.length > 0) {
-                                         var topId = queue.shift();
-                                         role = Role(topId);
-
-                                         if (role && role.ParentRole) {
-                                             queue.push(role.ParentRole);
-                                         }
-
-                                         hierarchy.push(topId);
-                                     }
-
-                                     emit(doc.Id, hierarchy);
-                                 }"
-                        },
-                    }
                 }
             };
 

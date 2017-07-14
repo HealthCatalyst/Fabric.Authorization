@@ -69,15 +69,33 @@ describe("authorization tests", function(){
         "SecurableItem": "func-test",
         "Name": "userCanEdit"
     }
-   
-    function registerClientsWithIdentity(){
+
+    function registerAuthorizationApi(){
+        var authApiResource = { 
+            "name": "authorization-api", 
+            "userClaims": ["name", "email", "role", "groups"], 
+            "scopes": [
+                {"name": "fabric/authorization.read"}, 
+                {"name": "fabric/authorization.write"}, 
+                {"name":"fabric/authorization.manageclients"}
+            ]
+        }
+
+        return chakram.post(baseIdentityUrl + "/api/apiresource", authApiResource, authRequestOptions);
+    }
+
+    function registerRegistrationApi(){
         var registrationApi = {
             "name": "registration-api", 
             "userClaims": ["name","email", "role", "groups"], 
             "scopes": [{ "name": "fabric/identity.manageresources"}]
         }
 
-        return chakram.post(baseIdentityUrl + "/api/apiresource", registrationApi, requestOptions)
+        return chakram.post(baseIdentityUrl + "/api/apiresource", registrationApi, requestOptions);
+    }
+
+    function bootstrapIdentityServer(){
+        return registerRegistrationApi()
         .then(registerAuthorizationApi())
         .then(function(){
             var installerClient = { 
@@ -96,7 +114,22 @@ describe("authorization tests", function(){
         })
         .then(function(postResponse){            
             return postResponse.body.clientSecret;                        
+        })
+        .then(function(installerSecret){            
+            return getAccessTokenForInstaller(installerSecret);
+        })
+        .then(function(retrievedAccessToken){                                   
+            authRequestOptions.headers.Authorization = retrievedAccessToken;            
         });
+    }
+
+    function getAccessToken(clientData){
+        return chakram.post(baseIdentityUrl + "/connect/token", undefined, clientData)
+            .then(function(postResponse){  
+                console.log("response for access token: " + JSON.stringify(postResponse.body));
+                var accessToken = "Bearer " + postResponse.body.access_token;                                             
+                return accessToken;
+            });
     }
 
     function getAccessTokenForInstaller(installerSecret){        
@@ -125,40 +158,9 @@ describe("authorization tests", function(){
         return getAccessToken(clientData);
     }
 
-    function getAccessToken(clientData){
-        return chakram.post(baseIdentityUrl + "/connect/token", undefined, clientData)
-            .then(function(postResponse){  
-                console.log("response for access token: " + JSON.stringify(postResponse.body));
-                var accessToken = "Bearer " + postResponse.body.access_token;                                             
-                return accessToken;
-            });
-    }
-
-    function registerAuthorizationApi(){
-        var authApiResource = { 
-            "name": "authorization-api", 
-            "userClaims": ["name", "email", "role", "groups"], 
-            "scopes": [
-                {"name": "fabric/authorization.read"}, 
-                {"name": "fabric/authorization.write"}, 
-                {"name":"fabric/authorization.manageclients"}
-            ]
-        }
-
-        return chakram.post(baseIdentityUrl + "/api/apiresource", authApiResource, authRequestOptions);
-    }
-
     before("running before", function(){
         this.timeout(5000);            
-
-        return registerClientsWithIdentity()        
-        .then(function(installerSecret){            
-            return getAccessTokenForInstaller(installerSecret);
-        })
-        .then(function(retrievedAccessToken){                                   
-            authRequestOptions.headers.Authorization = retrievedAccessToken;            
-        });
-        
+        return bootstrapIdentityServer();
     });
 
     describe("validate security", function(){
@@ -234,4 +236,26 @@ describe("authorization tests", function(){
             return expect(registerPermissionResponse).to.have.status(201);
         });
     });
+
+    describe("associate groups to roles", function(){
+        it("should associate group foo with role foo", function(){
+            authRequestOptions.headers.Authorization = newAuthClientAccessToken;
+
+            console.log("new role foo: " + JSON.stringify(newRoleFoo));
+            chakram.startDebug();
+            return chakram.get(baseAuthUrl + "/roles/"+ newRoleFoo.Grain + "/" + newRoleFoo.SecurableItem + "/" + newRoleFoo.Name, authRequestOptions)
+            .then(function(getResponse){
+                chakram.stopDebug();
+                expect(getResponse).to.have.status(200);                
+                return getResponse.body;                
+            })
+            .then(function(role){
+                console.log("role foo response body: " + JSON.stringify(role));                
+                return chakram.post(baseAuthUrl + "/groups/" + newGroupFoo.groupName + "/roles", role, authRequestOptions);
+            })
+            .then(function(postResponse){
+                expect(postResponse).to.have.status(204);
+            });            
+        });
+    });  
 });
