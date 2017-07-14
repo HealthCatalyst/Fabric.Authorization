@@ -1,20 +1,22 @@
 ﻿using System;
-using Fabric.Authorization.API.Models;
-using Fabric.Authorization.Domain.Services;
-using Nancy.ModelBinding;
 using System.Linq;
+using System.Threading.Tasks;
+using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Domain.Models;
+using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Validators;
 using IdentityModel;
+using Nancy.ModelBinding;
 using Serilog;
 
 namespace Fabric.Authorization.API.Modules
 {
     public class UsersModule : FabricModule<User>
     {
-        private readonly IGroupService _groupService;
-        private readonly IClientService _clientService;
-        public UsersModule(IClientService clientService, IGroupService groupService, ILogger logger, UserValidator validator) : base("/user", logger, validator)
+        private readonly GroupService _groupService;
+        private readonly ClientService _clientService;
+
+        public UsersModule(ClientService clientService, GroupService groupService, UserValidator validator, ILogger logger) : base("/user", logger, validator)
         {
             _groupService = groupService ?? throw new ArgumentNullException(nameof(groupService));
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
@@ -26,13 +28,13 @@ namespace Fabric.Authorization.API.Modules
         private dynamic GetUserPermissions()
         {
             var userPermissionRequest = this.Bind<UserInfoRequest>();
-            SetDefaultRequest(userPermissionRequest);
+            this.SetDefaultRequest(userPermissionRequest).Wait();
 
             CheckAccess(_clientService, userPermissionRequest.Grain, userPermissionRequest.SecurableItem,
                 AuthorizationReadClaim);
             var groups = GetGroupsForAuthenticatedUser();
             var permissions = _groupService.GetPermissionsForGroups(groups,
-                userPermissionRequest.Grain, userPermissionRequest.SecurableItem);
+                userPermissionRequest.Grain, userPermissionRequest.SecurableItem).Result;
             return new UserPermissionsApiModel
             {
                 RequestedGrain = userPermissionRequest.Grain,
@@ -46,11 +48,11 @@ namespace Fabric.Authorization.API.Modules
             return Context.CurrentUser?.Claims.Where(c => c.Type == "role" || c.Type == "groups").Distinct(new ClaimComparer()).Select(c => c.Value.ToString()).ToArray();
         }
 
-        private void SetDefaultRequest(UserInfoRequest request)
+        private async Task SetDefaultRequest(UserInfoRequest request)
         {
             if (string.IsNullOrEmpty(request.Grain) && string.IsNullOrEmpty(request.SecurableItem))
             {
-                var client = _clientService.GetClient(ClientId);
+                var client = await _clientService.GetClient(ClientId);
                 request.Grain = Constants.TopLevelGrains.AppGrain;
                 request.SecurableItem = client.TopLevelSecurableItem.Name;
             }

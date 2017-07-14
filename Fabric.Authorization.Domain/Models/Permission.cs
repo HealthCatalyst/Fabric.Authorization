@@ -2,7 +2,7 @@
 
 namespace Fabric.Authorization.Domain.Models
 {
-    public class Permission : ITrackable, IIdentifiable
+    public class Permission : ITrackable, IIdentifiable, ISoftDelete
     {
         public Guid Id { get; set; }
 

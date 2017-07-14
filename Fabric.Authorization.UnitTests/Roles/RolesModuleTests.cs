@@ -410,8 +410,8 @@ namespace Fabric.Authorization.UnitTests.Roles
             params Claim[] claims)
         {
             return base.ConfigureBootstrapper(configurableBootstrapper, claims)
-                .Dependency<IRoleService>(typeof(RoleService))
-                .Dependency<IClientService>(typeof(ClientService))
+                .Dependency<RoleService>(typeof(RoleService))
+                .Dependency<ClientService>(typeof(ClientService))
                 .Dependency(MockLogger.Object)
                 .Dependency(MockClientStore.Object)
                 .Dependency(MockPermissionStore.Object)

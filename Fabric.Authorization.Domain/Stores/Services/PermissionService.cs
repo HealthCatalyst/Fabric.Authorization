@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
 
 namespace Fabric.Authorization.Domain.Services
 {
-    public class PermissionService : IPermissionService
+    public class PermissionService
     {
         private readonly IPermissionStore _permissionStore;
 
@@ -13,24 +14,22 @@ namespace Fabric.Authorization.Domain.Services
         {
             _permissionStore = permissionStore ?? throw new ArgumentNullException(nameof(permissionStore));
         }
-        public IEnumerable<Permission> GetPermissions(string grain = null, string securableItem = null, string permissionName = null)
+
+        public async Task<IEnumerable<Permission>> GetPermissions(string grain = null, string securableItem = null, string permissionName = null)
         {
-            return _permissionStore.GetPermissions(grain, securableItem, permissionName);
+            return await _permissionStore.GetPermissions(grain, securableItem, permissionName);
         }
 
-        public Permission GetPermission(Guid permissionId)
+        public async Task<Permission> GetPermission(Guid permissionId)
         {
-            return _permissionStore.Get(permissionId);
+            return await _permissionStore.Get(permissionId);
         }
 
-        public Permission AddPermission(Permission permission)
+        public async Task<Permission> AddPermission(Permission permission)
         {
-            return _permissionStore.Add(permission);
+            return await _permissionStore.Add(permission);
         }
 
-        public void DeletePermission(Permission permission)
-        {
-            _permissionStore.Delete(permission);
-        }
+        public async Task DeletePermission(Permission permission) => await _permissionStore.Delete(permission);
     }
 }

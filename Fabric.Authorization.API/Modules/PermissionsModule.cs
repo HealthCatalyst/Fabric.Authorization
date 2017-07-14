@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
@@ -14,11 +15,11 @@ namespace Fabric.Authorization.API.Modules
 {
     public class PermissionsModule : FabricModule<Permission>
     {
-        private readonly IClientService _clientService;
-        private readonly IPermissionService _permissionService;
+        private readonly ClientService _clientService;
+        private readonly PermissionService _permissionService;
 
-        public PermissionsModule(IPermissionService permissionService,
-            IClientService clientService,
+        public PermissionsModule(PermissionService permissionService,
+            ClientService clientService,
             PermissionValidator validator,
             ILogger logger) : base("/Permissions", logger, validator)
         {
@@ -37,15 +38,15 @@ namespace Fabric.Authorization.API.Modules
         private dynamic GetPermissionsForSecurableItem(dynamic parameters)
         {
             CheckAccess(_clientService, parameters.grain, parameters.securableItem, AuthorizationReadClaim);
-            IEnumerable<Permission> permissions =
-                _permissionService.GetPermissions(parameters.grain, parameters.securableItem);
+            IEnumerable<Permission> permissions = 
+                _permissionService.GetPermissions(parameters.grain, parameters.securableItem).Result;
             return permissions.Select(p => p.ToPermissionApiModel());
         }
 
         private dynamic GetPermissionByName(dynamic parameters)
         {
             CheckAccess(_clientService, parameters.grain, parameters.securableItem, AuthorizationReadClaim);
-            IEnumerable<Permission> permissions = _permissionService.GetPermissions(parameters.grain, parameters.securableItem, parameters.permissionName);
+            IEnumerable<Permission> permissions = _permissionService.GetPermissions(parameters.grain, parameters.securableItem, parameters.permissionName).Result;
             return permissions.Select(p => p.ToPermissionApiModel());
         }
 
@@ -58,18 +59,25 @@ namespace Fabric.Authorization.API.Modules
                     return CreateFailureResponse("permissionId must be a guid.", HttpStatusCode.BadRequest);
                 }
 
-                Permission permission = _permissionService.GetPermission(permissionId);
+                Permission permission = _permissionService.GetPermission(permissionId).Result;
                 CheckAccess(_clientService, permission.Grain, permission.SecurableItem, AuthorizationReadClaim);
                 return permission.ToPermissionApiModel();
             }
-            catch (NotFoundException<Permission> ex)
+            catch (AggregateException ex)
             {
-
-                Logger.Error(ex, ex.Message, parameters.permissionId);
-                return CreateFailureResponse($"The specified permission with id: {parameters.permissionId} was not found.", HttpStatusCode.NotFound);
+                if (ex.InnerException is NotFoundException<Permission>)
+                {
+                    Logger.Error(ex, ex.Message, parameters.permissionId);
+                    return CreateFailureResponse($"The specified permission with id: {parameters.permissionId} was not found",
+                        HttpStatusCode.NotFound);
+                }
+                else
+                {
+                    throw;
+                }
             }
         }
-                
+
         private dynamic AddPermission()
         {
             var permissionApiModel = this.Bind<PermissionApiModel>(binderIgnore => binderIgnore.Id,
@@ -83,7 +91,7 @@ namespace Fabric.Authorization.API.Modules
             Validate(incomingPermission);
             CheckAccess(_clientService, permissionApiModel.Grain, permissionApiModel.SecurableItem, AuthorizationWriteClaim);
 
-            Permission permission = _permissionService.AddPermission(incomingPermission);
+            Permission permission = _permissionService.AddPermission(incomingPermission).Result;
             return CreateSuccessfulPostResponse(permission.ToPermissionApiModel());
         }
 
@@ -95,15 +103,23 @@ namespace Fabric.Authorization.API.Modules
                 {
                     return CreateFailureResponse("permissionId must be a guid.", HttpStatusCode.BadRequest);
                 }
-                Permission permission = _permissionService.GetPermission(permissionId);
+                Permission permission = _permissionService.GetPermission(permissionId).Result;
                 CheckAccess(_clientService, permission.Grain, permission.SecurableItem, AuthorizationWriteClaim);
-                _permissionService.DeletePermission(permission);
+                _permissionService.DeletePermission(permission).Wait();
                 return HttpStatusCode.NoContent;
             }
-            catch (NotFoundException<Permission> ex)
+            catch (AggregateException ex)
             {
-                Logger.Error(ex, ex.Message, parameters.permissionId);
-                return CreateFailureResponse($"The specified permission with id: {parameters.permissionId} was not found.", HttpStatusCode.NotFound);
+                if (ex.InnerException is NotFoundException<Permission>)
+                {
+                    Logger.Error(ex, ex.Message, parameters.permissionId);
+                    return CreateFailureResponse($"The specified permission with id: {parameters.permissionId} was not found",
+                        HttpStatusCode.NotFound);
+                }
+                else
+                {
+                    throw;
+                }
             }
         }
     }

@@ -41,6 +41,7 @@ namespace Fabric.Authorization.Domain.Validators
         {
             return !_permissionStore
                     .GetPermissions(permission.Grain, permission.SecurableItem, permission.Name)
+                    .Result
                     .Any();
         }
     }

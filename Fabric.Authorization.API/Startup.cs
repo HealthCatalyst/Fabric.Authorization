@@ -6,6 +6,7 @@ using Fabric.Authorization.Domain.Stores;
 using Fabric.Platform.Auth;
 using Fabric.Platform.Logging;
 using Fabric.Platform.Shared.Configuration;
+using Fabric.Platform.Shared.Configuration.Docker;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -30,6 +31,7 @@ namespace Fabric.Authorization.API
             var config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")
                 .AddEnvironmentVariables()
+                .AddDockerSecrets(typeof(IAppConfiguration))
                 .SetBasePath(env.ContentRootPath)
                 .Build();
             
@@ -74,11 +76,8 @@ namespace Fabric.Authorization.API
                 ? (IClientStore) new InMemoryClientStore()
                 : new CouchDBClientStore(new CouchDbAccessService(_appConfig.CouchDbSettings, _logger), _logger);
             
-            return await Task.Run(() =>
-             {
-                 var result = clientStore.GetAll();
-                 return result.Any();
-             }).ConfigureAwait(false);
+            var result = await clientStore.GetAll();
+            return result.Any();
         }
     }
 }

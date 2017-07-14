@@ -95,8 +95,8 @@ namespace Fabric.Authorization.UnitTests.Users
             params Claim[] claims)
         {
             return base.ConfigureBootstrapper(configurableBootstrapper, claims)
-                .Dependency<IGroupService>(typeof(GroupService))
-                .Dependency<IClientService>(typeof(ClientService))
+                .Dependency<GroupService>(typeof(GroupService))
+                .Dependency<ClientService>(typeof(ClientService))
                 .Dependency(MockLogger.Object)
                 .Dependency(MockClientStore.Object)
                 .Dependency(MockRoleStore.Object)

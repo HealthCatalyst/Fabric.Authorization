@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
 using Serilog;
 
@@ -10,13 +11,13 @@ namespace Fabric.Authorization.Domain.Stores
         {
         }
 
-        public override Group Add(Group group) => this.Add(group.Id, group);
+        public override async Task<Group> Add(Group group) => await this.Add(group.Id, group);
 
-        public override void Delete(Group group) => this.Delete(group.Id, group);
+        public override async Task Delete(Group group) => await this.Delete(group.Id, group);
 
-        public override IEnumerable<Group> GetAll()
+        public override async Task<IEnumerable<Group>> GetAll()
         {
-            return _dbService.GetDocuments<Group>("group").Result;
+            return await _dbService.GetDocuments<Group>("group");
         }
     }
 }

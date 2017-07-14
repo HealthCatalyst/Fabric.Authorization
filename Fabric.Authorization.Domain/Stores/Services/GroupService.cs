@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
 
 namespace Fabric.Authorization.Domain.Services
 {
-    public class GroupService : IGroupService
+    public class GroupService
     {
         private readonly IGroupStore _groupStore;
         private readonly IRoleStore _roleStore;
@@ -17,12 +18,14 @@ namespace Fabric.Authorization.Domain.Services
             _roleStore = roleStore ?? throw new ArgumentNullException(nameof(roleStore));
         }
 
-        public IEnumerable<string> GetPermissionsForGroups(string[] groupNames, string grain = null, string securableItem = null)
+        public async Task<IEnumerable<string>> GetPermissionsForGroups(string[] groupNames, string grain = null, string securableItem = null)
         {
             var permissions = new List<string>();
             foreach (var groupName in groupNames)
             {
-                var roles = GetRolesForGroup(groupName, grain, securableItem);
+                var roles = await this.GetRolesForGroup(groupName, grain, securableItem);
+                roles = roles.SelectMany(r => _roleStore.GetRoleHierarchy(r.Id).Result);
+
                 if (roles.Any())
                 {
                     permissions
@@ -35,17 +38,18 @@ namespace Fabric.Authorization.Domain.Services
                         .Select(p => p.ToString())));
                 }
             }
+
             return permissions;
         }
 
-        public IEnumerable<Role> GetRolesForGroup(string groupName, string grain = null, string securableItem = null)
+        public async Task<IEnumerable<Role>> GetRolesForGroup(string groupName, string grain = null, string securableItem = null)
         {
-            if (!_groupStore.Exists(groupName))
+            if (! await _groupStore.Exists(groupName))
             {
                 return new List<Role>();
             }
 
-            var group = _groupStore.Get(groupName);
+            var group = await _groupStore.Get(groupName);
 
             var roles = group.Roles;
             if (!string.IsNullOrEmpty(grain))
@@ -56,40 +60,45 @@ namespace Fabric.Authorization.Domain.Services
             {
                 roles = roles.Where(p => p.SecurableItem == securableItem).ToList();
             }
+
             return roles.Where(r => !r.IsDeleted);
         }
 
-        public void AddRoleToGroup(string groupName, Guid roleId)
+        public async Task AddRoleToGroup(string groupName, Guid roleId)
         {
-            var group = _groupStore.Get(groupName);
-            var role = _roleStore.Get(roleId);
+            var group = await _groupStore.Get(groupName);
+            var role = await _roleStore.Get(roleId);
 
             if (group.Roles.All(r => r.Id != roleId))
             {
                 group.Roles.Add(role);
             }
+
+            await _groupStore.Update(group);
         }
 
-        public void DeleteRoleFromGroup(string groupName, Guid roleId)
+        public async Task DeleteRoleFromGroup(string groupName, Guid roleId)
         {
-            var group = _groupStore.Get(groupName);
-            var role = _roleStore.Get(roleId);
+            var group = await _groupStore.Get(groupName);
+            var role = await _roleStore.Get(roleId);
 
             if (group.Roles.Any(r => r.Id == roleId))
             {
                 group.Roles.Remove(role);
             }
+
+            await _groupStore.Update(group);
         }
 
-        public void AddGroup(Group group) => _groupStore.Add(group);
+        public async Task<Group> AddGroup(Group group) => await _groupStore.Add(group);
 
-        public Group GetGroup(string id) => _groupStore.Get(id);
+        public async Task<Group> GetGroup(string id) => await _groupStore.Get(id);
 
-        public void DeleteGroup(Group group) => _groupStore.Delete(group);
+        public async Task DeleteGroup(Group group) => await _groupStore.Delete(group);
 
-        public void UpdateGroupList(IEnumerable<Group> groups)
+        public async Task UpdateGroupList(IEnumerable<Group> groups)
         {
-            var allGroups = _groupStore.GetAll() ?? Enumerable.Empty<Group>();
+            var allGroups = await _groupStore.GetAll() ?? Enumerable.Empty<Group>();
 
             var groupNames = groups.Select(g => g.Name);
             var storedGroupNames = allGroups.Select(g => g.Name);
@@ -98,8 +107,8 @@ namespace Fabric.Authorization.Domain.Services
             var toAdd = groups.Where(g => !storedGroupNames.Contains(g.Name));
 
             // TODO: This must be transactional or fault tolerant.
-            toDelete.ToList().ForEach(this.DeleteGroup);
-            toAdd.ToList().ForEach(this.AddGroup);
+            await Task.WhenAll(toDelete.ToList().Select(this.DeleteGroup));
+            await Task.WhenAll(toAdd.ToList().Select(this.AddGroup));
         }
     }
 }

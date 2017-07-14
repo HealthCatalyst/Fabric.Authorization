@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading.Tasks;
 using Fabric.Authorization.API.Services;
-using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Serilog;
 
@@ -15,20 +13,20 @@ namespace Fabric.Authorization.Domain.Stores
         {
         }
 
-        public override Permission Add(Permission model)
+        public async override Task<Permission> Add(Permission model)
         {
             model.Id = Guid.NewGuid();
-            return base.Add(model.Id.ToString(), model);
+            return await base.Add(model.Id.ToString(), model);
         }
 
-        public override void Delete(Permission model) => base.Delete(model.Id.ToString(), model);
+        public override async Task Delete(Permission model) => await base.Delete(model.Id.ToString(), model);
 
-        public IEnumerable<Permission> GetPermissions(string grain, string securableItem = null, string permissionName = null)
+        public async Task<IEnumerable<Permission>> GetPermissions(string grain, string securableItem = null, string permissionName = null)
         {
-            var customParams = grain+securableItem+permissionName;
+            var customParams = grain + securableItem + permissionName;
             return permissionName != null ?
-                  _dbService.GetDocuments<Permission>("permissions", "byname", customParams).Result :
-                  _dbService.GetDocuments<Permission>("permissions", "bysecitem", customParams).Result;
+                  await _dbService.GetDocuments<Permission>("permissions", "byname", customParams) :
+                  await _dbService.GetDocuments<Permission>("permissions", "bysecitem", customParams);
         }
 
         protected override void AddViews()

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Services;
@@ -64,6 +65,8 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Name", Id);
             }).Result;
 
+            Task.Delay(200).Wait();
+
             var getResponse = this.Browser.Get($"/clients/{Id}", with =>
                 {
                     with.HttpRequest();
@@ -87,6 +90,8 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Id", Id);
                 with.FormValue("Name", Id);
             }).Wait();
+
+            Task.Delay(200).Wait();
 
             // Repeat
             var postResponse = this.Browser.Post("/clients", with =>
@@ -112,6 +117,8 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Id", Id);
                 with.FormValue("Name", Id);
             }).Wait();
+
+            Task.Delay(200).Wait();
 
             var delete = this.Browser.Delete($"/clients/{Id}", with =>
             {

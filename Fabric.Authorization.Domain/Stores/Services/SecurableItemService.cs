@@ -1,50 +1,53 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
 
 namespace Fabric.Authorization.Domain.Services
 {
-    public class SecurableItemService : ISecurableItemService
+    public class SecurableItemService
     {
         private readonly IClientStore _clientStore;
+
         public SecurableItemService(IClientStore clientStore)
         {
             _clientStore = clientStore ?? throw new ArgumentNullException(nameof(clientStore));
         }
-        public SecurableItem GetSecurableItem(string clientId, Guid itemId)
+
+        public async Task<SecurableItem> GetSecurableItem(string clientId, Guid itemId)
         {
-            var topLevelSecurableItem = GetTopLevelSecurableItem(clientId);
+            var topLevelSecurableItem = await this.GetTopLevelSecurableItem(clientId);
             return GetSecurableItemById(topLevelSecurableItem, itemId);
         }
 
-        public SecurableItem GetTopLevelSecurableItem(string clientId)
+        public async Task<SecurableItem> GetTopLevelSecurableItem(string clientId)
         {
-            var client = _clientStore.Get(clientId);
+            var client = await _clientStore.Get(clientId);
             return client.TopLevelSecurableItem;
         }
 
-        public SecurableItem AddSecurableItem(string clientId, SecurableItem item)
+        public async Task<SecurableItem> AddSecurableItem(string clientId, SecurableItem item)
         {
             item.CreatedDateTimeUtc = DateTime.UtcNow;
             item.Id = Guid.NewGuid();
-            var client = _clientStore.Get(clientId);
+            var client = await _clientStore.Get(clientId);
             CheckUniqueness(client.TopLevelSecurableItem, item);
             client.TopLevelSecurableItem.SecurableItems.Add(item);
-            _clientStore.Update(client);
+            await _clientStore.Update(client);
             return item;
         }
 
-        public SecurableItem AddSecurableItem(string clientId, Guid itemId, SecurableItem item)
+        public async Task<SecurableItem> AddSecurableItem(string clientId, Guid itemId, SecurableItem item)
         {
             item.CreatedDateTimeUtc = DateTime.UtcNow;
             item.Id = Guid.NewGuid();
-            var client = _clientStore.Get(clientId);
+            var client = await _clientStore.Get(clientId);
             var parentSecurableItem = GetSecurableItemById(client.TopLevelSecurableItem, itemId);
             CheckUniqueness(parentSecurableItem, item);
             parentSecurableItem.SecurableItems.Add(item);
-            _clientStore.Update(client);
+            await _clientStore.Update(client);
             return item;
         }
 
@@ -55,7 +58,7 @@ namespace Fabric.Authorization.Domain.Services
                 item = GetSecurableItemById(parentSecurableItem, itemId);
                 return true;
             }
-            catch(NotFoundException<SecurableItem>)
+            catch (AggregateException)
             {
                 item = null;
                 return false;
@@ -84,8 +87,7 @@ namespace Fabric.Authorization.Domain.Services
 
             foreach (var childSecurableItem in childSecurableItems)
             {
-                SecurableItem item;
-                if (TryGetSecurableItemById(childSecurableItem, itemId, out item))
+                if (TryGetSecurableItemById(childSecurableItem, itemId, out SecurableItem item))
                 {
                     return item;
                 }

@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
 
 namespace Fabric.Authorization.Domain.Services
 {
-    public class RoleService : IRoleService
+    public class RoleService
     {
         private readonly IRoleStore _roleStore;
         private readonly IPermissionStore _permissionStore;
@@ -17,38 +18,36 @@ namespace Fabric.Authorization.Domain.Services
             _roleStore = roleStore ?? throw new ArgumentNullException(nameof(roleStore));
             _permissionStore = permissionStore ?? throw new ArgumentNullException(nameof(permissionStore));
         }
-        public IEnumerable<Role> GetRoles(string grain = null, string securableItem = null, string roleName = null)
+
+        public async Task<IEnumerable<Role>> GetRoles(string grain = null, string securableItem = null, string roleName = null)
         {
-            return _roleStore.GetRoles(grain, securableItem, roleName);
+            return await _roleStore.GetRoles(grain, securableItem, roleName);
         }
 
-        public Role GetRole(Guid roleId)
+        public async Task<Role> GetRole(Guid roleId)
         {
-            return _roleStore.Get(roleId);
+            return await _roleStore.Get(roleId);
         }
 
-        public IEnumerable<Permission> GetPermissionsForRole(Guid roleId)
+        public async Task<IEnumerable<Permission>> GetPermissionsForRole(Guid roleId)
         {
-            var role = _roleStore.Get(roleId);
+            var role = await _roleStore.Get(roleId);
             return role.Permissions;
         }
 
-        public Role AddRole(Role role)
+        public async Task<Role> AddRole(Role role)
         {
-            return _roleStore.Add(role);
+            return await _roleStore.Add(role);
         }
 
-        public void DeleteRole(Role role)
-        {
-            _roleStore.Delete(role);
-        }
+        public async Task DeleteRole(Role role) => await _roleStore.Delete(role);
 
-        public Role AddPermissionsToRole(Role role, Guid[] permissionIds)
+        public async Task<Role> AddPermissionsToRole(Role role, Guid[] permissionIds)
         {
             var permissionsToAdd = new List<Permission>();
             foreach (var permissionId in permissionIds)
             {
-                var permission = _permissionStore.Get(permissionId);
+                var permission = await _permissionStore.Get(permissionId);
                 if (permission.Grain == role.Grain && permission.SecurableItem == role.SecurableItem && role.Permissions.All(p => p.Id != permission.Id))
                 {
                     permissionsToAdd.Add(permission);
@@ -62,11 +61,12 @@ namespace Fabric.Authorization.Domain.Services
             {
                 role.Permissions.Add(permission);
             }
-            _roleStore.Update(role);
+
+            await _roleStore.Update(role);
             return role;
         }
 
-        public Role RemovePermissionsFromRole(Role role, Guid[] permissionIds)
+        public async Task<Role> RemovePermissionsFromRole(Role role, Guid[] permissionIds)
         {
             foreach (var permissionId in permissionIds)
             {
@@ -77,11 +77,14 @@ namespace Fabric.Authorization.Domain.Services
             }
             foreach (var permissionId in permissionIds)
             {
-                var permission = _permissionStore.Get(permissionId);
+                var permission = await _permissionStore.Get(permissionId);
                 role.Permissions.Remove(permission);
             }
-            _roleStore.Update(role);
+
+            await _roleStore.Update(role);
             return role;
         }
+
+        public async Task<IEnumerable<Role>> GetRoleHierarchy(Guid roleId) => await _roleStore.GetRoleHierarchy(roleId);
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
@@ -15,9 +16,14 @@ namespace Fabric.Authorization.UnitTests.Mocks
         {
             mockRoleStore
                 .Setup(roleStore => roleStore.GetRoles(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                .Returns((string grain, string securableItem, string name) => roles.Where(
+                .Returns((string grain, string securableItem, string name) => Task.FromResult(roles.Where(
                     r => r.Grain == grain && r.SecurableItem == securableItem &&
-                         (r.Name == name || string.IsNullOrEmpty(name))));
+                         (r.Name == name || string.IsNullOrEmpty(name)))));
+
+            mockRoleStore
+                .Setup(roleStore => roleStore.GetRoleHierarchy(It.IsAny<Guid>()))
+                .Returns((Guid id) => Task.FromResult(roles.Where(r => r.Id == id)));
+
             return mockRoleStore.SetupGetRole(roles);
         }
 
@@ -28,7 +34,7 @@ namespace Fabric.Authorization.UnitTests.Mocks
                 {
                     if (roles.Any(r => r.Id == roleId))
                     {
-                        return roles.First(r => r.Id == roleId);
+                        return Task.FromResult(roles.First(r => r.Id == roleId));
                     }
                     throw new NotFoundException<Role>();
                 });
@@ -42,7 +48,7 @@ namespace Fabric.Authorization.UnitTests.Mocks
                 .Returns((Role r) =>
                 {
                     r.Id = Guid.NewGuid();
-                    return r;
+                    return Task.FromResult(r);
                 });
             return mockRoleStore;
         }

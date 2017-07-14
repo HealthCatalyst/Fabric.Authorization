@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Services;
@@ -46,12 +47,13 @@ namespace Fabric.Authorization.IntegrationTests
             });
 
             this.Browser.Post("/clients", with =>
-            {
-                with.HttpRequest();
-                with.FormValue("Id", "rolesprincipal");
-                with.FormValue("Name", "rolesprincipal");
-                with.Header("Accept", "application/json");
-            }).Wait();
+                {
+                    with.HttpRequest();
+                    with.FormValue("Id", "rolesprincipal");
+                    with.FormValue("Name", "rolesprincipal");
+                    with.Header("Accept", "application/json");
+                }).Wait();
+
         }
 
         [Theory]
@@ -84,6 +86,8 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Name", name);
             }).Result;
 
+            Task.Delay(200).Wait();
+
             var getResponse = this.Browser.Get($"/roles/app/rolesprincipal/{name}", with =>
                 {
                     with.HttpRequest();
@@ -109,6 +113,8 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Name", name);
             }).Result;
 
+            Task.Delay(200).Wait();
+            
             // Get by name
             var getResponse = this.Browser.Get($"/roles/app/rolesprincipal/{name}", with =>
             {
@@ -155,6 +161,8 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Name", name + "_2");
             }).Result;
 
+            Task.Delay(200).Wait();
+
             var getResponse = this.Browser.Get($"/roles/app/rolesprincipal", with =>
             {
                 with.HttpRequest();
@@ -183,6 +191,8 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Name", id);
                 with.FormValue("Id", id);
             }).Wait();
+
+            Task.Delay(200).Wait();
 
             // Repeat
             var postResponse = this.Browser.Post("/roles", with =>

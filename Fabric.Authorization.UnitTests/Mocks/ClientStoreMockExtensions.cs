@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
@@ -17,14 +18,14 @@ namespace Fabric.Authorization.UnitTests.Mocks
                 {
                     if (clients.Any(c => c.Id == clientId))
                     {
-                        return clients.First(c => c.Id == clientId);
+                        return Task.FromResult(clients.First(c => c.Id == clientId));
                     }
                     throw new NotFoundException<Client>();
                 });
             mockClientStore.Setup(clientStore => clientStore.Exists(It.IsAny<string>()))
-                .Returns((string clientId) => clients.Any(c => c.Id == clientId));
+                .Returns((string clientId) => Task.FromResult(clients.Any(c => c.Id == clientId)));
             mockClientStore.Setup(clientStore => clientStore.GetAll())
-                .Returns(() => clients);
+                .Returns(() => Task.FromResult(clients.AsEnumerable()));
             return mockClientStore;
         }
 
@@ -34,7 +35,7 @@ namespace Fabric.Authorization.UnitTests.Mocks
                 .Returns((Client c) =>
                 {
                     c.CreatedDateTimeUtc = DateTime.UtcNow;
-                    return c;
+                    return Task.FromResult(c);
                 });
             return mockClientStore;
         }

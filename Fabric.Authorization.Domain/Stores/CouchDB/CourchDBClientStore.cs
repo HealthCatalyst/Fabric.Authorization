@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
 using Serilog;
 
@@ -10,9 +10,8 @@ namespace Fabric.Authorization.Domain.Stores
         {
         }
 
-        public override Client Add(Client client) => this.Add(client.Id, client);
+        public override async Task<Client> Add(Client client) => await this.Add(client.Id, client);
 
-        public override void Delete(Client client) => this.Delete(client.Id, client);
-
+        public override async Task Delete(Client client) => await this.Delete(client.Id, client);
     }
 }

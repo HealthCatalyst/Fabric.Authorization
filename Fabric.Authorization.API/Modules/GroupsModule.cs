@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
@@ -15,12 +16,12 @@ namespace Fabric.Authorization.API.Modules
 {
     public class GroupsModule : FabricModule<Group>
     {
-        private IGroupService GroupService { get; }
+        private GroupService _groupService { get; }
 
-        public GroupsModule(IGroupService groupService, GroupValidator validator, ILogger logger) : base(
+        public GroupsModule(GroupService groupService, GroupValidator validator, ILogger logger) : base(
             "/Groups", logger, validator)
         {
-            this.GroupService = groupService;
+            _groupService = groupService;
 
             base.Post("/", _ => this.AddGroup());
             base.Post("/UpdateGroups", _ => this.UpdateGroupList());
@@ -37,12 +38,19 @@ namespace Fabric.Authorization.API.Modules
             try
             {
                 this.RequiresClaims(this.AuthorizationManageClientsClaim, this.AuthorizationReadClaim);
-                Group group = this.GroupService.GetGroup(parameters.groupName);
+                Group group = this._groupService.GetGroup(parameters.groupName).Result;
                 return group.ToGroupRoleApiModel();
             }
-            catch (NotFoundException<Group>)
+            catch (AggregateException ex)
             {
-                return HttpStatusCode.NotFound;
+                if (ex.InnerException is NotFoundException<Group>)
+                {
+                    return HttpStatusCode.NotFound;
+                }
+                else
+                {
+                    throw;
+                }
             }
         }
 
@@ -51,13 +59,20 @@ namespace Fabric.Authorization.API.Modules
             try
             {
                 this.RequiresClaims(this.AuthorizationManageClientsClaim, this.AuthorizationWriteClaim);
-                Group group = GroupService.GetGroup(parameters.groupName);
-                this.GroupService.DeleteGroup(group);
+                Group group = _groupService.GetGroup(parameters.groupName).Result;
+                _groupService.DeleteGroup(group).Wait();
                 return HttpStatusCode.NoContent;
             }
-            catch (NotFoundException<Group>)
+            catch (AggregateException ex)
             {
-                return HttpStatusCode.NotFound;
+                if (ex.InnerException is NotFoundException<Group>)
+                {
+                    return HttpStatusCode.NotFound;
+                }
+                else
+                {
+                    throw;
+                }
             }
         }
 
@@ -67,13 +82,21 @@ namespace Fabric.Authorization.API.Modules
             {
                 this.RequiresClaims(this.AuthorizationManageClientsClaim, this.AuthorizationWriteClaim);
                 var group = this.Bind<GroupRoleApiModel>();
-                this.GroupService.AddGroup(group.ToGroupDomainModel());
+                _groupService.AddGroup(group.ToGroupDomainModel()).Wait();
                 return HttpStatusCode.Created;
             }
-            catch (AlreadyExistsException<Group>)
+            catch (AggregateException ex)
             {
-                return HttpStatusCode.BadRequest;
+                if (ex.InnerException is AlreadyExistsException<Group>)
+                {
+                    return HttpStatusCode.BadRequest;
+                }
+                else
+                {
+                    throw;
+                }
             }
+
         }
 
         private HttpStatusCode UpdateGroupList()
@@ -82,12 +105,19 @@ namespace Fabric.Authorization.API.Modules
             {
                 this.RequiresClaims(this.AuthorizationManageClientsClaim, this.AuthorizationWriteClaim);
                 var group = this.Bind<List<GroupRoleApiModel>>();
-                this.GroupService.UpdateGroupList(group.Select(g => g.ToGroupDomainModel()).ToList());
+                _groupService.UpdateGroupList(group.Select(g => g.ToGroupDomainModel())).Wait();
                 return HttpStatusCode.NoContent;
             }
-            catch (AlreadyExistsException<Group>)
+            catch (AggregateException ex)
             {
-                return HttpStatusCode.BadRequest;
+                if (ex.InnerException is AlreadyExistsException<Group>)
+                {
+                    return HttpStatusCode.BadRequest;
+                }
+                else
+                {
+                    throw;
+                }
             }
         }
 
@@ -97,20 +127,27 @@ namespace Fabric.Authorization.API.Modules
             {
                 this.RequiresClaims(this.AuthorizationReadClaim);
                 var groupInfoRequest = this.Bind<GroupInfoRequest>();
-                var roles = this.GroupService.GetRolesForGroup(groupInfoRequest.GroupName, groupInfoRequest.Grain,
-                    groupInfoRequest.SecurableItem);
+                var roles = _groupService.GetRolesForGroup(groupInfoRequest.GroupName, groupInfoRequest.Grain,
+                    groupInfoRequest.SecurableItem).Result;
 
                 return new GroupRoleApiModel
                 {
-                   // RequestedGrain = groupInfoRequest.Grain,
-                   // RequestedSecurableItem = groupInfoRequest.SecurableItem,
+                    // RequestedGrain = groupInfoRequest.Grain,
+                    // RequestedSecurableItem = groupInfoRequest.SecurableItem,
                     GroupName = groupInfoRequest.GroupName,
                     Roles = roles.Select(r => r.ToRoleApiModel())
                 };
             }
-            catch (NotFoundException<Group>)
+            catch (AggregateException ex)
             {
-                return HttpStatusCode.NotFound;
+                if (ex.InnerException is NotFoundException<Group>)
+                {
+                    return HttpStatusCode.NotFound;
+                }
+                else
+                {
+                    throw;
+                }
             }
         }
 
@@ -125,16 +162,23 @@ namespace Fabric.Authorization.API.Modules
                     throw new NotFoundException<Role>();
                 }
 
-                this.GroupService.AddRoleToGroup(parameters.groupName, roleApiModel.Id.Value);
+                _groupService.AddRoleToGroup(parameters.groupName, roleApiModel.Id.Value).Wait();
                 return HttpStatusCode.NoContent;
             }
-            catch (NotFoundException<Group>)
+            catch (AggregateException ex)
             {
-                return HttpStatusCode.NotFound;
-            }
-            catch (NotFoundException<Role>)
-            {
-                return HttpStatusCode.BadRequest;
+                if (ex.InnerException is NotFoundException<Group>)
+                {
+                    return HttpStatusCode.NotFound;
+                }
+                if (ex.InnerException is NotFoundException<Role>)
+                {
+                    return HttpStatusCode.BadRequest;
+                }
+                else
+                {
+                    throw;
+                }
             }
         }
 
@@ -149,16 +193,23 @@ namespace Fabric.Authorization.API.Modules
                     throw new NotFoundException<Role>();
                 }
 
-                this.GroupService.DeleteRoleFromGroup(parameters.groupName, roleApiModel.Id.Value);
+                _groupService.DeleteRoleFromGroup(parameters.groupName, roleApiModel.Id.Value).Wait();
                 return HttpStatusCode.NoContent;
             }
-            catch (NotFoundException<Group>)
+            catch (AggregateException ex)
             {
-                return HttpStatusCode.NotFound;
-            }
-            catch (NotFoundException<Role>)
-            {
-                return HttpStatusCode.BadRequest;
+                if (ex.InnerException is NotFoundException<Group>)
+                {
+                    return HttpStatusCode.NotFound;
+                }
+                if (ex.InnerException is NotFoundException<Role>)
+                {
+                    return HttpStatusCode.BadRequest;
+                }
+                else
+                {
+                    throw;
+                }
             }
         }
     }

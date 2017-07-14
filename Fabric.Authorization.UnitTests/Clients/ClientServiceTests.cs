@@ -69,7 +69,7 @@ namespace Fabric.Authorization.UnitTests.Clients
 
             var clientService = new ClientService(mockClientStore);
             var ownsRequestedItem =
-                clientService.DoesClientOwnItem(clientId, grain, securableItem);
+                clientService.DoesClientOwnItem(clientId, grain, securableItem).Result;
             Assert.Equal(expectedResult, ownsRequestedItem);
         }
 

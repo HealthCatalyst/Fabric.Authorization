@@ -2,7 +2,7 @@
 
 namespace Fabric.Authorization.Domain.Models
 {
-    public class Client : ITrackable, IIdentifiable
+    public class Client : ITrackable, IIdentifiable, ISoftDelete
     {
         public string Id { get; set; }
         public string Name { get; set; }

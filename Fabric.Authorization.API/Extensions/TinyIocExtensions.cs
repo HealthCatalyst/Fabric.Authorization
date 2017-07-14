@@ -11,11 +11,11 @@ namespace Fabric.Authorization.API.Extensions
     {
         public static TinyIoCContainer RegisterServices(this TinyIoCContainer container)
         {
-            container.Register<IRoleService, RoleService>();
-            container.Register<IPermissionService, PermissionService>();
-            container.Register<IGroupService, GroupService>();
-            container.Register<IClientService, ClientService>();
-            container.Register<ISecurableItemService, SecurableItemService>();
+            container.Register<RoleService, RoleService>();
+            container.Register<PermissionService, PermissionService>();
+            container.Register<GroupService, GroupService>();
+            container.Register<ClientService, ClientService>();
+            container.Register<SecurableItemService, SecurableItemService>();
 
             return container;
         }
