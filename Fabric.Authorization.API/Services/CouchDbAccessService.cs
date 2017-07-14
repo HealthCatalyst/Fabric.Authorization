@@ -280,7 +280,7 @@ namespace Fabric.Authorization.API.Services
                 if (!result.IsSuccess)
                 {
                     _logger.Error($"unable to execute view: {viewName} - error: {result.Reason}");
-                    return default(IEnumerable<T>);
+                    return new List<T>();
                 }
 
                 var results = new List<T>();
@@ -310,7 +310,7 @@ namespace Fabric.Authorization.API.Services
                 if (!result.IsSuccess)
                 {
                     _logger.Error($"unable to execute view: {viewName} - error: {result.Reason}");
-                    return default(IEnumerable<T>);
+                    return new List<T>();
                 }
 
                 var results = new List<T>();

@@ -15,13 +15,11 @@ namespace Fabric.Authorization.IntegrationTests
 
         public ILogger Logger { get; set; } = new Mock<ILogger>().Object;
 
-        private static IDocumentDbService dbService;
+        private IDocumentDbService dbService;
 
-        private static object Lock = Guid.NewGuid().ToString();
+        private readonly string CouchDbServerEnvironmentVariable = "COUCHDBSETTINGS__SERVER";
 
-        private static readonly string CouchDbServerEnvironmentVariable = "COUCHDBSETTINGS__SERVER";
-
-        protected Func<IDocumentDbService> DbService { get; } = () =>
+        protected IDocumentDbService DbService()
          {
              if (dbService == null)
              {
@@ -39,14 +37,11 @@ namespace Fabric.Authorization.IntegrationTests
                      config.Server = couchDbServer;
                  }
 
-                 lock(Lock)
-                 {
-                     dbService = new CouchDbAccessService(config, new Mock<ILogger>().Object);
-                 }
+                 dbService = new CouchDbAccessService(config, new Mock<ILogger>().Object);
              }
 
              return dbService;
-         };
+         }
 
         #region IDisposable implementation
 
