@@ -77,13 +77,31 @@ namespace Fabric.Authorization.Domain.Stores
         public async Task<IEnumerable<Role>> GetRoleHierarchy(Guid roleId)
         {
             var queue = new Queue<Guid>();
+            queue.Enqueue(Guid.Empty);
             queue.Enqueue(roleId);
 
-            var roleHierarchy = new HashSet<Role>();
+            int level = 0;
 
-            while (queue.Any())
+            var roleHierarchy = new HashSet<Role>();
+            var visited = new HashSet<Guid>();
+
+            while (queue.Any() && level < 10)
             {
                 var topId = queue.Dequeue();
+                if (topId == Guid.Empty)
+                {
+                    level++;
+                    queue.Enqueue(Guid.Empty);
+                    continue;
+                }
+
+                if (visited.Contains(topId))
+                {
+                    continue;
+                }
+
+                visited.Add(topId);
+
                 if (await this.Exists(topId))
                 {
                     var role = await this.Get(topId);
