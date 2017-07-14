@@ -11,6 +11,7 @@ using Xunit;
 
 namespace Fabric.Authorization.IntegrationTests
 {
+    [Collection("InMemoryTests")]
     public class RolesTests : IntegrationTestsFixture
     {
         public RolesTests(bool useInMemoryDB = true)
