@@ -61,6 +61,7 @@ namespace Fabric.Authorization.API.Services
                 {
                     _logger.Information("could not retrieve database information. attempting to create");
                     var creation = await client.Database.PutAsync();
+                    _logger.Information("database created if it did not exist");
                     if (!creation.IsSuccess)
                     {
                         throw new ArgumentException(creation.Error);
@@ -267,7 +268,7 @@ namespace Fabric.Authorization.API.Services
                     _logger.Error($"unable to add or update document: {documentId} - error: {response.Reason}");
                     throw new Exception($"unable to add view: {documentId} - error: {response.Reason}");
                 }
-
+                _logger.Information($"views created for documentid: {fullDocumentId}");
             }
         }
 
