@@ -50,7 +50,7 @@ namespace Fabric.Authorization.API.Services
             _logger = logger;
 
             _logger.Debug(
-                $"couchDb configuration properties: Server: {config.Server} -- DatabaseName: {config.DatabaseName}");
+                $"couchDb configuration properties: Server: {config.Server} -- DatabaseName: {config.DatabaseName}");            
         }
 
         public async Task Initialize()
@@ -245,6 +245,7 @@ namespace Fabric.Authorization.API.Services
             {
                 _logger.Information($"couchdb is not initialized");
                 await Initialize();
+                _logger.Information($"couchdb is initialized");
             }
 
             var fullDocumentId = $"_design/{documentId}";
