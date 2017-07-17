@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.Domain.Exceptions;
@@ -59,9 +60,9 @@ namespace Fabric.Authorization.API.Services
             {
                 if (!(await client.Database.GetAsync()).IsSuccess)
                 {
-                    _logger.Information("could not retrieve database information. attempting to create");
+                    _logger.Information($"could not retrieve database information. attempting to create. Current Thread Id: {Thread.CurrentThread.ManagedThreadId}");
                     var creation = await client.Database.PutAsync();
-                    _logger.Information("database created if it did not exist");
+                    _logger.Information($"database created if it did not exist. Current Thread Id: {Thread.CurrentThread.ManagedThreadId}");
                     if (!creation.IsSuccess)
                     {
                         throw new ArgumentException(creation.Error);
@@ -240,11 +241,11 @@ namespace Fabric.Authorization.API.Services
 
         public async Task AddViews(string documentId, CouchDBViews views)
         {
-            _logger.Information($"attempting to add views for document with id: {documentId}");
+            _logger.Information($"attempting to add views for document with id: {documentId}. Current Thread Id: {Thread.CurrentThread.ManagedThreadId}");
             if (!initialized)
             {
-                _logger.Information($"couchdb is not initialized");
-                await Initialize();
+                _logger.Information($"couchdb is not initialized. Current Thread Id: {Thread.CurrentThread.ManagedThreadId}");
+                await Initialize().ConfigureAwait(false);
                 _logger.Information($"couchdb is initialized");
             }
 
@@ -252,7 +253,7 @@ namespace Fabric.Authorization.API.Services
 
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
-                _logger.Information($"looking for existing document with id: {fullDocumentId}");
+                _logger.Information($"looking for existing document with id: {fullDocumentId}. Current Thread Id: {Thread.CurrentThread.ManagedThreadId}");
                 var existingDoc = await client.Documents.GetAsync(fullDocumentId);
                 var docJson = JsonConvert.SerializeObject(views);
 
