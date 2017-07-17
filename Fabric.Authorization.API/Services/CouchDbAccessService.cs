@@ -59,6 +59,7 @@ namespace Fabric.Authorization.API.Services
             {
                 if (!(await client.Database.GetAsync()).IsSuccess)
                 {
+                    _logger.Information("could not retrieve database information. attempting to create");
                     var creation = await client.Database.PutAsync();
                     if (!creation.IsSuccess)
                     {
@@ -238,8 +239,10 @@ namespace Fabric.Authorization.API.Services
 
         public async Task AddViews(string documentId, CouchDBViews views)
         {
+            _logger.Information($"attempting to add views for document with id: {documentId}");
             if (!initialized)
             {
+                _logger.Information($"couchdb is not initialized");
                 await Initialize();
             }
 
@@ -264,6 +267,7 @@ namespace Fabric.Authorization.API.Services
                     _logger.Error($"unable to add or update document: {documentId} - error: {response.Reason}");
                     throw new Exception($"unable to add view: {documentId} - error: {response.Reason}");
                 }
+
             }
         }
 
