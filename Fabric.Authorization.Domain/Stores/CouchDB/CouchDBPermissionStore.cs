@@ -55,6 +55,7 @@ namespace Fabric.Authorization.Domain.Stores
                 views = views
             };
 
+            _logger.Information($"adding views for permissions");
             _dbService.AddViews("permissions", couchViews);
         }
     }
