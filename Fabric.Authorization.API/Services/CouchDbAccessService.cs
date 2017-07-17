@@ -247,11 +247,13 @@ namespace Fabric.Authorization.API.Services
 
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
+                _logger.Information($"looking for existing document with id: {fullDocumentId}");
                 var existingDoc = await client.Documents.GetAsync(fullDocumentId);
                 var docJson = JsonConvert.SerializeObject(views);
 
                 if (!string.IsNullOrEmpty(existingDoc.Id))
                 {
+                    _logger.Information($"found existing document with id: {fullDocumentId}");
                     return;
                 }
 
