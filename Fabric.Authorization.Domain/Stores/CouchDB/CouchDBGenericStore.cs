@@ -75,8 +75,9 @@ namespace Fabric.Authorization.Domain.Stores
         /// <summary>
         ///
         /// </summary>
-        protected virtual void AddViews()
+        protected virtual async Task AddViews()
         {
+            
         }
     }
 }

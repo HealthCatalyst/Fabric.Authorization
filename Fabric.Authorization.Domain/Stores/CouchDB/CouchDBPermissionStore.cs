@@ -29,7 +29,7 @@ namespace Fabric.Authorization.Domain.Stores
                   await _dbService.GetDocuments<Permission>("permissions", "bysecitem", customParams);
         }
 
-        protected override void AddViews()
+        protected override Task AddViews()
         {
             var views = new Dictionary<string, Dictionary<string, string>>()
             {
@@ -56,7 +56,7 @@ namespace Fabric.Authorization.Domain.Stores
             };
 
             _logger.Information($"adding views for permissions");
-            _dbService.AddViews("permissions", couchViews);
+            return _dbService.AddViews("permissions", couchViews);
         }
     }
 }
