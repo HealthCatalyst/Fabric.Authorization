@@ -37,14 +37,14 @@ namespace Fabric.Authorization.Domain.Stores
                     "byname",
                     new Dictionary<string, string>()
                     {
-                        { "map", "function(doc) { emit(doc.Grain+doc.SecurableItem+doc.Name, doc) }" },
+                        { "map", "function(doc) { if (doc._id.indexOf('permission:') !== -1) emit(doc.Grain+doc.SecurableItem+doc.Name, doc) }" },
                     }
                 },
                 {
                     "bysecitem",
                     new Dictionary<string, string>()
                     {
-                        { "map", "function(doc) { emit(doc.Grain+doc.SecurableItem, doc) }" },
+                        { "map", "function(doc) { if (doc._id.indexOf('permission:') !== -1) emit(doc.Grain+doc.SecurableItem, doc) }" },
                     }
                 }
             };

@@ -241,25 +241,20 @@ namespace Fabric.Authorization.API.Services
 
         public async Task AddViews(string documentId, CouchDBViews views)
         {
-            _logger.Information($"attempting to add views for document with id: {documentId}. Current Thread Id: {Thread.CurrentThread.ManagedThreadId}");
             if (!initialized)
-            {
-                _logger.Information($"couchdb is not initialized. Current Thread Id: {Thread.CurrentThread.ManagedThreadId}");
-                await Initialize().ConfigureAwait(false);
-                _logger.Information($"couchdb is initialized");
+            {            
+                await Initialize();             
             }
 
             var fullDocumentId = $"_design/{documentId}";
 
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
-                _logger.Information($"looking for existing document with id: {fullDocumentId}. Current Thread Id: {Thread.CurrentThread.ManagedThreadId}");
                 var existingDoc = await client.Documents.GetAsync(fullDocumentId);
                 var docJson = JsonConvert.SerializeObject(views);
 
                 if (!string.IsNullOrEmpty(existingDoc.Id))
-                {
-                    _logger.Information($"found existing document with id: {fullDocumentId}");
+                {                    
                     return;
                 }
 
@@ -269,8 +264,7 @@ namespace Fabric.Authorization.API.Services
                 {
                     _logger.Error($"unable to add or update document: {documentId} - error: {response.Reason}");
                     throw new Exception($"unable to add view: {documentId} - error: {response.Reason}");
-                }
-                _logger.Information($"views created for documentid: {fullDocumentId}");
+                }                
             }
         }
 
