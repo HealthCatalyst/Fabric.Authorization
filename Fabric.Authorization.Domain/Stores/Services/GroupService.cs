@@ -25,20 +25,32 @@ namespace Fabric.Authorization.Domain.Services
             {
                 Console.WriteLine($"Getting roles for {groupName}");
                 var baseRoles = await this.GetRolesForGroup(groupName, grain, securableItem).ConfigureAwait(false);
-                var roles = new HashSet<Role>();
+                var roles = new Dictionary<Guid, Role>();
                 Console.WriteLine($"Got {baseRoles.Count()} roles. Checking role hierarchy now.");
                 foreach (var role in baseRoles)
                 {
                     var hierarchy = await _roleStore.GetRoleHierarchy(role.Id).ConfigureAwait(false);
-                    roles.UnionWith(hierarchy);
+                    foreach (var ancestorRole in hierarchy)
+                    {
+                        if (!roles.ContainsKey(ancestorRole.Id))
+                        {
+                            roles.Add(ancestorRole.Id, ancestorRole);
+                        }
+                    }
                 }
-
-                roles.UnionWith(baseRoles);
+                
+                foreach (var baseRole in baseRoles)
+                {
+                    if (!roles.ContainsKey(baseRole.Id))
+                    {
+                        roles.Add(baseRole.Id, baseRole);
+                    }
+                }
                 Console.WriteLine($"Done, total roles: {roles.Count()}");
                 if (roles.Any())
                 {
                     permissions
-                    .AddRange(roles
+                    .AddRange(roles.Values
                         .Where(r => r.Permissions != null && !r.IsDeleted)
                         .SelectMany(r => r.Permissions.Where(p => 
                             !p.IsDeleted && 
@@ -48,7 +60,7 @@ namespace Fabric.Authorization.Domain.Services
                 }
             }
 
-            return permissions;
+            return permissions.Distinct();
         }
 
         public async Task<IEnumerable<Role>> GetRolesForGroup(string groupName, string grain = null, string securableItem = null)

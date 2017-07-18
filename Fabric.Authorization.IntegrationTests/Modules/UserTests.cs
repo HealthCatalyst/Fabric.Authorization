@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
@@ -16,6 +17,8 @@ namespace Fabric.Authorization.IntegrationTests
     [Collection("InMemoryTests")]
     public class UserTests : IntegrationTestsFixture
     {
+        private static readonly string Group1 = Guid.Parse("A9CA0300-1006-40B1-ABF1-E0C3B396F95F").ToString();
+        private static readonly string Group2 = Guid.Parse("ad2cea96-c020-4014-9cf6-029147454adc").ToString();
         public UserTests(bool useInMemoryDB = true)
         {
             Console.WriteLine($"Starting Client Tests. Memory: {useInMemoryDB}");
@@ -68,7 +71,8 @@ namespace Fabric.Authorization.IntegrationTests
                         new Claim(Claims.Scope, Scopes.ReadScope),
                         new Claim(Claims.Scope, Scopes.WriteScope),
                         new Claim(Claims.ClientId, "userprincipal"),
-                        new Claim(JwtClaimTypes.Role, Guid.Parse("A9CA0300-1006-40B1-ABF1-E0C3B396F95F").ToString())
+                        new Claim(JwtClaimTypes.Role, Group1),
+                        new Claim(JwtClaimTypes.Role, Group2)
                         }, "userprincipal"));
                 });
             });
@@ -87,7 +91,7 @@ namespace Fabric.Authorization.IntegrationTests
         [Fact]
         public void TestInheritance_Success()
         {
-            var group = Guid.Parse("A9CA0300-1006-40B1-ABF1-E0C3B396F95F").ToString();
+            var group = Group1;
 
             // Adding permissions
             Console.WriteLine("Adding Permissions");
@@ -244,6 +248,106 @@ namespace Fabric.Authorization.IntegrationTests
             Assert.True(get.Body.AsString().Contains("fatherpermissions"));
             Assert.True(get.Body.AsString().Contains("himselfpermissions"));
             Assert.False(get.Body.AsString().Contains("sonpermissions"));
+        }
+
+        [Fact]
+        public void TestGetPermissions_Success()
+        {
+            // Adding permissions
+            Console.WriteLine("Adding Permissions");
+            var post = this.Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "userprincipal");
+                with.FormValue("Name", "viewpatient");
+            }).Result;
+
+            var viewPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
+
+            post = this.Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "userprincipal");
+                with.FormValue("Name", "editpatient");
+            }).Result;
+
+            var editPatietnPermission = post.Body.DeserializeJson<PermissionApiModel>();
+
+            var role = new RoleApiModel()
+            {
+                Grain = "app",
+                SecurableItem = "userprincipal",
+                Name = "viewer",
+                Permissions = new List<PermissionApiModel>() { viewPatientPermission }
+            };
+
+            post = this.Browser.Post("/roles", with => // -3
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.JsonBody(role);
+            }).Result;
+
+            var viewerRole = post.Body.DeserializeJson<RoleApiModel>();
+
+            post = this.Browser.Post("/roles", with => // -2
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                role.Name = "editor";
+                role.Permissions = new List<PermissionApiModel>() { editPatietnPermission };
+                with.JsonBody(role);
+            }).Result;
+
+            var editorRole = post.Body.DeserializeJson<RoleApiModel>();
+
+            this.Browser.Post("/groups", with =>
+            {
+                with.HttpRequest();
+                with.FormValue("Id", Group1);
+                with.FormValue("GroupName", Group1);
+            }).Wait();
+
+            this.Browser.Post("/groups", with =>
+            {
+                with.HttpRequest();
+                with.FormValue("Id", Group2);
+                with.FormValue("GroupName", Group2);
+            }).Wait();
+
+            this.Browser.Post($"/groups/{Group1}/roles", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Id", viewerRole.Identifier);
+            }).Wait();
+
+            this.Browser.Post($"/groups/{Group2}/roles", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Id", editorRole.Identifier);
+            }).Wait();
+
+            // Get the permissions
+            Console.WriteLine("Get the permissions");
+            var get = this.Browser.Get($"/user/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
+            var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
+            //Assert.True(get.Body.AsString().Contains("greatgrandfatherpermissions"));
+            //Assert.True(get.Body.AsString().Contains("grandfatherpermissions"));
+            Assert.Contains("app/userprincipal.editpatient", permissions.Permissions);
+            Assert.Contains("app/userprincipal.viewpatient", permissions.Permissions);
+            Assert.Equal(2, permissions.Permissions.Count());
         }
     }
 }
