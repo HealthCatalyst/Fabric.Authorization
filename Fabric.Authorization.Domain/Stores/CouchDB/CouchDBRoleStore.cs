@@ -81,14 +81,14 @@ namespace Fabric.Authorization.Domain.Stores
                     "byname", // Stores all roles by gain+secitem+name for easy retrieval.
                     new Dictionary<string, string>()
                     {
-                        { "map", "function(doc) { return emit(doc.Grain+doc.SecurableItem+doc.Name, doc); }" },
+                        { "map", "function(doc) { if (doc._id.indexOf('role:') !== -1) emit(doc.Grain+doc.SecurableItem+doc.Name, doc); }" },
                     }
                 },
                 {
                     "bysecitem", // Stores all roles by gain+secitem for easy retrieval.
                     new Dictionary<string, string>()
                     {
-                        { "map", "function(doc) { return emit(doc.Grain+doc.SecurableItem, doc); }" },
+                        { "map", "function(doc) { if (doc._id.indexOf('role:') !== -1) emit(doc.Grain+doc.SecurableItem, doc); }" },
                     }
                 }
             };

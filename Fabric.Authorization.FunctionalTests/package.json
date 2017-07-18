@@ -9,11 +9,11 @@
   "dependencies": {
     "chai": "^4.1.0",
     "chakram": "^1.5.0",
+    "chromedriver": "^2.30.1",
     "mocha": "^3.4.2",
     "selenium-webdriver": "^3.4.0"
   },
-  "devDependencies": {   
-  },
+  "devDependencies": {},
   "scripts": {
     "test": "mocha tests"
   },

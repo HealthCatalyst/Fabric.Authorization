@@ -274,31 +274,63 @@ describe("authorization tests", function(){
     });  
 
     describe("associate roles to permissions", function(){
-        it("should associate roleFoo with userCanViewPermission", function(){
+        it("should associate roleFoo with userCanViewPermission and userCanEditPermission", function(){
             authRequestOptions.headers.Authorization = newAuthClientAccessToken;
-            var permission = {};
+            var permissions = [];
             chakram.startDebug();
-            return chakram.get(baseAuthUrl + "/permissions/" + userCanViewPermission.Grain + "/" + userCanViewPermission.SecurableItem + "/" + userCanViewPermission.Name, authRequestOptions)
+            return chakram.get(baseAuthUrl + "/permissions/" + userCanViewPermission.Grain + "/" + userCanViewPermission.SecurableItem, authRequestOptions)
             .then(function(getResponse){
                 expect(getResponse).to.have.status(200);
-                permission = getResponse.body[0];
-
-                return chakram.get(baseAuthUrl + "/roles/"+ roleFoo.Grain + "/" + roleFoo.SecurableItem + "/" + roleFoo.Name, authRequestOptions)
+                permissions = getResponse.body;
+                chakram.stopDebug();
+                return chakram.get(baseAuthUrl + "/roles/"+ roleFoo.Grain + "/" + roleFoo.SecurableItem + "/" + roleFoo.Name, authRequestOptions);
             })            
             .then(function(getResponse){
                 expect(getResponse).to.have.status(200);
                 expect(getResponse).to.comprise.of.json([{name:"roleFoo"}]);  
                 return getResponse.body;                
             })            
-            .then(function(role){
-                console.log("role returned: " + JSON.stringify(role));
+            .then(function(role){            
                 var roleId = role[0].id;
-                return chakram.post(baseAuthUrl + "/roles/" + roleId + "/permissions",  [permission], authRequestOptions);
+                
+                return chakram.post(baseAuthUrl + "/roles/" + roleId + "/permissions",  permissions, authRequestOptions);
             })
-            .then(function(postResponse){
-                chakram.stopDebug();
+            .then(function(postResponse){       
+                expect(postResponse).to.comprise.of.json({name:"roleFoo"});          
+                
                 expect(postResponse).to.have.status(200);
             });            
+        });        
+    });
+
+    describe("get user permissions", function(){
+        it("can get the users permissions", function(){
+            //  var webdriver = require('selenium-webdriver');
+            // By = webdriver.By,
+            // until = webdriver.until;
+
+            // var driver = new webdriver.Builder()
+            //     .forBrowser('chrome')
+            //     .build();
+            
+            var webdriver = require('selenium-webdriver'),
+            By = webdriver.By,
+            until = webdriver.until;
+            var chrome = require('selenium-webdriver/chrome');
+            var path = require('chromedriver').path;
+
+            var service = new chrome.ServiceBuilder(path).build();
+            chrome.setDefaultService(service);
+
+            var driver = new webdriver.Builder()
+                .withCapabilities(webdriver.Capabilities.chrome())
+                .build();
+            driver.get('http://www.google.com/ncr');
+            driver.findElement(By.name('q')).sendKeys('webdriver');
+            driver.findElement(By.name('btnG')).click();
+            driver.wait(until.titleIs('webdriver - Google Search'), 1000);
+            driver.quit();  
+            
         });
     });
 });
