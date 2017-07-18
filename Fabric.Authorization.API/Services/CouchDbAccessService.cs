@@ -268,7 +268,7 @@ namespace Fabric.Authorization.API.Services
                 if (!response.IsSuccess)
                 {
                     _logger.Error($"unable to add or update document: {documentId} - error: {response.Reason}");
-                    throw new Exception($"unable to add view: {documentId} - error: {response.Reason}");
+                    throw new CouldNotCompleteOperationException($"unable to add view: {documentId} - error: {response.Reason}");
                 }
                 _logger.Information($"views created for documentid: {fullDocumentId}");
             }

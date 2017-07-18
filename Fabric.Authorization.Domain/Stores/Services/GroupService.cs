@@ -23,10 +23,8 @@ namespace Fabric.Authorization.Domain.Services
             var permissions = new List<string>();
             foreach (var groupName in groupNames)
             {
-                Console.WriteLine($"Getting roles for {groupName}");
                 var baseRoles = await this.GetRolesForGroup(groupName, grain, securableItem).ConfigureAwait(false);
                 var roles = new Dictionary<Guid, Role>();
-                Console.WriteLine($"Got {baseRoles.Count()} roles. Checking role hierarchy now.");
                 foreach (var role in baseRoles)
                 {
                     var hierarchy = await _roleStore.GetRoleHierarchy(role.Id).ConfigureAwait(false);
@@ -46,7 +44,6 @@ namespace Fabric.Authorization.Domain.Services
                         roles.Add(baseRole.Id, baseRole);
                     }
                 }
-                Console.WriteLine($"Done, total roles: {roles.Count()}");
                 if (roles.Any())
                 {
                     permissions

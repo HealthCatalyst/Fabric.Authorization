@@ -16,7 +16,6 @@ namespace Fabric.Authorization.IntegrationTests
     {
         public PermissionsTests(bool useInMemoryDB = true)
         {
-            Console.WriteLine($"Starting Permissions Tests. Memory: {useInMemoryDB}");
             var store = useInMemoryDB ? new InMemoryPermissionStore() : (IPermissionStore)new CouchDBPermissionStore(this.DbService(), this.Logger);
             var clientStore = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDBClientStore(this.DbService(), this.Logger);
 
@@ -53,8 +52,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Name", "permissionprincipal");
                 with.Header("Accept", "application/json");
             }).Wait();
-
-            Console.WriteLine("Finished Permissions setup");
+            
         }
 
         [Theory]
