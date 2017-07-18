@@ -75,7 +75,7 @@ namespace Fabric.Authorization.Domain.Stores
                 await _dbService.GetDocuments<Role>("roles", "bysecitem", customParams);
         }
 
-        protected override Task AddViews()
+        protected override async Task AddViews()
         {
             var views = new Dictionary<string, Dictionary<string, string>>()
             {
@@ -101,7 +101,7 @@ namespace Fabric.Authorization.Domain.Stores
                 views = views
             };
             
-           return _dbService.AddViews("roles", couchViews);
+           await _dbService.AddViews("roles", couchViews);
         }
     }
 }

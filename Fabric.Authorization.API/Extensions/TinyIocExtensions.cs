@@ -42,6 +42,12 @@ namespace Fabric.Authorization.API.Extensions
                 {
                     {"innerDocumentDbService", c.Resolve<IDocumentDbService>("inner")}
                 }));
+
+
+            var dbAccessService = container.Resolve<CouchDbAccessService>();
+            dbAccessService.Initialize().Wait();
+
+
             container.Register<IRoleStore, CouchDBRoleStore>();
             container.Register<IPermissionStore, CouchDBPermissionStore>();
             container.Register<IGroupStore, CouchDBGroupStore>();

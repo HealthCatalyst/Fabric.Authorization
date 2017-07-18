@@ -13,7 +13,7 @@ namespace Fabric.Authorization.Domain.Stores
         {
         }
 
-        public async override Task<Permission> Add(Permission model)
+        public override async Task<Permission> Add(Permission model)
         {
             model.Id = Guid.NewGuid();
             return await base.Add(model.Id.ToString(), model);
@@ -29,7 +29,7 @@ namespace Fabric.Authorization.Domain.Stores
                   await _dbService.GetDocuments<Permission>("permissions", "bysecitem", customParams);
         }
 
-        protected override Task AddViews()
+        protected override async Task AddViews()
         {
             var views = new Dictionary<string, Dictionary<string, string>>()
             {
@@ -55,7 +55,7 @@ namespace Fabric.Authorization.Domain.Stores
                 views = views
             };
             
-            return _dbService.AddViews("permissions", couchViews);
+            await _dbService.AddViews("permissions", couchViews);
         }
     }
 }
