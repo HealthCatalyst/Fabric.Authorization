@@ -16,7 +16,6 @@ namespace Fabric.Authorization.IntegrationTests
     {
         public ClientTests(bool useInMemoryDB = true)
         {
-            Console.WriteLine($"Starting Client Tests. Memory: {useInMemoryDB}");
             var store = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDBClientStore(this.DbService(), this.Logger); ;
             var clientService = new ClientService(store);
 
@@ -37,8 +36,7 @@ namespace Fabric.Authorization.IntegrationTests
                     }, "testprincipal"));
                 });
             });
-
-            Console.WriteLine("Finished Clients setup");
+            
         }
 
         [Theory]

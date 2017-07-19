@@ -16,7 +16,6 @@ namespace Fabric.Authorization.IntegrationTests
     {
         public RolesTests(bool useInMemoryDB = true)
         {
-            Console.WriteLine($"Starting Roles Tests. Memory: {useInMemoryDB}");
             var store = useInMemoryDB ? new InMemoryRoleStore() : (IRoleStore)new CouchDBRoleStore(this.DbService(), this.Logger);
             var clientStore = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDBClientStore(this.DbService(), this.Logger);
 
@@ -55,8 +54,7 @@ namespace Fabric.Authorization.IntegrationTests
                     with.FormValue("Name", "rolesprincipal");
                     with.Header("Accept", "application/json");
                 }).Wait();
-
-            Console.WriteLine("Finished Roles setup");
+            
         }
 
         [Theory]

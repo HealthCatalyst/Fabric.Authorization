@@ -17,7 +17,6 @@ namespace Fabric.Authorization.IntegrationTests
     {
         public GroupsTests(bool useInMemoryDB = true)
         {
-            Console.WriteLine($"Starting Groups Tests. Memory: {useInMemoryDB}");
             var store = useInMemoryDB ? new InMemoryGroupStore() : (IGroupStore)new CouchDBGroupStore(this.DbService(), this.Logger); ;
             var groupService = new GroupService(store, new InMemoryRoleStore());
 
@@ -37,8 +36,7 @@ namespace Fabric.Authorization.IntegrationTests
                     }, "testprincipal"));
                 });
             });
-
-            Console.WriteLine("Finished Groups setup");
+            
         }
 
         [Theory]
