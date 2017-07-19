@@ -11,12 +11,9 @@ describe("authorization tests", function () {
 
     if (!baseIdentityUrl) {
         baseIdentityUrl = "http://localhost:5001";
-    }
+    }    
 
-
-    console.log("baseAuthUrl: '" + baseAuthUrl + "'")
-    console.log("baseIdentityUrl: '" + baseIdentityUrl + "'")
-
+    var installerSecret = "";
     var newClientSecret = "";
     var newAuthClientAccessToken = "";
     var authRequestOptions = {
@@ -110,6 +107,22 @@ describe("authorization tests", function () {
         return chakram.post(baseIdentityUrl + "/api/apiresource", registrationApi, requestOptions);
     }
 
+    function registerInstallerClient(){
+        var installerClient = { 
+            "clientId": "fabric-installer",
+            "clientName": "Fabric Installer",
+            "requireConsent": "false",
+            "allowedGrantTypes": ["client_credentials"], 
+            "allowedScopes": [
+                "fabric/identity.manageresources", 
+                "fabric/authorization.read", 
+                "fabric/authorization.write", 
+                "fabric/authorization.manageclients"]
+        }
+
+        return chakram.post(baseIdentityUrl + "/api/client", installerClient, requestOptions);       
+    }
+
     function getAccessToken(clientData){        
         return chakram.post(baseIdentityUrl + "/connect/token", undefined, clientData)
             .then(function(postResponse){                  
@@ -118,11 +131,11 @@ describe("authorization tests", function () {
             });
     }
 
-    function getAccessTokenForInstaller(installerSecret){        
+    function getAccessTokenForInstaller(installerClientSecret){        
         var postData = {
             form: {
                 "client_id": "fabric-installer",
-                "client_secret": installerSecret,
+                "client_secret": installerClientSecret,
                 "grant_type": "client_credentials",
                 "scope": "fabric/identity.manageresources fabric/authorization.read fabric/authorization.write fabric/authorization.manageclients"
             }
@@ -142,30 +155,17 @@ describe("authorization tests", function () {
         }
 
         return getAccessToken(clientData);
-    }
+    }    
 
     function bootstrapIdentityServer(){
         return registerRegistrationApi()
-        .then(registerAuthorizationApi())
-        .then(function(){
-            var installerClient = { 
-                "clientId": "fabric-installer",
-                "clientName": "Fabric Installer",
-                "requireConsent": "false",
-                "allowedGrantTypes": ["client_credentials"], 
-                "allowedScopes": [
-                    "fabric/identity.manageresources", 
-                    "fabric/authorization.read", 
-                    "fabric/authorization.write", 
-                    "fabric/authorization.manageclients"]
-            }
-        
-            return chakram.post(baseIdentityUrl + "/api/client", installerClient, requestOptions);             
-        })
-        .then(function(postResponse){            
+        .then(registerAuthorizationApi)
+        .then(registerInstallerClient)
+        .then(function(postResponse){                        
             return postResponse.body.clientSecret;                        
         })
-        .then(function(installerSecret){            
+        .then(function(installerClientSecret){               
+            installerSecret = installerClientSecret;
             return getAccessTokenForInstaller(installerSecret);
         })
         .then(function(retrievedAccessToken){                                   
@@ -176,24 +176,7 @@ describe("authorization tests", function () {
     before("running before", function(){
         this.timeout(5000);            
         return bootstrapIdentityServer();
-    });
-
-    describe("validate security", function(){
-        it("should return a 403 when no access token provided", function(){
-            var response = chakram.get(baseAuthUrl + "/clients", requestOptions);
-
-            expect(response).to.have.status(403);
-            return chakram.wait();
-        });       
-
-        it.skip("should return a 403 when an access token without scope is used", function(){
-
-        });
-
-        it.skip("should return a 403 when an access token with invalid scope is used", function(){
-
-        });
-    });
+    });  
 
     describe("register client", function(){      
         
@@ -362,6 +345,31 @@ describe("authorization tests", function () {
                 expect(permissions).to.be.an("array").that.includes("app/func-test.userCanEdit");
                 expect(permissions).to.be.an("array").that.includes("app/func-test.userCanView");
             }); 
+        });
+    });
+
+    describe("validate security", function(){
+        it("should return a 403 when no access token provided", function(){
+            return chakram.get(baseAuthUrl + "/clients", requestOptions)
+            .then(function(getResponse){
+                expect(getResponse).to.have.status(403);
+            });
+        });              
+
+        it("should return a 403 when an access token with invalid scope is used", function(){
+            return getAccessTokenForAuthClient(newClientSecret)
+            .then(function(accessToken){                
+                var options = {
+                    headers: {
+                        "content-type": "application/json",
+                        "Authorization": accessToken
+                    }
+                }
+                return chakram.get(baseAuthUrl + "/clients", options);
+            })
+            .then(function(getResponse){
+                expect(getResponse).to.have.status(403);
+            });
         });
     });
 });
