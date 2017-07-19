@@ -5,10 +5,12 @@ describe("authorization tests", function(){
     var baseAuthUrl = "http://localhost:5004";
     var baseIdentityUrl = "http://localhost:5001";
 
+    var newClientSecret = "";
     var newAuthClientAccessToken = "";
     var authRequestOptions = {
         headers: {
-                "content-type": "application/json",
+                "Content-Type": "application/json",
+                "Accept": "application/json",
                 "Authorization": ""
             }   
     }
@@ -22,11 +24,13 @@ describe("authorization tests", function(){
         "clientId": "func-test",
         "clientName": "Functional Test Client",
         "requireConsent": "false",
-        "allowedGrantTypes": ["client_credentials"], 
+        "allowedGrantTypes": ["client_credentials", "password"], 
         "allowedScopes": [
             "fabric/identity.manageresources", 
             "fabric/authorization.read",
-            "fabric/authorization.write"
+            "fabric/authorization.write",
+            "openid",
+            "profile"
         ]    
     }
 
@@ -37,25 +41,25 @@ describe("authorization tests", function(){
     }
 
     var groupFoo = {
-        "id": "roleFoo",
-        "groupName": "roleFoo"
+        "id": "FABRIC\\\Health Catalyst Viewer",
+        "groupName": "FABRIC\\\Health Catalyst Viewer"
     }
 
     var groupBar = {
-        "id": "roleBar",
-        "groupName": "roleBar"
+        "id": "FABRIC\\\Health Catalyst Editor",
+        "groupName": "FABRIC\\\Health Catalyst Editor"
     }
 
     var roleFoo = {
         "Grain": "app",
         "SecurableItem": "func-test",
-        "Name": "roleFoo"
+        "Name": "FABRIC\\\Health Catalyst Viewer"
     }
 
     var roleBar = {
         "Grain": "app",
         "SecurableItem": "func-test",
-        "Name": "roleBar"
+        "Name": "FABRIC\\\Health Catalyst Editor"
     }    
 
     var userCanViewPermission = {
@@ -94,10 +98,9 @@ describe("authorization tests", function(){
         return chakram.post(baseIdentityUrl + "/api/apiresource", registrationApi, requestOptions);
     }
 
-    function getAccessToken(clientData){
+    function getAccessToken(clientData){        
         return chakram.post(baseIdentityUrl + "/connect/token", undefined, clientData)
-            .then(function(postResponse){  
-                console.log("response for access token: " + JSON.stringify(postResponse.body));
+            .then(function(postResponse){                  
                 var accessToken = "Bearer " + postResponse.body.access_token;                                             
                 return accessToken;
             });
@@ -170,6 +173,14 @@ describe("authorization tests", function(){
             expect(response).to.have.status(403);
             return chakram.wait();
         });       
+
+        it.skip("should return a 403 when an access token without scope is used", function(){
+
+        });
+
+        it.skip("should return a 403 when an access token with invalid scope is used", function(){
+
+        });
     });
 
     describe("register client", function(){      
@@ -177,7 +188,8 @@ describe("authorization tests", function(){
         it("should register a client", function(){        
            return chakram.post(baseIdentityUrl + "/api/client", identityClientFuncTest, authRequestOptions)
             .then(function(clientResponse){
-                expect(clientResponse).to.have.status(201);                                    
+                expect(clientResponse).to.have.status(201);                      
+                newClientSecret = clientResponse.body.clientSecret;
                 return getAccessTokenForAuthClient(clientResponse.body.clientSecret);
             })
             .then(function(authClientAccessToken){                
@@ -241,14 +253,15 @@ describe("authorization tests", function(){
         it("should associate group foo with role foo", function(){
             authRequestOptions.headers.Authorization = newAuthClientAccessToken;
             
-            return chakram.get(baseAuthUrl + "/roles/"+ roleFoo.Grain + "/" + roleFoo.SecurableItem + "/" + roleFoo.Name, authRequestOptions)
+            return chakram.get(baseAuthUrl + "/roles/"+ roleFoo.Grain + "/" + roleFoo.SecurableItem + "/" + encodeURIComponent(roleFoo.Name), authRequestOptions)
             .then(function(getResponse){            
                 expect(getResponse).to.have.status(200);
-                expect(getResponse).to.comprise.of.json([{name:"roleFoo"}]);              
+                expect(getResponse).to.comprise.of.json([{name:"FABRIC\\Health Catalyst Viewer"}]);              
+                
                 return getResponse.body;                
             })
             .then(function(role){                
-                return chakram.post(baseAuthUrl + "/groups/" + groupFoo.groupName + "/roles", role[0], authRequestOptions);
+                return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupFoo.groupName) + "/roles", role[0], authRequestOptions);
             })
             .then(function(postResponse){
                 expect(postResponse).to.have.status(204);
@@ -258,14 +271,14 @@ describe("authorization tests", function(){
         it("should associate group bar with role bar", function(){
             authRequestOptions.headers.Authorization = newAuthClientAccessToken;
             
-            return chakram.get(baseAuthUrl + "/roles/"+ roleBar.Grain + "/" + roleBar.SecurableItem + "/" + roleBar.Name, authRequestOptions)
+            return chakram.get(baseAuthUrl + "/roles/"+ roleBar.Grain + "/" + roleBar.SecurableItem + "/" + encodeURIComponent(roleBar.Name), authRequestOptions)
             .then(function(getResponse){            
                 expect(getResponse).to.have.status(200);
-                expect(getResponse).to.comprise.of.json([{name:"roleBar"}]);              
+                expect(getResponse).to.comprise.of.json([{name:"FABRIC\\Health Catalyst Editor"}]);              
                 return getResponse.body;                
             })
             .then(function(role){                
-                return chakram.post(baseAuthUrl + "/groups/" + groupBar.groupName + "/roles", role[0], authRequestOptions);
+                return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupBar.groupName) + "/roles", role[0], authRequestOptions);
             })
             .then(function(postResponse){
                 expect(postResponse).to.have.status(204);
@@ -277,27 +290,24 @@ describe("authorization tests", function(){
         it("should associate roleFoo with userCanViewPermission and userCanEditPermission", function(){
             authRequestOptions.headers.Authorization = newAuthClientAccessToken;
             var permissions = [];
-            chakram.startDebug();
+            
             return chakram.get(baseAuthUrl + "/permissions/" + userCanViewPermission.Grain + "/" + userCanViewPermission.SecurableItem, authRequestOptions)
             .then(function(getResponse){
                 expect(getResponse).to.have.status(200);
-                permissions = getResponse.body;
-                chakram.stopDebug();
-                return chakram.get(baseAuthUrl + "/roles/"+ roleFoo.Grain + "/" + roleFoo.SecurableItem + "/" + roleFoo.Name, authRequestOptions);
+                permissions = getResponse.body;                
+                return chakram.get(baseAuthUrl + "/roles/"+ roleFoo.Grain + "/" + roleFoo.SecurableItem + "/" + encodeURIComponent(roleFoo.Name), authRequestOptions);
             })            
             .then(function(getResponse){
                 expect(getResponse).to.have.status(200);
-                expect(getResponse).to.comprise.of.json([{name:"roleFoo"}]);  
+                expect(getResponse).to.comprise.of.json([{name:"FABRIC\\Health Catalyst Viewer"}]);  
                 return getResponse.body;                
             })            
             .then(function(role){            
-                var roleId = role[0].id;
-                
+                var roleId = role[0].id;                
                 return chakram.post(baseAuthUrl + "/roles/" + roleId + "/permissions",  permissions, authRequestOptions);
             })
             .then(function(postResponse){       
-                expect(postResponse).to.comprise.of.json({name:"roleFoo"});          
-                
+                expect(postResponse).to.comprise.of.json({name:"FABRIC\\Health Catalyst Viewer"});                          
                 expect(postResponse).to.have.status(200);
             });            
         });        
@@ -305,32 +315,41 @@ describe("authorization tests", function(){
 
     describe("get user permissions", function(){
         it("can get the users permissions", function(){
-            //  var webdriver = require('selenium-webdriver');
-            // By = webdriver.By,
-            // until = webdriver.until;
+            //hit the token endpoint for identity with the username and password of the user
+            var stringToEncode = "func-test:" + newClientSecret;
+            var encodedData = new Buffer(stringToEncode).toString("base64");
 
-            // var driver = new webdriver.Builder()
-            //     .forBrowser('chrome')
-            //     .build();
-            
-            var webdriver = require('selenium-webdriver'),
-            By = webdriver.By,
-            until = webdriver.until;
-            var chrome = require('selenium-webdriver/chrome');
-            var path = require('chromedriver').path;
+            var postData = {
+                        form: {
+                            "grant_type": "password",
+                            "username": "bob",
+                            "password": "bob"
+                        },
+                         headers: {
+                            "content-type": "application/x-www-form-urlencoded",
+                            "Authorization": "Basic " + encodedData
+                        }   
+                    };      
 
-            var service = new chrome.ServiceBuilder(path).build();
-            chrome.setDefaultService(service);
-
-            var driver = new webdriver.Builder()
-                .withCapabilities(webdriver.Capabilities.chrome())
-                .build();
-            driver.get('http://www.google.com/ncr');
-            driver.findElement(By.name('q')).sendKeys('webdriver');
-            driver.findElement(By.name('btnG')).click();
-            driver.wait(until.titleIs('webdriver - Google Search'), 1000);
-            driver.quit();  
-            
+            return getAccessToken(postData)
+            .then(function(accessToken){
+                expect(accessToken).to.not.be.null;
+                 var headers =  {
+                        headers: {
+                            "Accept": "application/json",
+                            "Authorization": accessToken
+                        }   
+                    };                
+                return chakram.get(baseAuthUrl + "/user/permissions?grain=app&securableItem=func-test", headers);                
+            })
+            .then(function(getResponse){                
+                expect(getResponse).to.have.status(200);
+                
+                var permissions = getResponse.body.permissions;                
+                expect(permissions).to.be.an("array").that.is.not.empty;
+                expect(permissions).to.be.an("array").that.includes("app/func-test.userCanEdit");
+                expect(permissions).to.be.an("array").that.includes("app/func-test.userCanView");
+            }); 
         });
     });
 });
