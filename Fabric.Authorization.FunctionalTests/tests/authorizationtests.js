@@ -1,9 +1,21 @@
 var chakram = require("chakram");
 var expect = require("chakram").expect;
 
-describe("authorization tests", function(){
-    var baseAuthUrl = "http://localhost:5004";
-    var baseIdentityUrl = "http://localhost:5001";
+describe("authorization tests", function () {
+    var baseAuthUrl = process.env.BASE_AUTH_URL;
+    var baseIdentityUrl = process.env.BASE_IDENTITY_URL;
+
+    if (!baseAuthUrl) {
+        baseAuthUrl = "http://localhost:5004";
+    }
+
+    if (!baseIdentityUrl) {
+        baseIdentityUrl = "http://localhost:5001";
+    }
+
+
+    console.log("baseAuthUrl: '" + baseAuthUrl + "'")
+    console.log("baseIdentityUrl: '" + baseIdentityUrl + "'")
 
     var newAuthClientAccessToken = "";
     var authRequestOptions = {
