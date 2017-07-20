@@ -27,6 +27,10 @@ namespace Fabric.Authorization.Domain.Services
                 var roles = new Dictionary<Guid, Role>();
                 foreach (var role in baseRoles)
                 {
+                    if (!role.ParentRole.HasValue)
+                    {
+                        continue;
+                    }
                     var hierarchy = await _roleStore.GetRoleHierarchy(role.Id).ConfigureAwait(false);
                     foreach (var ancestorRole in hierarchy)
                     {
@@ -36,7 +40,7 @@ namespace Fabric.Authorization.Domain.Services
                         }
                     }
                 }
-                
+
                 foreach (var baseRole in baseRoles)
                 {
                     if (!roles.ContainsKey(baseRole.Id))
