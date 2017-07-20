@@ -22,13 +22,11 @@ namespace Fabric.Authorization.Domain.Stores
 
         public async Task<T> GetDocument<T>(string documentId)
         {
-            await _eventService.RaiseEventAsync(new EntityAuditEvent<T>(EventTypes.EntityReadEvent, documentId)).ConfigureAwait(false);
             return await _innerDocumentDbService.GetDocument<T>(documentId);
         }
 
         public async Task<IEnumerable<T>> GetDocuments<T>(string documentType)
         {
-            await _eventService.RaiseEventAsync(new EntityAuditEvent<T>(EventTypes.EntityReadEvent, "all")).ConfigureAwait(false);
             return await _innerDocumentDbService.GetDocuments<T>(documentType);
         }
 
