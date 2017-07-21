@@ -1045,8 +1045,8 @@ vars.put(&quot;aliceBasicAuthorization&quot;, basicAuthorization);</stringProp>
         <stringProp name="ThreadGroup.ramp_time">3</stringProp>
         <longProp name="ThreadGroup.start_time">1500493562000</longProp>
         <longProp name="ThreadGroup.end_time">1500493562000</longProp>
-        <boolProp name="ThreadGroup.scheduler">false</boolProp>
-        <stringProp name="ThreadGroup.duration"></stringProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.duration">180</stringProp>
         <stringProp name="ThreadGroup.delay"></stringProp>
       </ThreadGroup>
       <hashTree>
@@ -1142,8 +1142,8 @@ vars.put(&quot;aliceBasicAuthorization&quot;, basicAuthorization);</stringProp>
         <stringProp name="ThreadGroup.ramp_time">3</stringProp>
         <longProp name="ThreadGroup.start_time">1500493562000</longProp>
         <longProp name="ThreadGroup.end_time">1500493562000</longProp>
-        <boolProp name="ThreadGroup.scheduler">false</boolProp>
-        <stringProp name="ThreadGroup.duration"></stringProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.duration">180</stringProp>
         <stringProp name="ThreadGroup.delay"></stringProp>
       </ThreadGroup>
       <hashTree>
@@ -1239,8 +1239,8 @@ vars.put(&quot;aliceBasicAuthorization&quot;, basicAuthorization);</stringProp>
         <stringProp name="ThreadGroup.ramp_time">3</stringProp>
         <longProp name="ThreadGroup.start_time">1500642900000</longProp>
         <longProp name="ThreadGroup.end_time">1500642900000</longProp>
-        <boolProp name="ThreadGroup.scheduler">false</boolProp>
-        <stringProp name="ThreadGroup.duration"></stringProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.duration">180</stringProp>
         <stringProp name="ThreadGroup.delay"></stringProp>
       </ThreadGroup>
       <hashTree>
