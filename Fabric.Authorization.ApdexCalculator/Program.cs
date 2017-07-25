@@ -39,12 +39,12 @@ namespace Fabric.Authorization.ApdexCalculator
 
         private static double CalculateApdex(Measure measure, IEnumerable<Sample> samples)
         {
-            
-            var satisfiedCount = (double)samples.Count(s => s.Label == measure.Name &&
-                                                    s.Elapsed <= measure.TolerationThreshold);
-            var toleratedCount = (double)samples.Count(s => s.Label == measure.Name &&
-                                                    s.Elapsed > measure.TolerationThreshold &&
-                                                    s.Elapsed <= measure.FrustrationThreshold);
+
+            var satisfiedCount = (double) samples.Count(s => s.Label == measure.Name &&
+                                                             s.Elapsed <= measure.TolerationThreshold && s.Success);
+            var toleratedCount = (double) samples.Count(s => s.Label == measure.Name &&
+                                                             s.Elapsed > measure.TolerationThreshold &&
+                                                             s.Elapsed <= measure.FrustrationThreshold && s.Success);
             var totalSamples = (double)samples.Count(s => s.Label == measure.Name);
             var apdex = (satisfiedCount + toleratedCount/2) / totalSamples;
             Console.ForegroundColor = apdex < ApdexThreshold ? ConsoleColor.Red : ConsoleColor.Gray;
