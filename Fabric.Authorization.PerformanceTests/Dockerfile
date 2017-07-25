@@ -22,4 +22,7 @@ COPY Fabric.Authorization.Perf.jmx .
 COPY create-userproperties.sh .
 COPY entrypoint.sh .
 
+RUN chmod +x create-userproperties.sh \
+	&& chmod +x entrypoint.sh
+
 ENTRYPOINT ./entrypoint.sh
