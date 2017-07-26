@@ -21,18 +21,30 @@ namespace Fabric.Authorization.Domain.Services
 
         public async Task<IEnumerable<Role>> GetRoles(string grain = null, string securableItem = null, string roleName = null)
         {
-            return await _roleStore.GetRoles(grain, securableItem, roleName);
+            var roles = await _roleStore.GetRoles(grain, securableItem, roleName);
+            var permissions = await _permissionStore.GetPermissions(grain, securableItem);
+            var rolesToReturn = new List<Role>();
+            foreach (var role in roles.Where(r => !r.IsDeleted))
+            {
+                role.Permissions = GetPermissionsFromRole(role, permissions).ToList();
+                rolesToReturn.Add(role);
+            }
+            return rolesToReturn;
         }
 
         public async Task<Role> GetRole(Guid roleId)
         {
-            return await _roleStore.Get(roleId);
+            var role = await _roleStore.Get(roleId);
+            var permissions = await _permissionStore.GetPermissions(role.Grain, role.SecurableItem);
+            role.Permissions = GetPermissionsFromRole(role, permissions).ToList();
+            return role;
         }
 
         public async Task<IEnumerable<Permission>> GetPermissionsForRole(Guid roleId)
         {
             var role = await _roleStore.Get(roleId);
-            return role.Permissions;
+            var permissions = await _permissionStore.GetPermissions(role.Grain, role.SecurableItem);
+            return GetPermissionsFromRole(role, permissions);
         }
 
         public async Task<Role> AddRole(Role role)
@@ -95,6 +107,12 @@ namespace Fabric.Authorization.Domain.Services
                 ancestorRoles.AddRange(GetRoleHierarchy(ancestorRole, roles));
             }
             return ancestorRoles;
+        }
+
+        private IEnumerable<Permission> GetPermissionsFromRole(Role role, IEnumerable<Permission> permissions)
+        {
+            var permissionIds = role.Permissions.Select(p => p.Id);
+            return permissions.Where(p => permissionIds.Contains(p.Id) && !p.IsDeleted).ToList();
         }
     }
 }
