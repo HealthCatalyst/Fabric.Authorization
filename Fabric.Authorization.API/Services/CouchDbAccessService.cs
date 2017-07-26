@@ -25,7 +25,7 @@ namespace Fabric.Authorization.API.Services
 
         private string GetFullDocumentId<T>(string documentId)
         {
-            return $"{typeof(T).Name.ToLowerInvariant()}:{documentId}";
+            return DocumentDbHelpers.GetFullDocumentId<T>(documentId);
         }
 
         private DbConnectionInfo DbConnectionInfo
