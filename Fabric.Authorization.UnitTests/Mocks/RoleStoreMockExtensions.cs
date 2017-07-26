@@ -19,11 +19,6 @@ namespace Fabric.Authorization.UnitTests.Mocks
                 .Returns((string grain, string securableItem, string name) => Task.FromResult(roles.Where(
                     r => r.Grain == grain && r.SecurableItem == securableItem &&
                          (r.Name == name || string.IsNullOrEmpty(name)))));
-
-            mockRoleStore
-                .Setup(roleStore => roleStore.GetRoleHierarchy(It.IsAny<Guid>()))
-                .Returns((Guid id) => Task.FromResult(roles.Where(r => r.Id == id)));
-
             return mockRoleStore.SetupGetRole(roles);
         }
 

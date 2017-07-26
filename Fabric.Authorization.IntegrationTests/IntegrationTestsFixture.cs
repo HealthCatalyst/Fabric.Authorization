@@ -41,6 +41,7 @@ namespace Fabric.Authorization.IntegrationTests
                 }
 
                 var innerDbService = new CouchDbAccessService(config, new Mock<ILogger>().Object);
+                innerDbService.Initialize().Wait();
                 var auditingDbService = new AuditingDocumentDbService(new Mock<IEventService>().Object, innerDbService);
                 var cachingDbService = new CachingDocumentDbService(auditingDbService, new MemoryCache(new MemoryCacheOptions()));
                 dbService = cachingDbService;

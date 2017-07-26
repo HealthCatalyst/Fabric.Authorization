@@ -27,6 +27,7 @@ namespace Fabric.Authorization.UnitTests.Users
             _mockGroupStore = new Mock<IGroupStore>();
             _mockGroupStore.SetupGetGroups(_existingGroups)
                 .SetupGroupExists(_existingGroups);
+
         }
 
         [Theory, MemberData(nameof(GetPermissionsRequestData))]
@@ -97,10 +98,12 @@ namespace Fabric.Authorization.UnitTests.Users
             return base.ConfigureBootstrapper(configurableBootstrapper, claims)
                 .Dependency<GroupService>(typeof(GroupService))
                 .Dependency<ClientService>(typeof(ClientService))
+                .Dependency<RoleService>(typeof(RoleService))
                 .Dependency(MockLogger.Object)
                 .Dependency(MockClientStore.Object)
                 .Dependency(MockRoleStore.Object)
-                .Dependency(_mockGroupStore.Object);
+                .Dependency(_mockGroupStore.Object)
+                .Dependency(MockPermissionStore.Object);
         }
 
         private void SetupTestData()
@@ -138,6 +141,10 @@ namespace Fabric.Authorization.UnitTests.Users
             adminGroup.Roles.Add(adminRole);
             adminGroup.Roles.Add(contributorRole);
             contributorGroup.Roles.Add(contributorRole);
+
+            adminRole.Groups.Add(adminGroup.Identifier);
+            contributorRole.Groups.Add(adminGroup.Identifier);
+            contributorRole.Groups.Add(contributorGroup.Identifier);
 
             var manageUsersPermission =
                 ExistingPermissions.First(p => p.Grain == adminRole.Grain &&

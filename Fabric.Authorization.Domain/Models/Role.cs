@@ -10,6 +10,7 @@ namespace Fabric.Authorization.Domain.Models
             Permissions = new List<Permission>();
             DeniedPermissions = new List<Permission>();
             ChildRoles = new List<Guid>();
+            Groups = new List<string>();
         }
 
         public Guid Id { get; set; }
@@ -23,6 +24,8 @@ namespace Fabric.Authorization.Domain.Models
         public bool IsDeleted { get; set; }
 
         public Guid? ParentRole { get; set; }
+
+        public ICollection<string> Groups { get; set; }
         
         public ICollection<Guid> ChildRoles { get; set; }
 

@@ -84,7 +84,17 @@ namespace Fabric.Authorization.Domain.Services
             await _roleStore.Update(role);
             return role;
         }
-
-        public async Task<IEnumerable<Role>> GetRoleHierarchy(Guid roleId) => await _roleStore.GetRoleHierarchy(roleId);
+        
+        public IEnumerable<Role> GetRoleHierarchy(Role role, IEnumerable<Role> roles)
+        {
+            var ancestorRoles = new List<Role>();
+            if (role.ParentRole.HasValue && roles.Any(r => r.Id == role.ParentRole && !r.IsDeleted))
+            {
+                var ancestorRole = roles.First(r => r.Id == role.ParentRole && !r.IsDeleted);
+                ancestorRoles.Add(ancestorRole);
+                ancestorRoles.AddRange(GetRoleHierarchy(ancestorRole, roles));
+            }
+            return ancestorRoles;
+        }
     }
 }

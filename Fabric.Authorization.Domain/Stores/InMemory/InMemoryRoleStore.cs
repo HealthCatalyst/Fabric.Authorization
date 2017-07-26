@@ -73,47 +73,6 @@ namespace Fabric.Authorization.Domain.Stores
         public Task<IEnumerable<Role>> GetAll() => this.GetRoles();
 
         public Task<bool> Exists(Guid id) => Task.FromResult(Roles.ContainsKey(id));
-
-        public async Task<IEnumerable<Role>> GetRoleHierarchy(Guid roleId)
-        {
-            var queue = new Queue<Guid>();
-            queue.Enqueue(Guid.Empty);
-            queue.Enqueue(roleId);
-
-            int level = 0;
-
-            var roleHierarchy = new HashSet<Role>();
-            var visited = new HashSet<Guid>();
-
-            while (queue.Any() && level < 10)
-            {
-                var topId = queue.Dequeue();
-                if (topId == Guid.Empty)
-                {
-                    level++;
-                    queue.Enqueue(Guid.Empty);
-                    continue;
-                }
-
-                if (visited.Contains(topId))
-                {
-                    continue;
-                }
-
-                visited.Add(topId);
-
-                if (await this.Exists(topId))
-                {
-                    var role = await this.Get(topId);
-                    roleHierarchy.Add(role);
-                    if (role.ParentRole.HasValue)
-                    {
-                        queue.Enqueue(role.ParentRole.Value);
-                    }
-                }
-            }
-
-            return roleHierarchy;
-        }
+        
     }
 }
