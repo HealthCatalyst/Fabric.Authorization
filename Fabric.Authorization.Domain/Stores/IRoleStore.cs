@@ -8,7 +8,5 @@ namespace Fabric.Authorization.Domain.Stores
     public interface IRoleStore : IGenericStore<Guid, Role>
     {
         Task<IEnumerable<Role>> GetRoles(string grain, string securableItem = null, string roleName = null);
-
-        Task<IEnumerable<Role>> GetRoleHierarchy(Guid roleId);
     }
 }

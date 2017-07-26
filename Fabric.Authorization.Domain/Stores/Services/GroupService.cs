@@ -11,53 +11,44 @@ namespace Fabric.Authorization.Domain.Services
     {
         private readonly IGroupStore _groupStore;
         private readonly IRoleStore _roleStore;
+        private readonly IPermissionStore _permissionStore;
+        private readonly RoleService _roleService;
 
-        public GroupService(IGroupStore groupStore, IRoleStore roleStore)
+        public GroupService(IGroupStore groupStore, IRoleStore roleStore, IPermissionStore permissionStore, RoleService roleService)
         {
             _groupStore = groupStore ?? throw new ArgumentNullException(nameof(groupStore));
             _roleStore = roleStore ?? throw new ArgumentNullException(nameof(roleStore));
+            _permissionStore = permissionStore ?? throw new ArgumentNullException(nameof(permissionStore));
+            _roleService = roleService ?? throw new ArgumentNullException(nameof(roleService));
         }
 
         public async Task<IEnumerable<string>> GetPermissionsForGroups(string[] groupNames, string grain = null, string securableItem = null)
         {
-            var permissions = new List<string>();
-            foreach (var groupName in groupNames)
+            var effectivePermissions = new List<string>();
+            var roles = await _roleStore.GetRoles(grain, securableItem);
+            var permissions = await _permissionStore.GetPermissions(grain, securableItem);
+            foreach (var role in roles)
             {
-                var baseRoles = await this.GetRolesForGroup(groupName, grain, securableItem).ConfigureAwait(false);
-                var roles = new Dictionary<Guid, Role>();
-                foreach (var role in baseRoles)
+                if (role.Groups.Any(groupNames.Contains) && !role.IsDeleted && role.Permissions != null)
                 {
-                    var hierarchy = await _roleStore.GetRoleHierarchy(role.Id).ConfigureAwait(false);
-                    foreach (var ancestorRole in hierarchy)
+                    effectivePermissions.AddRange(permissions.Where(p =>
+                                    !p.IsDeleted && 
+                                    (p.Grain == grain || grain == null) &&
+                                    (p.SecurableItem == securableItem || securableItem == null) &&
+                                    role.Permissions.Any(rp => rp.Id == p.Id)).Select(p => p.ToString()));
+                    var ancestorRoles = _roleService.GetRoleHierarchy(role, roles);
+                    foreach (var ancestorRole in ancestorRoles)
                     {
-                        if (!roles.ContainsKey(ancestorRole.Id))
-                        {
-                            roles.Add(ancestorRole.Id, ancestorRole);
-                        }
-                    }
-                }
-
-                foreach (var baseRole in baseRoles)
-                {
-                    if (!roles.ContainsKey(baseRole.Id))
-                    {
-                        roles.Add(baseRole.Id, baseRole);
-                    }
-                }
-                if (roles.Any())
-                {
-                    permissions
-                    .AddRange(roles.Values
-                        .Where(r => r.Permissions != null && !r.IsDeleted)
-                        .SelectMany(r => r.Permissions.Where(p => 
-                            !p.IsDeleted && 
+                        effectivePermissions.AddRange(permissions.Where(p =>
+                            !p.IsDeleted &&
                             (p.Grain == grain || grain == null) &&
-                            (p.SecurableItem == securableItem || securableItem == null))
-                        .Select(p => p.ToString())));
+                            (p.SecurableItem == securableItem || securableItem == null) &&
+                            ancestorRole.Permissions.Any(rp => rp.Id == p.Id)).Select(p => p.ToString()));
+                    }
                 }
             }
 
-            return permissions.Distinct();
+            return effectivePermissions.Distinct();
         }
 
         public async Task<IEnumerable<Role>> GetRolesForGroup(string groupName, string grain = null, string securableItem = null)
@@ -91,7 +82,12 @@ namespace Fabric.Authorization.Domain.Services
             {
                 group.Roles.Add(role);
             }
-
+            
+            if (role.Groups.All(g => g != groupName))
+            {
+                role.Groups.Add(groupName);
+            }
+            await _roleStore.Update(role);
             await _groupStore.Update(group);
         }
 
@@ -104,7 +100,12 @@ namespace Fabric.Authorization.Domain.Services
             {
                 group.Roles.Remove(role);
             }
-
+            
+            if (role.Groups.Any(g => g == groupName))
+            {
+                role.Groups.Remove(groupName);
+            }
+            await _roleStore.Update(role);
             await _groupStore.Update(group);
         }
 

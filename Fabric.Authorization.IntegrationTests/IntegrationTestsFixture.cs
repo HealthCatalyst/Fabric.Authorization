@@ -2,7 +2,10 @@
 using System.Threading;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Services;
+using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using Moq;
 using Nancy.Testing;
 using Serilog;
@@ -20,28 +23,32 @@ namespace Fabric.Authorization.IntegrationTests
         private readonly string CouchDbServerEnvironmentVariable = "COUCHDBSETTINGS__SERVER";
 
         protected IDocumentDbService DbService()
-         {
-             if (dbService == null)
-             {
-                 ICouchDbSettings config = new CouchDbSettings()
-                 {
-                     DatabaseName = "integration-"+DateTime.UtcNow.Ticks.ToString(),
-                     Username = "",
-                     Password = "",
-                     Server = "http://127.0.0.1:5984"
-                 };
+        {
+            if (dbService == null)
+            {
+                ICouchDbSettings config = new CouchDbSettings()
+                {
+                    DatabaseName = "integration-" + DateTime.UtcNow.Ticks.ToString(),
+                    Username = "",
+                    Password = "",
+                    Server = "http://127.0.0.1:5984"
+                };
 
-                 var couchDbServer = Environment.GetEnvironmentVariable(CouchDbServerEnvironmentVariable);
-                 if (!string.IsNullOrEmpty(couchDbServer))
-                 {
-                     config.Server = couchDbServer;
-                 }
+                var couchDbServer = Environment.GetEnvironmentVariable(CouchDbServerEnvironmentVariable);
+                if (!string.IsNullOrEmpty(couchDbServer))
+                {
+                    config.Server = couchDbServer;
+                }
 
-                 dbService = new CouchDbAccessService(config, new Mock<ILogger>().Object);
-             }
+                var innerDbService = new CouchDbAccessService(config, new Mock<ILogger>().Object);
+                innerDbService.Initialize().Wait();
+                var auditingDbService = new AuditingDocumentDbService(new Mock<IEventService>().Object, innerDbService);
+                var cachingDbService = new CachingDocumentDbService(auditingDbService, new MemoryCache(new MemoryCacheOptions()));
+                dbService = cachingDbService;
+            }
 
-             return dbService;
-         }
+            return dbService;
+        }
 
         #region IDisposable implementation
 
