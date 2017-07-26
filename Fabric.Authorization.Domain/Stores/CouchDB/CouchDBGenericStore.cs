@@ -70,7 +70,11 @@ namespace Fabric.Authorization.Domain.Stores
             return result;
         }
 
-        public virtual Task<IEnumerable<T>> GetAll() => Task.FromResult(Enumerable.Empty<T>());
+        public virtual async Task<IEnumerable<T>> GetAll()
+        {
+            var documentType = $"{typeof(T).Name.ToLowerInvariant()}:";
+            return await _dbService.GetDocuments<T>(documentType);
+        }
 
         /// <summary>
         ///

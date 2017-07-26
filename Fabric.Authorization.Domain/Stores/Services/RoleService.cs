@@ -19,9 +19,11 @@ namespace Fabric.Authorization.Domain.Services
             _permissionStore = permissionStore ?? throw new ArgumentNullException(nameof(permissionStore));
         }
 
-        public async Task<IEnumerable<Role>> GetRoles(string grain = null, string securableItem = null, string roleName = null)
+        public async Task<IEnumerable<Role>> GetRoles(string grain = null, string securableItem = null, string roleName = null, bool includeDeleted = false)
         {
-            return await _roleStore.GetRoles(grain, securableItem, roleName);
+            var roles = await _roleStore.GetRoles(grain, securableItem, roleName);
+
+            return includeDeleted ? roles : roles.Where(r => !r.IsDeleted);
         }
 
         public async Task<Role> GetRole(Guid roleId)
