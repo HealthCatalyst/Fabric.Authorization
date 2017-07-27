@@ -7,6 +7,8 @@ using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
+using Fabric.Authorization.Domain.Stores.CouchDB;
+using Fabric.Authorization.Domain.Stores.Services;
 using IdentityModel;
 using Nancy;
 using Nancy.Testing;

@@ -7,6 +7,7 @@ using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
+using Fabric.Authorization.Domain.Stores.Services;
 using Nancy;
 using Nancy.Testing;
 using Xunit;

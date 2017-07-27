@@ -2,7 +2,7 @@
 using Fabric.Authorization.Domain.Models;
 using Serilog;
 
-namespace Fabric.Authorization.Domain.Stores
+namespace Fabric.Authorization.Domain.Stores.CouchDB
 {
     public class CouchDBClientStore : CouchDBGenericStore<string, Client>, IClientStore
     {

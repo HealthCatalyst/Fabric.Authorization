@@ -1,22 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Serilog;
 
-namespace Fabric.Authorization.Domain.Stores
+namespace Fabric.Authorization.Domain.Stores.CouchDB
 {
     public abstract class CouchDBGenericStore<K, T> : IGenericStore<K, T> where T : ITrackable, IIdentifiable
     {
-        protected readonly IDocumentDbService _dbService;
-        protected readonly ILogger _logger;
+        protected readonly IDocumentDbService DbService;
+        protected readonly ILogger Logger;
 
         protected CouchDBGenericStore(IDocumentDbService dbService, ILogger logger)
         {
-            _dbService = dbService;
-            _logger = logger;
+            DbService = dbService;
+            Logger = logger;
             this.AddViews();
         }
 
@@ -25,14 +23,14 @@ namespace Fabric.Authorization.Domain.Stores
         public virtual async Task<T> Add(string id, T model)
         {
             model.Track(creation: true);
-            await _dbService.AddDocument<T>(id, model).ConfigureAwait(false);
+            await DbService.AddDocument<T>(id, model).ConfigureAwait(false);
 
             return model;
         }
 
         public virtual async Task Update(T model)
         {
-            await _dbService.UpdateDocument<T>(model.Identifier, model).ConfigureAwait(false);
+            await DbService.UpdateDocument<T>(model.Identifier, model).ConfigureAwait(false);
         }
 
         public abstract Task Delete(T model);
@@ -47,21 +45,21 @@ namespace Fabric.Authorization.Domain.Stores
             }
             else
             {
-                _logger.Information($"Hard deleting {model.GetType()} {model.Identifier}");
-                await _dbService.DeleteDocument<T>(id).ConfigureAwait(false);
+                Logger.Information($"Hard deleting {model.GetType()} {model.Identifier}");
+                await DbService.DeleteDocument<T>(id).ConfigureAwait(false);
             }
         }
 
         public virtual async Task<bool> Exists(K id)
         {
-            var result = await _dbService.GetDocument<T>(id.ToString()).ConfigureAwait(false);
+            var result = await DbService.GetDocument<T>(id.ToString()).ConfigureAwait(false);
             return (result != null && 
                     (!(result is ISoftDelete) || !(result as ISoftDelete).IsDeleted));
         }
 
         public virtual async Task<T> Get(K id)
         {
-            var result = await _dbService.GetDocument<T>(id.ToString()).ConfigureAwait(false);
+            var result = await DbService.GetDocument<T>(id.ToString()).ConfigureAwait(false);
             if (result == null || ((result is ISoftDelete) && (result as ISoftDelete).IsDeleted))
             {
                 throw new NotFoundException<T>();
@@ -73,7 +71,7 @@ namespace Fabric.Authorization.Domain.Stores
         public virtual async Task<IEnumerable<T>> GetAll()
         {
             var documentType = $"{typeof(T).Name.ToLowerInvariant()}:";
-            return await _dbService.GetDocuments<T>(documentType);
+            return await DbService.GetDocuments<T>(documentType);
         }
 
         /// <summary>

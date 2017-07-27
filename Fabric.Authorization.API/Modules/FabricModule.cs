@@ -7,6 +7,7 @@ using Fabric.Authorization.API.ModuleExtensions;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
+using Fabric.Authorization.Domain.Stores.Services;
 using FluentValidation;
 using Nancy;
 using Nancy.Responses.Negotiation;

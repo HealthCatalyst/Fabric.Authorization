@@ -4,9 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
-using Fabric.Authorization.Domain.Stores;
 
-namespace Fabric.Authorization.Domain.Services
+namespace Fabric.Authorization.Domain.Stores.Services
 {
     public class RoleService
     {

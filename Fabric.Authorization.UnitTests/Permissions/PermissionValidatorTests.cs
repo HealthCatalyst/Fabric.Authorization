@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
+using Fabric.Authorization.Domain.Stores.Services;
 using Fabric.Authorization.Domain.Validators;
 using Fabric.Authorization.UnitTests.Mocks;
 using Moq;

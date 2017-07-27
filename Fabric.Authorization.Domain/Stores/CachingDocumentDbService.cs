@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using Fabric.Authorization.API.Services;
+using Fabric.Authorization.Domain.Stores.CouchDB;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Fabric.Authorization.Domain.Stores

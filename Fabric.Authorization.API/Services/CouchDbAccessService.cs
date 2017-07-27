@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Stores;
+using Fabric.Authorization.Domain.Stores.CouchDB;
 using MyCouch;
 using MyCouch.Net;
 using MyCouch.Requests;

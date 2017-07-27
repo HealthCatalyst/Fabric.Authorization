@@ -8,6 +8,7 @@ using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
+using Fabric.Authorization.Domain.Stores.Services;
 using Fabric.Authorization.UnitTests.Mocks;
 using IdentityModel;
 using Moq;

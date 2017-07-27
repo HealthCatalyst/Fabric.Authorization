@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Fabric.Authorization.API.Services;
+using Fabric.Authorization.Domain.Stores.CouchDB;
 
 namespace Fabric.Authorization.Domain.Stores
 {

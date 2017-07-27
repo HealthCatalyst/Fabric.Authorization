@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
 using Serilog;
 
-namespace Fabric.Authorization.Domain.Stores
+namespace Fabric.Authorization.Domain.Stores.CouchDB
 {
     public class CouchDBGroupStore : CouchDBGenericStore<string, Group>, IGroupStore
     {
@@ -17,7 +17,7 @@ namespace Fabric.Authorization.Domain.Stores
 
         public override async Task<IEnumerable<Group>> GetAll()
         {
-            return await _dbService.GetDocuments<Group>("group");
+            return await DbService.GetDocuments<Group>("group");
         }
     }
 }

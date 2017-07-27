@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Fabric.Authorization.API.Services
+namespace Fabric.Authorization.Domain.Stores.CouchDB
 {
     public class CouchDBViews
     {

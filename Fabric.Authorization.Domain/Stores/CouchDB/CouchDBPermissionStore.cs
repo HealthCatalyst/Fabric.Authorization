@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Models;
 using Serilog;
 
-namespace Fabric.Authorization.Domain.Stores
+namespace Fabric.Authorization.Domain.Stores.CouchDB
 {
     public class CouchDBPermissionStore : CouchDBGenericStore<Guid, Permission>, IPermissionStore
     {
@@ -25,8 +24,8 @@ namespace Fabric.Authorization.Domain.Stores
         {
             var customParams = grain + securableItem + permissionName;
             return permissionName != null ?
-                  await _dbService.GetDocuments<Permission>("permissions", "byname", customParams) :
-                  await _dbService.GetDocuments<Permission>("permissions", "bysecitem", customParams);
+                  await DbService.GetDocuments<Permission>("permissions", "byname", customParams) :
+                  await DbService.GetDocuments<Permission>("permissions", "bysecitem", customParams);
         }
 
         protected override async Task AddViews()
@@ -55,7 +54,7 @@ namespace Fabric.Authorization.Domain.Stores
                 views = views
             };
             
-            await _dbService.AddViews("permissions", couchViews);
+            await DbService.AddViews("permissions", couchViews);
         }
     }
 }

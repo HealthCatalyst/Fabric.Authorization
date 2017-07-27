@@ -4,6 +4,7 @@ using Fabric.Authorization.Domain.Stores;
 using FluentValidation;
 using System;
 using System.Linq;
+using Fabric.Authorization.Domain.Stores.Services;
 
 namespace Fabric.Authorization.Domain.Validators
 {

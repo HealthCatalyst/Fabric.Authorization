@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Events;
 using Fabric.Authorization.Domain.Services;
+using Fabric.Authorization.Domain.Stores.CouchDB;
 
 namespace Fabric.Authorization.Domain.Stores
 {
