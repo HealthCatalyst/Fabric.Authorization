@@ -252,13 +252,16 @@ namespace Fabric.Authorization.API.Services
             {
                 var existingDoc = await client.Documents.GetAsync(fullDocumentId);
                 var docJson = JsonConvert.SerializeObject(views);
+                DocumentHeaderResponse response;
 
                 if (!string.IsNullOrEmpty(existingDoc.Id))
-                {                    
-                    return;
+                {
+                    response = await client.Documents.PutAsync(fullDocumentId, existingDoc.Rev, docJson);
                 }
-
-                var response = await client.Documents.PutAsync(fullDocumentId, docJson);
+                else
+                {
+                    response = await client.Documents.PutAsync(fullDocumentId, docJson);
+                }
 
                 if (!response.IsSuccess)
                 {
