@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Fabric.Authorization.Domain.Models;
+using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using FluentValidation;
 
@@ -8,11 +9,11 @@ namespace Fabric.Authorization.Domain.Validators
 {
     public class PermissionValidator : AbstractValidator<Permission>
     {
-        private readonly IPermissionStore _permissionStore;
+        private readonly PermissionService _permissionService;
 
-        public PermissionValidator(IPermissionStore permissionStore)
+        public PermissionValidator(PermissionService permissionService)
         {
-            _permissionStore = permissionStore ?? throw new ArgumentNullException(nameof(permissionStore));
+            _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));            
             ConfigureRules();
         }
 
@@ -40,7 +41,7 @@ namespace Fabric.Authorization.Domain.Validators
 
         private bool BeUnique(Permission permission)
         {
-            return !_permissionStore
+            return !_permissionService
                     .GetPermissions(permission.Grain, permission.SecurableItem, permission.Name)
                     .Result
                     .Any();

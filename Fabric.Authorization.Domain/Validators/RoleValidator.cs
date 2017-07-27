@@ -1,19 +1,18 @@
 ﻿using Fabric.Authorization.Domain.Models;
+using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using FluentValidation;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Fabric.Authorization.Domain.Validators
 {
     public class RoleValidator : AbstractValidator<Role>
-    {
-        private readonly IRoleStore _roleStore;
-        public RoleValidator(IRoleStore roleStore)
+    {        
+        private readonly RoleService _roleService;
+        public RoleValidator(RoleService roleService)
         {
-            _roleStore = roleStore ?? throw new ArgumentNullException(nameof(roleStore));
+            _roleService = roleService ?? throw new ArgumentNullException(nameof(roleService));
             ConfigureRules();
         }
 
@@ -41,7 +40,7 @@ namespace Fabric.Authorization.Domain.Validators
 
         private bool BeUnique(Role role)
         {
-            return !_roleStore
+            return !_roleService
                     .GetRoles(role.Grain, role.SecurableItem, role.Name)
                     .Result
                     .Any();

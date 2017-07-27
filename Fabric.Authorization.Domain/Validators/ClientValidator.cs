@@ -1,33 +1,38 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using Fabric.Authorization.Domain.Models;
+﻿using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
 using FluentValidation;
+using System;
 
 namespace Fabric.Authorization.Domain.Validators
 {
-    public class GroupValidator : AbstractValidator<Group>
+    public class ClientValidator : AbstractValidator<Client>
     {
-        private readonly IGroupStore _GroupStore;
+        private readonly IClientStore _clientStore;
 
-        public GroupValidator(IGroupStore groupStore)
+        public ClientValidator(IClientStore clientStore)
         {
-            _GroupStore = groupStore ?? throw new ArgumentNullException(nameof(groupStore));
+            _clientStore = clientStore ?? throw new ArgumentNullException(nameof(clientStore));
             ConfigureRules();
         }
 
         private void ConfigureRules()
         {
-            RuleFor(Group => Group.Name)
+            RuleFor(client => client.Id)
                 .NotEmpty()
-                .WithMessage("Please specify a Name for this Group");
+                .WithMessage("Please specify an Id for this client");
+
+            RuleFor(client => client.Id)
+                .Must(BeUnique)
+                .When(client => !string.IsNullOrEmpty(client.Id));
+
+            RuleFor(client => client.Name)
+                .NotEmpty()
+                .WithMessage("Please specify a Name for this client");
         }
 
-        private async Task<bool> BeUnique(string groupId)
+        private bool BeUnique(string clientId)
         {
-            return ! await _GroupStore.Exists(groupId);
+            return !_clientStore.Exists(clientId).Result;
         }
     }
 }

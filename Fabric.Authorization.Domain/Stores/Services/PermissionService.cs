@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
@@ -15,9 +16,10 @@ namespace Fabric.Authorization.Domain.Services
             _permissionStore = permissionStore ?? throw new ArgumentNullException(nameof(permissionStore));
         }
 
-        public async Task<IEnumerable<Permission>> GetPermissions(string grain = null, string securableItem = null, string permissionName = null)
+        public async Task<IEnumerable<Permission>> GetPermissions(string grain = null, string securableItem = null, string permissionName = null, bool includeDeleted = false)
         {
-            return await _permissionStore.GetPermissions(grain, securableItem, permissionName);
+            var permissions = await _permissionStore.GetPermissions(grain, securableItem, permissionName);
+            return permissions.Where(p => !p.IsDeleted || includeDeleted);
         }
 
         public async Task<Permission> GetPermission(Guid permissionId)

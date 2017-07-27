@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Fabric.Authorization.Domain.Models;
+using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Validators;
 using Fabric.Authorization.UnitTests.Mocks;
@@ -30,7 +31,7 @@ namespace Fabric.Authorization.UnitTests.Permissions
                 })
                 .Create();
             
-            var permissionValidator = new PermissionValidator(mockPermissionStore);
+            var permissionValidator = new PermissionValidator(new PermissionService(mockPermissionStore));
             var validationResult = permissionValidator.Validate(new Permission
             {
                 Grain = grain,
@@ -52,12 +53,40 @@ namespace Fabric.Authorization.UnitTests.Permissions
                 .SetupGetPermissions(new List<Permission>())
                 .Create();
 
-            var permissionValidator = new PermissionValidator(mockPermissionStore);
+            var permissionValidator = new PermissionValidator(new PermissionService(mockPermissionStore));
             var validationResult = permissionValidator.Validate(new Permission
             {
                 Grain = "app",
                 SecurableItem = "patientsafety",
                 Name = "manageusers"
+            });
+
+            Assert.True(validationResult.IsValid);
+        }
+
+        [Fact]
+        public void PermissionValidator_ValidateRole_UniqueCheckIgnoresDeleted()
+        {
+            var grain = "app";
+            var securableItem = "patientsafety";
+            var name = "admin";
+
+            var existingPermission = new Permission
+            {
+                Grain = grain,
+                SecurableItem = securableItem,
+                Name = name,
+                IsDeleted = true
+            };
+
+            var mockPermissionStore = new Mock<IPermissionStore>()
+                .SetupGetPermissions(new List<Permission> { existingPermission }).Create();            
+            var roleValidator = new PermissionValidator(new PermissionService(mockPermissionStore));
+            var validationResult = roleValidator.Validate(new Permission
+            {
+                Grain = grain,
+                SecurableItem = securableItem,
+                Name = name
             });
 
             Assert.True(validationResult.IsValid);
