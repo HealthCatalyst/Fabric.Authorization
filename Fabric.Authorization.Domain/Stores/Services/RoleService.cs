@@ -24,7 +24,7 @@ namespace Fabric.Authorization.Domain.Services
             var roles = await _roleStore.GetRoles(grain, securableItem, roleName);
             var permissions = await _permissionStore.GetPermissions(grain, securableItem);
             var rolesToReturn = new List<Role>();
-            foreach (var role in roles.Where(r => !r.IsDeleted))
+            foreach (var role in roles.Where(r => !r.IsDeleted || includeDeleted))
             {
                 role.Permissions = GetPermissionsFromRole(role, permissions).ToList();
                 rolesToReturn.Add(role);

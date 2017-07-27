@@ -36,6 +36,17 @@ namespace Fabric.Authorization.UnitTests.Clients
                         Id = Guid.NewGuid(),
                         Name = "sample-fabric-app"
                     }
+                },
+                new Client
+                {
+                    Id = "deleted-client",
+                    Name = "Deleted Client Application",
+                    TopLevelSecurableItem = new SecurableItem
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "deleted-client"
+                    },
+                    IsDeleted = true
                 }
             };
 

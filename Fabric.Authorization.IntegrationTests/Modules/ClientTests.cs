@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using Fabric.Authorization.API.Constants;
+using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
+using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Nancy;
@@ -51,6 +54,62 @@ namespace Fabric.Authorization.IntegrationTests
             }).Result;
 
             Assert.Equal(HttpStatusCode.NotFound, get.StatusCode);
+        }
+
+        [Theory]
+        [InlineData("Client1", "Client2")]
+        public void TestGetClients_Success(string clientId1, string clientId2)
+        {
+            var getInitialCountResponse = this.Browser.Get("/clients", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+            Assert.Equal(HttpStatusCode.OK, getInitialCountResponse.StatusCode);
+            var initialClients = getInitialCountResponse.Body.DeserializeJson<IEnumerable<ClientApiModel>>();
+            var initialClientCount = initialClients.Count();
+
+            var clientIds = new[] {clientId1, clientId2};
+            //add two clients
+            foreach (var clientId in clientIds)
+            {
+                var postResponse = this.Browser.Post("/clients", with =>
+                {
+                    with.HttpRequest();
+                    with.Header("Accept", "application/json");
+                    with.FormValue("Id", clientId);
+                    with.FormValue("Name", clientId);
+                }).Result;
+                Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+            }
+            //confirm you can get two clients back 
+            var getResponse = this.Browser.Get("/clients", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+            var clients = getResponse.Body.DeserializeJson<IEnumerable<ClientApiModel>>();
+            Assert.Equal(initialClientCount + 2, clients.Count());
+
+            //delete one client
+            var delete = this.Browser.Delete($"/clients/{clientIds[0]}", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.NoContent, delete.StatusCode);
+
+            //confirm you get one client back 
+            getResponse = this.Browser.Get("/clients", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+            clients = getResponse.Body.DeserializeJson<IEnumerable<ClientApiModel>>();
+            Assert.Equal(initialClientCount + 1, clients.Count());
         }
 
         [Theory]

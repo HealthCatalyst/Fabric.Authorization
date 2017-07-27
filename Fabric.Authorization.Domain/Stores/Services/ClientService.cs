@@ -46,9 +46,11 @@ namespace Fabric.Authorization.Domain.Services
             return this.HasRequestedSecurableItem(topLevelSecurableItem, grain, securableItem);
         }
 
-        public async Task<IEnumerable<Client>> GetClients()
+        public async Task<IEnumerable<Client>> GetClients(bool includeDeleted = false)
         {
-            return await _clientStore.GetAll();
+            var clients = await _clientStore.GetAll();
+
+            return clients.Where(c => !c.IsDeleted || includeDeleted);
         }
 
         public async Task<Client> GetClient(string id)

@@ -49,7 +49,7 @@ namespace Fabric.Authorization.UnitTests.Roles
             var result = rolesModule.Get($"/roles/app/{existingClient.Id}").Result;
             Assert.Equal(HttpStatusCode.Forbidden, result.StatusCode);
         }
-        
+
         [Fact]
         public void AddRole_Succeeds()
         {

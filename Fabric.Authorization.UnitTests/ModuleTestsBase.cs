@@ -112,6 +112,14 @@ namespace Fabric.Authorization.UnitTests
                     Grain = "app",
                     SecurableItem = "sourcemartdesigner",
                     Name = "admin"
+                },
+                new Role
+                {
+                    Id = Guid.NewGuid(),
+                    Grain = "app",
+                    SecurableItem = "sourcemartdesigner",
+                    Name = "manager",
+                    IsDeleted = true
                 }
             };
         }
