@@ -181,6 +181,7 @@ describe("authorization tests", function () {
     describe("register client", function(){      
         
         it("should register a client", function(){        
+            this.timeout(4000);   
            return chakram.post(baseIdentityUrl + "/api/client", identityClientFuncTest, authRequestOptions)
             .then(function(clientResponse){
                 expect(clientResponse).to.have.status(201);                      
