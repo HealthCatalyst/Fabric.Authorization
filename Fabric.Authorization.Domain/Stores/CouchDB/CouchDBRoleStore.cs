@@ -6,9 +6,9 @@ using Serilog;
 
 namespace Fabric.Authorization.Domain.Stores.CouchDB
 {
-    public class CouchDBRoleStore : CouchDBGenericStore<Guid, Role>, IRoleStore
+    public class CouchDbRoleStore : CouchDbGenericStore<Guid, Role>, IRoleStore
     {
-        public CouchDBRoleStore(IDocumentDbService dbService, ILogger logger) : base(dbService, logger)
+        public CouchDbRoleStore(IDocumentDbService dbService, ILogger logger) : base(dbService, logger)
         {
         }
 
@@ -48,7 +48,7 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
                 }
             };
 
-            var couchViews = new CouchDBViews()
+            var couchViews = new CouchDbViews()
             {
                 id = "roles",
                 views = views

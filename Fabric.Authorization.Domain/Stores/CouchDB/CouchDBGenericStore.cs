@@ -6,12 +6,12 @@ using Serilog;
 
 namespace Fabric.Authorization.Domain.Stores.CouchDB
 {
-    public abstract class CouchDBGenericStore<K, T> : IGenericStore<K, T> where T : ITrackable, IIdentifiable
+    public abstract class CouchDbGenericStore<K, T> : IGenericStore<K, T> where T : ITrackable, IIdentifiable
     {
         protected readonly IDocumentDbService DbService;
         protected readonly ILogger Logger;
 
-        protected CouchDBGenericStore(IDocumentDbService dbService, ILogger logger)
+        protected CouchDbGenericStore(IDocumentDbService dbService, ILogger logger)
         {
             DbService = dbService;
             Logger = logger;

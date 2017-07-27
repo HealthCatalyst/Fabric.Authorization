@@ -18,7 +18,7 @@ namespace Fabric.Authorization.Domain.Stores
 
         Task DeleteDocument<T>(string documentId);
 
-        Task AddViews(string documentId, CouchDBViews views);
+        Task AddViews(string documentId, CouchDbViews views);
 
         Task<IEnumerable<T>> GetDocuments<T>(string designdoc, string viewName, Dictionary<string, object> customParams);
 

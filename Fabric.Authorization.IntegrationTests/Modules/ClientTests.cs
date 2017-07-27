@@ -21,7 +21,7 @@ namespace Fabric.Authorization.IntegrationTests
     {
         public ClientTests(bool useInMemoryDB = true)
         {
-            var store = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDBClientStore(this.DbService(), this.Logger); ;
+            var store = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDbClientStore(this.DbService(), this.Logger); ;
             var clientService = new ClientService(store);
 
             this.Browser = new Browser(with =>

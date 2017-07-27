@@ -71,10 +71,10 @@ namespace Fabric.Authorization.API.Extensions
             dbAccessService.Initialize().Wait();
 
 
-            container.Register<IRoleStore, CouchDBRoleStore>();
-            container.Register<IPermissionStore, CouchDBPermissionStore>();
-            container.Register<IGroupStore, CouchDBGroupStore>();
-            container.Register<IClientStore, CouchDBClientStore>();
+            container.Register<IRoleStore, CouchDbRoleStore>();
+            container.Register<IPermissionStore, CouchDbPermissionStore>();
+            container.Register<IGroupStore, CouchDbGroupStore>();
+            container.Register<IClientStore, CouchDbClientStore>();
 
             return container;
         }

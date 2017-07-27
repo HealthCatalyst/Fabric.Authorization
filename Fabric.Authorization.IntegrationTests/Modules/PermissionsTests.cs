@@ -18,8 +18,8 @@ namespace Fabric.Authorization.IntegrationTests
     {
         public PermissionsTests(bool useInMemoryDB = true)
         {
-            var store = useInMemoryDB ? new InMemoryPermissionStore() : (IPermissionStore)new CouchDBPermissionStore(this.DbService(), this.Logger);
-            var clientStore = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDBClientStore(this.DbService(), this.Logger);
+            var store = useInMemoryDB ? new InMemoryPermissionStore() : (IPermissionStore)new CouchDbPermissionStore(this.DbService(), this.Logger);
+            var clientStore = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDbClientStore(this.DbService(), this.Logger);
 
             var permissionService = new PermissionService(store);
             var clientService = new ClientService(clientStore);
@@ -177,14 +177,16 @@ namespace Fabric.Authorization.IntegrationTests
         [InlineData("RepeatedPermission2")]
         public void TestAddNewPermission_Fail(string permission)
         {
-            this.Browser.Post("/permissions", with =>
+            var validPostResponse = this.Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
                 with.FormValue("Grain", "app");
                 with.FormValue("SecurableItem", "permissionprincipal");
                 with.FormValue("Name", permission);
-            }).Wait();
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, validPostResponse.StatusCode);
 
             // Repeat
             var postResponse = this.Browser.Post("/permissions", with =>

@@ -73,7 +73,7 @@ namespace Fabric.Authorization.API
         {
             var clientStore = _appConfig.UseInMemoryStores
                 ? (IClientStore) new InMemoryClientStore()
-                : new CouchDBClientStore(new CouchDbAccessService(_appConfig.CouchDbSettings, _logger), _logger);
+                : new CouchDbClientStore(new CouchDbAccessService(_appConfig.CouchDbSettings, _logger), _logger);
             
             var result = await clientStore.GetAll();
             return result.Any();

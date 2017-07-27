@@ -5,9 +5,9 @@ using Serilog;
 
 namespace Fabric.Authorization.Domain.Stores.CouchDB
 {
-    public class CouchDBGroupStore : CouchDBGenericStore<string, Group>, IGroupStore
+    public class CouchDbGroupStore : CouchDbGenericStore<string, Group>, IGroupStore
     {
-        public CouchDBGroupStore(IDocumentDbService dbService, ILogger logger) : base(dbService, logger)
+        public CouchDbGroupStore(IDocumentDbService dbService, ILogger logger) : base(dbService, logger)
         {
         }
 

@@ -240,7 +240,7 @@ namespace Fabric.Authorization.API.Services
             }
         }
 
-        public async Task AddViews(string documentId, CouchDBViews views)
+        public async Task AddViews(string documentId, CouchDbViews views)
         {
             if (!initialized)
             {            

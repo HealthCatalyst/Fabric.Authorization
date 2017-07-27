@@ -54,7 +54,7 @@ namespace Fabric.Authorization.Domain.Stores
             await _innerDocumentDbService.DeleteDocument<T>(documentId);
         }
 
-        public async Task AddViews(string documentId, CouchDBViews views)
+        public async Task AddViews(string documentId, CouchDbViews views)
         {
             await _innerDocumentDbService.AddViews(documentId, views);
         }

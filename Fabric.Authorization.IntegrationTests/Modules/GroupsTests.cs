@@ -19,13 +19,13 @@ namespace Fabric.Authorization.IntegrationTests
     {
         public GroupsTests(bool useInMemoryDB = true)
         {
-            var store = useInMemoryDB ? new InMemoryGroupStore() : (IGroupStore)new CouchDBGroupStore(this.DbService(), this.Logger);
+            var store = useInMemoryDB ? new InMemoryGroupStore() : (IGroupStore)new CouchDbGroupStore(this.DbService(), this.Logger);
             var roleStore = useInMemoryDB
                 ? new InMemoryRoleStore()
-                : (IRoleStore) new CouchDBRoleStore(this.DbService(), this.Logger);
+                : (IRoleStore) new CouchDbRoleStore(this.DbService(), this.Logger);
             var permissionStore = useInMemoryDB
                 ? new InMemoryPermissionStore()
-                : (IPermissionStore) new CouchDBPermissionStore(this.DbService(), this.Logger);
+                : (IPermissionStore) new CouchDbPermissionStore(this.DbService(), this.Logger);
             var groupService = new GroupService(store, roleStore, permissionStore, new RoleService(roleStore, permissionStore));
 
             this.Browser = new Browser(with =>
