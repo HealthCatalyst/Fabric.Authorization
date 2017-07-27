@@ -40,7 +40,7 @@ namespace Fabric.Authorization.API
 
             _levelSwitch = new LoggingLevelSwitch();
             _idServerSettings = _appConfig.IdentityServerConfidentialClientSettings;
-            _logger = LogFactory.CreateLogger(_levelSwitch, _appConfig.ElasticSearchSettings, _appConfig.ClientName, _idServerSettings.ClientId);
+            _logger = Logging.LogFactory.CreateTraceLogger(_levelSwitch, _appConfig.ApplicationInsights);
 
         }
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -54,9 +54,7 @@ namespace Fabric.Authorization.API
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             loggerFactory.AddSerilog(_logger);
-
-            _logger.Information("Configuration Settings: {@appConfig}", _appConfig);
-
+            
             app.UseIdentityServerAuthentication(new IdentityServerAuthenticationOptions
             {
                 Authority = _idServerSettings.Authority,
@@ -67,7 +65,7 @@ namespace Fabric.Authorization.API
             app.UseOwin()
                 .UseFabricLoggingAndMonitoring(_logger, HealthCheck, _levelSwitch)
                 .UseAuthPlatform(_idServerSettings.Scopes)
-                .UseNancy(opt => opt.Bootstrapper = new Bootstrapper(_logger, _appConfig));
+                .UseNancy(opt => opt.Bootstrapper = new Bootstrapper(_logger, _appConfig, _levelSwitch));
         }
 
         public async Task<bool> HealthCheck()
