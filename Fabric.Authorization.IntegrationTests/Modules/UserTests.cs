@@ -36,7 +36,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.Module(new RolesModule(
                         roleService,
                         clientService,
-                        new Domain.Validators.RoleValidator(roleStore),
+                        new Domain.Validators.RoleValidator(roleService),
                         this.Logger));
 
                 with.Module(new ClientsModule(
@@ -58,7 +58,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.Module(new PermissionsModule(
                         permissionService,
                         clientService,
-                        new Domain.Validators.PermissionValidator(permissionStore),
+                        new Domain.Validators.PermissionValidator(permissionService),
                         this.Logger));
 
                 with.RequestStartup((_, __, context) =>

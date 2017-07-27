@@ -27,7 +27,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.Module(new RolesModule(
                         roleService,
                         clientService,
-                        new Domain.Validators.RoleValidator(store),
+                        new Domain.Validators.RoleValidator(roleService),
                         this.Logger));
 
                 with.Module(new ClientsModule(

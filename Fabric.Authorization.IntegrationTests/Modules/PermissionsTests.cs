@@ -27,7 +27,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.Module(new PermissionsModule(
                         permissionService,
                         clientService,
-                        new Domain.Validators.PermissionValidator(store),
+                        new Domain.Validators.PermissionValidator(permissionService),
                         this.Logger));
                 with.Module(new ClientsModule(
                         clientService,
