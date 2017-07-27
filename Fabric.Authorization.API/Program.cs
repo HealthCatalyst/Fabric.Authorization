@@ -12,6 +12,7 @@ namespace Fabric.Authorization.API
         public static void Main(string[] args)
         {
             var host = new WebHostBuilder()
+                .UseApplicationInsights()
                 .UseKestrel()
                 .UseUrls("http://*:5004")
                 .UseContentRoot(Directory.GetCurrentDirectory())

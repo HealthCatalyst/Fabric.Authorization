@@ -9,6 +9,7 @@ using Nancy.Owin;
 using Nancy.TinyIoc;
 using Serilog;
 using LibOwin;
+using Serilog.Core;
 
 namespace Fabric.Authorization.API
 {
@@ -16,11 +17,13 @@ namespace Fabric.Authorization.API
     {
         private readonly ILogger _logger;
         private readonly IAppConfiguration _appConfig;
+        private readonly LoggingLevelSwitch _loggingLevelSwitch;
 
-        public Bootstrapper(ILogger logger, IAppConfiguration appConfig)
+        public Bootstrapper(ILogger logger, IAppConfiguration appConfig, LoggingLevelSwitch levelSwitch)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _appConfig = appConfig ?? throw new ArgumentNullException(nameof(appConfig));
+            _loggingLevelSwitch = levelSwitch ?? throw new ArgumentNullException(nameof(levelSwitch));
         }
 
         protected override void RequestStartup(TinyIoCContainer container, IPipelines pipelines, NancyContext context)
@@ -89,7 +92,7 @@ namespace Fabric.Authorization.API
             }
             else
             {
-                container.RegisterCouchDbStores(_appConfig.CouchDbSettings);
+                container.RegisterCouchDbStores(_appConfig, _loggingLevelSwitch);
             }
         }
     }
