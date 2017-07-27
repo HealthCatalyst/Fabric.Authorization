@@ -129,5 +129,10 @@ namespace Fabric.Authorization.Domain.Stores.Services
             await Task.WhenAll(toDelete.ToList().Select(this.DeleteGroup));
             await Task.WhenAll(toAdd.ToList().Select(this.AddGroup));
         }
+
+        public async Task<bool> Exists(string id)
+        {
+            return await _groupStore.Exists(id);
+        }
     }
 }

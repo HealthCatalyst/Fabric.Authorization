@@ -1,31 +1,31 @@
 ﻿using Fabric.Authorization.Domain.Models;
-using Fabric.Authorization.Domain.Stores;
 using FluentValidation;
 using System;
 using System.Threading.Tasks;
+using Fabric.Authorization.Domain.Stores.Services;
 
 namespace Fabric.Authorization.Domain.Validators
 {
     public class GroupValidator : AbstractValidator<Group>
     {
-        private readonly IGroupStore _GroupStore;
+        private readonly GroupService _groupService;
 
-        public GroupValidator(IGroupStore groupStore)
+        public GroupValidator(GroupService groupService)
         {
-            _GroupStore = groupStore ?? throw new ArgumentNullException(nameof(groupStore));
+            _groupService = groupService ?? throw new ArgumentNullException(nameof(groupService));
             ConfigureRules();
         }
 
         private void ConfigureRules()
         {
-            RuleFor(Group => Group.Name)
+            RuleFor(group => group.Name)
                 .NotEmpty()
                 .WithMessage("Please specify a Name for this Group");
         }
 
         private async Task<bool> BeUnique(string groupId)
         {
-            return !await _GroupStore.Exists(groupId);
+            return !await _groupService.Exists(groupId);
         }
     }    
 }

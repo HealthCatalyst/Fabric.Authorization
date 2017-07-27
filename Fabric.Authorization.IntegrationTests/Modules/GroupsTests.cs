@@ -32,7 +32,7 @@ namespace Fabric.Authorization.IntegrationTests
             {
                 with.Module(new GroupsModule(
                         groupService,
-                        new Domain.Validators.GroupValidator(store),
+                        new Domain.Validators.GroupValidator(groupService),
                         this.Logger));
                 with.RequestStartup((_, __, context) =>
                 {

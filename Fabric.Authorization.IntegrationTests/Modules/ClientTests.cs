@@ -28,7 +28,7 @@ namespace Fabric.Authorization.IntegrationTests
             {
                 with.Module(new ClientsModule(
                         clientService,
-                        new Domain.Validators.ClientValidator(store),
+                        new Domain.Validators.ClientValidator(clientService),
                         this.Logger));
 
                 with.RequestStartup((_, __, context) =>

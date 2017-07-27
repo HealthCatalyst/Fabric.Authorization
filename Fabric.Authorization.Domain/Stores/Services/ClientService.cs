@@ -86,5 +86,10 @@ namespace Fabric.Authorization.Domain.Stores.Services
 
             return childSecurableItems.Any(childSecurableItem => HasRequestedSecurableItem(childSecurableItem, grain, securableItem));
         }
+
+        public async Task<bool> Exists(string id)
+        {
+            return await _clientStore.Exists(id);
+        }
     }
 }

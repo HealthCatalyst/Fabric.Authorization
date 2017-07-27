@@ -1,17 +1,17 @@
 ﻿using Fabric.Authorization.Domain.Models;
-using Fabric.Authorization.Domain.Stores;
 using FluentValidation;
 using System;
+using Fabric.Authorization.Domain.Stores.Services;
 
 namespace Fabric.Authorization.Domain.Validators
 {
     public class ClientValidator : AbstractValidator<Client>
     {
-        private readonly IClientStore _clientStore;
+        private readonly ClientService _clientService;
 
-        public ClientValidator(IClientStore clientStore)
+        public ClientValidator(ClientService clientService)
         {
-            _clientStore = clientStore ?? throw new ArgumentNullException(nameof(clientStore));
+            _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
             ConfigureRules();
         }
 
@@ -32,7 +32,7 @@ namespace Fabric.Authorization.Domain.Validators
 
         private bool BeUnique(string clientId)
         {
-            return !_clientStore.Exists(clientId).Result;
+            return !_clientService.Exists(clientId).Result;
         }
     }
 }

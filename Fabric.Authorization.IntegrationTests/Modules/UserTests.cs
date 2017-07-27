@@ -43,7 +43,7 @@ namespace Fabric.Authorization.IntegrationTests
 
                 with.Module(new ClientsModule(
                         clientService,
-                        new Domain.Validators.ClientValidator(clientStore),
+                        new Domain.Validators.ClientValidator(clientService),
                         this.Logger));
 
                 with.Module(new UsersModule(
@@ -54,7 +54,7 @@ namespace Fabric.Authorization.IntegrationTests
 
                 with.Module(new GroupsModule(
                         groupService,
-                        new Domain.Validators.GroupValidator(groupStore),
+                        new Domain.Validators.GroupValidator(groupService),
                         this.Logger));
 
                 with.Module(new PermissionsModule(
