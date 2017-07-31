@@ -45,7 +45,7 @@ namespace Fabric.Authorization.IntegrationTests
                         new Claim(Claims.Scope, Scopes.WriteScope),
                         new Claim(Claims.ClientId, "permissionprincipal"),
                     }, "permissionprincipal"));
-                    pipelines.BeforeRequest += (ctx) => RequestHooks.SetDefaultVersionInUrl(ctx); ;
+                    pipelines.BeforeRequest += (ctx) => RequestHooks.SetDefaultVersionInUrl(ctx);
                 });
             }, withDefaults => withDefaults.HostName("testhost"));
 

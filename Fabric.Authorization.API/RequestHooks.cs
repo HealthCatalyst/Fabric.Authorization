@@ -7,7 +7,7 @@ using Nancy;
 
 namespace Fabric.Authorization.API
 {
-    public class RequestHooks
+    public static class RequestHooks
     {
         private static readonly Regex VersionRegex = new Regex("\\/v\\d(.\\d)?\\/");
 
@@ -16,8 +16,11 @@ namespace Fabric.Authorization.API
             var url = context.Request.Url;
             var versionInUrlMatch = VersionRegex.Match(url);
 
-            if (versionInUrlMatch.Success) //a version exists so do nothing with url
+            if (versionInUrlMatch.Success)
+            {
+                //a version exists so do nothing with url
                 return null;
+            }
 
             //modify the url, default to the first version of the api (v1)
             var originalRequest = context.Request;

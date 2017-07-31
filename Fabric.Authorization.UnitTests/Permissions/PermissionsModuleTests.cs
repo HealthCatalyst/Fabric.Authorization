@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
+using Fabric.Authorization.API;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
@@ -189,7 +190,7 @@ namespace Fabric.Authorization.UnitTests.Permissions
                     context.CurrentUser = new TestPrincipal(new Claim(Claims.ClientId, "patientsafety"), 
                         new Claim(Claims.Scope, Scopes.ReadScope), 
                         new Claim(Claims.Scope, Scopes.WriteScope));
-                    pipeline.BeforeRequest += (ctx) => _setDefaultVersioninUrl(ctx);
+                    pipeline.BeforeRequest += (ctx) => RequestHooks.SetDefaultVersionInUrl(ctx);
                 });
             });
         }
@@ -244,37 +245,6 @@ namespace Fabric.Authorization.UnitTests.Permissions
                 }
             };
         }
-
-        private static readonly Regex VersionRegex = new Regex("\\/v\\d(.\\d)?\\/");
-        private readonly Func<NancyContext, Response> _setDefaultVersioninUrl = context =>
-        {
-            var url = context.Request.Url;
-            var versionInUrlMatch = VersionRegex.Match(url);
-
-            if (versionInUrlMatch.Success) //a version exists so do nothing with url
-                return null;
-
-            //modify the url, default to the first version of the api (v1)
-            var originalRequest = context.Request;
-            var siteBase = url.SiteBase;
-            var path = url.Path;
-
-            var version1Url = $"{siteBase}/v1{path}";
-
-            var headers = originalRequest.Headers.ToDictionary(originalRequestHeader => originalRequestHeader.Key, originalRequestHeader => originalRequestHeader.Value);
-
-            var updatedRequest = new Request(
-                originalRequest.Method,
-                version1Url,
-                originalRequest.Body,
-                headers,
-                originalRequest.UserHostAddress,
-                originalRequest.ClientCertificate,
-                originalRequest.ProtocolVersion);
-
-            context.Request = updatedRequest;
-
-            return null;
-        };
+        
     }
 }

@@ -40,7 +40,7 @@ namespace Fabric.Authorization.IntegrationTests
                         new Claim(Claims.Scope, Scopes.ReadScope),
                         new Claim(Claims.Scope, Scopes.WriteScope),
                     }, "testprincipal"));
-                    pipelines.BeforeRequest += (ctx) => RequestHooks.SetDefaultVersionInUrl(ctx); ;
+                    pipelines.BeforeRequest += (ctx) => RequestHooks.SetDefaultVersionInUrl(ctx);
                 });
             }, withDefaults => withDefaults.HostName("testhost"));
             
