@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Extensions;
 using Fabric.Platform.Bootstrappers.Nancy;
@@ -24,6 +26,7 @@ namespace Fabric.Authorization.API
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _appConfig = appConfig ?? throw new ArgumentNullException(nameof(appConfig));
             _loggingLevelSwitch = levelSwitch ?? throw new ArgumentNullException(nameof(levelSwitch));
+            ApplicationPipelines.BeforeRequest += (ctx) => RequestHooks.SetDefaultVersionInUrl(ctx);
         }
 
         protected override void RequestStartup(TinyIoCContainer container, IPipelines pipelines, NancyContext context)
@@ -66,14 +69,16 @@ namespace Fabric.Authorization.API
             base.ApplicationStartup(container, pipelines);
             pipelines.OnError.AddItemToEndOfPipeline((ctx, ex) =>
             {
-                _logger.Error(ex, "Unhandled error on request: @{Url}. Error Message: @{Message}", ctx.Request.Url, ex.Message);
+                _logger.Error(ex, "Unhandled error on request: @{Url}. Error Message: @{Message}", ctx.Request.Url,
+                    ex.Message);
                 return ctx.Response;
             });
 
             pipelines.AfterRequest += ctx =>
             {
                 ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
-                ctx.Response.Headers.Add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+                ctx.Response.Headers.Add("Access-Control-Allow-Headers",
+                    "Origin, X-Requested-With, Content-Type, Accept, Authorization");
                 ctx.Response.Headers.Add("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
             };
 
@@ -95,6 +100,8 @@ namespace Fabric.Authorization.API
                 container.RegisterCouchDbStores(_appConfig, _loggingLevelSwitch);
             }
         }
+
+       
     }
 
     

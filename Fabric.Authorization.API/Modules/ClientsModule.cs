@@ -20,7 +20,7 @@ namespace Fabric.Authorization.API.Modules
         private readonly ClientService _clientService;
 
         public ClientsModule(ClientService clientService, ClientValidator validator, ILogger logger) : base(
-            "/Clients", logger, validator)
+            "/v1/Clients", logger, validator)
         {
             //private members
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));

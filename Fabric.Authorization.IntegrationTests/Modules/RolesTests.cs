@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Security.Claims;
+using Fabric.Authorization.API;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Stores;
@@ -35,7 +36,7 @@ namespace Fabric.Authorization.IntegrationTests
                         new Domain.Validators.ClientValidator(clientService),
                         this.Logger));
 
-                with.RequestStartup((_, __, context) =>
+                with.RequestStartup((_, pipelines, context) =>
                 {
                     context.CurrentUser = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>()
                     {
@@ -44,8 +45,9 @@ namespace Fabric.Authorization.IntegrationTests
                         new Claim(Claims.Scope, Scopes.WriteScope),
                         new Claim(Claims.ClientId, "rolesprincipal"),
                     }, "rolesprincipal"));
+                    pipelines.BeforeRequest += (ctx) => RequestHooks.SetDefaultVersionInUrl(ctx); 
                 });
-            });
+            }, withDefaults => withDefaults.HostName("testhost"));
 
             this.Browser.Post("/clients", with =>
                 {

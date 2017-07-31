@@ -19,7 +19,7 @@ namespace Fabric.Authorization.API.Modules
         private readonly RoleService _roleService;
         private readonly ClientService _clientService;
 
-        public RolesModule(RoleService roleService, ClientService clientService, RoleValidator validator, ILogger logger) : base("/roles", logger, validator)
+        public RolesModule(RoleService roleService, ClientService clientService, RoleValidator validator, ILogger logger) : base("/v1/roles", logger, validator)
         {
             //private members
             _roleService = roleService ?? throw new ArgumentNullException(nameof(roleService));

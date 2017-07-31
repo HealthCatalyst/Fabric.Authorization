@@ -22,7 +22,7 @@ namespace Fabric.Authorization.API.Modules
         public PermissionsModule(PermissionService permissionService,
             ClientService clientService,
             PermissionValidator validator,
-            ILogger logger) : base("/Permissions", logger, validator)
+            ILogger logger) : base("/v1/Permissions", logger, validator)
         {
             //private members
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));

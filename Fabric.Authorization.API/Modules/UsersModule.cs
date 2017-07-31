@@ -17,7 +17,7 @@ namespace Fabric.Authorization.API.Modules
         private readonly GroupService _groupService;
         private readonly ClientService _clientService;
 
-        public UsersModule(ClientService clientService, GroupService groupService, UserValidator validator, ILogger logger) : base("/user", logger, validator)
+        public UsersModule(ClientService clientService, GroupService groupService, UserValidator validator, ILogger logger) : base("/v1/user", logger, validator)
         {
             _groupService = groupService ?? throw new ArgumentNullException(nameof(groupService));
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));

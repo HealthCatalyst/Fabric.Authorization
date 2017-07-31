@@ -20,7 +20,7 @@ namespace Fabric.Authorization.API.Modules
         private GroupService _groupService { get; }
 
         public GroupsModule(GroupService groupService, GroupValidator validator, ILogger logger) : base(
-            "/Groups", logger, validator)
+            "/v1/Groups", logger, validator)
         {
             _groupService = groupService;
 

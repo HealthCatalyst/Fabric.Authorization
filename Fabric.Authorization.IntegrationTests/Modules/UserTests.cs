@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using Fabric.Authorization.API;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
@@ -63,7 +64,7 @@ namespace Fabric.Authorization.IntegrationTests
                         new Domain.Validators.PermissionValidator(permissionService),
                         this.Logger));
 
-                with.RequestStartup((_, __, context) =>
+                with.RequestStartup((_, pipelines, context) =>
                 {
                     context.CurrentUser = new ClaimsPrincipal(
                         new ClaimsIdentity(new List<Claim>()
@@ -75,8 +76,9 @@ namespace Fabric.Authorization.IntegrationTests
                         new Claim(JwtClaimTypes.Role, Group1),
                         new Claim(JwtClaimTypes.Role, Group2)
                         }, "userprincipal"));
+                    pipelines.BeforeRequest += (ctx) => RequestHooks.SetDefaultVersionInUrl(ctx); ;
                 });
-            });
+            }, withDefaults => withDefaults.HostName("testhost"));
 
             this.Browser.Post("/clients", with =>
             {

@@ -19,7 +19,7 @@ namespace Fabric.Authorization.API.Modules
 
         public SecurableItemsModule(SecurableItemService securableItemService,
             SecurableItemValidator validator,
-            ILogger logger) : base("/SecurableItems", logger, validator)
+            ILogger logger) : base("/v1/SecurableItems", logger, validator)
         {
             _securableItemService = securableItemService ?? throw new ArgumentNullException(nameof(securableItemService));
             Get("/", async _ => await this.GetSecurableItem().ConfigureAwait(false));

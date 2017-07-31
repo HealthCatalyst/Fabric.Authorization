@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Fabric.Authorization.API;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Services;
@@ -34,7 +35,7 @@ namespace Fabric.Authorization.IntegrationTests
                         groupService,
                         new Domain.Validators.GroupValidator(groupService),
                         this.Logger));
-                with.RequestStartup((_, __, context) =>
+                with.RequestStartup((_, pipelines, context) =>
                 {
                     context.CurrentUser = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>()
                     {
@@ -42,9 +43,9 @@ namespace Fabric.Authorization.IntegrationTests
                         new Claim(Claims.Scope, Scopes.ReadScope),
                         new Claim(Claims.Scope, Scopes.WriteScope),
                     }, "testprincipal"));
+                    pipelines.BeforeRequest += (ctx) => RequestHooks.SetDefaultVersionInUrl(ctx); ;
                 });
-            });
-            
+            },withDefaults => withDefaults.HostName("testhost"));
         }
 
         [Theory]

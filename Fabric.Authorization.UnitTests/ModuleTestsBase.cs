@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
+using Fabric.Authorization.API;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.UnitTests.Mocks;
@@ -8,6 +11,7 @@ using Moq;
 using Nancy;
 using Nancy.Testing;
 using Serilog;
+using Group = Fabric.Authorization.Domain.Models.Group;
 
 namespace Fabric.Authorization.UnitTests
 {
@@ -49,7 +53,12 @@ namespace Fabric.Authorization.UnitTests
 
         protected Browser CreateBrowser(params Claim[] claims)
         {
-            return new Browser(CreateBootstrapper(claims), withDefaults => withDefaults.Accept("application/json"));
+            return new Browser(CreateBootstrapper(claims), withDefaults =>
+            {
+                withDefaults.Accept("application/json");
+                withDefaults.HostName("testhost");
+
+            });
         }
 
         private ConfigurableBootstrapper CreateBootstrapper(params Claim[] claims)
@@ -66,6 +75,7 @@ namespace Fabric.Authorization.UnitTests
             configurableBootstrapperConfigurator.RequestStartup((container, pipeline, context) =>
             {
                 context.CurrentUser = new TestPrincipal(claims);
+                pipeline.BeforeRequest += (ctx) => RequestHooks.SetDefaultVersionInUrl(ctx); ;
             });
             return configurableBootstrapperConfigurator;
         }
@@ -177,5 +187,6 @@ namespace Fabric.Authorization.UnitTests
                 }
             };
         }
+       
     }
 }
