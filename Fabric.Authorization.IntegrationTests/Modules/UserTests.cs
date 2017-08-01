@@ -223,6 +223,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.FormValue("Id", group);
                 with.FormValue("GroupName", group);
+                with.Header("Accept", "application/json");
             }).Wait();
 
             this.Browser.Post($"/groups/{group}/roles", with =>
@@ -230,6 +231,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
                 with.FormValue("Id", hs.Identifier);
+                with.Header("Accept", "application/json");
             }).Wait();
 
             // Get the permissions
@@ -306,6 +308,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.FormValue("Id", Group1);
                 with.FormValue("GroupName", Group1);
+                with.Header("Accept", "application/json");
             }).Wait();
 
             this.Browser.Post("/groups", with =>
@@ -313,6 +316,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.FormValue("Id", Group2);
                 with.FormValue("GroupName", Group2);
+                with.Header("Accept", "application/json");
             }).Wait();
 
             this.Browser.Post($"/groups/{Group1}/roles", with =>

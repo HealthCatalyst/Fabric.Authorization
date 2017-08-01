@@ -73,7 +73,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
             return roles.Where(r => !r.IsDeleted);
         }
 
-        public async Task AddRoleToGroup(string groupName, Guid roleId)
+        public async Task<Group> AddRoleToGroup(string groupName, Guid roleId)
         {
             var group = await _groupStore.Get(groupName);
             var role = await _roleStore.Get(roleId);
@@ -89,9 +89,10 @@ namespace Fabric.Authorization.Domain.Stores.Services
             }
             await _roleStore.Update(role);
             await _groupStore.Update(group);
+            return group;
         }
 
-        public async Task DeleteRoleFromGroup(string groupName, Guid roleId)
+        public async Task<Group> DeleteRoleFromGroup(string groupName, Guid roleId)
         {
             var group = await _groupStore.Get(groupName);
             var role = await _roleStore.Get(roleId);
@@ -107,6 +108,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
             }
             await _roleStore.Update(role);
             await _groupStore.Update(group);
+            return group;
         }
 
         public async Task<Group> AddGroup(Group group) => await _groupStore.Add(group);
