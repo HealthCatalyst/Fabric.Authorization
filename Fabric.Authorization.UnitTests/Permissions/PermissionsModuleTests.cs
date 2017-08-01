@@ -21,32 +21,32 @@ using HttpStatusCode = Nancy.HttpStatusCode;
 
 namespace Fabric.Authorization.UnitTests.Permissions
 {
-    public class PermissionsModuleTests
-    {
-        private readonly Browser _authorizationApi;
+    public class PermissionsModuleTests : ModuleTestsBase<PermissionsModule>
+    {        
         private readonly List<Permission> _existingPermissions;
         private readonly Mock<IPermissionStore> _mockPermissionStore;
+        private readonly Mock<IClientStore> _mockClientStore;
+        private readonly Mock<ILogger> _mockLogger;     
 
         public PermissionsModuleTests()
         {
             _existingPermissions = CreatePermissionList();
             var clients = CreateClientList();
-            _mockPermissionStore = new Mock<IPermissionStore>().SetupGetPermissions(_existingPermissions)
+            _mockPermissionStore = new Mock<IPermissionStore>()
+                .SetupGetPermissions(_existingPermissions)
                 .SetupAddPermissions();
-            var mockClientStore = new Mock<IClientStore>().SetupGetClient(clients);
-            var mockLogger = new Mock<ILogger>();
-            _authorizationApi = new Browser(CreateBootstrappper(_mockPermissionStore.Object, mockClientStore.Object, mockLogger.Object),
-                withDefaults =>
-                {
-                    withDefaults.Accept("application/json");
-                    withDefaults.HostName("testhost");
-                });
+            _mockClientStore = new Mock<IClientStore>()
+                .SetupGetClient(clients);
+            _mockLogger = new Mock<ILogger>();            
         }
 
         [Fact]
         public void DeletePermission_NotFound()
         {
-            var actual = _authorizationApi.Delete($"/permissions/{Guid.NewGuid()}").Result;
+            var permissionsModule = CreateBrowser(new Claim(Claims.ClientId, "patientsafety"),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.Scope, Scopes.WriteScope));
+            var actual = permissionsModule.Delete($"/permissions/{Guid.NewGuid()}").Result;
             Assert.Equal(HttpStatusCode.NotFound, actual.StatusCode);
 
         }
@@ -54,15 +54,21 @@ namespace Fabric.Authorization.UnitTests.Permissions
         [Fact]
         public void DeletePermission_ReturnsBadRequestForInvalidId()
         {
-            var actual = _authorizationApi.Delete("/permissions/notaguid").Result;
+            var permissionsModule = CreateBrowser(new Claim(Claims.ClientId, "patientsafety"),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.Scope, Scopes.WriteScope));
+            var actual = permissionsModule.Delete("/permissions/notaguid").Result;
             Assert.Equal(HttpStatusCode.BadRequest, actual.StatusCode);
         }
 
         [Fact]
         public void DeletePermission_Successful()
         {
+            var permissionsModule = CreateBrowser(new Claim(Claims.ClientId, "patientsafety"),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.Scope, Scopes.WriteScope));
             var existingPermission = _existingPermissions.First();
-            var actual = _authorizationApi.Delete($"/permissions/{existingPermission.Id}").Result;
+            var actual = permissionsModule.Delete($"/permissions/{existingPermission.Id}").Result;
             Assert.Equal(HttpStatusCode.NoContent, actual.StatusCode);
             _mockPermissionStore.Verify(permissionStore => permissionStore.Delete(existingPermission));
         }
@@ -70,8 +76,11 @@ namespace Fabric.Authorization.UnitTests.Permissions
         [Fact]
         public void AddPermission_PermissionAlreadyExists()
         {
+            var permissionsModule = CreateBrowser(new Claim(Claims.ClientId, "patientsafety"),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.Scope, Scopes.WriteScope));
             var existingPermission = _existingPermissions.First(p => p.Grain == "app" && p.SecurableItem =="patientsafety");
-            var actual = _authorizationApi.Post("/permissions",
+            var actual = permissionsModule.Post("/permissions",
                 with => with.JsonBody(new Permission
                 {
                     Grain = existingPermission.Grain,
@@ -84,6 +93,10 @@ namespace Fabric.Authorization.UnitTests.Permissions
         [Fact]
         public void AddPermission_PermissionAddedSuccessfully()
         {
+            var permissionsModule = CreateBrowser(new Claim(Claims.ClientId, "patientsafety"),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.Scope, Scopes.WriteScope));
+
             var permissionToPost = new Permission
             {
                 Grain = "app",
@@ -91,7 +104,7 @@ namespace Fabric.Authorization.UnitTests.Permissions
                 Name = "createalerts"
             };
 
-            var actual = _authorizationApi.Post("/permissions",
+            var actual = permissionsModule.Post("/permissions",
                 with => with.JsonBody(permissionToPost)).Result;
 
             var newPermission = actual.Body.DeserializeJson<PermissionApiModel>();
@@ -107,6 +120,10 @@ namespace Fabric.Authorization.UnitTests.Permissions
         [Theory, MemberData(nameof(BadRequestData))]
         public void AddPermission_InvalidModel(string grain, string securableItem, string permissionName, int errorCount)
         {
+            var permissionsModule = CreateBrowser(new Claim(Claims.ClientId, "patientsafety"),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.Scope, Scopes.WriteScope));
+
             var permissionToPost = new Permission
             {
                 Grain = grain,
@@ -114,7 +131,7 @@ namespace Fabric.Authorization.UnitTests.Permissions
                 Name = permissionName
             };
 
-            var actual = _authorizationApi.Post("/permissions",
+            var actual = permissionsModule.Post("/permissions",
                 with => with.JsonBody(permissionToPost)).Result;
             
             Assert.Equal(HttpStatusCode.BadRequest, actual.StatusCode);
@@ -123,8 +140,12 @@ namespace Fabric.Authorization.UnitTests.Permissions
         [Fact]
         public void GetPermissions_ReturnsPermissionForId()
         {
+            var permissionsModule = CreateBrowser(new Claim(Claims.ClientId, "patientsafety"),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.Scope, Scopes.WriteScope));
+
             var existingPermission = _existingPermissions.First();
-            var actual = _authorizationApi.Get($"/permissions/{existingPermission.Id}").Result;
+            var actual = permissionsModule.Get($"/permissions/{existingPermission.Id}").Result;
             Assert.Equal(HttpStatusCode.OK, actual.StatusCode);
             var newPermission = actual.Body.DeserializeJson<PermissionApiModel>();
             Assert.Equal(existingPermission.Id, newPermission.Id);
@@ -133,7 +154,11 @@ namespace Fabric.Authorization.UnitTests.Permissions
         [Theory, MemberData(nameof(RequestData))]
         public void GetPermissions_ReturnsPermissionsForGrainAndSecurableItem(string path, int statusCode, int count)
         {
-            var actual = _authorizationApi.Get(path).Result;
+            var permissionsModule = CreateBrowser(new Claim(Claims.ClientId, "patientsafety"),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.Scope, Scopes.WriteScope));
+
+            var actual = permissionsModule.Get(path).Result;
             Assert.Equal(statusCode, (int)actual.StatusCode);
             if (actual.StatusCode == HttpStatusCode.OK)
             {
@@ -145,14 +170,22 @@ namespace Fabric.Authorization.UnitTests.Permissions
         [Fact]
         public void GetPermissions_ReturnsNotFoundForMissingId()
         {
-            var actual = _authorizationApi.Get($"/permissions/{Guid.NewGuid()}").Result;
+            var permissionsModule = CreateBrowser(new Claim(Claims.ClientId, "patientsafety"),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.Scope, Scopes.WriteScope));
+
+            var actual = permissionsModule.Get($"/permissions/{Guid.NewGuid()}").Result;
             Assert.Equal(HttpStatusCode.NotFound, actual.StatusCode);
         }
 
         [Fact]
         public void GetPermissions_ReturnsBadRequestForInvalidId()
         {
-            var actual = _authorizationApi.Get("/permissions/notaguid").Result;
+            var permissionsModule = CreateBrowser(new Claim(Claims.ClientId, "patientsafety"),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.Scope, Scopes.WriteScope));
+
+            var actual = permissionsModule.Get("/permissions/notaguid").Result;
             Assert.Equal(HttpStatusCode.BadRequest, actual.StatusCode);
         }
 
@@ -174,25 +207,15 @@ namespace Fabric.Authorization.UnitTests.Permissions
             new object[] {null, null, null, 3}
         };
 
-        private ConfigurableBootstrapper CreateBootstrappper(IPermissionStore mockPermissionStore, IClientStore mockClientStore, ILogger mockLogger)
+        protected override ConfigurableBootstrapper.ConfigurableBootstrapperConfigurator ConfigureBootstrapper(ConfigurableBootstrapper configurableBootstrapper,
+            params Claim[] claims)
         {
-            return new ConfigurableBootstrapper(with =>
-            {
-                with.Module<PermissionsModule>()
-                    .Dependency<PermissionService>(typeof(PermissionService))
-                    .Dependency<ClientService>(typeof(ClientService))
-                    .Dependency(mockLogger)
-                    .Dependency(mockPermissionStore)
-                    .Dependency(mockClientStore);
-
-                with.RequestStartup((container, pipeline, context) =>
-                {
-                    context.CurrentUser = new TestPrincipal(new Claim(Claims.ClientId, "patientsafety"), 
-                        new Claim(Claims.Scope, Scopes.ReadScope), 
-                        new Claim(Claims.Scope, Scopes.WriteScope));
-                    pipeline.BeforeRequest += (ctx) => RequestHooks.SetDefaultVersionInUrl(ctx);
-                });
-            });
+            return base.ConfigureBootstrapper(configurableBootstrapper, claims)
+                .Dependency<PermissionService>(typeof(PermissionService))
+                .Dependency<ClientService>(typeof(ClientService))
+                .Dependency(_mockLogger.Object)
+                .Dependency(_mockPermissionStore.Object)
+                .Dependency(_mockClientStore.Object);
         }
 
         private List<Client> CreateClientList()

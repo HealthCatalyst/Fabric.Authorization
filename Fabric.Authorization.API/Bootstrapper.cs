@@ -31,8 +31,7 @@ namespace Fabric.Authorization.API
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _appConfig = appConfig ?? throw new ArgumentNullException(nameof(appConfig));
-            _loggingLevelSwitch = levelSwitch ?? throw new ArgumentNullException(nameof(levelSwitch));
-            ApplicationPipelines.BeforeRequest += (ctx) => RequestHooks.SetDefaultVersionInUrl(ctx);
+            _loggingLevelSwitch = levelSwitch ?? throw new ArgumentNullException(nameof(levelSwitch));            
         }
 
         protected override void RequestStartup(TinyIoCContainer container, IPipelines pipelines, NancyContext context)
@@ -65,6 +64,8 @@ namespace Fabric.Authorization.API
                     ex.Message);
                 return ctx.Response;
             });
+
+            pipelines.BeforeRequest += ctx => RequestHooks.SetDefaultVersionInUrl(ctx);
 
             pipelines.AfterRequest += ctx =>
             {
