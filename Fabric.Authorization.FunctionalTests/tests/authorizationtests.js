@@ -247,13 +247,9 @@ describe("authorization tests", function () {
 
     describe("associate groups to roles", function(){
         it("should associate group foo with role foo", function(){
-            authRequestOptions.headers.Authorization = newAuthClientAccessToken;
-            
+            authRequestOptions.headers.Authorization = newAuthClientAccessToken;                                  
 
-            var url = baseAuthUrl + "/roles/"+ roleFoo.Grain + "/" + roleFoo.SecurableItem + "/" + encodeURIComponent(roleFoo.Name);
-            console.log("url for getting role: " + url);
-
-            return chakram.get(url, authRequestOptions)
+            return chakram.get(baseAuthUrl + "/roles/"+ roleFoo.Grain + "/" + roleFoo.SecurableItem + "/" + encodeURIComponent(roleFoo.Name), authRequestOptions)
             .then(function(getResponse){                            
                 expect(getResponse).to.have.status(200);
                 expect(getResponse).to.comprise.of.json([{name:"FABRIC\\Health Catalyst Viewer"}]);              
