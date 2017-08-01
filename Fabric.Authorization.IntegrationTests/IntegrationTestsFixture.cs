@@ -4,6 +4,7 @@ using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
+using Fabric.Authorization.Domain.Stores.CouchDB;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -42,6 +43,8 @@ namespace Fabric.Authorization.IntegrationTests
 
                 var innerDbService = new CouchDbAccessService(config, new Mock<ILogger>().Object);
                 innerDbService.Initialize().Wait();
+                innerDbService.AddViews("roles", CouchDbRoleStore.GetViews()).Wait();
+                innerDbService.AddViews("permissions", CouchDbPermissionStore.GetViews()).Wait();
                 var auditingDbService = new AuditingDocumentDbService(new Mock<IEventService>().Object, innerDbService);
                 var cachingDbService = new CachingDocumentDbService(auditingDbService, new MemoryCache(new MemoryCacheOptions()));
                 dbService = cachingDbService;

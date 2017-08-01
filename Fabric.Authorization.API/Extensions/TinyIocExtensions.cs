@@ -1,13 +1,10 @@
 ﻿using Fabric.Authorization.API.Configuration;
-using Fabric.Authorization.API.Logging;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Events;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
 using Fabric.Authorization.Domain.Stores.Services;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Options;
 using Nancy.TinyIoc;
 using Serilog.Core;
 
@@ -38,17 +35,8 @@ namespace Fabric.Authorization.API.Extensions
 
         public static TinyIoCContainer RegisterCouchDbStores(this TinyIoCContainer container, IAppConfiguration appConfiguration, LoggingLevelSwitch levelSwitch)
         {
-            var options = new MemoryCacheOptions();
-            var eventLogger = LogFactory.CreateEventLogger(levelSwitch, appConfiguration.ApplicationInsights);
-            var serilogEventWriter = new SerilogEventWriter(eventLogger);
-            container.Register<IEventWriter>(serilogEventWriter, "innerEventWriter");
-            container.Register(options);
-            container.Register<ICouchDbSettings>(appConfiguration.CouchDbSettings);
-            container.Register(typeof(IOptions<>), typeof(OptionsManager<>));
             container.Register<IEventService, EventService>();
-            container.Register<IMemoryCache, MemoryCache>();
             container.Register<IEventContextResolverService, EventContextResolverService>();
-            container.Register<IDocumentDbService, CouchDbAccessService>("inner");
             container.Register<IEventWriter>(
                 (c, p) => c.Resolve<CouchDbEventWriter>(new NamedParameterOverloads
                     {
@@ -67,9 +55,6 @@ namespace Fabric.Authorization.API.Extensions
                 {
                     {"innerDocumentDbService", c.Resolve<IDocumentDbService>("auditing")}
                 }));
-            var dbAccessService = container.Resolve<CouchDbAccessService>();
-            dbAccessService.Initialize().Wait();
-
 
             container.Register<IRoleStore, CouchDbRoleStore>();
             container.Register<IPermissionStore, CouchDbPermissionStore>();
