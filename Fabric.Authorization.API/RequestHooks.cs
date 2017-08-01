@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Nancy;
@@ -25,7 +26,7 @@ namespace Fabric.Authorization.API
             //modify the url, default to the first version of the api (v1)
             var originalRequest = context.Request;
             var siteBase = url.SiteBase;
-            var path = url.Path;
+            var path = WebUtility.UrlEncode(url.Path);
 
             var version1Url = $"{siteBase}/v1{path}{url.Query}";
 
