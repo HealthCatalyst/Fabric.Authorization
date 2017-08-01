@@ -73,6 +73,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.FormValue("Id", groupName);
                 with.FormValue("GroupName", groupName);
+                with.Header("Accept", "application/json");
             }).Result;
 
             var getResponse = this.Browser.Get($"/groups/{groupName}", with =>
@@ -102,6 +103,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("GroupName[0]", groupName + "_0");
                 with.FormValue("GroupName[1]", groupName + "_1");
                 with.FormValue("GroupName[2]", groupName + "_2");
+                with.Header("Accept", "application/json");
             }).Result;
 
             var getResponse0 = this.Browser.Get($"/groups/{groupName}_0", with =>
@@ -147,6 +149,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("GroupName[0]", groupName + "_0");
                 with.FormValue("GroupName[1]", groupName + "_1");
                 with.FormValue("GroupName[2]", groupName + "_2");
+                with.Header("Accept", "application/json");
             }).Result;
 
             Assert.Equal(HttpStatusCode.NoContent, postResponse.StatusCode);
@@ -161,6 +164,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("GroupName[0]", groupName + "_1");
                 with.FormValue("GroupName[1]", groupName + "_2");
                 with.FormValue("GroupName[2]", groupName + "_3");
+                with.Header("Accept", "application/json");
             }).Result;
 
             Assert.Equal(HttpStatusCode.NoContent, postResponse.StatusCode);
@@ -209,6 +213,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.FormValue("Id", groupName);
                 with.FormValue("GroupName", groupName);
+                with.Header("Accept", "application/json");
             }).Wait();
 
             // Repeat
@@ -217,6 +222,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.FormValue("Id", groupName);
                 with.FormValue("GroupName", groupName);
+                with.Header("Accept", "application/json");
             }).Result;
 
             Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
@@ -232,6 +238,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.FormValue("Id", groupName);
                 with.FormValue("GroupName", groupName);
+                with.Header("Accept", "application/json");
             }).Wait();
 
             var delete = this.Browser.Delete($"/groups/{groupName}", with =>

@@ -28,7 +28,7 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
                   await DbService.GetDocuments<Permission>("permissions", "bysecitem", customParams);
         }
 
-        protected override async Task AddViews()
+        public static CouchDbViews GetViews()
         {
             var views = new Dictionary<string, Dictionary<string, string>>()
             {
@@ -53,8 +53,7 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
                 id = "permissions",
                 views = views
             };
-            
-            await DbService.AddViews("permissions", couchViews);
+            return couchViews;
         }
     }
 }

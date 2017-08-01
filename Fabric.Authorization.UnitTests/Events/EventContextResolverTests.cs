@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Text;
+using Fabric.Authorization.API.Infrastructure;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.UnitTests.Mocks;
 using IdentityModel;
@@ -16,7 +17,8 @@ namespace Fabric.Authorization.UnitTests.Events
         public void Resolves_Username()
         {
             var context = new NancyContext {CurrentUser = new TestPrincipal(new Claim(JwtClaimTypes.Name, "bob"))};
-            var eventContextResolver = new EventContextResolverService(context);
+            var contextWrapper = new NancyContextWrapper(context);
+            var eventContextResolver = new EventContextResolverService(contextWrapper);
             Assert.Equal("bob", eventContextResolver.Username);
         }
 
@@ -24,7 +26,8 @@ namespace Fabric.Authorization.UnitTests.Events
         public void Resolves_Subject()
         {
             var context = new NancyContext { CurrentUser = new TestPrincipal(new Claim(JwtClaimTypes.Subject, "12345")) };
-            var eventContextResolver = new EventContextResolverService(context);
+            var contextWrapper = new NancyContextWrapper(context);
+            var eventContextResolver = new EventContextResolverService(contextWrapper);
             Assert.Equal("12345", eventContextResolver.Subject);
         }
 
@@ -32,7 +35,8 @@ namespace Fabric.Authorization.UnitTests.Events
         public void Resolves_ClientId()
         {
             var context = new NancyContext { CurrentUser = new TestPrincipal(new Claim(JwtClaimTypes.ClientId, "fabric-authorization")) };
-            var eventContextResolver = new EventContextResolverService(context);
+            var contextWrapper = new NancyContextWrapper(context);
+            var eventContextResolver = new EventContextResolverService(contextWrapper);
             Assert.Equal("fabric-authorization", eventContextResolver.ClientId);
         }
 
@@ -41,7 +45,8 @@ namespace Fabric.Authorization.UnitTests.Events
         {
             var request = new Request("POST", "http://test/test", null, null, "192.168.0.1");
             var context = new NancyContext {Request = request};
-            var eventContextResolver = new EventContextResolverService(context);
+            var contextWrapper = new NancyContextWrapper(context);
+            var eventContextResolver = new EventContextResolverService(contextWrapper);
             Assert.Equal("192.168.0.1", eventContextResolver.RemoteIpAddress);
         }
 
@@ -49,7 +54,8 @@ namespace Fabric.Authorization.UnitTests.Events
         public void ResolvesAllToNull_IfNotSpecified()
         {
             var context = new NancyContext { CurrentUser = new TestPrincipal() };
-            var eventContextResolver = new EventContextResolverService(context);
+            var contextWrapper = new NancyContextWrapper(context);
+            var eventContextResolver = new EventContextResolverService(contextWrapper);
             Assert.Null(eventContextResolver.Username);
             Assert.Null(eventContextResolver.Subject);
             Assert.Null(eventContextResolver.ClientId);

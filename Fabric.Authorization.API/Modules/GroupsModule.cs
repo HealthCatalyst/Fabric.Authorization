@@ -42,9 +42,9 @@ namespace Fabric.Authorization.API.Modules
                 Group group = await _groupService.GetGroup(parameters.groupName);
                 return group.ToGroupRoleApiModel();
             }
-            catch (NotFoundException<Group>)
+            catch (NotFoundException<Group> ex)
             {
-                return HttpStatusCode.NotFound;
+                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
             }
         }
 
@@ -57,28 +57,28 @@ namespace Fabric.Authorization.API.Modules
                 await _groupService.DeleteGroup(group);
                 return HttpStatusCode.NoContent;
             }
-            catch (NotFoundException<Group>)
+            catch (NotFoundException<Group> ex)
             {
-                return HttpStatusCode.NotFound;
+                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
             }
         }
 
-        private async Task<HttpStatusCode> AddGroup()
+        private async Task<dynamic> AddGroup()
         {
             try
             {
                 this.RequiresClaims(this.AuthorizationManageClientsClaim, this.AuthorizationWriteClaim);
                 var group = this.Bind<GroupRoleApiModel>();
-                await _groupService.AddGroup(group.ToGroupDomainModel());
-                return HttpStatusCode.Created;
+                var createdGroup = await _groupService.AddGroup(group.ToGroupDomainModel());
+                return CreateSuccessfulPostResponse(createdGroup.ToGroupRoleApiModel());
             }
-            catch (AlreadyExistsException<Group>)
+            catch (AlreadyExistsException<Group> ex)
             {
-                return HttpStatusCode.BadRequest;
+                return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
             }
         }
 
-        private async Task<HttpStatusCode> UpdateGroupList()
+        private async Task<dynamic> UpdateGroupList()
         {
             try
             {
@@ -87,9 +87,9 @@ namespace Fabric.Authorization.API.Modules
                 await _groupService.UpdateGroupList(group.Select(g => g.ToGroupDomainModel()));
                 return HttpStatusCode.NoContent;
             }
-            catch (AlreadyExistsException<Group>)
+            catch (AlreadyExistsException<Group> ex)
             {
-                return HttpStatusCode.BadRequest;
+                return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
             }
         }
 
@@ -109,13 +109,13 @@ namespace Fabric.Authorization.API.Modules
                     Roles = roles.Select(r => r.ToRoleApiModel())
                 };
             }
-            catch (NotFoundException<Group>)
+            catch (NotFoundException<Group> ex)
             {
-                return HttpStatusCode.NotFound;
+                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
             }
         }
 
-        private async Task<HttpStatusCode> AddRoleToGroup(dynamic parameters)
+        private async Task<dynamic> AddRoleToGroup(dynamic parameters)
         {
             try
             {
@@ -126,20 +126,20 @@ namespace Fabric.Authorization.API.Modules
                     throw new NotFoundException<Role>();
                 }
 
-                await _groupService.AddRoleToGroup(parameters.groupName, roleApiModel.Id.Value);
-                return HttpStatusCode.NoContent;
+                Group group = await _groupService.AddRoleToGroup(parameters.groupName, roleApiModel.Id.Value);
+                return CreateSuccessfulPostResponse(group.ToGroupRoleApiModel(), HttpStatusCode.OK);
             }
-            catch (NotFoundException<Group>)
+            catch (NotFoundException<Group> ex)
             {
-                return HttpStatusCode.NotFound;
+                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
             }
-            catch (NotFoundException<Role>)
+            catch (NotFoundException<Role> ex)
             {
-                return HttpStatusCode.BadRequest;
+                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
             }
         }
 
-        private async Task<HttpStatusCode> DeleteRoleFromGroup(dynamic parameters)
+        private async Task<dynamic> DeleteRoleFromGroup(dynamic parameters)
         {
             try
             {
@@ -150,16 +150,16 @@ namespace Fabric.Authorization.API.Modules
                     throw new NotFoundException<Role>();
                 }
 
-                await _groupService.DeleteRoleFromGroup(parameters.groupName, roleApiModel.Id.Value);
-                return HttpStatusCode.NoContent;
+                Group group = await _groupService.DeleteRoleFromGroup(parameters.groupName, roleApiModel.Id.Value);
+                return CreateSuccessfulPostResponse(group.ToGroupRoleApiModel(), HttpStatusCode.OK);
             }
-            catch (NotFoundException<Group>)
+            catch (NotFoundException<Group> ex)
             {
-                return HttpStatusCode.NotFound;
+                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
             }
-            catch (NotFoundException<Role>)
+            catch (NotFoundException<Role> ex)
             {
-                return HttpStatusCode.BadRequest;
+                return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
             }
         }
     }

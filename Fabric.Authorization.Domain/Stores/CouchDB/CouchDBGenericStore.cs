@@ -15,7 +15,6 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
         {
             DbService = dbService;
             Logger = logger;
-            this.AddViews();
         }
 
         public abstract Task<T> Add(T model);
@@ -72,14 +71,6 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
         {
             var documentType = $"{typeof(T).Name.ToLowerInvariant()}:";
             return await DbService.GetDocuments<T>(documentType);
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        protected virtual async Task AddViews()
-        {
-            
         }
     }
 }
