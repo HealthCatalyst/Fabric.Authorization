@@ -45,7 +45,7 @@ namespace Fabric.Authorization.IntegrationTests
                 innerDbService.Initialize().Wait();
                 innerDbService.AddViews("roles", CouchDbRoleStore.GetViews()).Wait();
                 innerDbService.AddViews("permissions", CouchDbPermissionStore.GetViews()).Wait();
-                var auditingDbService = new AuditingDocumentDbService(new Mock<IEventService>().Object, innerDbService);
+                var auditingDbService = new AuditingDocumentDbService(new Mock<IEventService>().Object, innerDbService, new Mock<IEventContextResolverService>().Object);
                 var cachingDbService = new CachingDocumentDbService(auditingDbService, new MemoryCache(new MemoryCacheOptions()));
                 dbService = cachingDbService;
             }
