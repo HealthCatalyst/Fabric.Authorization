@@ -13,7 +13,7 @@ namespace Fabric.Authorization.Domain.Stores
 
         public async Task<T> Get(string id)
         {
-            if (await Exists(id).ConfigureAwait(false) && !_dictionary[id].IsDeleted)
+            if (await Exists(id) && !_dictionary[id].IsDeleted)
             {
                 return _dictionary[id];
             }
@@ -25,7 +25,7 @@ namespace Fabric.Authorization.Domain.Stores
         {
             model.Track(creation: true);
 
-            if (await Exists(model.Identifier).ConfigureAwait(false))
+            if (await Exists(model.Identifier))
             {
                 throw new AlreadyExistsException<T>(model, model.Identifier);
             }
@@ -37,14 +37,14 @@ namespace Fabric.Authorization.Domain.Stores
         public async Task Delete(T model)
         {
             model.IsDeleted = true;
-            await Update(model).ConfigureAwait(false);
+            await Update(model);
         }
 
         public async Task Update(T model)
         {
             model.Track();
 
-            if (await this.Exists(model.Identifier).ConfigureAwait(false))
+            if (await this.Exists(model.Identifier))
             {
                 if (!_dictionary.TryUpdate(model.Identifier, model, _dictionary[model.Identifier]))
                 {
