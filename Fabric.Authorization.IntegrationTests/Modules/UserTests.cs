@@ -93,6 +93,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Fact]
+        [DisplayTestMethodName]
         public void TestInheritance_Success()
         {
             var group = Group1;
@@ -252,6 +253,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Fact]
+        [DisplayTestMethodName]
         public void TestGetPermissions_Success()
         {
             // Adding permissions
@@ -350,6 +352,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Fact]
+        [DisplayTestMethodName]
         public void TestUserBlacklist_Success()
         {
             // Adding permissions
@@ -463,6 +466,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Fact]
+        [DisplayTestMethodName]
         public void TestUserWhitelist_Success()
         {
             // Adding permissions
@@ -584,6 +588,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Fact]
+        [DisplayTestMethodName]
         public void TestRoleBlacklist_Success()
         {
             // Adding permissions
@@ -688,6 +693,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Fact]
+        [DisplayTestMethodName]
         public void TestUserDeniedPermissionHasPrecedence_Success()
         {
             // Adding permissions

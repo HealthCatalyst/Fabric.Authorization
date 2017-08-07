@@ -1,15 +1,15 @@
 ﻿using System;
-using System.Threading;
+using System.Reflection;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Options;
 using Moq;
 using Nancy.Testing;
 using Serilog;
+using Xunit.Sdk;
 
 namespace Fabric.Authorization.IntegrationTests
 {
@@ -52,7 +52,6 @@ namespace Fabric.Authorization.IntegrationTests
                 var cachingDbService = new CachingDocumentDbService(auditingDbService, new MemoryCache(new MemoryCacheOptions()));
                 dbService = cachingDbService;
             }
-
             return dbService;
         }
 
@@ -81,5 +80,20 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         #endregion IDisposable implementation
+
+        protected class DisplayTestMethodNameAttribute : BeforeAfterTestAttribute
+        {
+            public override void Before(MethodInfo methodUnderTest)
+            {
+                Console.WriteLine($"    Running test '{methodUnderTest.DeclaringType.Name}.{methodUnderTest.Name}'");
+                base.Before(methodUnderTest);
+            }
+
+            public override void After(MethodInfo methodUnderTest)
+            {
+                Console.WriteLine($"    Finished test '{methodUnderTest.DeclaringType.Name}.{methodUnderTest.Name}.'");
+                base.After(methodUnderTest);
+            }
+        }
     }
 }
