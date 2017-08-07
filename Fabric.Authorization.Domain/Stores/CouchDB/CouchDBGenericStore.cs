@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
+using Fabric.Authorization.Domain.Services;
 using Serilog;
 
 namespace Fabric.Authorization.Domain.Stores.CouchDB
@@ -10,18 +12,21 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
     {
         protected readonly IDocumentDbService _dbService;
         protected readonly ILogger _logger;
+        private readonly IEventContextResolverService _eventContextResolverService;
 
-        protected CouchDbGenericStore(IDocumentDbService dbService, ILogger logger)
+        protected CouchDbGenericStore(IDocumentDbService dbService, ILogger logger, IEventContextResolverService eventContextResolverService)
         {
             _dbService = dbService;
             _logger = logger;
+            _eventContextResolverService = eventContextResolverService ??
+                                           throw new ArgumentNullException(nameof(eventContextResolverService));
         }
 
         public abstract Task<T> Add(T model);
 
         public virtual async Task<T> Add(string id, T model)
         {
-            model.Track(creation: true);
+            model.Track(creation: true, user: GetActor());
             await _dbService.AddDocument<T>(id, model).ConfigureAwait(false);
 
             return model;
@@ -29,6 +34,7 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
 
         public virtual async Task Update(T model)
         {
+            model.Track(creation: false, user: GetActor());
             await _dbService.UpdateDocument<T>(model.Identifier, model).ConfigureAwait(false);
         }
 
@@ -36,7 +42,7 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
 
         public virtual async Task Delete(string id, T model)
         {
-            model.Track();
+            model.Track(creation: false, user: GetActor());
             if (model is ISoftDelete)
             {
                 (model as ISoftDelete).IsDeleted = true;
@@ -71,6 +77,11 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
         {
             var documentType = $"{typeof(T).Name.ToLowerInvariant()}:";
             return await _dbService.GetDocuments<T>(documentType);
+        }
+
+        private string GetActor()
+        {
+            return _eventContextResolverService.Username ?? _eventContextResolverService.ClientId;
         }
     }
 }

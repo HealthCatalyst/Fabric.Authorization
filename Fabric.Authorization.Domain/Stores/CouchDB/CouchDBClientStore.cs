@@ -1,12 +1,13 @@
 ﻿using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
+using Fabric.Authorization.Domain.Services;
 using Serilog;
 
 namespace Fabric.Authorization.Domain.Stores.CouchDB
 {
     public class CouchDbClientStore : CouchDbGenericStore<string, Client>, IClientStore
     {
-        public CouchDbClientStore(IDocumentDbService dbService, ILogger logger) : base(dbService, logger)
+        public CouchDbClientStore(IDocumentDbService dbService, ILogger logger, IEventContextResolverService eventContextResolverService) : base(dbService, logger, eventContextResolverService)
         {
         }
 
