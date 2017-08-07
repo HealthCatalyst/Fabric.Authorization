@@ -57,11 +57,10 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Name", "permissionprincipal");
                 with.Header("Accept", "application/json");
             }).Wait();
-
-            Console.WriteLine($"Executing PermissionTests with InMemory: {useInMemoryDB}");
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("InexistentPermission")]
         [InlineData("InexistentPermission2")]
         public void TestGetPermission_Fail(string permission)
@@ -77,6 +76,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("Perm1")]
         [InlineData("Perm2")]
         public void TestAddNewPermission_Success(string permission)
@@ -103,6 +103,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("NewPerm1")]
         [InlineData("NewPerm2")]
         public void TestGetPermission_Success(string permission)
@@ -140,6 +141,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("SecItemPerm1")]
         [InlineData("SecItemPerm2")]
         public void TestGetPermissionForSecItem_Success(string permission)
@@ -177,6 +179,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("RepeatedPermission1")]
         [InlineData("RepeatedPermission2")]
         public void TestAddNewPermission_Fail(string permission)
@@ -206,6 +209,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("PermissionToBeDeleted")]
         [InlineData("PermissionToBeDeleted2")]
         public void TestDeletePermission_Success(string permission)
@@ -232,6 +236,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("18F06565-AA9E-4315-AF27-CEFC165B20FA")]
         [InlineData("18F06565-AA9E-4315-AF27-CEFC165B20FB")]
         public void TestDeletePermission_Fail(string permission)

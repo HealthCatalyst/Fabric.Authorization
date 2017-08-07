@@ -83,15 +83,24 @@ namespace Fabric.Authorization.IntegrationTests
 
         protected class DisplayTestMethodNameAttribute : BeforeAfterTestAttribute
         {
+            private bool _writeToConsole = false;
             public override void Before(MethodInfo methodUnderTest)
             {
-                Console.WriteLine($"    Running test '{methodUnderTest.DeclaringType.Name}.{methodUnderTest.Name}'");
+                if (_writeToConsole)
+                {
+                    Console.WriteLine(
+                        $"Running test '{methodUnderTest.DeclaringType.Name}.{methodUnderTest.Name}'");
+                }
                 base.Before(methodUnderTest);
             }
 
             public override void After(MethodInfo methodUnderTest)
             {
-                Console.WriteLine($"    Finished test '{methodUnderTest.DeclaringType.Name}.{methodUnderTest.Name}.'");
+                if (_writeToConsole)
+                {
+                    Console.WriteLine(
+                        $"Finished test '{methodUnderTest.DeclaringType.Name}.{methodUnderTest.Name}.'");
+                }
                 base.After(methodUnderTest);
             }
         }

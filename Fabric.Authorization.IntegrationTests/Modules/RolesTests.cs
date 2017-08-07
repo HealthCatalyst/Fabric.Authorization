@@ -57,12 +57,10 @@ namespace Fabric.Authorization.IntegrationTests
                     with.FormValue("Name", "rolesprincipal");
                     with.Header("Accept", "application/json");
                 }).Wait();
-
-            Console.WriteLine($"Executing RoleTests with InMemory: {useInMemoryDB}");
-
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("C5247AA4-0063-4E68-B1E4-55BD5E0E177D")]
         [InlineData("C5247AA4-0063-4E68-B1E4-55BD5E0E177E")]
         public void TestGetRole_Fail(string name)
@@ -78,6 +76,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("Role1")]
         [InlineData("Role2")]
         [InlineData("6BC32347-36A1-44CF-AA0E-6C1038AA1DF3")]
@@ -104,6 +103,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("NewRole1")]
         [InlineData("NewRole2")]
         public void TestAddGetRole_Success(string name)
@@ -141,6 +141,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("SecItemRole1")]
         [InlineData("SecItemRole2")]
         public void TestGetRoleBySecItem_Success(string name)
@@ -178,6 +179,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("C5247AA4-0063-4E68-B1E4-55BD5E0E171D")]
         [InlineData("C5247AA4-0063-4E68-B1E4-55BD5E0E172D")]
         public void TestAddNewRole_Fail(string id)
@@ -207,6 +209,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("C5247AA4-0063-4E68-B1E4-55BD5E0E977D")]
         [InlineData("C5247AA4-0063-4E68-B1E4-55BD5E0E877D")]
         public void TestDeleteRole_Fail(string id)

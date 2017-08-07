@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Fabric.Authorization.API;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Modules;
-using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
 using Fabric.Authorization.Domain.Stores.Services;
@@ -46,10 +44,10 @@ namespace Fabric.Authorization.IntegrationTests
                     pipelines.BeforeRequest += (ctx) => RequestHooks.SetDefaultVersionInUrl(ctx);
                 });
             },withDefaults => withDefaults.HostName("testhost"));
-            Console.WriteLine($"Executing GroupTests with InMemory: {useInMemoryDB}");
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("InexistentGroup")]
         [InlineData("InexistentGroup2")]
         public void TestGetGroup_Fail(string groupName)
@@ -64,6 +62,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("Group1")]
         [InlineData("Group2")]
         [InlineData("6BC32347-36A1-44CF-AA0E-6C1038AA1DF3")]
@@ -89,6 +88,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("BatchGroup1")]
         [InlineData("BatchGroup2")]
         [InlineData("6AC32A47-36C1-23BF-AA22-6C1028AA5DC3")]
@@ -137,6 +137,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("BatchUpdateGroup1")]
         [InlineData("BatchUpdateGroup2")]
         public void TestUpdateGroupBatch_Success(string groupName)
@@ -205,6 +206,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("RepeatedGroup1")]
         [InlineData("RepeatedGroup2")]
         public void TestAddNewGroup_Fail(string groupName)
@@ -230,6 +232,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("GroupToBeDeleted")]
         [InlineData("GroupToBeDeleted2")]
         public void TestDeleteGroup_Success(string groupName)
@@ -252,6 +255,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("InexistentGroup")]
         [InlineData("InexistentGroup2")]
         public void TestDeleteGroup_Fail(string groupName)
