@@ -2,18 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
-using System.Text.RegularExpressions;
-using Fabric.Authorization.API;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Models;
-using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.Services;
 using Fabric.Authorization.UnitTests.Mocks;
 using Moq;
-using Nancy;
 using Nancy.Testing;
 using Serilog;
 using Xunit;
@@ -22,22 +18,12 @@ using HttpStatusCode = Nancy.HttpStatusCode;
 namespace Fabric.Authorization.UnitTests.Permissions
 {
     public class PermissionsModuleTests : ModuleTestsBase<PermissionsModule>
-    {        
-        private readonly List<Permission> _existingPermissions;
-        private readonly Mock<IPermissionStore> _mockPermissionStore;
-        private readonly Mock<IClientStore> _mockClientStore;
-        private readonly Mock<ILogger> _mockLogger;     
+    {
+        private readonly Mock<ILogger> _mockLogger;
 
         public PermissionsModuleTests()
         {
-            _existingPermissions = CreatePermissionList();
-            var clients = CreateClientList();
-            _mockPermissionStore = new Mock<IPermissionStore>()
-                .SetupGetPermissions(_existingPermissions)
-                .SetupAddPermissions();
-            _mockClientStore = new Mock<IClientStore>()
-                .SetupGetClient(clients);
-            _mockLogger = new Mock<ILogger>();            
+            _mockLogger = new Mock<ILogger>();
         }
 
         [Fact]
@@ -48,7 +34,6 @@ namespace Fabric.Authorization.UnitTests.Permissions
                 new Claim(Claims.Scope, Scopes.WriteScope));
             var actual = permissionsModule.Delete($"/permissions/{Guid.NewGuid()}").Result;
             Assert.Equal(HttpStatusCode.NotFound, actual.StatusCode);
-
         }
 
         [Fact]
@@ -67,10 +52,10 @@ namespace Fabric.Authorization.UnitTests.Permissions
             var permissionsModule = CreateBrowser(new Claim(Claims.ClientId, "patientsafety"),
                 new Claim(Claims.Scope, Scopes.ReadScope),
                 new Claim(Claims.Scope, Scopes.WriteScope));
-            var existingPermission = _existingPermissions.First();
+            var existingPermission = this.ExistingPermissions.First();
             var actual = permissionsModule.Delete($"/permissions/{existingPermission.Id}").Result;
             Assert.Equal(HttpStatusCode.NoContent, actual.StatusCode);
-            _mockPermissionStore.Verify(permissionStore => permissionStore.Delete(existingPermission));
+            MockPermissionStore.Verify(permissionStore => permissionStore.Delete(existingPermission));
         }
 
         [Fact]
@@ -79,7 +64,7 @@ namespace Fabric.Authorization.UnitTests.Permissions
             var permissionsModule = CreateBrowser(new Claim(Claims.ClientId, "patientsafety"),
                 new Claim(Claims.Scope, Scopes.ReadScope),
                 new Claim(Claims.Scope, Scopes.WriteScope));
-            var existingPermission = _existingPermissions.First(p => p.Grain == "app" && p.SecurableItem =="patientsafety");
+            var existingPermission = this.ExistingPermissions.First(p => p.Grain == "app" && p.SecurableItem == "patientsafety");
             var actual = permissionsModule.Post("/permissions",
                 with => with.JsonBody(new Permission
                 {
@@ -133,7 +118,7 @@ namespace Fabric.Authorization.UnitTests.Permissions
 
             var actual = permissionsModule.Post("/permissions",
                 with => with.JsonBody(permissionToPost)).Result;
-            
+
             Assert.Equal(HttpStatusCode.BadRequest, actual.StatusCode);
         }
 
@@ -144,7 +129,7 @@ namespace Fabric.Authorization.UnitTests.Permissions
                 new Claim(Claims.Scope, Scopes.ReadScope),
                 new Claim(Claims.Scope, Scopes.WriteScope));
 
-            var existingPermission = _existingPermissions.First();
+            var existingPermission = this.ExistingPermissions.First();
             var actual = permissionsModule.Get($"/permissions/{existingPermission.Id}").Result;
             Assert.Equal(HttpStatusCode.OK, actual.StatusCode);
             var newPermission = actual.Body.DeserializeJson<PermissionApiModel>();
@@ -211,63 +196,13 @@ namespace Fabric.Authorization.UnitTests.Permissions
             params Claim[] claims)
         {
             return base.ConfigureBootstrapper(configurableBootstrapper, claims)
+                .Dependency<RoleService>(typeof(RoleService))
                 .Dependency<PermissionService>(typeof(PermissionService))
                 .Dependency<ClientService>(typeof(ClientService))
                 .Dependency(_mockLogger.Object)
-                .Dependency(_mockPermissionStore.Object)
-                .Dependency(_mockClientStore.Object);
+                .Dependency(MockClientStore.Object)
+                .Dependency(MockPermissionStore.Object)
+                .Dependency(MockRoleStore.Object);
         }
-
-        private List<Client> CreateClientList()
-        {
-            return new List<Client>
-            {
-                new Client
-                {
-                    Id = "patientsafety",
-                    TopLevelSecurableItem = new SecurableItem
-                    {
-                        Id = Guid.NewGuid(),
-                        Name = "patientsafety"
-                    }
-                }
-            };
-        }
-
-        private List<Permission> CreatePermissionList()
-        {
-            return new List<Permission>
-            {
-                new Permission
-                {
-                    Id = Guid.NewGuid(),
-                    Grain = "app",
-                    SecurableItem = "patientsafety",
-                    Name = "manageusers"
-                },
-                new Permission
-                {
-                    Id = Guid.NewGuid(),
-                    Grain = "app",
-                    SecurableItem = "patientsafety",
-                    Name = "updatepatient"
-                },
-                new Permission
-                {
-                    Id = Guid.NewGuid(),
-                    Grain = "app",
-                    SecurableItem = "sourcemartdesigner",
-                    Name = "manageusers"
-                },
-                new Permission
-                {
-                    Id = Guid.NewGuid(),
-                    Grain = "patient",
-                    SecurableItem = "Patient",
-                    Name ="read"
-                }
-            };
-        }
-        
     }
 }

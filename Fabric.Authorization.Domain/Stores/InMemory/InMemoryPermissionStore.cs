@@ -8,13 +8,22 @@ using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.Domain.Stores
 {
-    public class InMemoryPermissionStore : IPermissionStore
+    public class InMemoryPermissionStore : InMemoryGenericStore<Permission>, IPermissionStore
     {
-        private readonly ConcurrentDictionary<Guid, Permission> Permissions = new ConcurrentDictionary<Guid, Permission>();
+
+        public override async Task<Permission> Add(Permission model)
+        {
+            model.Id = Guid.NewGuid();
+            return await base.Add(model);
+        }
+
+        public async Task<bool> Exists(Guid id) => await this.Exists(id.ToString());
+
+        public async Task<Permission> Get(Guid id) => await this.Get(id.ToString());
 
         public Task<IEnumerable<Permission>> GetPermissions(string grain = null, string securableItem = null, string permissionName = null)
         {
-            var permissions = Permissions.Select(kvp => kvp.Value);
+            var permissions = _dictionary.Select(kvp => kvp.Value);
             if (!string.IsNullOrEmpty(grain))
             {
                 permissions = permissions.Where(p => p.Grain == grain);
@@ -30,47 +39,32 @@ namespace Fabric.Authorization.Domain.Stores
             return Task.FromResult(permissions.Where(p => !p.IsDeleted));
         }
 
-        public Task<Permission> Get(Guid permissionId)
+
+        private readonly ConcurrentDictionary<string, GranularPermission> granularPermissions = new ConcurrentDictionary<string, GranularPermission>();
+
+        public Task AddOrUpdateGranularPermission(GranularPermission granularPermission)
         {
-            if (Permissions.ContainsKey(permissionId) &&  !Permissions[permissionId].IsDeleted)
+            return Task.Run(() =>
             {
-                return Task.FromResult(Permissions[permissionId]);
-            }
-            throw new NotFoundException<Permission>(permissionId.ToString());
-        }
-
-        public Task<Permission> Add(Permission permission)
-        {
-            permission.Track(creation: true);
-
-            permission.Id = Guid.NewGuid();
-            Permissions.TryAdd(permission.Id, permission);
-            return Task.FromResult(permission);
-        }
-
-        public async Task Delete(Permission permission)
-        {
-            permission.IsDeleted = true;
-            await Update(permission);
-        }
-
-        public async Task Update(Permission permission)
-        {
-            if (await this.Exists(permission.Id))
-            {
-                if (!Permissions.TryUpdate(permission.Id, permission, await this.Get(permission.Id)))
+                var success = granularPermissions.TryAdd(granularPermission.Id, granularPermission);
+                if (!success)
                 {
-                    throw new CouldNotCompleteOperationException();
+                    granularPermissions.TryUpdate(granularPermission.Id, granularPermission, granularPermissions[granularPermission.Id]);
                 }
             }
-            else
-            {
-                throw new NotFoundException<Permission>(permission.Id.ToString());
-            }
+            );
         }
 
-        public Task<IEnumerable<Permission>> GetAll() => this.GetPermissions();
+        public Task<GranularPermission> GetGranularPermission(string target)
+        {
+            granularPermissions.TryGetValue(target, out GranularPermission value);
 
-        public Task<bool> Exists(Guid id) => Task.FromResult(Permissions.ContainsKey(id));
+            if (value == null)
+            {
+                throw new NotFoundException<GranularPermission>(target);
+            }
+
+            return Task.FromResult(value);
+        }
     }
 }

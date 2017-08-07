@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Serilog;
 
@@ -24,8 +25,8 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
         {
             var customParams = grain + securableItem + permissionName;
             return permissionName != null ?
-                  await DbService.GetDocuments<Permission>("permissions", "byname", customParams) :
-                  await DbService.GetDocuments<Permission>("permissions", "bysecitem", customParams);
+                  await _dbService.GetDocuments<Permission>("permissions", "byname", customParams) :
+                  await _dbService.GetDocuments<Permission>("permissions", "bysecitem", customParams);
         }
 
         public static CouchDbViews GetViews()
@@ -54,6 +55,31 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
                 views = views
             };
             return couchViews;
+        }
+
+        public async Task AddOrUpdateGranularPermission(GranularPermission granularPermission)
+        {
+            var perm = await _dbService.GetDocument<GranularPermission>(granularPermission.Id);
+
+            if (perm == null)
+            {
+                await _dbService.AddDocument(granularPermission.Id, granularPermission);
+            }
+            else
+            {
+                await _dbService.UpdateDocument(granularPermission.Id, granularPermission);
+            }
+        }
+
+        public async Task<GranularPermission> GetGranularPermission(string target)
+        {
+            var perm = await _dbService.GetDocument<GranularPermission>(target);
+            if (perm == null)
+            {
+                throw new NotFoundException<GranularPermission>(target);
+            }
+
+            return perm;
         }
     }
 }

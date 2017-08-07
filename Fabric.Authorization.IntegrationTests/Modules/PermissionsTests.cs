@@ -4,7 +4,6 @@ using System.Security.Claims;
 using Fabric.Authorization.API;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Modules;
-using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
 using Fabric.Authorization.Domain.Stores.Services;
@@ -19,10 +18,12 @@ namespace Fabric.Authorization.IntegrationTests
     {
         public PermissionsTests(bool useInMemoryDB = true)
         {
-            var store = useInMemoryDB ? new InMemoryPermissionStore() : (IPermissionStore)new CouchDbPermissionStore(this.DbService(), this.Logger);
+            var permissionStore = useInMemoryDB ? new InMemoryPermissionStore() : (IPermissionStore)new CouchDbPermissionStore(this.DbService(), this.Logger);
             var clientStore = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDbClientStore(this.DbService(), this.Logger);
+            var roleStore = useInMemoryDB ? new InMemoryRoleStore() : (IRoleStore)new CouchDbRoleStore(this.DbService(), this.Logger);
 
-            var permissionService = new PermissionService(store);
+            var roleService = new RoleService(roleStore, permissionStore);
+            var permissionService = new PermissionService(permissionStore, roleService);
             var clientService = new ClientService(clientStore);
 
             this.Browser = new Browser(with =>
@@ -56,7 +57,6 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Name", "permissionprincipal");
                 with.Header("Accept", "application/json");
             }).Wait();
-            
         }
 
         [Theory]

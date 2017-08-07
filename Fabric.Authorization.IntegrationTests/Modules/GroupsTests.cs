@@ -27,7 +27,7 @@ namespace Fabric.Authorization.IntegrationTests
             var permissionStore = useInMemoryDB
                 ? new InMemoryPermissionStore()
                 : (IPermissionStore) new CouchDbPermissionStore(this.DbService(), this.Logger);
-            var groupService = new GroupService(store, roleStore, permissionStore, new RoleService(roleStore, permissionStore));
+            var groupService = new GroupService(store, roleStore, new RoleService(roleStore, permissionStore));
 
             this.Browser = new Browser(with =>
             {

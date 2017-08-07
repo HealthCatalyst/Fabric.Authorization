@@ -11,7 +11,6 @@ namespace Fabric.Authorization.UnitTests.Mocks
 {
     public static class PermissionStoreMockExtensions
     {
-
         public static Mock<IPermissionStore> SetupAddPermissions(this Mock<IPermissionStore> mockPermissionStore)
         {
             mockPermissionStore.Setup(permissionStore => permissionStore.Add(It.IsAny<Permission>()))
@@ -29,12 +28,11 @@ namespace Fabric.Authorization.UnitTests.Mocks
                 .Setup(permissionStore => permissionStore.GetPermissions(It.IsAny<string>(), It.IsAny<string>(),
                     It.IsAny<string>()))
                 .Returns((string grain, string securableItem, string permissionName) =>
-                    Task.FromResult(permissions.Where(p => 
-                        p.Grain == grain 
-                        && p.SecurableItem == securableItem 
+                    Task.FromResult(permissions.Where(p =>
+                        p.Grain == grain
+                        && p.SecurableItem == securableItem
                         && (p.Name == permissionName || string.IsNullOrEmpty(permissionName)))));
 
-            
             return mockPermissionStore.SetupGetPermission(permissions);
         }
 
@@ -42,7 +40,8 @@ namespace Fabric.Authorization.UnitTests.Mocks
             List<Permission> permissions)
         {
             mockPermissionStore.Setup(permissionStore => permissionStore.Get(It.IsAny<Guid>()))
-                .Returns((Guid permissionId) => {
+                .Returns((Guid permissionId) =>
+                {
                     if (permissions.Any(p => p.Id == permissionId))
                     {
                         return Task.FromResult(permissions.First(p => p.Id == permissionId));
@@ -55,6 +54,12 @@ namespace Fabric.Authorization.UnitTests.Mocks
         public static Mock<IPermissionStore> SetupDeletePermission(this Mock<IPermissionStore> mockPermissionStore)
         {
             mockPermissionStore.Setup(permissionStore => permissionStore.Delete(It.IsAny<Permission>())).Verifiable();
+            return mockPermissionStore;
+        }
+
+        public static Mock<IPermissionStore> SetupGetGranularPermissions(this Mock<IPermissionStore> mockPermissionStore)
+        {
+            mockPermissionStore.Setup(s => s.GetGranularPermission(It.IsAny<string>())).Throws(new NotFoundException<GranularPermission>());
             return mockPermissionStore;
         }
 

@@ -17,7 +17,7 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
 
         public override async Task<IEnumerable<Group>> GetAll()
         {
-            return await DbService.GetDocuments<Group>("group");
+            return await _dbService.GetDocuments<Group>("group");
         }
     }
 }

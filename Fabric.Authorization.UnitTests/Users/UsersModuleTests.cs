@@ -6,7 +6,6 @@ using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Models;
-using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.Services;
 using Fabric.Authorization.UnitTests.Mocks;
@@ -21,14 +20,15 @@ namespace Fabric.Authorization.UnitTests.Users
     public class UsersModuleTests : ModuleTestsBase<UsersModule>
     {
         private List<Group> _existingGroups;
+
         private readonly Mock<IGroupStore> _mockGroupStore;
+
         public UsersModuleTests()
         {
             SetupTestData();
-            _mockGroupStore = new Mock<IGroupStore>();
-            _mockGroupStore.SetupGetGroups(_existingGroups)
+            _mockGroupStore = new Mock<IGroupStore>()
+                .SetupGetGroups(_existingGroups)
                 .SetupGroupExists(_existingGroups);
-
         }
 
         [Theory, MemberData(nameof(GetPermissionsRequestData))]
@@ -44,7 +44,6 @@ namespace Fabric.Authorization.UnitTests.Users
                 })
                 .Result;
             AssertOk(result, expectedCountPermissions);
-
         }
 
         [Fact]
@@ -71,7 +70,7 @@ namespace Fabric.Authorization.UnitTests.Users
                 .Result;
             Assert.Equal(HttpStatusCode.Forbidden, result.StatusCode);
         }
-        
+
         private void AssertOk(BrowserResponse result, int expectedCountPermissions)
         {
             Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -100,10 +99,11 @@ namespace Fabric.Authorization.UnitTests.Users
                 .Dependency<GroupService>(typeof(GroupService))
                 .Dependency<ClientService>(typeof(ClientService))
                 .Dependency<RoleService>(typeof(RoleService))
+                .Dependency<PermissionService>(typeof(PermissionService))
+                .Dependency(_mockGroupStore.Object)
                 .Dependency(MockLogger.Object)
                 .Dependency(MockClientStore.Object)
                 .Dependency(MockRoleStore.Object)
-                .Dependency(_mockGroupStore.Object)
                 .Dependency(MockPermissionStore.Object);
         }
 

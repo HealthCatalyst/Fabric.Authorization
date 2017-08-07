@@ -31,8 +31,12 @@ namespace Fabric.Authorization.UnitTests.Permissions
                     existingPermission
                 })
                 .Create();
-            
-            var permissionValidator = new PermissionValidator(new PermissionService(mockPermissionStore));
+
+            var mockRoleStore = new Mock<IRoleStore>().Object;
+
+            var permissionValidator = new PermissionValidator(new PermissionService(
+                mockPermissionStore,
+                new Mock<RoleService>(mockRoleStore, mockPermissionStore).Object));
             var validationResult = permissionValidator.Validate(new Permission
             {
                 Grain = grain,
@@ -54,7 +58,12 @@ namespace Fabric.Authorization.UnitTests.Permissions
                 .SetupGetPermissions(new List<Permission>())
                 .Create();
 
-            var permissionValidator = new PermissionValidator(new PermissionService(mockPermissionStore));
+            var mockRoleStore = new Mock<IRoleStore>().Object;
+
+            var permissionValidator = new PermissionValidator(new PermissionService(
+                mockPermissionStore,
+                new Mock<RoleService>(mockRoleStore, mockPermissionStore).Object));
+
             var validationResult = permissionValidator.Validate(new Permission
             {
                 Grain = "app",
@@ -81,9 +90,14 @@ namespace Fabric.Authorization.UnitTests.Permissions
             };
 
             var mockPermissionStore = new Mock<IPermissionStore>()
-                .SetupGetPermissions(new List<Permission> { existingPermission }).Create();            
-            var roleValidator = new PermissionValidator(new PermissionService(mockPermissionStore));
-            var validationResult = roleValidator.Validate(new Permission
+                .SetupGetPermissions(new List<Permission> { existingPermission }).Create();
+            var mockRoleStore = new Mock<IRoleStore>().Object;
+
+            var permissionValidator = new PermissionValidator(new PermissionService(
+                mockPermissionStore,
+                new Mock<RoleService>(mockRoleStore, mockPermissionStore).Object));
+
+            var validationResult = permissionValidator.Validate(new Permission
             {
                 Grain = grain,
                 SecurableItem = securableItem,

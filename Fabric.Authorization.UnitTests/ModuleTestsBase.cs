@@ -29,25 +29,26 @@ namespace Fabric.Authorization.UnitTests
 
         protected ModuleTestsBase()
         {
-            this.ExistingClients = CreateClients();
-            this.ExistingRoles = CreateRoles();
-            this.ExistingGroups = CreateGroups();
-            this.ExistingPermissions = CreatePermissions();
+            this.ExistingClients = this.CreateClients;
+            this.ExistingRoles = this.CreateRoles;
+            this.ExistingGroups = this.CreateGroups;
+            this.ExistingPermissions = this.CreatePermissions;
             this.MockLogger = new Mock<ILogger>();
             this.MockClientStore = new Mock<IClientStore>()
-                .SetupGetClient(ExistingClients)
+                .SetupGetClient(this.ExistingClients)
                 .SetupAddClient();
 
             this.MockPermissionStore = new Mock<IPermissionStore>()
                 .SetupGetPermissions(ExistingPermissions)
-                .SetupAddPermissions();
+                .SetupAddPermissions()
+                .SetupGetGranularPermissions();
 
             this.MockRoleStore = new Mock<IRoleStore>()
-                .SetupGetRoles(ExistingRoles)
+                .SetupGetRoles(this.ExistingRoles)
                 .SetupAddRole();
 
             this.MockGroupStore = new Mock<IGroupStore>()
-                .SetupGetGroups(ExistingGroups)
+                .SetupGetGroups(this.ExistingGroups)
                 .SetupAddGroup();
         }
 
@@ -80,113 +81,100 @@ namespace Fabric.Authorization.UnitTests
             return configurableBootstrapperConfigurator;
         }
 
-        private List<Client> CreateClients()
+        private List<Client> CreateClients => new List<Client>
         {
-            return new List<Client>
+            new Client
             {
-                new Client
+                Id = "patientsafety",
+                TopLevelSecurableItem = new SecurableItem
                 {
-                    Id = "patientsafety",
-                    TopLevelSecurableItem = new SecurableItem
-                    {
-                        Id = Guid.NewGuid(),
-                        Name = "patientsafety"
-                    }
-                },
-                new Client
-                {
-                    Id = "sourcemartdesigner",
-                    TopLevelSecurableItem = new SecurableItem
-                    {
-                        Id = Guid.NewGuid(),
-                        Name = "sourcemartdesigner"
-                    }
+                    Id = Guid.NewGuid(),
+                    Name = "patientsafety"
                 }
-            };
-        }
+            },
+            new Client
+            {
+                Id = "sourcemartdesigner",
+                TopLevelSecurableItem = new SecurableItem
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "sourcemartdesigner"
+                }
+            }
+        };
 
-        private List<Role> CreateRoles()
+        private List<Role> CreateRoles => new List<Role>
         {
-            return new List<Role>
+            new Role
             {
-                new Role
-                {
-                    Id = Guid.NewGuid(),
-                    Grain = "app",
-                    SecurableItem = "patientsafety",
-                    Name = "admin"
-                },
-                new Role
-                {
-                    Id = Guid.NewGuid(),
-                    Grain = "app",
-                    SecurableItem = "sourcemartdesigner",
-                    Name = "admin"
-                },
-                new Role
-                {
-                    Id = Guid.NewGuid(),
-                    Grain = "app",
-                    SecurableItem = "sourcemartdesigner",
-                    Name = "manager",
-                    IsDeleted = true
-                }
-            };
-        }
+                Id = Guid.NewGuid(),
+                Grain = "app",
+                SecurableItem = "patientsafety",
+                Name = "admin"
+            },
+            new Role
+            {
+                Id = Guid.NewGuid(),
+                Grain = "app",
+                SecurableItem = "sourcemartdesigner",
+                Name = "admin"
+            },
+            new Role
+            {
+                Id = Guid.NewGuid(),
+                Grain = "app",
+                SecurableItem = "sourcemartdesigner",
+                Name = "manager",
+                IsDeleted = true
+            }
+        };
 
-        private List<Group> CreateGroups()
+        private List<Group> CreateGroups => new List<Group>
         {
-            return new List<Group>
+            new Group
             {
-                new Group
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    IsDeleted = false,
-                    Roles = this.CreateRoles()
-                },
-                new Group
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    IsDeleted = false,
-                    Roles = this.CreateRoles()
-                }
-            };
-        }
+                Id = Guid.NewGuid().ToString(),
+                IsDeleted = false,
+                Roles = this.CreateRoles
+            },
+            new Group
+            {
+                Id = Guid.NewGuid().ToString(),
+                IsDeleted = false,
+                Roles = this.CreateRoles
+            }
+        };
 
-        private List<Permission> CreatePermissions()
+        private List<Permission> CreatePermissions => new List<Permission>
         {
-            return new List<Permission>
+            new Permission
             {
-                new Permission
-                {
-                    Id = Guid.NewGuid(),
-                    Grain = "app",
-                    SecurableItem = "patientsafety",
-                    Name = "manageusers"
-                },
-                new Permission
-                {
-                    Id = Guid.NewGuid(),
-                    Grain = "app",
-                    SecurableItem = "patientsafety",
-                    Name = "updatepatient"
-                },
-                new Permission
-                {
-                    Id = Guid.NewGuid(),
-                    Grain = "app",
-                    SecurableItem = "sourcemartdesigner",
-                    Name = "manageusers"
-                },
-                new Permission
-                {
-                    Id = Guid.NewGuid(),
-                    Grain = "patient",
-                    SecurableItem = "Patient",
-                    Name ="read"
-                }
-            };
-        }
-       
+                Id = Guid.NewGuid(),
+                Grain = "app",
+                SecurableItem = "patientsafety",
+                Name = "manageusers"
+            },
+            new Permission
+            {
+                Id = Guid.NewGuid(),
+                Grain = "app",
+                SecurableItem = "patientsafety",
+                Name = "updatepatient"
+            },
+            new Permission
+            {
+                Id = Guid.NewGuid(),
+                Grain = "app",
+                SecurableItem = "sourcemartdesigner",
+                Name = "manageusers"
+            },
+            new Permission
+            {
+                Id = Guid.NewGuid(),
+                Grain = "patient",
+                SecurableItem = "Patient",
+                Name ="read"
+            }
+        };
     }
 }
