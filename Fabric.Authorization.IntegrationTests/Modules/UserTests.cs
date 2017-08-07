@@ -68,14 +68,14 @@ namespace Fabric.Authorization.IntegrationTests
                 with.RequestStartup((_, pipelines, context) =>
                 {
                     context.CurrentUser = new ClaimsPrincipal(
-                        new ClaimsIdentity(new List<Claim>()
+                        new ClaimsIdentity(new List<Claim>
                         {
-                        new Claim(Claims.Scope, Scopes.ManageClientsScope),
-                        new Claim(Claims.Scope, Scopes.ReadScope),
-                        new Claim(Claims.Scope, Scopes.WriteScope),
-                        new Claim(Claims.ClientId, "userprincipal"),
-                        new Claim(JwtClaimTypes.Role, Group1),
-                        new Claim(JwtClaimTypes.Role, Group2)
+                            new Claim(Claims.Scope, Scopes.ManageClientsScope),
+                            new Claim(Claims.Scope, Scopes.ReadScope),
+                            new Claim(Claims.Scope, Scopes.WriteScope),
+                            new Claim(Claims.ClientId, "userprincipal"),
+                            new Claim(JwtClaimTypes.Role, Group1),
+                            new Claim(JwtClaimTypes.Role, Group2)
                         }, "userprincipal"));
                     pipelines.BeforeRequest += (ctx) => RequestHooks.SetDefaultVersionInUrl(ctx);
                 });
@@ -158,7 +158,7 @@ namespace Fabric.Authorization.IntegrationTests
                 Grain = "app",
                 SecurableItem = "userprincipal",
                 Name = "greatgrandfather",
-                Permissions = new List<PermissionApiModel>() { ggfperm }
+                Permissions = new List<PermissionApiModel> { ggfperm }
             };
 
             post = this.Browser.Post("/roles", with => // -3
@@ -176,7 +176,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.Header("Accept", "application/json");
                 role.Name = "grandfather";
                 role.ParentRole = ggf.Id;
-                role.Permissions = new List<PermissionApiModel>() { gfperm };
+                role.Permissions = new List<PermissionApiModel> { gfperm };
                 with.JsonBody(role);
             }).Result;
 
@@ -188,7 +188,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.Header("Accept", "application/json");
                 role.Name = "father";
                 role.ParentRole = gf.Id;
-                role.Permissions = new List<PermissionApiModel>() { fperm };
+                role.Permissions = new List<PermissionApiModel> { fperm };
                 with.JsonBody(role);
             }).Result;
 
@@ -200,7 +200,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.Header("Accept", "application/json");
                 role.Name = "himself";
                 role.ParentRole = f.Id;
-                role.Permissions = new List<PermissionApiModel>() { hsperm };
+                role.Permissions = new List<PermissionApiModel> { hsperm };
                 with.JsonBody(role);
             }).Result;
 
@@ -212,11 +212,11 @@ namespace Fabric.Authorization.IntegrationTests
                 with.Header("Accept", "application/json");
                 role.Name = "son";
                 role.ParentRole = hs.Id;
-                role.Permissions = new List<PermissionApiModel>() { sonperm };
+                role.Permissions = new List<PermissionApiModel> { sonperm };
                 with.JsonBody(role);
             }).Result;
 
-            var son = post.Body.DeserializeJson<RoleApiModel>();
+            post.Body.DeserializeJson<RoleApiModel>();
 
             // Adding groups
             this.Browser.Post("/groups", with =>
@@ -281,7 +281,7 @@ namespace Fabric.Authorization.IntegrationTests
                 Grain = "app",
                 SecurableItem = "userprincipal",
                 Name = "viewer",
-                Permissions = new List<PermissionApiModel>() { viewPatientPermission }
+                Permissions = new List<PermissionApiModel> { viewPatientPermission }
             };
 
             post = this.Browser.Post("/roles", with => // -3
@@ -298,7 +298,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
                 role.Name = "editor";
-                role.Permissions = new List<PermissionApiModel>() { editPatientPermission };
+                role.Permissions = new List<PermissionApiModel> { editPatientPermission };
                 with.JsonBody(role);
             }).Result;
 
@@ -381,7 +381,7 @@ namespace Fabric.Authorization.IntegrationTests
                 Grain = "app",
                 SecurableItem = "userprincipal",
                 Name = "viewer",
-                Permissions = new List<PermissionApiModel>() { viewPatientPermission }
+                Permissions = new List<PermissionApiModel> { viewPatientPermission }
             };
 
             post = this.Browser.Post("/roles", with => // -3
@@ -398,7 +398,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
                 role.Name = "editor";
-                role.Permissions = new List<PermissionApiModel>() { editPatientPermission };
+                role.Permissions = new List<PermissionApiModel> { editPatientPermission };
                 with.JsonBody(role);
             }).Result;
 
@@ -443,7 +443,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
                 granPerm.Target = userId;
-                granPerm.Permissions = new List<PermissionApiModel>() { editPatientPermission };
+                granPerm.Permissions = new List<PermissionApiModel> { editPatientPermission };
                 with.JsonBody(granPerm);
             }).Wait();
 
@@ -494,7 +494,7 @@ namespace Fabric.Authorization.IntegrationTests
                 Grain = "app",
                 SecurableItem = "userprincipal",
                 Name = "viewer",
-                Permissions = new List<PermissionApiModel>() { viewPatientPermission }
+                Permissions = new List<PermissionApiModel> { viewPatientPermission }
             };
 
             post = this.Browser.Post("/roles", with => // -3
@@ -511,7 +511,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
                 role.Name = "editor";
-                role.Permissions = new List<PermissionApiModel>() { editPatientPermission };
+                role.Permissions = new List<PermissionApiModel> { editPatientPermission };
                 with.JsonBody(role);
             }).Result;
 
@@ -563,7 +563,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
                 granPerm.Target = userId;
-                granPerm.Permissions = new List<PermissionApiModel>() { modifyPatientPermission };
+                granPerm.Permissions = new List<PermissionApiModel> { modifyPatientPermission };
                 with.JsonBody(granPerm);
             }).Wait();
 
@@ -615,7 +615,7 @@ namespace Fabric.Authorization.IntegrationTests
                 Grain = "app",
                 SecurableItem = "userprincipal",
                 Name = "viewer",
-                Permissions = new List<PermissionApiModel>() { viewPatientPermission }
+                Permissions = new List<PermissionApiModel> { viewPatientPermission }
             };
 
             post = this.Browser.Post("/roles", with => // -3
@@ -635,7 +635,7 @@ namespace Fabric.Authorization.IntegrationTests
                 role.Permissions = new List<PermissionApiModel>() { editPatientPermission };
 
                 // Role denies viewPatient permission
-                role.DeniedPermissions = new List<PermissionApiModel>() { viewPatientPermission };
+                role.DeniedPermissions = new List<PermissionApiModel> { viewPatientPermission };
                 with.JsonBody(role);
             }).Result;
 
@@ -718,7 +718,7 @@ namespace Fabric.Authorization.IntegrationTests
                 Grain = "app",
                 SecurableItem = "userprincipal",
                 Name = "viewer",
-                Permissions = new List<PermissionApiModel>() { viewPatientPermission }
+                Permissions = new List<PermissionApiModel> { viewPatientPermission }
             };
 
             post = this.Browser.Post("/roles", with => // -3
@@ -735,7 +735,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
                 role.Name = "editor";
-                role.Permissions = new List<PermissionApiModel>() { editPatientPermission };
+                role.Permissions = new List<PermissionApiModel> { editPatientPermission };
                 with.JsonBody(role);
             }).Result;
 
@@ -780,7 +780,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
                 granPerm.Target = userId;
-                granPerm.Permissions = new List<PermissionApiModel>() { editPatientPermission };
+                granPerm.Permissions = new List<PermissionApiModel> { editPatientPermission };
                 with.JsonBody(granPerm);
             }).Wait();
 
@@ -797,7 +797,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
                 granPerm.Target = userId;
-                granPerm.Permissions = new List<PermissionApiModel>() { editPatientPermission, modifyPatientPermission };
+                granPerm.Permissions = new List<PermissionApiModel> { editPatientPermission, modifyPatientPermission };
                 with.JsonBody(granPerm);
             }).Wait();
 

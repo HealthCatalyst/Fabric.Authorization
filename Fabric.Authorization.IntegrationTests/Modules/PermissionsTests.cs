@@ -39,7 +39,7 @@ namespace Fabric.Authorization.IntegrationTests
                         this.Logger));
                 with.RequestStartup((_, pipelines, context) =>
                 {
-                    context.CurrentUser = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>()
+                    context.CurrentUser = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
                     {
                         new Claim(Claims.Scope, Scopes.ManageClientsScope),
                         new Claim(Claims.Scope, Scopes.ReadScope),

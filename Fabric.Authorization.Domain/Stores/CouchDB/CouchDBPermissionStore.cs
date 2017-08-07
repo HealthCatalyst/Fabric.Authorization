@@ -31,25 +31,25 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
 
         public static CouchDbViews GetViews()
         {
-            var views = new Dictionary<string, Dictionary<string, string>>()
+            var views = new Dictionary<string, Dictionary<string, string>>
             {
                 {
                     "byname",
-                    new Dictionary<string, string>()
+                    new Dictionary<string, string>
                     {
                         { "map", "function(doc) { if (doc._id.indexOf('permission:') !== -1) emit(doc.Grain+doc.SecurableItem+doc.Name, doc) }" },
                     }
                 },
                 {
                     "bysecitem",
-                    new Dictionary<string, string>()
+                    new Dictionary<string, string>
                     {
                         { "map", "function(doc) { if (doc._id.indexOf('permission:') !== -1) emit(doc.Grain+doc.SecurableItem, doc) }" },
                     }
                 }
             };
 
-            var couchViews = new CouchDbViews()
+            var couchViews = new CouchDbViews
             {
                 id = "permissions",
                 views = views

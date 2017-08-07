@@ -19,7 +19,7 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
         }
 
         public override async Task Delete(Role model) => await base.Delete(model.Id.ToString(), model);
-        
+
         public async Task<IEnumerable<Role>> GetRoles(string grain, string securableItem = null, string roleName = null)
         {
             var customParams = grain + securableItem + roleName;
@@ -27,32 +27,33 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
                 await _dbService.GetDocuments<Role>("roles", "byname", customParams) :
                 await _dbService.GetDocuments<Role>("roles", "bysecitem", customParams);
         }
-        
+
         public static CouchDbViews GetViews()
         {
-            var views = new Dictionary<string, Dictionary<string, string>>()
+            var views = new Dictionary<string, Dictionary<string, string>>
             {
                 {
                     "byname", // Stores all roles by gain+secitem+name for easy retrieval.
-                    new Dictionary<string, string>()
+                    new Dictionary<string, string>
                     {
                         { "map", "function(doc) { if (doc._id.indexOf('role:') !== -1) emit(doc.Grain+doc.SecurableItem+doc.Name, doc); }" },
                     }
                 },
                 {
                     "bysecitem", // Stores all roles by gain+secitem for easy retrieval.
-                    new Dictionary<string, string>()
+                    new Dictionary<string, string>
                     {
                         { "map", "function(doc) { if (doc._id.indexOf('role:') !== -1) emit(doc.Grain+doc.SecurableItem, doc); }" },
                     }
                 }
             };
 
-            var couchViews = new CouchDbViews()
+            var couchViews = new CouchDbViews
             {
                 id = "roles",
                 views = views
             };
+
             return couchViews;
         }
     }
