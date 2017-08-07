@@ -57,6 +57,8 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Name", "permissionprincipal");
                 with.Header("Accept", "application/json");
             }).Wait();
+
+            Console.WriteLine($"Executing PermissionTests with InMemory: {useInMemoryDB}");
         }
 
         [Theory]

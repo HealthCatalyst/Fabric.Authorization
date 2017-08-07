@@ -43,7 +43,7 @@ namespace Fabric.Authorization.IntegrationTests
                     pipelines.BeforeRequest += (ctx) => RequestHooks.SetDefaultVersionInUrl(ctx);
                 });
             }, withDefaults => withDefaults.HostName("testhost"));
-            
+            Console.WriteLine($"Executing ClientTests with InMemory: {useInMemoryDB}");
         }
 
         [Theory]

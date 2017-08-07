@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Security.Claims;
 using Fabric.Authorization.API;
 using Fabric.Authorization.API.Constants;
@@ -56,7 +57,9 @@ namespace Fabric.Authorization.IntegrationTests
                     with.FormValue("Name", "rolesprincipal");
                     with.Header("Accept", "application/json");
                 }).Wait();
-            
+
+            Console.WriteLine($"Executing RoleTests with InMemory: {useInMemoryDB}");
+
         }
 
         [Theory]

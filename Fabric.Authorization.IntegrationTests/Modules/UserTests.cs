@@ -88,7 +88,8 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Name", "userprincipal");
                 with.Header("Accept", "application/json");
             }).Wait();
-            
+
+            Console.WriteLine($"Executing UserTests with InMemory: {useInMemoryDB}");
         }
 
         [Fact]
