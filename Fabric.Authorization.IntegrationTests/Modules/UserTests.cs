@@ -492,6 +492,7 @@ namespace Fabric.Authorization.IntegrationTests
 
             var editPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
 
+            Console.WriteLine("Added permissions");
 
             // Adding roles
             var role = new RoleApiModel()
@@ -522,6 +523,8 @@ namespace Fabric.Authorization.IntegrationTests
 
             var editorRole = post.Body.DeserializeJson<RoleApiModel>();
 
+            Console.WriteLine("Added roles");
+
             // Adding groups
             this.Browser.Post("/groups", with =>
             {
@@ -539,6 +542,8 @@ namespace Fabric.Authorization.IntegrationTests
                 with.Header("Accept", "application/json");
             }).Wait();
 
+            Console.WriteLine("Added groups");
+
             this.Browser.Post($"/groups/{Group1}/roles", with =>
             {
                 with.HttpRequest();
@@ -552,6 +557,8 @@ namespace Fabric.Authorization.IntegrationTests
                 with.Header("Accept", "application/json");
                 with.FormValue("Id", editorRole.Identifier);
             }).Wait();
+
+            Console.WriteLine("Associated groups to roles");
 
             // Adding permission (user also can modify patient, even though role doesn't)
             var modifyPatientPermission = new PermissionApiModel()
@@ -572,12 +579,15 @@ namespace Fabric.Authorization.IntegrationTests
                 with.JsonBody(granPerm);
             }).Wait();
 
+            Console.WriteLine("Added additional permissions");
+
             // Get the permissions
             var get = this.Browser.Get($"/user/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
             }).Result;
+            Console.WriteLine("Got user permissions");
 
             Assert.Equal(HttpStatusCode.OK, get.StatusCode);
             var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();

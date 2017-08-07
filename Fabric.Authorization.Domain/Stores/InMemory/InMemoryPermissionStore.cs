@@ -44,15 +44,12 @@ namespace Fabric.Authorization.Domain.Stores
 
         public Task AddOrUpdateGranularPermission(GranularPermission granularPermission)
         {
-            return Task.Run(() =>
-            {
                 var success = granularPermissions.TryAdd(granularPermission.Id, granularPermission);
                 if (!success)
                 {
                     granularPermissions.TryUpdate(granularPermission.Id, granularPermission, granularPermissions[granularPermission.Id]);
                 }
-            }
-            );
+                return Task.CompletedTask;
         }
 
         public Task<GranularPermission> GetGranularPermission(string target)
