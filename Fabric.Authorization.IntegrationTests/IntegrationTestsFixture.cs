@@ -19,6 +19,9 @@ namespace Fabric.Authorization.IntegrationTests
 
         public ILogger Logger { get; set; } = new Mock<ILogger>().Object;
 
+        public IEventContextResolverService EventContextResolverService { get; set; } =
+            new Mock<IEventContextResolverService>().Object;
+
         private IDocumentDbService dbService;
 
         private readonly string CouchDbServerEnvironmentVariable = "COUCHDBSETTINGS__SERVER";
@@ -45,7 +48,7 @@ namespace Fabric.Authorization.IntegrationTests
                 innerDbService.Initialize().Wait();
                 innerDbService.AddViews("roles", CouchDbRoleStore.GetViews()).Wait();
                 innerDbService.AddViews("permissions", CouchDbPermissionStore.GetViews()).Wait();
-                var auditingDbService = new AuditingDocumentDbService(new Mock<IEventService>().Object, innerDbService, new Mock<IEventContextResolverService>().Object);
+                var auditingDbService = new AuditingDocumentDbService(new Mock<IEventService>().Object, innerDbService);
                 var cachingDbService = new CachingDocumentDbService(auditingDbService, new MemoryCache(new MemoryCacheOptions()));
                 dbService = cachingDbService;
             }

@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
+using Fabric.Authorization.API.Infrastructure;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
@@ -13,6 +14,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Nancy;
 using Nancy.Owin;
 using Serilog;
 using Serilog.Core;
@@ -71,9 +73,10 @@ namespace Fabric.Authorization.API
 
         public async Task<bool> HealthCheck()
         {
+            var eventContextResolverService = new EventContextResolverService(new NancyContextWrapper(new NancyContext()));
             var clientStore = _appConfig.UseInMemoryStores
                 ? (IClientStore) new InMemoryClientStore()
-                : new CouchDbClientStore(new CouchDbAccessService(_appConfig.CouchDbSettings, _logger), _logger);
+                : new CouchDbClientStore(new CouchDbAccessService(_appConfig.CouchDbSettings, _logger), _logger, eventContextResolverService);
             
             var result = await clientStore.GetAll();
             return result.Any();

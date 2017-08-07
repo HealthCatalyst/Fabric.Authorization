@@ -17,8 +17,8 @@ namespace Fabric.Authorization.IntegrationTests
     {
         public RolesTests(bool useInMemoryDB = true)
         {
-            var store = useInMemoryDB ? new InMemoryRoleStore() : (IRoleStore)new CouchDbRoleStore(this.DbService(), this.Logger);
-            var clientStore = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDbClientStore(this.DbService(), this.Logger);
+            var store = useInMemoryDB ? new InMemoryRoleStore() : (IRoleStore)new CouchDbRoleStore(this.DbService(), this.Logger, this.EventContextResolverService);
+            var clientStore = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDbClientStore(this.DbService(), this.Logger, this.EventContextResolverService);
 
             var roleService = new RoleService(store, new InMemoryPermissionStore());
             var clientService = new ClientService(clientStore);

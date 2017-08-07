@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
+using Fabric.Authorization.Domain.Services;
 using Serilog;
 
 namespace Fabric.Authorization.Domain.Stores.CouchDB
 {
     public class CouchDbPermissionStore : CouchDbGenericStore<Guid, Permission>, IPermissionStore
     {
-        public CouchDbPermissionStore(IDocumentDbService dbService, ILogger logger) : base(dbService, logger)
+        public CouchDbPermissionStore(IDocumentDbService dbService, ILogger logger, IEventContextResolverService eventContextResolverService) : base(dbService, logger, eventContextResolverService)
         {
         }
 
