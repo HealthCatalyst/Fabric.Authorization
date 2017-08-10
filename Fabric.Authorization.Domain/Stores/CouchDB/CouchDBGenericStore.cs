@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
@@ -12,6 +13,7 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
     {
         protected readonly IDocumentDbService _dbService;
         protected readonly ILogger _logger;
+        protected readonly Stopwatch _stopwatch = new Stopwatch();
         private readonly IEventContextResolverService _eventContextResolverService;
 
         protected CouchDbGenericStore(IDocumentDbService dbService, ILogger logger, IEventContextResolverService eventContextResolverService)
@@ -27,7 +29,7 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
         public virtual async Task<T> Add(string id, T model)
         {
             model.Track(creation: true, user: GetActor());
-            await _dbService.AddDocument<T>(id, model).ConfigureAwait(false);
+            await ExponentialBackoff(_dbService.AddDocument<T>(id, model)).ConfigureAwait(false);
 
             return model;
         }
@@ -35,7 +37,7 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
         public virtual async Task Update(T model)
         {
             model.Track(creation: false, user: GetActor());
-            await _dbService.UpdateDocument<T>(model.Identifier, model).ConfigureAwait(false);
+            await ExponentialBackoff(_dbService.UpdateDocument<T>(model.Identifier, model)).ConfigureAwait(false);
         }
 
         public abstract Task Delete(T model);
@@ -58,7 +60,7 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
         public virtual async Task<bool> Exists(K id)
         {
             var result = await _dbService.GetDocument<T>(id.ToString()).ConfigureAwait(false);
-            return (result != null && 
+            return (result != null &&
                     (!(result is ISoftDelete) || !(result as ISoftDelete).IsDeleted));
         }
 
@@ -82,6 +84,34 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
         private string GetActor()
         {
             return _eventContextResolverService.Username ?? _eventContextResolverService.ClientId;
+        }
+
+        private static async Task ExponentialBackoff(Task action, int maxRetries = 4, int wait = 100)
+        {
+            var retryCount = 1;
+
+            while (retryCount <= maxRetries)
+            {
+                try
+                {
+                    await action;
+                    break;
+                }
+                catch (Exception e) // TODO: Only retryable exceptions
+                {
+                    if (retryCount == maxRetries)
+                    {
+                        throw;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"{e} Retrying {retryCount} ");
+                        await Task.Delay(wait);
+                        wait *= (int)Math.Pow(2, retryCount);
+                        retryCount++;
+                    }
+                }
+            }
         }
     }
 }

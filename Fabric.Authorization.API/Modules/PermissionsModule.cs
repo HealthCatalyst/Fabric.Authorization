@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
-using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores.Services;
 using Fabric.Authorization.Domain.Validators;
 using Nancy;
@@ -107,7 +106,6 @@ namespace Fabric.Authorization.API.Modules
                 return CreateFailureResponse($"The specified permission with id: {parameters.permissionId} was not found",
                     HttpStatusCode.NotFound);
             }
-
         }
     }
 }
