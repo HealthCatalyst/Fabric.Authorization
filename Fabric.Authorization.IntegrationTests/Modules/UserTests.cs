@@ -72,7 +72,7 @@ namespace Fabric.Authorization.IntegrationTests
                             new Claim(Claims.Scope, Scopes.ReadScope),
                             new Claim(Claims.Scope, Scopes.WriteScope),
                             new Claim(Claims.ClientId, "userprincipal"),
-                            new Claim("sub", "userprincipal"),
+                            new Claim(Claims.Sub, "userprincipal"),
                             new Claim(JwtClaimTypes.Role, Group1),
                             new Claim(JwtClaimTypes.Role, Group2)
                         }, "userprincipal"));

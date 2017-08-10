@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores.Services;
@@ -65,7 +66,7 @@ namespace Fabric.Authorization.API.Modules
             var groups = this.GetGroupsForAuthenticatedUser();
 
             var permissions = await _permissionService.GetPermissionsForUser(
-                Context.CurrentUser.Claims.First(c => c.Type == "client_id").Value,
+                Context.CurrentUser.Claims.First(c => c.Type == Claims.Sub).Value,
                 groups,
                 userPermissionRequest.Grain,
                 userPermissionRequest.SecurableItem);

@@ -35,8 +35,12 @@ namespace Fabric.Authorization.UnitTests.Users
         public void GetUserPermissions_Succeeds(string group, string grain, string securableItem, int expectedCountPermissions)
         {
             var existingClient = ExistingClients.First();
-            var usersModule = CreateBrowser(new Claim(Claims.Scope, Scopes.ReadScope),
-                new Claim(Claims.ClientId, existingClient.Id), new Claim(JwtClaimTypes.Role, group));
+            var usersModule = CreateBrowser(
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.ClientId, existingClient.Id), 
+                new Claim(JwtClaimTypes.Role, group),
+                new Claim(Claims.Sub, existingClient.Id)
+            );
             var result = usersModule.Get($"/user/permissions", with =>
                 {
                     with.Query("grain", grain);
@@ -50,8 +54,12 @@ namespace Fabric.Authorization.UnitTests.Users
         public void GetUserPermissions_NoParameters_DefaultsToTopLevel()
         {
             var existingClient = ExistingClients.First();
-            var usersModule = CreateBrowser(new Claim(Claims.Scope, Scopes.ReadScope),
-                new Claim(Claims.ClientId, existingClient.Id), new Claim(JwtClaimTypes.Role, @"Fabric\Health Catalyst Admin"));
+            var usersModule = CreateBrowser(
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.ClientId, existingClient.Id), 
+                new Claim(JwtClaimTypes.Role, @"Fabric\Health Catalyst Admin"),
+                new Claim(Claims.Sub, existingClient.Id)
+                );
             var result = usersModule.Get($"/user/permissions").Result;
             AssertOk(result, 2);
         }
