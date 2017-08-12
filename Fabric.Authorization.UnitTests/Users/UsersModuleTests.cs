@@ -6,7 +6,6 @@ using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Models;
-using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.Services;
 using Fabric.Authorization.UnitTests.Mocks;
@@ -21,22 +20,27 @@ namespace Fabric.Authorization.UnitTests.Users
     public class UsersModuleTests : ModuleTestsBase<UsersModule>
     {
         private List<Group> _existingGroups;
+
         private readonly Mock<IGroupStore> _mockGroupStore;
+
         public UsersModuleTests()
         {
             SetupTestData();
-            _mockGroupStore = new Mock<IGroupStore>();
-            _mockGroupStore.SetupGetGroups(_existingGroups)
+            _mockGroupStore = new Mock<IGroupStore>()
+                .SetupGetGroups(_existingGroups)
                 .SetupGroupExists(_existingGroups);
-
         }
 
         [Theory, MemberData(nameof(GetPermissionsRequestData))]
         public void GetUserPermissions_Succeeds(string group, string grain, string securableItem, int expectedCountPermissions)
         {
             var existingClient = ExistingClients.First();
-            var usersModule = CreateBrowser(new Claim(Claims.Scope, Scopes.ReadScope),
-                new Claim(Claims.ClientId, existingClient.Id), new Claim(JwtClaimTypes.Role, group));
+            var usersModule = CreateBrowser(
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.ClientId, existingClient.Id), 
+                new Claim(JwtClaimTypes.Role, group),
+                new Claim(Claims.Sub, existingClient.Id)
+            );
             var result = usersModule.Get($"/user/permissions", with =>
                 {
                     with.Query("grain", grain);
@@ -44,15 +48,18 @@ namespace Fabric.Authorization.UnitTests.Users
                 })
                 .Result;
             AssertOk(result, expectedCountPermissions);
-
         }
 
         [Fact]
         public void GetUserPermissions_NoParameters_DefaultsToTopLevel()
         {
             var existingClient = ExistingClients.First();
-            var usersModule = CreateBrowser(new Claim(Claims.Scope, Scopes.ReadScope),
-                new Claim(Claims.ClientId, existingClient.Id), new Claim(JwtClaimTypes.Role, @"Fabric\Health Catalyst Admin"));
+            var usersModule = CreateBrowser(
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.ClientId, existingClient.Id), 
+                new Claim(JwtClaimTypes.Role, @"Fabric\Health Catalyst Admin"),
+                new Claim(Claims.Sub, existingClient.Id)
+                );
             var result = usersModule.Get($"/user/permissions").Result;
             AssertOk(result, 2);
         }
@@ -71,7 +78,7 @@ namespace Fabric.Authorization.UnitTests.Users
                 .Result;
             Assert.Equal(HttpStatusCode.Forbidden, result.StatusCode);
         }
-        
+
         private void AssertOk(BrowserResponse result, int expectedCountPermissions)
         {
             Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -100,10 +107,11 @@ namespace Fabric.Authorization.UnitTests.Users
                 .Dependency<GroupService>(typeof(GroupService))
                 .Dependency<ClientService>(typeof(ClientService))
                 .Dependency<RoleService>(typeof(RoleService))
+                .Dependency<PermissionService>(typeof(PermissionService))
+                .Dependency(_mockGroupStore.Object)
                 .Dependency(MockLogger.Object)
                 .Dependency(MockClientStore.Object)
                 .Dependency(MockRoleStore.Object)
-                .Dependency(_mockGroupStore.Object)
                 .Dependency(MockPermissionStore.Object);
         }
 

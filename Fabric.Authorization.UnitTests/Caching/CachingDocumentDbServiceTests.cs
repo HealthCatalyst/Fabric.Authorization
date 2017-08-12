@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
 using Microsoft.Extensions.Caching.Memory;
@@ -12,7 +13,7 @@ namespace Fabric.Authorization.UnitTests.Caching
     public class CachingDocumentDbServiceTests
     {
         [Fact]
-        public async void GetDocument_CachesDocument()
+        public void GetDocument_CachesDocument()
         {
             //Arrange
             var permissions = SetupPermissions();
@@ -21,15 +22,15 @@ namespace Fabric.Authorization.UnitTests.Caching
             var cachingDocumentDbService = new CachingDocumentDbService(mockDbAccessService.Object,
                 new MemoryCache(new MemoryCacheOptions()));
             //Act
-            AssertPermissionRetrieved(permission, cachingDocumentDbService);
-            AssertPermissionRetrieved(permission, cachingDocumentDbService);
+            this.AssertPermissionRetrievedAsync(permission, cachingDocumentDbService).Wait();
+            this.AssertPermissionRetrievedAsync(permission, cachingDocumentDbService).Wait();
 
             //Assert
             mockDbAccessService.Verify(dbAccessService => dbAccessService.GetDocument<Permission>(It.IsAny<string>()), Times.Once);
         }
 
         [Fact]
-        public async void UpdateDocument_InvalidatesCache()
+        public void UpdateDocument_InvalidatesCache()
         {
             //Arrange
             var permissions = SetupPermissions();
@@ -37,18 +38,18 @@ namespace Fabric.Authorization.UnitTests.Caching
             var mockDbAccessService = SetupMockDocumentDbService(permissions);
             var cachingDocumentDbService = new CachingDocumentDbService(mockDbAccessService.Object,
                 new MemoryCache(new MemoryCacheOptions()));
-            
+
             //Act
-            AssertPermissionRetrieved(permission, cachingDocumentDbService);
-            await cachingDocumentDbService.UpdateDocument(permission.Identifier, permission);
-            AssertPermissionRetrieved(permission, cachingDocumentDbService);
+            this.AssertPermissionRetrievedAsync(permission, cachingDocumentDbService).Wait();
+            cachingDocumentDbService.UpdateDocument(permission.Identifier, permission).Wait();
+            this.AssertPermissionRetrievedAsync(permission, cachingDocumentDbService).Wait();
 
             //Assert
             mockDbAccessService.Verify(dbAccessService => dbAccessService.GetDocument<Permission>(It.IsAny<string>()), Times.Exactly(2));
         }
 
         [Fact]
-        public async void DeleteDocument_InvalidatesCache()
+        public void DeleteDocument_InvalidatesCache()
         {
             //Arrange
             var permissions = SetupPermissions();
@@ -57,9 +58,9 @@ namespace Fabric.Authorization.UnitTests.Caching
             var cachingDocumentDbService = new CachingDocumentDbService(mockDbAccessService.Object,
                 new MemoryCache(new MemoryCacheOptions()));
             //Act
-            AssertPermissionRetrieved(permission, cachingDocumentDbService);
-            await cachingDocumentDbService.DeleteDocument<Permission>(permission.Identifier);
-            AssertPermissionRetrieved(permission, cachingDocumentDbService);
+            AssertPermissionRetrievedAsync(permission, cachingDocumentDbService).Wait();
+            cachingDocumentDbService.DeleteDocument<Permission>(permission.Identifier).Wait();
+            AssertPermissionRetrievedAsync(permission, cachingDocumentDbService).Wait();
 
             //Assert
             mockDbAccessService.Verify(dbAccessService => dbAccessService.GetDocument<Permission>(It.IsAny<string>()), Times.Exactly(2));
@@ -87,7 +88,7 @@ namespace Fabric.Authorization.UnitTests.Caching
             return mockDbAccessService;
         }
 
-        private async void AssertPermissionRetrieved(Permission permission, CachingDocumentDbService cachingDocumentDbService)
+        private async Task AssertPermissionRetrievedAsync(Permission permission, CachingDocumentDbService cachingDocumentDbService)
         {
             var retrievedPermission = await cachingDocumentDbService.GetDocument<Permission>(permission.Identifier);
             Assert.Equal(permission.Id, retrievedPermission.Id);

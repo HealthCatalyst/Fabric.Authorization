@@ -4,7 +4,6 @@ using System.Security.Claims;
 using Fabric.Authorization.API;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Modules;
-using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
 using Fabric.Authorization.Domain.Stores.Services;
@@ -19,10 +18,12 @@ namespace Fabric.Authorization.IntegrationTests
     {
         public PermissionsTests(bool useInMemoryDB = true)
         {
-            var store = useInMemoryDB ? new InMemoryPermissionStore() : (IPermissionStore)new CouchDbPermissionStore(this.DbService(), this.Logger);
-            var clientStore = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDbClientStore(this.DbService(), this.Logger);
+            var permissionStore = useInMemoryDB ? new InMemoryPermissionStore() : (IPermissionStore)new CouchDbPermissionStore(this.DbService(), this.Logger, this.EventContextResolverService);
+            var clientStore = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDbClientStore(this.DbService(), this.Logger, this.EventContextResolverService);
+            var roleStore = useInMemoryDB ? new InMemoryRoleStore() : (IRoleStore)new CouchDbRoleStore(this.DbService(), this.Logger, this.EventContextResolverService);
 
-            var permissionService = new PermissionService(store);
+            var roleService = new RoleService(roleStore, permissionStore);
+            var permissionService = new PermissionService(permissionStore, roleService);
             var clientService = new ClientService(clientStore);
 
             this.Browser = new Browser(with =>
@@ -38,7 +39,7 @@ namespace Fabric.Authorization.IntegrationTests
                         this.Logger));
                 with.RequestStartup((_, pipelines, context) =>
                 {
-                    context.CurrentUser = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>()
+                    context.CurrentUser = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
                     {
                         new Claim(Claims.Scope, Scopes.ManageClientsScope),
                         new Claim(Claims.Scope, Scopes.ReadScope),
@@ -56,10 +57,10 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Name", "permissionprincipal");
                 with.Header("Accept", "application/json");
             }).Wait();
-            
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("InexistentPermission")]
         [InlineData("InexistentPermission2")]
         public void TestGetPermission_Fail(string permission)
@@ -75,6 +76,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("Perm1")]
         [InlineData("Perm2")]
         public void TestAddNewPermission_Success(string permission)
@@ -101,6 +103,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("NewPerm1")]
         [InlineData("NewPerm2")]
         public void TestGetPermission_Success(string permission)
@@ -138,6 +141,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("SecItemPerm1")]
         [InlineData("SecItemPerm2")]
         public void TestGetPermissionForSecItem_Success(string permission)
@@ -175,6 +179,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("RepeatedPermission1")]
         [InlineData("RepeatedPermission2")]
         public void TestAddNewPermission_Fail(string permission)
@@ -204,6 +209,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("PermissionToBeDeleted")]
         [InlineData("PermissionToBeDeleted2")]
         public void TestDeletePermission_Success(string permission)
@@ -230,6 +236,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("18F06565-AA9E-4315-AF27-CEFC165B20FA")]
         [InlineData("18F06565-AA9E-4315-AF27-CEFC165B20FB")]
         public void TestDeletePermission_Fail(string permission)

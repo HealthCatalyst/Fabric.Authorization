@@ -119,6 +119,33 @@ namespace Fabric.Authorization.API.Models
             return clientApiModel;
         }
 
+        public static GranularPermissionApiModel ToGranularPermissionApiModel(this GranularPermission perm)
+        {
+            var apiModel = new GranularPermissionApiModel
+            {
+                Target = perm.Target,
+                CreatedDateTimeUtc = perm.CreatedDateTimeUtc,
+                ModifiedDateTimeUtc = perm.ModifiedDateTimeUtc,
+                CreatedBy = perm.CreatedBy,
+                ModifiedBy = perm.ModifiedBy,
+            };
+
+            return apiModel;
+        }
+        public static GranularPermission ToGranularPermissionDomainModel(this GranularPermissionApiModel perm)
+        {
+            var domainModel = new GranularPermission
+            {
+                Target = perm.Target,
+                CreatedDateTimeUtc = perm.CreatedDateTimeUtc,
+                ModifiedDateTimeUtc = perm.ModifiedDateTimeUtc,
+                CreatedBy = perm.CreatedBy,
+                ModifiedBy = perm.ModifiedBy,
+            };
+
+            return domainModel;
+        }
+
         public static Client ToClientDomainModel(this ClientApiModel client)
         {
             var clientApiModel = new Client()

@@ -1,13 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
+using Fabric.Authorization.Domain.Services;
 using Serilog;
 
 namespace Fabric.Authorization.Domain.Stores.CouchDB
 {
     public class CouchDbGroupStore : CouchDbGenericStore<string, Group>, IGroupStore
     {
-        public CouchDbGroupStore(IDocumentDbService dbService, ILogger logger) : base(dbService, logger)
+        public CouchDbGroupStore(IDocumentDbService dbService, ILogger logger, IEventContextResolverService eventContextResolverService) : base(dbService, logger, eventContextResolverService)
         {
         }
 
@@ -17,7 +18,7 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
 
         public override async Task<IEnumerable<Group>> GetAll()
         {
-            return await DbService.GetDocuments<Group>("group");
+            return await _dbService.GetDocuments<Group>("group");
         }
     }
 }

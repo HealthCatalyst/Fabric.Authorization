@@ -8,5 +8,9 @@ namespace Fabric.Authorization.Domain.Stores
     public interface IPermissionStore : IGenericStore<Guid, Permission>
     {
         Task<IEnumerable<Permission>> GetPermissions(string grain, string securableItem = null, string permissionName = null);
+
+        Task AddOrUpdateGranularPermission(GranularPermission granularPermission);
+
+        Task<GranularPermission> GetGranularPermission(string target);
     }
 }

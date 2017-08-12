@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Events;
+using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores.CouchDB;
 
@@ -42,13 +42,13 @@ namespace Fabric.Authorization.Domain.Stores
         }
 
         public async Task UpdateDocument<T>(string documentId, T documentObject)
-        {            
+        {
             await _eventService.RaiseEventAsync(new EntityAuditEvent<T>(EventTypes.EntityUpdatedEvent, documentId, documentObject));
             await _innerDocumentDbService.UpdateDocument(documentId, documentObject);
         }
 
         public async Task DeleteDocument<T>(string documentId)
-        {            
+        {
             await _eventService.RaiseEventAsync(new EntityAuditEvent<T>(EventTypes.EntityDeletedEvent, documentId))
                 .ConfigureAwait(false);
             await _innerDocumentDbService.DeleteDocument<T>(documentId);

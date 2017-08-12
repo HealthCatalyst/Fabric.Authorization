@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Fabric.Authorization.Domain.Models;
-using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.Services;
 using Fabric.Authorization.UnitTests.Mocks;
@@ -19,7 +18,12 @@ namespace Fabric.Authorization.UnitTests.Permissions
                 .SetupAddPermissions()
                 .Create();
 
-            var permissionService = new PermissionService(mockPermissionStore);
+            var mockRoleStore = new Mock<IRoleStore>().Object;
+
+            var permissionService = new PermissionService(
+                mockPermissionStore,
+                new Mock<RoleService>(mockRoleStore, mockPermissionStore).Object);
+
             var permission = permissionService.AddPermission(new Permission
             {
                 Grain = "app",
@@ -29,7 +33,6 @@ namespace Fabric.Authorization.UnitTests.Permissions
 
             Assert.NotNull(permission);
             Assert.NotNull(permission.Id);
-
         }
 
         [Fact]
@@ -43,13 +46,17 @@ namespace Fabric.Authorization.UnitTests.Permissions
                 Name = "manageusers"
             };
             var mockPermissionStore = new Mock<IPermissionStore>()
-                .SetupGetPermissions(new List<Permission>{existingPermission});
+                .SetupGetPermissions(new List<Permission> { existingPermission });
 
-            var permissionService = new PermissionService(mockPermissionStore.Object);
-            permissionService.DeletePermission(existingPermission);
+            var mockRoleStore = new Mock<IRoleStore>().Object;
+
+            var permissionService = new PermissionService(
+                mockPermissionStore.Object,
+                new Mock<RoleService>(mockRoleStore, mockPermissionStore.Object).Object);
+
+            permissionService.DeletePermission(existingPermission).Wait();
 
             mockPermissionStore.Verify();
         }
-
     }
 }
