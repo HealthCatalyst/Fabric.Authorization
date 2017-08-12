@@ -17,7 +17,10 @@ using Serilog;
 using LibOwin;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
+using Nancy.Conventions;
+using Nancy.Swagger.Services;
 using Serilog.Core;
+using Swagger.ObjectModel;
 
 namespace Fabric.Authorization.API
 {
@@ -57,7 +60,13 @@ namespace Fabric.Authorization.API
 
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
         {
+            SwaggerMetadataProvider.SetInfo("Fabric Authorization Api", "v1","Fabric Authorization Api",new Contact()
+            {
+                   EmailAddress = "fabric@healthcatalyst.com"
+            });
+
             base.ApplicationStartup(container, pipelines);
+            
             pipelines.OnError.AddItemToEndOfPipeline((ctx, ex) =>
             {
                 _logger.Error(ex, "Unhandled error on request: @{Url}. Error Message: @{Message}", ctx.Request.Url,
@@ -124,6 +133,14 @@ namespace Fabric.Authorization.API
             container.Register<NancyContextWrapper>();
             container.RegisterServices();
             container.RegisterInMemoryStores();
+        }
+
+        protected override void ConfigureConventions(NancyConventions nancyConventions)
+        {
+            base.ConfigureConventions(nancyConventions);
+
+            nancyConventions.StaticContentsConventions.Add(
+                StaticContentConventionBuilder.AddDirectory("/swagger/dist"));
         }
 
         private void RegisterStores(TinyIoCContainer container)

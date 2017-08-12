@@ -63,7 +63,9 @@ namespace Fabric.Authorization.API
 
                 ApiName = _idServerSettings.ClientId
             });
-            app.UseOwin()
+            
+            app.UseStaticFiles()
+                .UseOwin()
                 .UseFabricLoggingAndMonitoring(_logger, HealthCheck, _levelSwitch)
                 .UseAuthPlatform(_idServerSettings.Scopes)
                 .UseNancy(opt => opt.Bootstrapper = new Bootstrapper(_logger, _appConfig, _levelSwitch));

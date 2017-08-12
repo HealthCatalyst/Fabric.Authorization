@@ -3,12 +3,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Domain.Models;
-using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores.Services;
 using Fabric.Authorization.Domain.Validators;
 using IdentityModel;
 using Nancy.ModelBinding;
 using Serilog;
+
 
 namespace Fabric.Authorization.API.Modules
 {
@@ -23,9 +23,9 @@ namespace Fabric.Authorization.API.Modules
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
 
             //Get all the permissions for a user
-            Get("/permissions", async parameters => await this.GetUserPermissions().ConfigureAwait(false));
+            Get("/permissions", async parameters => await this.GetUserPermissions().ConfigureAwait(false), null, "GetUserPermissions");
         }
-
+       
         private async Task<dynamic> GetUserPermissions()
         {
             var userPermissionRequest = this.Bind<UserInfoRequest>();
@@ -45,7 +45,11 @@ namespace Fabric.Authorization.API.Modules
 
         private string[] GetGroupsForAuthenticatedUser()
         {
-            return Context.CurrentUser?.Claims.Where(c => c.Type == "role" || c.Type == "groups").Distinct(new ClaimComparer()).Select(c => c.Value.ToString()).ToArray();
+            var userClaims = Context.CurrentUser?.Claims.Where(c => c.Type == "role" || c.Type == "groups").Distinct(new ClaimComparer()).Select(c => c.Value.ToString()).ToArray();
+
+            Logger.Information($"found claims for user: {string.Join(",", userClaims)}");
+
+            return userClaims;
         }
 
         private async Task SetDefaultRequest(UserInfoRequest request)
