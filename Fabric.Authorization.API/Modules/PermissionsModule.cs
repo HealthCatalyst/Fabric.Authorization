@@ -32,7 +32,7 @@ namespace Fabric.Authorization.API.Modules
             Get("/{grain}/{securableItem}/{permissionName}", async parameters => await this.GetPermissionByName(parameters).ConfigureAwait(false), null, "GetPermissionByName");
             Get("/{permissionId}", async parameters => await this.GetPermissionById(parameters).ConfigureAwait(false), null, "GetPermissionById");
             Post("/", async parameters => await this.AddPermission().ConfigureAwait(false), null, "AddPermission");
-            Delete("/{permissionId}", async parameters => await this.DeletePermission(parameters).ConfigureAwait(false), null, "DeletedPermission");
+            Delete("/{permissionId}", async parameters => await this.DeletePermission(parameters).ConfigureAwait(false), null, "DeletePermission");
         }
 
         private async Task<dynamic> GetPermissionsForSecurableItem(dynamic parameters)
