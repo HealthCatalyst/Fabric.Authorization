@@ -70,7 +70,7 @@ namespace Fabric.Authorization.API
             app.UseStaticFiles()
                 .UseOwin()
                 .UseFabricLoggingAndMonitoring(_logger, HealthCheck, _levelSwitch)
-                .UseAuthPlatform(_idServerSettings.Scopes)
+                .UseAuthPlatform(_idServerSettings.Scopes, _allowedPaths)
                 .UseNancy(opt => opt.Bootstrapper = new Bootstrapper(_logger, _appConfig, _levelSwitch));
         }
 
@@ -84,5 +84,12 @@ namespace Fabric.Authorization.API
             var result = await clientStore.GetAll();
             return result.Any();
         }
+
+        private readonly string[] _allowedPaths =
+        {
+            "/swagger/index.html",
+            "/docs/apiasjson",
+            "/docs"
+        };
     }
 }

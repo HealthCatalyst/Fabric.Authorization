@@ -17,7 +17,7 @@ namespace Fabric.Authorization.API.Modules
         {
             Name = "clientId",
             Description = "ClientId to use for the request",
-            In = ParameterIn.Query,
+            In = ParameterIn.Path,
             Required = true,
             Type = "integer"
         };
