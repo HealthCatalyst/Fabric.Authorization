@@ -1,38 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Fabric.Authorization.API.Models;
+﻿using Fabric.Authorization.API.Models;
 using Nancy;
 using Nancy.Swagger;
 using Nancy.Swagger.Modules;
 using Nancy.Swagger.Services;
 using Nancy.Swagger.Services.RouteUtils;
 using Swagger.ObjectModel;
+using System;
+using System.Collections.Generic;
+using Fabric.Authorization.API.Swagger;
 
 namespace Fabric.Authorization.API.Modules
 {
     public class RolesMetadataModule : SwaggerMetadataModule
     {
         private readonly Tag _rolesTag = new Tag {Name = "Roles", Description = "Operations for managing roles"};
-
-        private readonly Parameter _grainParameter = new Parameter
-        {
-            Name = "grain",
-            Description = "The top level grain to return permissions for",
-            Required = true,
-            Type = "string",
-            In = ParameterIn.Path,
-        };
-
-        private readonly Parameter _securableItemParameter = new Parameter
-        {
-            Name = "securableItem",
-            Description = "The specific securableItem within the grain to return permissions for",
-            Required = true,
-            Type = "string",
-            In = ParameterIn.Path
-        };
 
         private readonly Parameter _roleNameParameter = new Parameter
         {
@@ -48,7 +29,7 @@ namespace Fabric.Authorization.API.Modules
             Name = "roleId",
             Description = "The id of the role",
             Required = true,
-            Type = "int",
+            Type = "Guid",
             In = ParameterIn.Path
         };
 
@@ -70,7 +51,7 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int) HttpStatusCode.OK,
                         Message = "OK"
                     },
-                    new HttpResponseMetadata()
+                    new HttpResponseMetadata
                     {
                         Code = (int)HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
@@ -78,8 +59,8 @@ namespace Fabric.Authorization.API.Modules
                 },
                 new[]
                 {
-                    _grainParameter,
-                    _securableItemParameter
+                    Parameters.GrainParameter,
+                    Parameters.SecurableItemParameter
                 },
                 new[]
                 {
@@ -105,11 +86,11 @@ namespace Fabric.Authorization.API.Modules
                 },
                 new[]
                 {
-                    _grainParameter,
-                    _securableItemParameter,
+                    Parameters.GrainParameter,
+                    Parameters.SecurableItemParameter,
                     _roleNameParameter
                 },
-                new []
+                new[]
                 {
                     _rolesTag
                 });
@@ -117,7 +98,7 @@ namespace Fabric.Authorization.API.Modules
             RouteDescriber.DescribeRouteWithParams(
                 "AddRole",
                 "",
-                "Add a new role", 
+                "Add a new role",
                 new[]
                 {
                     new HttpResponseMetadata<RoleApiModel>
@@ -144,7 +125,7 @@ namespace Fabric.Authorization.API.Modules
                         Description = "The role to add"
                     }
                 },
-                new []
+                new[]
                 {
                     _rolesTag
                 });
@@ -153,18 +134,18 @@ namespace Fabric.Authorization.API.Modules
                 "DeleteRole",
                 "",
                 "Deletes a role",
-                new []
+                new[]
                 {
                     new HttpResponseMetadata
                     {
                         Code = (int)HttpStatusCode.NoContent,
                         Message = "Role with the specified id was deleted"
-                    }, 
+                    },
                     new HttpResponseMetadata
                     {
                         Code = (int)HttpStatusCode.BadRequest,
                         Message = "Invalid roled id provided"
-                    }, 
+                    },
                     new HttpResponseMetadata
                     {
                         Code = (int)HttpStatusCode.Forbidden,
@@ -174,13 +155,13 @@ namespace Fabric.Authorization.API.Modules
                     {
                         Code = (int)HttpStatusCode.NotFound,
                         Message = "Role with specified id was not found"
-                    } 
+                    }
                 },
-                new []
+                new[]
                 {
                     _roleIdParameter
                 },
-                new []
+                new[]
                 {
                     _rolesTag
                 });
@@ -189,7 +170,7 @@ namespace Fabric.Authorization.API.Modules
                 "AddPermissionsToRole",
                 "",
                 "Add permissions to an existing role",
-                new []
+                new[]
                 {
                     new HttpResponseMetadata<RoleApiModel>
                     {
@@ -212,7 +193,7 @@ namespace Fabric.Authorization.API.Modules
                         Message = "Role not found or permission not found"
                     }
                 },
-                new []
+                new[]
                 {
                     _roleIdParameter,
                     new BodyParameter<IEnumerable<PermissionApiModel>>(modelCatalog)
@@ -221,10 +202,10 @@ namespace Fabric.Authorization.API.Modules
                         Description = "The list of permissions to add to the role"
                     }
                 },
-                new []
+                new[]
                 {
                     _rolesTag
-                });            
+                });
 
             RouteDescriber.DescribeRouteWithParams(
                 "DeletePermissionsFromRole",
