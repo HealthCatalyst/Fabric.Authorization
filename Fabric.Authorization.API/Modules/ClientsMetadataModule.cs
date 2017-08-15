@@ -26,7 +26,7 @@ namespace Fabric.Authorization.API.Modules
             : base(modelCatalog, tagCatalog)
         {
             modelCatalog.AddModels(
-                typeof(SecurableItemApiModel),
+                typeof(SecurableItemApiModel),                
                 typeof(DateTime?));
 
             RouteDescriber.DescribeRoute(

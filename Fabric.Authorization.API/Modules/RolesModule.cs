@@ -30,8 +30,8 @@ namespace Fabric.Authorization.API.Modules
             Get("/{grain}/{securableItem}/{roleName}", async parameters => await this.GetRoleByName(parameters).ConfigureAwait(false), null, "GetRoleByName");
             Post("/", async parameters => await this.AddRole().ConfigureAwait(false), null, "AddRole");
             Delete("/{roleId}", async parameters => await this.DeleteRole(parameters).ConfigureAwait(false), null, "DeleteRole");
-            Post("/{roleId}/permissions", async parameters => await this.AddPermissionsToRole(parameters).ConfigureAwait(false), null, "AddPermissionToRole");
-            Delete("/{roleId}/permissions", async parameters => await this.DeletePermissionsFromRole(parameters).ConfigureAwait(false), null, "DeletePermissionFromRole");
+            Post("/{roleId}/permissions", async parameters => await this.AddPermissionsToRole(parameters).ConfigureAwait(false), null, "AddPermissionsToRole");
+            Delete("/{roleId}/permissions", async parameters => await this.DeletePermissionsFromRole(parameters).ConfigureAwait(false), null, "DeletePermissionsFromRole");
         }
 
         private async Task<dynamic> GetRolesForSecurableItem(dynamic parameters)
@@ -88,14 +88,14 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
-                var roleApiModels = this.Bind<List<PermissionApiModel>>(new BindingConfig { BodyOnly = true });
+                var permissionApiModels = this.Bind<List<PermissionApiModel>>(new BindingConfig { BodyOnly = true });
 
                 if (!Guid.TryParse(parameters.roleId, out Guid roleId))
                 {
                     return CreateFailureResponse("roleId must be a guid.", HttpStatusCode.BadRequest);
                 }
 
-                if (roleApiModels.Count == 0)
+                if (permissionApiModels.Count == 0)
                 {
                     return CreateFailureResponse(
                         "No permissions specified to add, ensure an array of permissions is included in the request.",
@@ -105,8 +105,8 @@ namespace Fabric.Authorization.API.Modules
                 Role roleToUpdate = await _roleService.GetRole(roleId);
                 await CheckAccess(_clientService, roleToUpdate.Grain, roleToUpdate.SecurableItem, AuthorizationWriteClaim);
                 Role updatedRole = await _roleService.AddPermissionsToRole(roleToUpdate,
-                    roleApiModels.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToArray());
-                return CreateSuccessfulPostResponse(updatedRole.ToRoleApiModel(), HttpStatusCode.OK);
+                    permissionApiModels.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToArray());
+                return CreateSuccessfulPostResponse(updatedRole.ToRoleApiModel());
             }
             catch (NotFoundException<Role> ex)
             {
@@ -127,14 +127,14 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
-                var roleApiModels = this.Bind<List<PermissionApiModel>>(new BindingConfig { BodyOnly = true });
+                var permissionApiModels = this.Bind<List<PermissionApiModel>>(new BindingConfig { BodyOnly = true });
 
                 if (!Guid.TryParse(parameters.roleId, out Guid roleId))
                 {
                     return CreateFailureResponse("roleId must be a guid.", HttpStatusCode.BadRequest);
                 }
 
-                if (roleApiModels.Count == 0)
+                if (permissionApiModels.Count == 0)
                 {
                     return CreateFailureResponse(
                         "No permissions specified to add, ensure an array of permissions is included in the request.",
@@ -144,8 +144,8 @@ namespace Fabric.Authorization.API.Modules
                 Role roleToUpdate = await _roleService.GetRole(roleId);
                 await CheckAccess(_clientService, roleToUpdate.Grain, roleToUpdate.SecurableItem, AuthorizationWriteClaim);
                 Role updatedRole = await _roleService.RemovePermissionsFromRole(roleToUpdate,
-                    roleApiModels.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToArray());
-                return CreateSuccessfulPostResponse(updatedRole.ToRoleApiModel(), HttpStatusCode.OK);
+                    permissionApiModels.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToArray());
+                return CreateSuccessfulPostResponse(updatedRole.ToRoleApiModel());
             }
             catch (NotFoundException<Role> ex)
             {
