@@ -4,6 +4,42 @@
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
   </PropertyGroup>
   <ItemGroup>
+    <Content Remove="wwwroot/swagger\favicon-16x16.png" />
+    <Content Remove="wwwroot/swagger\favicon-32x32.png" />
+    <Content Remove="wwwroot/swagger\index.html" />
+    <Content Remove="wwwroot/swagger\oauth2-redirect.html" />
+    <Content Remove="wwwroot/swagger\swagger-ui-bundle.js" />
+    <Content Remove="wwwroot/swagger\swagger-ui-standalone-preset.js" />
+    <Content Remove="wwwroot/swagger\swagger-ui.css" />
+    <Content Remove="wwwroot/swagger\swagger-ui.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="wwwroot/swagger\favicon-16x16.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="wwwroot/swagger\favicon-32x32.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="wwwroot/swagger\index.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="wwwroot/swagger\oauth2-redirect.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="wwwroot/swagger\swagger-ui-bundle.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="wwwroot/swagger\swagger-ui-standalone-preset.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="wwwroot/swagger\swagger-ui.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="wwwroot/swagger\swagger-ui.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Fabric.Platform.Bootstrappers.Nancy" Version="1.0.0-beta8" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore" Version="1.1.2" />
@@ -12,8 +48,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="1.1.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="1.1.2" />
     <PackageReference Include="Nancy" Version="2.0.0-clinteastwood" />
-    <PackageReference Include="Nancy.Metadata.Modules" Version="2.0.0-clinteastwood" />
-    <PackageReference Include="Nancy.Swagger" Version="2.2.29-alpha" />
+    <PackageReference Include="Nancy.Swagger" Version="2.2.0-alpha" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="1.4.0" />
     <PackageReference Include="Serilog.Sinks.ApplicationInsights" Version="2.2.1" />
   </ItemGroup>

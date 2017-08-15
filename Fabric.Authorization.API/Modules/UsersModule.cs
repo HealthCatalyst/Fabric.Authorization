@@ -25,9 +25,9 @@ namespace Fabric.Authorization.API.Modules
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
 
             // Get all the permissions for a user
-            Get("/permissions", async _ => await this.GetUserPermissions().ConfigureAwait(false));
-            Post("/{userId}/AdditionalPermissions", async param => await this.AddGranularPermissions(param, denied: false).ConfigureAwait(false));
-            Post("/{userId}/DeniedPermissions", async param => await this.AddGranularPermissions(param, denied: true).ConfigureAwait(false));
+            Get("/permissions", async _ => await this.GetUserPermissions().ConfigureAwait(false), null, "GetUserPermissions");
+            Post("/{userId}/AdditionalPermissions", async param => await this.AddGranularPermissions(param, denied: false).ConfigureAwait(false), null, "AddPermissions");
+            Post("/{userId}/DeniedPermissions", async param => await this.AddGranularPermissions(param, denied: true).ConfigureAwait(false), null, "AddDeniedPermissions");
         }
 
         private async Task<dynamic> AddGranularPermissions(dynamic param, bool denied)
