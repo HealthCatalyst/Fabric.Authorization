@@ -260,7 +260,7 @@ describe("authorization tests", function () {
                 return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupFoo.groupName) + "/roles", role[0], authRequestOptions);
             })
             .then(function(postResponse){
-                expect(postResponse).to.have.status(200);
+                expect(postResponse).to.have.status(201);
             });            
         });
 
@@ -277,7 +277,7 @@ describe("authorization tests", function () {
                 return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupBar.groupName) + "/roles", role[0], authRequestOptions);
             })
             .then(function(postResponse){
-                expect(postResponse).to.have.status(200);
+                expect(postResponse).to.have.status(201);
             });            
         });
     });  
