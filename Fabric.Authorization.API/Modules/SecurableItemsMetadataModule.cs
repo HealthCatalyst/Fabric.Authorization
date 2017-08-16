@@ -36,32 +36,32 @@ namespace Fabric.Authorization.API.Modules
                 typeof(SecurableItemApiModel)
                 );
 
-            //RouteDescriber.DescribeRoute(
-            //    "GetSecurableItem",
-            //    "",
-            //    "Gets the top level securable item by client id",
-            //    new []
-            //    {
-            //        new HttpResponseMetadata<SecurableItemApiModel>()
-            //        {
-            //            Code = (int)HttpStatusCode.OK,
-            //            Message = "OK"
-            //        },
-            //        new HttpResponseMetadata
-            //        {
-            //            Code = (int)HttpStatusCode.Forbidden,
-            //            Message = "Client does not have access"
-            //        },
-            //        new HttpResponseMetadata
-            //        {
-            //            Code = (int)HttpStatusCode.NotFound,
-            //            Message = "The client was not found by client id"
-            //        }
-            //    },
-            //    new []
-            //    {
-            //        _securableItemsTag
-            //    });
+            RouteDescriber.DescribeRoute(
+                "GetSecurableItem",
+                "",
+                "Gets the top level securable item by client id",
+                new[]
+                {
+                    new HttpResponseMetadata<SecurableItemApiModel>()
+                    {
+                        Code = (int)HttpStatusCode.OK,
+                        Message = "OK"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int)HttpStatusCode.Forbidden,
+                        Message = "Client does not have access"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int)HttpStatusCode.NotFound,
+                        Message = "The client was not found by client id"
+                    }
+                },
+                new[]
+                {
+                    _securableItemsTag
+                });
 
             RouteDescriber.DescribeRouteWithParams(
                 "GetSecurableItemById",
@@ -69,7 +69,7 @@ namespace Fabric.Authorization.API.Modules
                 "Gets a securable item by client id and securable item id",
                 new[]
                 {
-                    new HttpResponseMetadata<SecurableItemApiModel>()
+                    new HttpResponseMetadata<SecurableItemApiModel>
                     {
                         Code = (int)HttpStatusCode.OK,
                         Message = "OK"
@@ -99,86 +99,86 @@ namespace Fabric.Authorization.API.Modules
                     _securableItemsTag
                 });
 
-            //RouteDescriber.DescribeRouteWithParams(
-            //    "AddSecurableItem",
-            //    "",
-            //    "Add a new securable item",
-            //    new[]
-            //    {
-            //        new HttpResponseMetadata<SecurableItemApiModel>
-            //        {
-            //            Code = (int)HttpStatusCode.Created,
-            //            Message = "Created"
-            //        },
-            //        new HttpResponseMetadata
-            //        {
-            //            Code = (int)HttpStatusCode.Forbidden,
-            //            Message = "Client does not have access"
-            //        },
-            //        new HttpResponseMetadata
-            //        {
-            //            Code = (int)HttpStatusCode.BadRequest,
-            //            Message = "The securable item id is not a guid, the securable item failed validation, or it already exists"
-            //        },
-            //        new HttpResponseMetadata
-            //        {
-            //            Code = (int)HttpStatusCode.NotFound,
-            //            Message = "The client was not found by client id"
-            //        }
-            //    },
-            //    new[]
-            //    {                  
-            //        new BodyParameter<SecurableItemApiModel>(modelCatalog)
-            //        {
-            //            Name = "Securable Item",
-            //            Description = "The securable item to add"
-            //        },
-            //    },
-            //    new[]
-            //    {
-            //        _securableItemsTag
-            //    });
+            RouteDescriber.DescribeRouteWithParams(
+                "AddSecurableItem",
+                "",
+                "Add a new securable item",
+                new[]
+                {
+                    new HttpResponseMetadata<SecurableItemApiModel>
+                    {
+                        Code = (int)HttpStatusCode.Created,
+                        Message = "Created"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int)HttpStatusCode.Forbidden,
+                        Message = "Client does not have access"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int)HttpStatusCode.BadRequest,
+                        Message = "The securable item id is not a guid, the securable item failed validation, or it already exists"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int)HttpStatusCode.NotFound,
+                        Message = "The client was not found by client id"
+                    }
+                },
+                new[]
+                {
+                    new BodyParameter<SecurableItemApiModel>(modelCatalog)
+                    {
+                        Name = "Securable Item",
+                        Description = "The securable item to add"
+                    },
+                },
+                new[]
+                {
+                    _securableItemsTag
+                });
 
-            //RouteDescriber.DescribeRouteWithParams(
-            //    "AddSecurableItemById",
-            //    "",
-            //    "Add a new securable item by the specified securable item id",
-            //    new []
-            //    {
-            //        new HttpResponseMetadata<SecurableItemApiModel>
-            //        {
-            //            Code = (int)HttpStatusCode.Created,
-            //            Message = "Created"
-            //        },
-            //        new HttpResponseMetadata
-            //        {
-            //            Code = (int)HttpStatusCode.Forbidden,
-            //            Message = "Client does not have access"
-            //        },
-            //        new HttpResponseMetadata
-            //        {
-            //            Code = (int)HttpStatusCode.BadRequest,
-            //            Message = "The securable item id is not a guid, the securable item failed validation, or it already exists"
-            //        },
-            //        new HttpResponseMetadata
-            //        {
-            //            Code = (int)HttpStatusCode.NotFound,
-            //            Message = "The client was not found by client id or the specified securable item by id was not found"
-            //        }
-            //    },
-            //    new []
-            //    {
-            //        _securableItemIdParameter,
-            //        new BodyParameter<SecurableItemApiModel>(modelCatalog)
-            //        {
-            //            Name = "Securable Item",
-            //            Description = "The securable item to add"
-            //        }, 
-            //    },
-            //    new []
-            //    {
-            //        _securableItemsTag
-            //    });
+            RouteDescriber.DescribeRouteWithParams(
+                "AddSecurableItemById",
+                "",
+                "Add a new securable item by the specified securable item id",
+                new[]
+                {
+                    new HttpResponseMetadata<SecurableItemApiModel>
+                    {
+                        Code = (int)HttpStatusCode.Created,
+                        Message = "Created"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int)HttpStatusCode.Forbidden,
+                        Message = "Client does not have access"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int)HttpStatusCode.BadRequest,
+                        Message = "The securable item id is not a guid, the securable item failed validation, or it already exists"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int)HttpStatusCode.NotFound,
+                        Message = "The client was not found by client id or the specified securable item by id was not found"
+                    }
+                },
+                new[]
+                {
+                    _securableItemIdParameter,
+                    new BodyParameter<SecurableItemApiModel>(modelCatalog)
+                    {
+                        Name = "Securable Item",
+                        Description = "The securable item to add"
+                    },
+                },
+                new[]
+                {
+                    _securableItemsTag
+                });
         }
     }
 }
