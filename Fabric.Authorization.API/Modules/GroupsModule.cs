@@ -159,7 +159,7 @@ namespace Fabric.Authorization.API.Modules
             }
             catch (NotFoundException<Role> ex)
             {
-                return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
+                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
             }
         }
     }

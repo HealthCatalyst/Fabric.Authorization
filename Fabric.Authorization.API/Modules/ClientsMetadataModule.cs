@@ -15,7 +15,7 @@ namespace Fabric.Authorization.API.Modules
             new Tag {Name = "Clients", Description = "Operations for managing clients"};
         private readonly Parameter _clientIdParameter = new Parameter
         {
-            Name = "clientId",
+            Name = "clientid",
             Description = "ClientId to use for the request",
             In = ParameterIn.Path,
             Required = true,
