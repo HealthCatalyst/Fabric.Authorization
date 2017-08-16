@@ -304,7 +304,7 @@ describe("authorization tests", function () {
             })
             .then(function(postResponse){       
                 expect(postResponse).to.comprise.of.json({name:"FABRIC\\Health Catalyst Viewer"});                          
-                expect(postResponse).to.have.status(200);
+                expect(postResponse).to.have.status(201);
             });            
         });        
     });
