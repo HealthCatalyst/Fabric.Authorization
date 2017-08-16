@@ -85,7 +85,7 @@ namespace Fabric.Authorization.API.Modules
             {
                 Logger.Error(ex, ex.Message, ClientId);
                 return CreateFailureResponse($"The specified client with id: {ClientId} was not found",
-                    HttpStatusCode.NotFound);
+                    HttpStatusCode.Forbidden);
             }
             catch (AlreadyExistsException<SecurableItem> ex)
             {
