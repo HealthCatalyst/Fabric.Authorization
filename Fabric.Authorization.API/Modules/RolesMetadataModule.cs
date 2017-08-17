@@ -29,7 +29,7 @@ namespace Fabric.Authorization.API.Modules
             Name = "roleId",
             Description = "The id of the role",
             Required = true,
-            Type = "Guid",
+            Type = "string",
             In = ParameterIn.Path
         };
 
@@ -38,6 +38,7 @@ namespace Fabric.Authorization.API.Modules
         {
             modelCatalog.AddModels(
                 typeof(Guid),
+                typeof(Guid?),
                 typeof(PermissionApiModel));
 
             RouteDescriber.DescribeRouteWithParams(

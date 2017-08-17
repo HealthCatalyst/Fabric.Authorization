@@ -88,7 +88,7 @@ namespace Fabric.Authorization.API
         private readonly string[] _allowedPaths =
         {
             "/swagger/index.html",
-            "/docs/apiasjson",
+            "/docs/swagger.json",
             "/docs"
         };
     }

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Fabric.Authorization.API.Models;
+﻿using Fabric.Authorization.API.Models;
 using Nancy;
 using Nancy.Swagger;
 using Nancy.Swagger.Modules;
@@ -25,17 +21,13 @@ namespace Fabric.Authorization.API.Modules
             Name = "securableItemId",
             Description = "The id of the securable item",
             Required = true,
-            Type = "Guid",
+            Type = "string",
             In = ParameterIn.Path
         };
 
         public SecurableItemsMetadataModule(ISwaggerModelCatalog modelCatalog, ISwaggerTagCatalog tagCatalog) 
             : base(modelCatalog, tagCatalog)
         {
-            modelCatalog.AddModels(
-                typeof(SecurableItemApiModel)
-                );
-
             RouteDescriber.DescribeRoute(
                 "GetSecurableItem",
                 "",

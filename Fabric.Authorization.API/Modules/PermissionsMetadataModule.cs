@@ -28,7 +28,7 @@ namespace Fabric.Authorization.API.Modules
             Name = "permissionId",
             Description = "The id of the permission",
             Required = true,
-            Type = "Guid",
+            Type = "string",
             In = ParameterIn.Path
         };
 

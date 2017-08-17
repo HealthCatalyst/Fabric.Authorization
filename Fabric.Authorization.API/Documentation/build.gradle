@@ -1,0 +1,35 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven { url 'http://oss.jfrog.org/artifactory/oss-snapshot-local/' }
+    }
+
+    dependencies {
+        classpath 'io.github.swagger2markup:swagger2markup-gradle-plugin:1.3.1'
+    }
+}
+
+apply plugin: 'io.github.swagger2markup'
+
+
+convertSwagger2markup {
+
+	def url = "${System.env.FABRICAUTHORIZATIONBASEURL}"
+    if (url?.trim()) {
+        logger.info("----------HOST NAME = ${url}----------")
+        swaggerInput "${url}/docs/swagger.json"
+    }
+    else {
+        throw new GradleException("FABRICAUTHORIZATIONBASEURL environment variable is required.")
+    }
+    
+	def dir = "${System.env.AUTHORIZATIONMARKDOWNDIRECTORY}"
+	if (!dir?.trim()) {
+	    dir = "${buildDir}/markdown"
+	}
+
+	logger.info("----------OUTPUT DIR = ${dir}----------")
+	outputDir file(dir)
+
+    config = ['swagger2markup.markupLanguage' : 'MARKDOWN']
+}

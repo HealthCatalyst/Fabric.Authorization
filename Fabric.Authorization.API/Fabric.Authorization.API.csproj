@@ -48,7 +48,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="1.1.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="1.1.2" />
     <PackageReference Include="Nancy" Version="2.0.0-clinteastwood" />
-    <PackageReference Include="Nancy.Swagger" Version="2.2.0-alpha" />
+    <PackageReference Include="Nancy.Swagger" Version="2.2.29-alpha" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="1.4.0" />
     <PackageReference Include="Serilog.Sinks.ApplicationInsights" Version="2.2.1" />
   </ItemGroup>
