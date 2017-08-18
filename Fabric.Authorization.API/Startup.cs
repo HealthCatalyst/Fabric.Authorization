@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
+using Fabric.Authorization.API.Infrastructure;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
@@ -13,6 +14,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Nancy;
 using Nancy.Owin;
 using Serilog;
 using Serilog.Core;
@@ -48,6 +50,7 @@ namespace Fabric.Authorization.API
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            
             services.AddWebEncoders();
         }
 
@@ -63,20 +66,30 @@ namespace Fabric.Authorization.API
 
                 ApiName = _idServerSettings.ClientId
             });
-            app.UseOwin()
+
+            app.UseStaticFiles()
+                .UseOwin()
                 .UseFabricLoggingAndMonitoring(_logger, HealthCheck, _levelSwitch)
-                .UseAuthPlatform(_idServerSettings.Scopes)
+                .UseAuthPlatform(_idServerSettings.Scopes, _allowedPaths)
                 .UseNancy(opt => opt.Bootstrapper = new Bootstrapper(_logger, _appConfig, _levelSwitch));
         }
 
         public async Task<bool> HealthCheck()
         {
+            var eventContextResolverService = new EventContextResolverService(new NancyContextWrapper(new NancyContext()));
             var clientStore = _appConfig.UseInMemoryStores
                 ? (IClientStore) new InMemoryClientStore()
-                : new CouchDbClientStore(new CouchDbAccessService(_appConfig.CouchDbSettings, _logger), _logger);
+                : new CouchDbClientStore(new CouchDbAccessService(_appConfig.CouchDbSettings, _logger), _logger, eventContextResolverService);
             
             var result = await clientStore.GetAll();
             return result.Any();
         }
+
+        private readonly string[] _allowedPaths =
+        {
+            "/swagger/index.html",
+            "/docs/swagger.json",
+            "/docs"
+        };
     }
 }

@@ -6,8 +6,6 @@ using Fabric.Authorization.API;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
-using Fabric.Authorization.Domain.Models;
-using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
 using Fabric.Authorization.Domain.Stores.Services;
@@ -22,7 +20,7 @@ namespace Fabric.Authorization.IntegrationTests
     {
         public ClientTests(bool useInMemoryDB = true)
         {
-            var store = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDbClientStore(this.DbService(), this.Logger);
+            var store = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDbClientStore(this.DbService(), this.Logger, this.EventContextResolverService);
             var clientService = new ClientService(store);
 
             this.Browser = new Browser(with =>
@@ -43,10 +41,10 @@ namespace Fabric.Authorization.IntegrationTests
                     pipelines.BeforeRequest += (ctx) => RequestHooks.SetDefaultVersionInUrl(ctx);
                 });
             }, withDefaults => withDefaults.HostName("testhost"));
-            
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("InexistentClient")]
         [InlineData("InexistentClient2")]
         public void TestGetClient_Fail(string Id)
@@ -61,6 +59,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("Client1", "Client2")]
         public void TestGetClients_Success(string clientId1, string clientId2)
         {
@@ -117,6 +116,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("Client1")]
         [InlineData("Client2")]
         [InlineData("6BC32347-36A1-44CF-AA0E-6C1038AA1DF3")]
@@ -142,6 +142,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("RepeatedClient1")]
         [InlineData("RepeatedClient2")]
         public void TestAddNewClient_Fail(string Id)
@@ -167,6 +168,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("ClientToBeDeleted")]
         [InlineData("ClientToBeDeleted2")]
         public void TestDeleteClient_Success(string Id)
@@ -189,6 +191,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Theory]
+        [DisplayTestMethodName]
         [InlineData("InexistentClient")]
         [InlineData("InexistentClient2")]
         public void TestDeleteClient_Fail(string Id)

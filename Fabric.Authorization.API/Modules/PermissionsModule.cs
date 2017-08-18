@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
-using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores.Services;
 using Fabric.Authorization.Domain.Validators;
 using Nancy;
@@ -29,11 +28,11 @@ namespace Fabric.Authorization.API.Modules
             _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
 
             //routes and handlers
-            Get("/{grain}/{securableItem}", async parameters => await this.GetPermissionsForSecurableItem(parameters).ConfigureAwait(false));
-            Get("/{grain}/{securableItem}/{permissionName}", async parameters => await this.GetPermissionByName(parameters).ConfigureAwait(false));
-            Get("/{permissionId}", async parameters => await this.GetPermissionById(parameters).ConfigureAwait(false));
-            Post("/", async parameters => await this.AddPermission().ConfigureAwait(false));
-            Delete("/{permissionId}", async parameters => await this.DeletePermission(parameters).ConfigureAwait(false));
+            Get("/{grain}/{securableItem}", async parameters => await this.GetPermissionsForSecurableItem(parameters).ConfigureAwait(false), null, "GetPermissionsForSecurableItem");
+            Get("/{grain}/{securableItem}/{permissionName}", async parameters => await this.GetPermissionByName(parameters).ConfigureAwait(false), null, "GetPermissionByName");
+            Get("/{permissionId}", async parameters => await this.GetPermissionById(parameters).ConfigureAwait(false), null, "GetPermissionById");
+            Post("/", async parameters => await this.AddPermission().ConfigureAwait(false), null, "AddPermission");
+            Delete("/{permissionId}", async parameters => await this.DeletePermission(parameters).ConfigureAwait(false), null, "DeletePermission");
         }
 
         private async Task<dynamic> GetPermissionsForSecurableItem(dynamic parameters)
@@ -107,7 +106,6 @@ namespace Fabric.Authorization.API.Modules
                 return CreateFailureResponse($"The specified permission with id: {parameters.permissionId} was not found",
                     HttpStatusCode.NotFound);
             }
-
         }
     }
 }

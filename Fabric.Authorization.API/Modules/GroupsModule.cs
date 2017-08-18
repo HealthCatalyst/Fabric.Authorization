@@ -24,14 +24,14 @@ namespace Fabric.Authorization.API.Modules
         {
             _groupService = groupService;
 
-            base.Post("/", async _ => await this.AddGroup());
-            base.Post("/UpdateGroups", async _ => await this.UpdateGroupList().ConfigureAwait(false));
-            base.Get("/{groupName}", async p => await this.GetGroup(p).ConfigureAwait(false));
-            base.Delete("/{groupName}", async p => await this.DeleteGroup(p).ConfigureAwait(false));
+            base.Post("/", async _ => await this.AddGroup(), null, "AddGroup");
+            base.Post("/UpdateGroups", async _ => await this.UpdateGroupList().ConfigureAwait(false), null, "UpdateGroups");
+            base.Get("/{groupName}", async p => await this.GetGroup(p).ConfigureAwait(false), null, "GetGroup");
+            base.Delete("/{groupName}", async p => await this.DeleteGroup(p).ConfigureAwait(false), null, "DeleteGroup");
 
-            base.Get("/{groupName}/roles", async _ => await this.GetRolesFromGroup().ConfigureAwait(false));
-            base.Post("/{groupName}/roles", async p => await this.AddRoleToGroup(p).ConfigureAwait(false));
-            base.Delete("/{groupName}/roles", async p => await this.DeleteRoleFromGroup(p).ConfigureAwait(false));
+            base.Get("/{groupName}/roles", async _ => await this.GetRolesFromGroup().ConfigureAwait(false), null, "GetRolesFromGroup");
+            base.Post("/{groupName}/roles", async p => await this.AddRoleToGroup(p).ConfigureAwait(false), null, "AddRoleToGroup");
+            base.Delete("/{groupName}/roles", async p => await this.DeleteRoleFromGroup(p).ConfigureAwait(false), null, "DeleteRoleFromGroup");
         }
 
         private async Task<dynamic> GetGroup(dynamic parameters)
@@ -127,7 +127,7 @@ namespace Fabric.Authorization.API.Modules
                 }
 
                 Group group = await _groupService.AddRoleToGroup(parameters.groupName, roleApiModel.Id.Value);
-                return CreateSuccessfulPostResponse(group.ToGroupRoleApiModel(), HttpStatusCode.OK);
+                return CreateSuccessfulPostResponse(group.ToGroupRoleApiModel());
             }
             catch (NotFoundException<Group> ex)
             {
@@ -159,7 +159,7 @@ namespace Fabric.Authorization.API.Modules
             }
             catch (NotFoundException<Role> ex)
             {
-                return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
+                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
             }
         }
     }

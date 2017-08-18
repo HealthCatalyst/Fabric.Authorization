@@ -6,14 +6,12 @@ using Fabric.Authorization.API;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
-using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
 using Fabric.Authorization.Domain.Stores.Services;
 using IdentityModel;
 using Nancy;
 using Nancy.Testing;
-using Newtonsoft.Json;
 using Xunit;
 
 namespace Fabric.Authorization.IntegrationTests
@@ -25,10 +23,10 @@ namespace Fabric.Authorization.IntegrationTests
         private static readonly string Group2 = Guid.Parse("ad2cea96-c020-4014-9cf6-029147454adc").ToString();
         public UserTests(bool useInMemoryDB = true)
         {
-            var roleStore = useInMemoryDB ? new InMemoryRoleStore() : (IRoleStore)new CouchDbRoleStore(this.DbService(), this.Logger);
-            var groupStore = useInMemoryDB ? new InMemoryGroupStore() : (IGroupStore)new CouchDbGroupStore(this.DbService(), this.Logger);
-            var clientStore = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDbClientStore(this.DbService(), this.Logger);
-            var permissionStore = useInMemoryDB ? new InMemoryPermissionStore() : (IPermissionStore)new CouchDbPermissionStore(this.DbService(), this.Logger);
+            var roleStore = useInMemoryDB ? new InMemoryRoleStore() : (IRoleStore)new CouchDbRoleStore(this.DbService(), this.Logger, this.EventContextResolverService);
+            var groupStore = useInMemoryDB ? new InMemoryGroupStore() : (IGroupStore)new CouchDbGroupStore(this.DbService(), this.Logger, this.EventContextResolverService);
+            var clientStore = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDbClientStore(this.DbService(), this.Logger, this.EventContextResolverService);
+            var permissionStore = useInMemoryDB ? new InMemoryPermissionStore() : (IPermissionStore)new CouchDbPermissionStore(this.DbService(), this.Logger, this.EventContextResolverService);
 
             var roleService = new RoleService(roleStore, permissionStore);
             var groupService = new GroupService(groupStore, roleStore, roleService);
@@ -74,6 +72,7 @@ namespace Fabric.Authorization.IntegrationTests
                             new Claim(Claims.Scope, Scopes.ReadScope),
                             new Claim(Claims.Scope, Scopes.WriteScope),
                             new Claim(Claims.ClientId, "userprincipal"),
+                            new Claim(Claims.Sub, "userprincipal"),
                             new Claim(JwtClaimTypes.Role, Group1),
                             new Claim(JwtClaimTypes.Role, Group2)
                         }, "userprincipal"));
@@ -88,10 +87,10 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Name", "userprincipal");
                 with.Header("Accept", "application/json");
             }).Wait();
-            
         }
 
         [Fact]
+        [DisplayTestMethodName]
         public void TestInheritance_Success()
         {
             var group = Group1;
@@ -251,6 +250,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Fact]
+        [DisplayTestMethodName]
         public void TestGetPermissions_Success()
         {
             // Adding permissions
@@ -349,6 +349,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Fact]
+        [DisplayTestMethodName]
         public void TestUserBlacklist_Success()
         {
             // Adding permissions
@@ -462,6 +463,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Fact]
+        [DisplayTestMethodName]
         public void TestUserWhitelist_Success()
         {
             // Adding permissions
@@ -486,8 +488,7 @@ namespace Fabric.Authorization.IntegrationTests
             }).Result;
 
             var editPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
-
-
+            
             // Adding roles
             var role = new RoleApiModel()
             {
@@ -516,7 +517,7 @@ namespace Fabric.Authorization.IntegrationTests
             }).Result;
 
             var editorRole = post.Body.DeserializeJson<RoleApiModel>();
-
+            
             // Adding groups
             this.Browser.Post("/groups", with =>
             {
@@ -533,7 +534,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("GroupName", Group2);
                 with.Header("Accept", "application/json");
             }).Wait();
-
+            
             this.Browser.Post($"/groups/{Group1}/roles", with =>
             {
                 with.HttpRequest();
@@ -547,7 +548,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.Header("Accept", "application/json");
                 with.FormValue("Id", editorRole.Identifier);
             }).Wait();
-
+            
             // Adding permission (user also can modify patient, even though role doesn't)
             var modifyPatientPermission = new PermissionApiModel()
             {
@@ -566,7 +567,7 @@ namespace Fabric.Authorization.IntegrationTests
                 granPerm.Permissions = new List<PermissionApiModel> { modifyPatientPermission };
                 with.JsonBody(granPerm);
             }).Wait();
-
+            
             // Get the permissions
             var get = this.Browser.Get($"/user/permissions", with =>
             {
@@ -583,6 +584,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Fact]
+        [DisplayTestMethodName]
         public void TestRoleBlacklist_Success()
         {
             // Adding permissions
@@ -687,6 +689,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
 
         [Fact]
+        [DisplayTestMethodName]
         public void TestUserDeniedPermissionHasPrecedence_Success()
         {
             // Adding permissions

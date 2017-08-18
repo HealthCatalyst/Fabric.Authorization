@@ -26,10 +26,10 @@ namespace Fabric.Authorization.API.Modules
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
 
             //routes and handlers
-            Get("/", async _ => await GetClients().ConfigureAwait(false));
-            Get("/{clientid}", async parameters => await GetClientById(parameters).ConfigureAwait(false));
-            Post("/", async _ => await AddClient().ConfigureAwait(false));
-            Delete("/{clientid}", async parameters => await DeleteClient(parameters).ConfigureAwait(false));
+            Get("/", async _ => await GetClients().ConfigureAwait(false), null, "GetClients");
+            Get("/{clientid}", async parameters => await GetClientById(parameters).ConfigureAwait(false), null, "GetClient");
+            Post("/", async _ => await AddClient().ConfigureAwait(false), null, "AddClient");
+            Delete("/{clientid}", async parameters => await DeleteClient(parameters).ConfigureAwait(false), null, "DeleteClient");
         }
 
         private async Task<dynamic> GetClients()

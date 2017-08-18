@@ -22,10 +22,10 @@ namespace Fabric.Authorization.API.Modules
             ILogger logger) : base("/v1/SecurableItems", logger, validator)
         {
             _securableItemService = securableItemService ?? throw new ArgumentNullException(nameof(securableItemService));
-            Get("/", async _ => await this.GetSecurableItem().ConfigureAwait(false));
-            Get("/{securableItemId}", async parameters => await this.GetSecurableItem(parameters).ConfigureAwait(false));
-            Post("/", async _ => await this.AddSecurableItem().ConfigureAwait(false));
-            Post("/{securableItemId}", async parameters => await this.AddSecurableItem(parameters).ConfigureAwait(false));
+            Get("/", async _ => await this.GetSecurableItem().ConfigureAwait(false), null, "GetSecurableItem");
+            Get("/{securableItemId}", async parameters => await this.GetSecurableItem(parameters).ConfigureAwait(false), null, "GetSecurableItemById");
+            Post("/", async _ => await this.AddSecurableItem().ConfigureAwait(false), null, "AddSecurableItem");
+            Post("/{securableItemId}", async parameters => await this.AddSecurableItem(parameters).ConfigureAwait(false), null, "AddSecurableItemById");
         }
 
         private async Task<dynamic> GetSecurableItem()
@@ -50,7 +50,7 @@ namespace Fabric.Authorization.API.Modules
                 this.RequiresClaims(AuthorizationReadClaim);
                 if (!Guid.TryParse(parameters.securableItemId, out Guid securableItemId))
                 {
-                    return CreateFailureResponse("permissionId must be a guid.", HttpStatusCode.BadRequest);
+                    return CreateFailureResponse("securableItemId must be a guid.", HttpStatusCode.BadRequest);
                 }
                 SecurableItem securableItem = await _securableItemService.GetSecurableItem(ClientId, securableItemId);
                 return securableItem.ToSecurableItemApiModel();
@@ -102,7 +102,7 @@ namespace Fabric.Authorization.API.Modules
             this.RequiresClaims(AuthorizationWriteClaim);
             if (!Guid.TryParse(parameters.securableItemId, out Guid securableItemId))
             {
-                return CreateFailureResponse("permissionId must be a guid.", HttpStatusCode.BadRequest);
+                return CreateFailureResponse("securableItemId must be a guid.", HttpStatusCode.BadRequest);
             }
 
             var securableItemApiModel = SecureBind();

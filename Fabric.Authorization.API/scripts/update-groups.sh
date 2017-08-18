@@ -156,4 +156,4 @@ done
 
 POST_PAYLOAD=${POST_PAYLOAD%,}"}"
 
-eval "curl -i -X POST -d '$POST_PAYLOAD' -H 'Authorization: Bearer $TOKEN' $FABRIC_AUTH_URL/groups"
+eval "curl -i -X POST -d '$POST_PAYLOAD' -H 'Authorization: Bearer $TOKEN' $FABRIC_AUTH_URL/groups/UpdateGroups"

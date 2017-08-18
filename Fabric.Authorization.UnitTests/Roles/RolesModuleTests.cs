@@ -353,7 +353,7 @@ namespace Fabric.Authorization.UnitTests.Roles
 
         private void AssertRoleOK(BrowserResponse result, int expectedPermissionCount)
         {
-            Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+            Assert.Equal(HttpStatusCode.Created, result.StatusCode);
             var updatedRole = result.Body.DeserializeJson<RoleApiModel>();
             Assert.NotNull(updatedRole);
             Assert.Equal(expectedPermissionCount, updatedRole.Permissions.Count());

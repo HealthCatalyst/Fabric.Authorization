@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores.Services;
@@ -9,6 +10,7 @@ using IdentityModel;
 using Nancy;
 using Nancy.ModelBinding;
 using Serilog;
+
 
 namespace Fabric.Authorization.API.Modules
 {
@@ -23,9 +25,9 @@ namespace Fabric.Authorization.API.Modules
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
 
             // Get all the permissions for a user
-            Get("/permissions", async _ => await this.GetUserPermissions().ConfigureAwait(false));
-            Post("/{userId}/AdditionalPermissions", async param => await this.AddGranularPermissions(param, denied: false).ConfigureAwait(false));
-            Post("/{userId}/DeniedPermissions", async param => await this.AddGranularPermissions(param, denied: true).ConfigureAwait(false));
+            Get("/permissions", async _ => await this.GetUserPermissions().ConfigureAwait(false), null, "GetUserPermissions");
+            Post("/{userId}/AdditionalPermissions", async param => await this.AddGranularPermissions(param, denied: false).ConfigureAwait(false), null, "AddPermissions");
+            Post("/{userId}/DeniedPermissions", async param => await this.AddGranularPermissions(param, denied: true).ConfigureAwait(false), null, "AddDeniedPermissions");
         }
 
         private async Task<dynamic> AddGranularPermissions(dynamic param, bool denied)
@@ -56,7 +58,7 @@ namespace Fabric.Authorization.API.Modules
             await _permissionService.AddUserGranularPermissions(granularPermissions);
             return HttpStatusCode.NoContent;
         }
-
+       
         private async Task<dynamic> GetUserPermissions()
         {
             var userPermissionRequest = this.Bind<UserInfoRequest>();
@@ -65,7 +67,7 @@ namespace Fabric.Authorization.API.Modules
             var groups = this.GetGroupsForAuthenticatedUser();
 
             var permissions = await _permissionService.GetPermissionsForUser(
-                Context.CurrentUser.Claims.First(c => c.Type == "client_id").Value,
+                Context.CurrentUser.Claims.First(c => c.Type == Claims.Sub).Value,
                 groups,
                 userPermissionRequest.Grain,
                 userPermissionRequest.SecurableItem);
@@ -80,7 +82,11 @@ namespace Fabric.Authorization.API.Modules
 
         private string[] GetGroupsForAuthenticatedUser()
         {
-            return Context.CurrentUser?.Claims.Where(c => c.Type == "role" || c.Type == "groups").Distinct(new ClaimComparer()).Select(c => c.Value.ToString()).ToArray();
+            var userClaims = Context.CurrentUser?.Claims.Where(c => c.Type == "role" || c.Type == "groups").Distinct(new ClaimComparer()).Select(c => c.Value.ToString()).ToArray();
+
+            Logger.Information($"found claims for user: {string.Join(",", userClaims)}");
+
+            return userClaims;
         }
 
         private async Task SetDefaultRequest(UserInfoRequest request)
