@@ -6,7 +6,7 @@ namespace Fabric.Authorization.UnitTests.Groups
     public class GroupValidatorTests
     {
         [Theory, MemberData(nameof(GroupRequestData))]
-        public void GroupValidator_ValidateGroup_ReturnsInvalidIfModelNotValid(string grain, string securableItem, string GroupName, int errorCount)
+        public void GroupValidator_ValidateGroup_ReturnsInvalidIfModelNotValid(string grain, string securableItem, string groupName, int errorCount)
         {
             // To be implemented
         }

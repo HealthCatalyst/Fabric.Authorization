@@ -27,5 +27,7 @@ namespace Fabric.Authorization.Domain.Models
         public string ModifiedBy { get; set; }
 
         public string Identifier => Id;
+
+        public string Source { get; set; }
     }
 }

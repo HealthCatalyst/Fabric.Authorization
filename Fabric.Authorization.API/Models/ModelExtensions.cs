@@ -54,7 +54,8 @@ namespace Fabric.Authorization.API.Models
             {
                 GroupName = group.Name,
                 Id = group.Id,
-                Roles = group.Roles?.Select(r => r.ToRoleApiModel())
+                Roles = group.Roles?.Select(r => r.ToRoleApiModel()),
+                GroupSource = group.Source
             };
 
             return groupDomainModel;
