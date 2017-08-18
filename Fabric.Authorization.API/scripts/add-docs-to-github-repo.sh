@@ -16,7 +16,7 @@ cd Fabric.Authorization.wiki
 
 echo "-----Present directory = $(pwd)-----"
 
-git config user.name "Fabric Authorization System User"
+git config user.name "vsts build"
 git config user.email "kyle.paul@healthcatalyst.com"
 git add *.md
 git commit -m 'update API documentation'
