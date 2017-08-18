@@ -10,5 +10,6 @@ namespace Fabric.Authorization.API.Configuration
         IdentityServerConfidentialClientSettings IdentityServerConfidentialClientSettings { get; }
         CouchDbSettings CouchDbSettings { get; }
         ApplicationInsights ApplicationInsights { get; }
+        HostingOptions HostingOptions { get; }
     }
 }
