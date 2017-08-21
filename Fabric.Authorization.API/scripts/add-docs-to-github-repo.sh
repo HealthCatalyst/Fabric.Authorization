@@ -18,8 +18,10 @@ cd Fabric.Authorization.wiki
 echo "-----Present directory = $(pwd)-----"
 
 git config user.name "vsts build"
-git config user.email "djjoebanks@gmail.com"
+git config user.email "kyle.paul@healthcatalyst.com"
 git add *.md
-git commit -m 'update API documentation'
-git push origin master
 
+echo "committing files"
+git commit -m 'update API documentation'
+echo "pushing files to github"
+git push origin master
