@@ -51,12 +51,14 @@ describe("authorization tests", function () {
 
     var groupFoo = {
         "id": "FABRIC\\\Health Catalyst Viewer",
-        "groupName": "FABRIC\\\Health Catalyst Viewer"
+        "groupName": "FABRIC\\\Health Catalyst Viewer",
+        "groupSource": "Active Directory"
     }
 
     var groupBar = {
         "id": "FABRIC\\\Health Catalyst Editor",
-        "groupName": "FABRIC\\\Health Catalyst Editor"
+        "groupName": "FABRIC\\\Health Catalyst Editor",
+        "groupSource": "Custom"
     }
 
     var roleFoo = {
