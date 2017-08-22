@@ -20,7 +20,11 @@ namespace Fabric.Authorization.Domain.Validators
         {
             RuleFor(group => group.Name)
                 .NotEmpty()
-                .WithMessage("Please specify a Name for this Group");
+                .WithMessage("Please specify a Name for this Group.");
+
+            RuleFor(group => group.Source)
+                .NotEmpty()
+                .WithMessage("Please specify a Source for this Group.");
         }
 
         private async Task<bool> BeUnique(string groupId)

@@ -66,7 +66,8 @@ namespace Fabric.Authorization.API.Models
             var group = new Group
             {
                 Id = groupDomainModel.Id,
-                Name = groupDomainModel.GroupName
+                Name = groupDomainModel.GroupName,
+                Source = groupDomainModel.GroupSource
             };
 
             return group;

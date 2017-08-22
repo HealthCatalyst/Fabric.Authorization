@@ -20,7 +20,11 @@ namespace Fabric.Authorization.IntegrationTests
     public class UserTests : IntegrationTestsFixture
     {
         private static readonly string Group1 = Guid.Parse("A9CA0300-1006-40B1-ABF1-E0C3B396F95F").ToString();
+        private static readonly string Source1 = "Source1";
+
         private static readonly string Group2 = Guid.Parse("ad2cea96-c020-4014-9cf6-029147454adc").ToString();
+        private static readonly string Source2 = "Source2";
+
         public UserTests(bool useInMemoryDB = true)
         {
             var roleStore = useInMemoryDB ? new InMemoryRoleStore() : (IRoleStore)new CouchDbRoleStore(this.DbService(), this.Logger, this.EventContextResolverService);
@@ -223,6 +227,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.FormValue("Id", group);
                 with.FormValue("GroupName", group);
+                with.FormValue("GroupSource", Source1);
                 with.Header("Accept", "application/json");
             }).Wait();
 
@@ -309,6 +314,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.FormValue("Id", Group1);
                 with.FormValue("GroupName", Group1);
+                with.FormValue("GroupSource", Source1);
                 with.Header("Accept", "application/json");
             }).Wait();
 
@@ -317,6 +323,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.FormValue("Id", Group2);
                 with.FormValue("GroupName", Group2);
+                with.FormValue("GroupSource", Source2);
                 with.Header("Accept", "application/json");
             }).Wait();
 
@@ -411,6 +418,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.FormValue("Id", Group1);
                 with.FormValue("GroupName", Group1);
+                with.FormValue("GroupSource", Source1);
                 with.Header("Accept", "application/json");
             }).Wait();
 
@@ -419,6 +427,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.FormValue("Id", Group2);
                 with.FormValue("GroupName", Group2);
+                with.FormValue("GroupSource", Source2);
                 with.Header("Accept", "application/json");
             }).Wait();
 
@@ -524,6 +533,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.FormValue("Id", Group1);
                 with.FormValue("GroupName", Group1);
+                with.FormValue("GroupSource", Source1);
                 with.Header("Accept", "application/json");
             }).Wait();
 
@@ -532,6 +542,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.FormValue("Id", Group2);
                 with.FormValue("GroupName", Group2);
+                with.FormValue("GroupSource", Source2);
                 with.Header("Accept", "application/json");
             }).Wait();
             
@@ -649,6 +660,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.FormValue("Id", Group1);
                 with.FormValue("GroupName", Group1);
+                with.FormValue("GroupSource", Source1);
                 with.Header("Accept", "application/json");
             }).Wait();
 
@@ -657,6 +669,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.FormValue("Id", Group2);
                 with.FormValue("GroupName", Group2);
+                with.FormValue("GroupSource", Source2);
                 with.Header("Accept", "application/json");
             }).Wait();
 
@@ -750,6 +763,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.FormValue("Id", Group1);
                 with.FormValue("GroupName", Group1);
+                with.FormValue("GroupSource", Source1);
                 with.Header("Accept", "application/json");
             }).Wait();
 
@@ -758,6 +772,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.FormValue("Id", Group2);
                 with.FormValue("GroupName", Group2);
+                with.FormValue("GroupSource", Source2);
                 with.Header("Accept", "application/json");
             }).Wait();
 

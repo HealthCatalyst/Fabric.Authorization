@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
-using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores.Services;
 using Fabric.Authorization.Domain.Validators;
 using Nancy;
@@ -17,28 +15,40 @@ namespace Fabric.Authorization.API.Modules
 {
     public class GroupsModule : FabricModule<Group>
     {
-        private GroupService _groupService { get; }
+        private readonly GroupService _groupService;
 
         public GroupsModule(GroupService groupService, GroupValidator validator, ILogger logger) : base(
             "/v1/Groups", logger, validator)
         {
             _groupService = groupService;
 
-            base.Post("/", async _ => await this.AddGroup(), null, "AddGroup");
-            base.Post("/UpdateGroups", async _ => await this.UpdateGroupList().ConfigureAwait(false), null, "UpdateGroups");
-            base.Get("/{groupName}", async p => await this.GetGroup(p).ConfigureAwait(false), null, "GetGroup");
-            base.Delete("/{groupName}", async p => await this.DeleteGroup(p).ConfigureAwait(false), null, "DeleteGroup");
+            Post("/", async _ => await AddGroup(), null, "AddGroup");
 
-            base.Get("/{groupName}/roles", async _ => await this.GetRolesFromGroup().ConfigureAwait(false), null, "GetRolesFromGroup");
-            base.Post("/{groupName}/roles", async p => await this.AddRoleToGroup(p).ConfigureAwait(false), null, "AddRoleToGroup");
-            base.Delete("/{groupName}/roles", async p => await this.DeleteRoleFromGroup(p).ConfigureAwait(false), null, "DeleteRoleFromGroup");
+            Post("/UpdateGroups", async _ => await UpdateGroupList().ConfigureAwait(false), null, "UpdateGroups");
+
+            base.Get("/{groupName}", async p => await this.GetGroup(p).ConfigureAwait(false), null, "GetGroup");
+
+            base.Delete("/{groupName}", async p => await this.DeleteGroup(p).ConfigureAwait(false), null,
+                "DeleteGroup");
+
+            Get("/{groupName}/roles", async _ => await GetRolesFromGroup().ConfigureAwait(false), null,
+                "GetRolesFromGroup");
+
+            base.Post("/{groupName}/roles", async p => await this.AddRoleToGroup(p).ConfigureAwait(false), null,
+                "AddRoleToGroup");
+
+            base.Delete("/{groupName}/roles", async p => await this.DeleteRoleFromGroup(p).ConfigureAwait(false), null,
+                "DeleteRoleFromGroup");
+
+            base.Post("/{groupName}/roles", async p => await this.AddRoleToGroup(p).ConfigureAwait(false), null,
+                "AddRoleToGroup");
         }
 
         private async Task<dynamic> GetGroup(dynamic parameters)
         {
             try
             {
-                this.RequiresClaims(this.AuthorizationManageClientsClaim, this.AuthorizationReadClaim);
+                this.RequiresClaims(AuthorizationManageClientsClaim, AuthorizationReadClaim);
                 Group group = await _groupService.GetGroup(parameters.groupName);
                 return group.ToGroupRoleApiModel();
             }
@@ -52,7 +62,7 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
-                this.RequiresClaims(this.AuthorizationManageClientsClaim, this.AuthorizationWriteClaim);
+                this.RequiresClaims(AuthorizationManageClientsClaim, AuthorizationWriteClaim);
                 Group group = await _groupService.GetGroup(parameters.groupName);
                 await _groupService.DeleteGroup(group);
                 return HttpStatusCode.NoContent;
@@ -65,11 +75,14 @@ namespace Fabric.Authorization.API.Modules
 
         private async Task<dynamic> AddGroup()
         {
+            this.RequiresClaims(AuthorizationManageClientsClaim, AuthorizationWriteClaim);
+            var group = this.Bind<GroupRoleApiModel>();
+            var incomingGroup = group.ToGroupDomainModel();
+            Validate(incomingGroup);
+
             try
             {
-                this.RequiresClaims(this.AuthorizationManageClientsClaim, this.AuthorizationWriteClaim);
-                var group = this.Bind<GroupRoleApiModel>();
-                var createdGroup = await _groupService.AddGroup(group.ToGroupDomainModel());
+                var createdGroup = await _groupService.AddGroup(incomingGroup);
                 return CreateSuccessfulPostResponse(createdGroup.ToGroupRoleApiModel());
             }
             catch (AlreadyExistsException<Group> ex)
@@ -82,7 +95,7 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
-                this.RequiresClaims(this.AuthorizationManageClientsClaim, this.AuthorizationWriteClaim);
+                this.RequiresClaims(AuthorizationManageClientsClaim, AuthorizationWriteClaim);
                 var group = this.Bind<List<GroupRoleApiModel>>();
                 await _groupService.UpdateGroupList(group.Select(g => g.ToGroupDomainModel()));
                 return HttpStatusCode.NoContent;
@@ -97,9 +110,10 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
-                this.RequiresClaims(this.AuthorizationReadClaim);
+                this.RequiresClaims(AuthorizationReadClaim);
                 var groupInfoRequest = this.Bind<GroupInfoRequest>();
-                var roles = await _groupService.GetRolesForGroup(groupInfoRequest.GroupName, groupInfoRequest.Grain, groupInfoRequest.SecurableItem);
+                var roles = await _groupService.GetRolesForGroup(groupInfoRequest.GroupName, groupInfoRequest.Grain,
+                    groupInfoRequest.SecurableItem);
 
                 return new GroupRoleApiModel
                 {
@@ -119,12 +133,10 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
-                this.RequiresClaims(this.AuthorizationWriteClaim);
+                this.RequiresClaims(AuthorizationWriteClaim);
                 var roleApiModel = this.Bind<RoleApiModel>();
                 if (roleApiModel.Id == null)
-                {
                     throw new NotFoundException<Role>();
-                }
 
                 Group group = await _groupService.AddRoleToGroup(parameters.groupName, roleApiModel.Id.Value);
                 return CreateSuccessfulPostResponse(group.ToGroupRoleApiModel());
@@ -143,12 +155,10 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
-                this.RequiresClaims(this.AuthorizationWriteClaim);
+                this.RequiresClaims(AuthorizationWriteClaim);
                 var roleApiModel = this.Bind<RoleApiModel>();
                 if (roleApiModel.Id == null)
-                {
                     throw new NotFoundException<Role>();
-                }
 
                 Group group = await _groupService.DeleteRoleFromGroup(parameters.groupName, roleApiModel.Id.Value);
                 return CreateSuccessfulPostResponse(group.ToGroupRoleApiModel(), HttpStatusCode.OK);
