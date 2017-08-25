@@ -50,7 +50,7 @@ namespace Fabric.Authorization.API.Models
 
         public static GroupRoleApiModel ToGroupRoleApiModel(this Group group)
         {
-            var groupDomainModel = new GroupRoleApiModel
+            var groupRoleApiModel = new GroupRoleApiModel
             {
                 GroupName = group.Name,
                 Id = group.Id,
@@ -58,16 +58,16 @@ namespace Fabric.Authorization.API.Models
                 GroupSource = group.Source
             };
 
-            return groupDomainModel;
+            return groupRoleApiModel;
         }
 
-        public static Group ToGroupDomainModel(this GroupRoleApiModel groupDomainModel)
+        public static Group ToGroupDomainModel(this GroupRoleApiModel groupRoleApiModel)
         {
             var group = new Group
             {
-                Id = groupDomainModel.Id,
-                Name = groupDomainModel.GroupName,
-                Source = groupDomainModel.GroupSource
+                Id = groupRoleApiModel.Id,
+                Name = groupRoleApiModel.GroupName,
+                Source = groupRoleApiModel.GroupSource
             };
 
             return group;

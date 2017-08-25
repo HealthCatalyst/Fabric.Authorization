@@ -1,8 +1,8 @@
-﻿using Fabric.Authorization.Domain.Models;
-using FluentValidation;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores.Services;
+using FluentValidation;
 
 namespace Fabric.Authorization.Domain.Validators
 {
@@ -31,5 +31,5 @@ namespace Fabric.Authorization.Domain.Validators
         {
             return !await _groupService.Exists(groupId);
         }
-    }    
+    }
 }

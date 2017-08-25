@@ -40,9 +40,14 @@ namespace Fabric.Authorization.API.Modules
             base.Delete("/{groupName}/roles", async p => await this.DeleteRoleFromGroup(p).ConfigureAwait(false), null,
                 "DeleteRoleFromGroup");
 
-            base.Post("/{groupName}/roles", async p => await this.AddRoleToGroup(p).ConfigureAwait(false), null,
-                "AddRoleToGroup");
+            // users in custom groups
+            //base.Post("/{groupName}/users", async p => await GetUsersFromGroup());
         }
+
+        /*private async Task<dynamic> GetUsersFromGroup(dynamic parameters)
+        {
+            
+        }*/
 
         private async Task<dynamic> GetGroup(dynamic parameters)
         {
@@ -136,7 +141,9 @@ namespace Fabric.Authorization.API.Modules
                 this.RequiresClaims(AuthorizationWriteClaim);
                 var roleApiModel = this.Bind<RoleApiModel>();
                 if (roleApiModel.Id == null)
+                {
                     throw new NotFoundException<Role>();
+                }
 
                 Group group = await _groupService.AddRoleToGroup(parameters.groupName, roleApiModel.Id.Value);
                 return CreateSuccessfulPostResponse(group.ToGroupRoleApiModel());
@@ -158,7 +165,9 @@ namespace Fabric.Authorization.API.Modules
                 this.RequiresClaims(AuthorizationWriteClaim);
                 var roleApiModel = this.Bind<RoleApiModel>();
                 if (roleApiModel.Id == null)
+                {
                     throw new NotFoundException<Role>();
+                }
 
                 Group group = await _groupService.DeleteRoleFromGroup(parameters.groupName, roleApiModel.Id.Value);
                 return CreateSuccessfulPostResponse(group.ToGroupRoleApiModel(), HttpStatusCode.OK);

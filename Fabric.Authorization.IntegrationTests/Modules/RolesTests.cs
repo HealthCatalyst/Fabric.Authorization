@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Security.Claims;
 using Fabric.Authorization.API;
 using Fabric.Authorization.API.Constants;
@@ -7,35 +6,40 @@ using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
 using Fabric.Authorization.Domain.Stores.Services;
+using Fabric.Authorization.Domain.Validators;
 using Nancy;
 using Nancy.Testing;
 using Xunit;
 
-namespace Fabric.Authorization.IntegrationTests
+namespace Fabric.Authorization.IntegrationTests.Modules
 {
     [Collection("InMemoryTests")]
     public class RolesTests : IntegrationTestsFixture
     {
         public RolesTests(bool useInMemoryDB = true)
         {
-            var store = useInMemoryDB ? new InMemoryRoleStore() : (IRoleStore)new CouchDbRoleStore(this.DbService(), this.Logger, this.EventContextResolverService);
-            var clientStore = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDbClientStore(this.DbService(), this.Logger, this.EventContextResolverService);
+            var store = useInMemoryDB
+                ? new InMemoryRoleStore()
+                : (IRoleStore) new CouchDbRoleStore(DbService(), Logger, EventContextResolverService);
+            var clientStore = useInMemoryDB
+                ? new InMemoryClientStore()
+                : (IClientStore) new CouchDbClientStore(DbService(), Logger, EventContextResolverService);
 
             var roleService = new RoleService(store, new InMemoryPermissionStore());
             var clientService = new ClientService(clientStore);
 
-            this.Browser = new Browser(with =>
+            Browser = new Browser(with =>
             {
                 with.Module(new RolesModule(
-                        roleService,
-                        clientService,
-                        new Domain.Validators.RoleValidator(roleService),
-                        this.Logger));
+                    roleService,
+                    clientService,
+                    new RoleValidator(roleService),
+                    Logger));
 
                 with.Module(new ClientsModule(
-                        clientService,
-                        new Domain.Validators.ClientValidator(clientService),
-                        this.Logger));
+                    clientService,
+                    new ClientValidator(clientService),
+                    Logger));
 
                 with.RequestStartup((_, pipelines, context) =>
                 {
@@ -44,19 +48,19 @@ namespace Fabric.Authorization.IntegrationTests
                         new Claim(Claims.Scope, Scopes.ManageClientsScope),
                         new Claim(Claims.Scope, Scopes.ReadScope),
                         new Claim(Claims.Scope, Scopes.WriteScope),
-                        new Claim(Claims.ClientId, "rolesprincipal"),
+                        new Claim(Claims.ClientId, "rolesprincipal")
                     }, "rolesprincipal"));
-                    pipelines.BeforeRequest += (ctx) => RequestHooks.SetDefaultVersionInUrl(ctx); 
+                    pipelines.BeforeRequest += ctx => RequestHooks.SetDefaultVersionInUrl(ctx);
                 });
             }, withDefaults => withDefaults.HostName("testhost"));
 
-            this.Browser.Post("/clients", with =>
-                {
-                    with.HttpRequest();
-                    with.FormValue("Id", "rolesprincipal");
-                    with.FormValue("Name", "rolesprincipal");
-                    with.Header("Accept", "application/json");
-                }).Wait();
+            Browser.Post("/clients", with =>
+            {
+                with.HttpRequest();
+                with.FormValue("Id", "rolesprincipal");
+                with.FormValue("Name", "rolesprincipal");
+                with.Header("Accept", "application/json");
+            }).Wait();
         }
 
         [Theory]
@@ -65,7 +69,7 @@ namespace Fabric.Authorization.IntegrationTests
         [InlineData("C5247AA4-0063-4E68-B1E4-55BD5E0E177E")]
         public void TestGetRole_Fail(string name)
         {
-            var get = this.Browser.Get($"/roles/app/rolesprincipal/{name}", with =>
+            var get = Browser.Get($"/roles/app/rolesprincipal/{name}", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -82,7 +86,7 @@ namespace Fabric.Authorization.IntegrationTests
         [InlineData("6BC32347-36A1-44CF-AA0E-6C1038AA1DF3")]
         public void TestAddNewRole_Success(string name)
         {
-            var postResponse = this.Browser.Post("/roles", with =>
+            var postResponse = Browser.Post("/roles", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -91,11 +95,11 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Name", name);
             }).Result;
 
-            var getResponse = this.Browser.Get($"/roles/app/rolesprincipal/{name}", with =>
-                {
-                    with.HttpRequest();
-                    with.Header("Accept", "application/json");
-                }).Result;
+            var getResponse = Browser.Get($"/roles/app/rolesprincipal/{name}", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
@@ -108,7 +112,7 @@ namespace Fabric.Authorization.IntegrationTests
         [InlineData("NewRole2")]
         public void TestAddGetRole_Success(string name)
         {
-            var postResponse = this.Browser.Post("/roles", with =>
+            var postResponse = Browser.Post("/roles", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -118,7 +122,7 @@ namespace Fabric.Authorization.IntegrationTests
             }).Result;
 
             // Get by name
-            var getResponse = this.Browser.Get($"/roles/app/rolesprincipal/{name}", with =>
+            var getResponse = Browser.Get($"/roles/app/rolesprincipal/{name}", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -129,7 +133,7 @@ namespace Fabric.Authorization.IntegrationTests
             Assert.True(getResponse.Body.AsString().Contains(name));
 
             // Get by secitem
-            getResponse = this.Browser.Get($"/roles/app/rolesprincipal", with =>
+            getResponse = Browser.Get($"/roles/app/rolesprincipal", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -146,7 +150,7 @@ namespace Fabric.Authorization.IntegrationTests
         [InlineData("SecItemRole2")]
         public void TestGetRoleBySecItem_Success(string name)
         {
-            var postResponse = this.Browser.Post("/roles", with =>
+            var postResponse = Browser.Post("/roles", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -155,7 +159,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Name", name + "_1");
             }).Result;
 
-            postResponse = this.Browser.Post("/roles", with =>
+            postResponse = Browser.Post("/roles", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -164,7 +168,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.FormValue("Name", name + "_2");
             }).Result;
 
-            var getResponse = this.Browser.Get($"/roles/app/rolesprincipal", with =>
+            var getResponse = Browser.Get($"/roles/app/rolesprincipal", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -184,7 +188,7 @@ namespace Fabric.Authorization.IntegrationTests
         [InlineData("C5247AA4-0063-4E68-B1E4-55BD5E0E172D")]
         public void TestAddNewRole_Fail(string id)
         {
-            this.Browser.Post("/roles", with =>
+            Browser.Post("/roles", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -195,7 +199,7 @@ namespace Fabric.Authorization.IntegrationTests
             }).Wait();
 
             // Repeat
-            var postResponse = this.Browser.Post("/roles", with =>
+            var postResponse = Browser.Post("/roles", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -214,7 +218,7 @@ namespace Fabric.Authorization.IntegrationTests
         [InlineData("C5247AA4-0063-4E68-B1E4-55BD5E0E877D")]
         public void TestDeleteRole_Fail(string id)
         {
-            var delete = this.Browser.Delete($"/roles/{id}", with =>
+            var delete = Browser.Delete($"/roles/{id}", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");

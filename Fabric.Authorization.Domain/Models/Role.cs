@@ -34,9 +34,13 @@ namespace Fabric.Authorization.Domain.Models
         public ICollection<Permission> DeniedPermissions { get; set; }
 
         public DateTime CreatedDateTimeUtc { get; set; }
+
         public DateTime? ModifiedDateTimeUtc { get; set; }
+
         public string CreatedBy { get; set; }
+
         public string ModifiedBy { get; set; }
+
         public string Identifier => Id.ToString();
 
         public override string ToString()

@@ -13,7 +13,7 @@ using Nancy;
 using Nancy.Testing;
 using Xunit;
 
-namespace Fabric.Authorization.IntegrationTests
+namespace Fabric.Authorization.IntegrationTests.Modules
 {
     [Collection("InMemoryTests")]
     public class ClientTests : IntegrationTestsFixture

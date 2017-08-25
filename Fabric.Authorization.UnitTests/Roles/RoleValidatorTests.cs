@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Security.Cryptography;
-using System.Text;
+﻿using System.Collections.Generic;
 using Fabric.Authorization.Domain.Models;
-using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.Services;
 using Fabric.Authorization.Domain.Validators;
@@ -15,8 +11,10 @@ namespace Fabric.Authorization.UnitTests.Roles
 {
     public class RoleValidatorTests
     {
-        [Theory, MemberData(nameof(RoleRequestData))]
-        public void RoleValidator_ValidateRole_ReturnsInvalidIfModelNotValid(string grain, string securableItem, string roleName, int errorCount)
+        [Theory]
+        [MemberData(nameof(RoleRequestData))]
+        public void RoleValidator_ValidateRole_ReturnsInvalidIfModelNotValid(string grain, string securableItem,
+            string roleName, int errorCount)
         {
             var existingRole = new Role
             {
@@ -40,6 +38,17 @@ namespace Fabric.Authorization.UnitTests.Roles
             Assert.NotNull(validationResult.Errors);
             Assert.Equal(errorCount, validationResult.Errors.Count);
         }
+
+        public static IEnumerable<object[]> RoleRequestData => new[]
+        {
+            new object[] {"app", "patientsafety", "", 1},
+            new object[] {"app", "", "", 2},
+            new object[] {"", "", "", 3},
+            new object[] {"app", "patientsafety", null, 1},
+            new object[] {"app", null, null, 2},
+            new object[] {null, null, null, 3},
+            new object[] {"app", "patientsafety", "admin", 1}
+        };
 
         [Fact]
         public void RoleValidator_ValidateRole_ReturnsValid()
@@ -73,7 +82,7 @@ namespace Fabric.Authorization.UnitTests.Roles
             };
 
             var mockRoleStore = new Mock<IRoleStore>()
-                .SetupGetRoles(new List<Role> { existingRole }).Create();
+                .SetupGetRoles(new List<Role> {existingRole}).Create();
             var mockPermissionStore = new Mock<IPermissionStore>().Create();
             var roleValidator = new RoleValidator(new RoleService(mockRoleStore, mockPermissionStore));
             var validationResult = roleValidator.Validate(new Role
@@ -85,16 +94,5 @@ namespace Fabric.Authorization.UnitTests.Roles
 
             Assert.True(validationResult.IsValid);
         }
-
-        public static IEnumerable<object[]> RoleRequestData => new[]
-        {
-            new object[] { "app", "patientsafety", "", 1},
-            new object[] {"app", "", "", 2 },
-            new object[] {"", "", "", 3 },
-            new object[] {"app", "patientsafety", null, 1 },
-            new object[] {"app", null, null, 2 },
-            new object[] {null, null, null, 3 },
-            new object[] {"app", "patientsafety", "admin", 1 }
-        };
     }
 }

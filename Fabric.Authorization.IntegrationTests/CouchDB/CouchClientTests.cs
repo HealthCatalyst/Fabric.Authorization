@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using Fabric.Authorization.IntegrationTests.Modules;
+using Xunit;
 
 namespace Fabric.Authorization.IntegrationTests.CouchDB
 {
