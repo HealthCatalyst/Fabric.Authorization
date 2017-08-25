@@ -8,6 +8,7 @@ namespace Fabric.Authorization.Domain.Models
         public Group()
         {
             this.Roles = new List<Role>();
+            this.Users = new List<User>();
         }
 
         public string Id { get; set; }
@@ -17,6 +18,8 @@ namespace Fabric.Authorization.Domain.Models
         public bool IsDeleted { get; set; }
 
         public ICollection<Role> Roles { get; set; }
+
+        public ICollection<User> Users { get; set; }
 
         public DateTime CreatedDateTimeUtc { get; set; }
 

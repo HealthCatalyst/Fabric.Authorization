@@ -5,6 +5,11 @@ namespace Fabric.Authorization.Domain.Models
 {
     public class User : ITrackable
     {
+        public User()
+        {
+            Groups = new List<Group>();
+        }
+
         public string Id { get; set; }
 
         public string ProviderSubjectId { get; set; }
@@ -14,6 +19,8 @@ namespace Fabric.Authorization.Domain.Models
         public ICollection<Permission> DeniedPermissions { get; set; }
 
         public ICollection<Permission> Permissions { get; set; }
+
+        public ICollection<Group> Groups { get; set; }
 
         public bool IsDeleted { get; set; }
 
