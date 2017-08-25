@@ -159,14 +159,14 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.FormValue("Name", name + "_1");
             }).Result;
 
-            postResponse = Browser.Post("/roles", with =>
+            Browser.Post("/roles", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
                 with.FormValue("Grain", "app");
                 with.FormValue("SecurableItem", "rolesprincipal");
                 with.FormValue("Name", name + "_2");
-            }).Result;
+            });
 
             var getResponse = Browser.Get($"/roles/app/rolesprincipal", with =>
             {
