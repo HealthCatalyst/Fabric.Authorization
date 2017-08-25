@@ -159,14 +159,18 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.FormValue("Name", name + "_1");
             }).Result;
 
-            Browser.Post("/roles", with =>
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+
+            postResponse = Browser.Post("/roles", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
                 with.FormValue("Grain", "app");
                 with.FormValue("SecurableItem", "rolesprincipal");
                 with.FormValue("Name", name + "_2");
-            });
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
 
             var getResponse = Browser.Get($"/roles/app/rolesprincipal", with =>
             {
@@ -174,7 +178,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.Header("Accept", "application/json");
             }).Result;
 
-            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
             // Both roles must be found.
