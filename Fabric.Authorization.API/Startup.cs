@@ -5,6 +5,7 @@ using Fabric.Authorization.API.Infrastructure;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
+using Fabric.Authorization.Domain.Stores.InMemory;
 using Fabric.Platform.Auth;
 using Fabric.Platform.Logging;
 using Fabric.Platform.Shared.Configuration;

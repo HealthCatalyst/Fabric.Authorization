@@ -45,6 +45,8 @@ namespace Fabric.Authorization.Domain.Stores.Services
         {
             var role = await _roleStore.Get(roleId);
             var permissions = role.Permissions;
+
+            // TODO: check if we can remove the ToList
             return permissions.Where(p => !p.IsDeleted).ToList();
         }
 

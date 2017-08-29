@@ -2,7 +2,7 @@
 using System.Collections.Concurrent;
 using Fabric.Authorization.Domain.Models;
 
-namespace Fabric.Authorization.Domain.Stores
+namespace Fabric.Authorization.Domain.Stores.InMemory
 {
     public class InMemoryClientStore : InMemoryGenericStore<Client>, IClientStore
     {

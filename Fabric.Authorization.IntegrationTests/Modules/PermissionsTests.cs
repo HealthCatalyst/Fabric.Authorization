@@ -6,6 +6,7 @@ using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
+using Fabric.Authorization.Domain.Stores.InMemory;
 using Fabric.Authorization.Domain.Stores.Services;
 using Nancy;
 using Nancy.Testing;

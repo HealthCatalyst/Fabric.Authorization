@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Security.Claims;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Extensions;
@@ -11,16 +9,16 @@ using Fabric.Authorization.Domain.Events;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
 using Fabric.Platform.Bootstrappers.Nancy;
-using Nancy;
-using Nancy.Bootstrapper;
-using Nancy.Owin;
-using Nancy.TinyIoc;
-using Serilog;
 using LibOwin;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
+using Nancy;
+using Nancy.Bootstrapper;
 using Nancy.Conventions;
+using Nancy.Owin;
 using Nancy.Swagger.Services;
+using Nancy.TinyIoc;
+using Serilog;
 using Serilog.Core;
 using Swagger.ObjectModel;
 
@@ -28,15 +26,15 @@ namespace Fabric.Authorization.API
 {
     public class Bootstrapper : DefaultNancyBootstrapper
     {
-        private readonly ILogger _logger;
         private readonly IAppConfiguration _appConfig;
+        private readonly ILogger _logger;
         private readonly LoggingLevelSwitch _loggingLevelSwitch;
 
         public Bootstrapper(ILogger logger, IAppConfiguration appConfig, LoggingLevelSwitch levelSwitch)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _appConfig = appConfig ?? throw new ArgumentNullException(nameof(appConfig));
-            _loggingLevelSwitch = levelSwitch ?? throw new ArgumentNullException(nameof(levelSwitch));            
+            _loggingLevelSwitch = levelSwitch ?? throw new ArgumentNullException(nameof(levelSwitch));
         }
 
         protected override void RequestStartup(TinyIoCContainer container, IPipelines pipelines, NancyContext context)
@@ -46,29 +44,27 @@ namespace Fabric.Authorization.API
             var principal = owinEnvironment[OwinConstants.RequestUser] as ClaimsPrincipal;
             context.CurrentUser = principal;
             var appConfig = container.Resolve<IAppConfiguration>();
-            container.UseHttpClientFactory(context, appConfig.IdentityServerConfidentialClientSettings);            
+            container.UseHttpClientFactory(context, appConfig.IdentityServerConfidentialClientSettings);
         }
-        
+
         protected override void ConfigureRequestContainer(TinyIoCContainer container, NancyContext context)
         {
             base.ConfigureRequestContainer(container, context);
             container.Register(new NancyContextWrapper(context));
             container.RegisterServices();
             if (!_appConfig.UseInMemoryStores)
-            {
                 container.RegisterCouchDbStores(_appConfig, _loggingLevelSwitch);
-            }
         }
 
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
         {
-            SwaggerMetadataProvider.SetInfo("Fabric Authorization Api", "v1", "Fabric Authorization Api", new Contact()
+            SwaggerMetadataProvider.SetInfo("Fabric Authorization Api", "v1", "Fabric Authorization Api", new Contact
             {
                 EmailAddress = "fabric@healthcatalyst.com"
             });
 
             base.ApplicationStartup(container, pipelines);
-            
+
             pipelines.OnError.AddItemToEndOfPipeline((ctx, ex) =>
             {
                 _logger.Error(ex, "Unhandled error on request: @{Url}. Error Message: @{Message}", ctx.Request.Url,
@@ -148,17 +144,9 @@ namespace Fabric.Authorization.API
         private void RegisterStores(TinyIoCContainer container)
         {
             if (_appConfig.UseInMemoryStores)
-            {
                 container.RegisterInMemoryStores();
-            }
             else
-            {
                 container.RegisterCouchDbStores(_appConfig, _loggingLevelSwitch);
-            }
         }
-
-       
     }
-
-    
 }

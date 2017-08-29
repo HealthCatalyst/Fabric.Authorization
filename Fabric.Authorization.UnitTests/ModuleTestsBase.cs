@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Text.RegularExpressions;
 using Fabric.Authorization.API;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
@@ -11,74 +9,47 @@ using Moq;
 using Nancy;
 using Nancy.Testing;
 using Serilog;
-using Group = Fabric.Authorization.Domain.Models.Group;
 
 namespace Fabric.Authorization.UnitTests
 {
     public abstract class ModuleTestsBase<T> where T : NancyModule
     {
         protected readonly List<Client> ExistingClients;
-        protected readonly List<Role> ExistingRoles;
         protected readonly List<Group> ExistingGroups;
         protected readonly List<Permission> ExistingPermissions;
+        protected readonly List<Role> ExistingRoles;
+        protected readonly Mock<IClientStore> MockClientStore;
+        protected readonly Mock<IGroupStore> MockGroupStore;
         protected readonly Mock<ILogger> MockLogger;
         protected readonly Mock<IPermissionStore> MockPermissionStore;
         protected readonly Mock<IRoleStore> MockRoleStore;
-        protected readonly Mock<IGroupStore> MockGroupStore;
-        protected readonly Mock<IClientStore> MockClientStore;
+        protected readonly Mock<IUserStore> MockUserStore;
 
         protected ModuleTestsBase()
         {
-            this.ExistingClients = this.CreateClients;
-            this.ExistingRoles = this.CreateRoles;
-            this.ExistingGroups = this.CreateGroups;
-            this.ExistingPermissions = this.CreatePermissions;
-            this.MockLogger = new Mock<ILogger>();
-            this.MockClientStore = new Mock<IClientStore>()
-                .SetupGetClient(this.ExistingClients)
+            ExistingClients = CreateClients;
+            ExistingRoles = CreateRoles;
+            ExistingGroups = CreateGroups;
+            ExistingPermissions = CreatePermissions;
+            MockLogger = new Mock<ILogger>();
+            MockClientStore = new Mock<IClientStore>()
+                .SetupGetClient(ExistingClients)
                 .SetupAddClient();
 
-            this.MockPermissionStore = new Mock<IPermissionStore>()
+            MockPermissionStore = new Mock<IPermissionStore>()
                 .SetupGetPermissions(ExistingPermissions)
                 .SetupAddPermissions()
                 .SetupGetGranularPermissions();
 
-            this.MockRoleStore = new Mock<IRoleStore>()
-                .SetupGetRoles(this.ExistingRoles)
+            MockRoleStore = new Mock<IRoleStore>()
+                .SetupGetRoles(ExistingRoles)
                 .SetupAddRole();
 
-            this.MockGroupStore = new Mock<IGroupStore>()
-                .SetupGetGroups(this.ExistingGroups)
+            MockGroupStore = new Mock<IGroupStore>()
+                .SetupGetGroups(ExistingGroups)
                 .SetupAddGroup();
-        }
 
-        protected Browser CreateBrowser(params Claim[] claims)
-        {
-            return new Browser(CreateBootstrapper(claims), withDefaults =>
-            {
-                withDefaults.Accept("application/json");
-                withDefaults.HostName("testhost");
-
-            });
-        }
-
-        private ConfigurableBootstrapper CreateBootstrapper(params Claim[] claims)
-        {
-            var configurableBootstrapper = new ConfigurableBootstrapper();
-            ConfigureBootstrapper(configurableBootstrapper, claims);
-            return configurableBootstrapper;
-        }
-
-        protected virtual ConfigurableBootstrapper.ConfigurableBootstrapperConfigurator ConfigureBootstrapper(ConfigurableBootstrapper configurableBootstrapper, params Claim[] claims)
-        {
-            var configurableBootstrapperConfigurator = new ConfigurableBootstrapper.ConfigurableBootstrapperConfigurator(configurableBootstrapper);
-            configurableBootstrapperConfigurator.Module<T>();
-            configurableBootstrapperConfigurator.RequestStartup((container, pipeline, context) =>
-            {
-                context.CurrentUser = new TestPrincipal(claims);
-                pipeline.BeforeRequest += (ctx) => RequestHooks.SetDefaultVersionInUrl(ctx); ;
-            });
-            return configurableBootstrapperConfigurator;
+            MockUserStore = new Mock<IUserStore>();
         }
 
         private List<Client> CreateClients => new List<Client>
@@ -135,13 +106,13 @@ namespace Fabric.Authorization.UnitTests
             {
                 Id = Guid.NewGuid().ToString(),
                 IsDeleted = false,
-                Roles = this.CreateRoles
+                Roles = CreateRoles
             },
             new Group
             {
                 Id = Guid.NewGuid().ToString(),
                 IsDeleted = false,
-                Roles = this.CreateRoles
+                Roles = CreateRoles
             }
         };
 
@@ -173,8 +144,39 @@ namespace Fabric.Authorization.UnitTests
                 Id = Guid.NewGuid(),
                 Grain = "patient",
                 SecurableItem = "Patient",
-                Name ="read"
+                Name = "read"
             }
         };
+
+        protected Browser CreateBrowser(params Claim[] claims)
+        {
+            return new Browser(CreateBootstrapper(claims), withDefaults =>
+            {
+                withDefaults.Accept("application/json");
+                withDefaults.HostName("testhost");
+            });
+        }
+
+        private ConfigurableBootstrapper CreateBootstrapper(params Claim[] claims)
+        {
+            var configurableBootstrapper = new ConfigurableBootstrapper();
+            ConfigureBootstrapper(configurableBootstrapper, claims);
+            return configurableBootstrapper;
+        }
+
+        protected virtual ConfigurableBootstrapper.ConfigurableBootstrapperConfigurator ConfigureBootstrapper(
+            ConfigurableBootstrapper configurableBootstrapper, params Claim[] claims)
+        {
+            var configurableBootstrapperConfigurator =
+                new ConfigurableBootstrapper.ConfigurableBootstrapperConfigurator(configurableBootstrapper);
+            configurableBootstrapperConfigurator.Module<T>();
+            configurableBootstrapperConfigurator.RequestStartup((container, pipeline, context) =>
+            {
+                context.CurrentUser = new TestPrincipal(claims);
+                pipeline.BeforeRequest += ctx => RequestHooks.SetDefaultVersionInUrl(ctx);
+                ;
+            });
+            return configurableBootstrapperConfigurator;
+        }
     }
 }

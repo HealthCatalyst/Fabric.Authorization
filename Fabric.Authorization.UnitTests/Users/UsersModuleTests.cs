@@ -109,6 +109,7 @@ namespace Fabric.Authorization.UnitTests.Users
                 .Dependency<RoleService>(typeof(RoleService))
                 .Dependency<PermissionService>(typeof(PermissionService))
                 .Dependency(_mockGroupStore.Object)
+                .Dependency(MockUserStore.Object)
                 .Dependency(MockLogger.Object)
                 .Dependency(MockClientStore.Object)
                 .Dependency(MockRoleStore.Object)

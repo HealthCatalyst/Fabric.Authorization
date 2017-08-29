@@ -7,19 +7,23 @@ namespace Fabric.Authorization.Domain.Models
     {
         public Group()
         {
-            this.Roles = new List<Role>();
-            this.Users = new List<User>();
+            Roles = new List<Role>();
+            Users = new List<User>();
         }
 
         public string Id { get; set; }
 
         public string Name { get; set; }
 
-        public bool IsDeleted { get; set; }
-
         public ICollection<Role> Roles { get; set; }
 
         public ICollection<User> Users { get; set; }
+
+        public string Source { get; set; }
+
+        public string Identifier => Id;
+
+        public bool IsDeleted { get; set; }
 
         public DateTime CreatedDateTimeUtc { get; set; }
 
@@ -28,9 +32,5 @@ namespace Fabric.Authorization.Domain.Models
         public string CreatedBy { get; set; }
 
         public string ModifiedBy { get; set; }
-
-        public string Identifier => Id;
-
-        public string Source { get; set; }
     }
 }

@@ -4,6 +4,7 @@ using Fabric.Authorization.Domain.Events;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
+using Fabric.Authorization.Domain.Stores.InMemory;
 using Fabric.Authorization.Domain.Stores.Services;
 using Nancy.TinyIoc;
 using Serilog.Core;
@@ -15,6 +16,7 @@ namespace Fabric.Authorization.API.Extensions
         public static TinyIoCContainer RegisterServices(this TinyIoCContainer container)
         {
             container.Register<RoleService, RoleService>();
+            container.Register<UserService, UserService>();
             container.Register<PermissionService, PermissionService>();
             container.Register<GroupService, GroupService>();
             container.Register<ClientService, ClientService>();
@@ -26,6 +28,7 @@ namespace Fabric.Authorization.API.Extensions
         public static TinyIoCContainer RegisterInMemoryStores(this TinyIoCContainer container)
         {
             container.Register<IRoleStore, InMemoryRoleStore>();
+            container.Register<IUserStore, InMemoryUserStore>();
             container.Register<IPermissionStore, InMemoryPermissionStore>();
             container.Register<IGroupStore, InMemoryGroupStore>();
             container.Register<IClientStore, InMemoryClientStore>();
@@ -57,6 +60,7 @@ namespace Fabric.Authorization.API.Extensions
                 }));
 
             container.Register<IRoleStore, CouchDbRoleStore>();
+            container.Register<IUserStore, CouchDbUserStore>();
             container.Register<IPermissionStore, CouchDbPermissionStore>();
             container.Register<IGroupStore, CouchDbGroupStore>();
             container.Register<IClientStore, CouchDbClientStore>();

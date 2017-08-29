@@ -3,16 +3,19 @@ using System.Collections.Generic;
 
 namespace Fabric.Authorization.Domain.Models
 {
-    public class User : ITrackable
+    public class User : ITrackable, IIdentifiable, ISoftDelete
     {
         public User()
         {
-            Groups = new List<Group>();
+            Groups = new List<string>();
         }
 
         public string Id { get; set; }
 
-        public string ProviderSubjectId { get; set; }
+        // TODO: should this be SubjectId?
+        public string Identifier => Id;
+
+        public string SubjectId { get; set; }
 
         public string Name { get; set; }
 
@@ -20,7 +23,7 @@ namespace Fabric.Authorization.Domain.Models
 
         public ICollection<Permission> Permissions { get; set; }
 
-        public ICollection<Group> Groups { get; set; }
+        public ICollection<string> Groups { get; set; }
 
         public bool IsDeleted { get; set; }
 

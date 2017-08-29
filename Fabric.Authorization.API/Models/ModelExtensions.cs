@@ -48,6 +48,27 @@ namespace Fabric.Authorization.API.Models
             return roleDomainModel;
         }
 
+        public static UserApiModel ToUserApiModel(this User user)
+        {
+            var userApiModel = new UserApiModel
+            {
+                SubjectId = user.SubjectId,
+                Groups = user.Groups
+            };
+
+            return userApiModel;
+        }
+
+        public static User ToUserDomainModel(this UserApiModel user)
+        {
+            var userDomainModel = new User()
+            {
+                SubjectId = user.SubjectId
+            };
+
+            return userDomainModel;
+        }
+
         public static GroupRoleApiModel ToGroupRoleApiModel(this Group group)
         {
             var groupRoleApiModel = new GroupRoleApiModel
@@ -55,6 +76,18 @@ namespace Fabric.Authorization.API.Models
                 GroupName = group.Name,
                 Id = group.Id,
                 Roles = group.Roles?.Select(r => r.ToRoleApiModel()),
+                GroupSource = group.Source
+            };
+
+            return groupRoleApiModel;
+        }
+
+        public static GroupUserApiModel ToGroupUserApiModel(this Group group)
+        {
+            var groupRoleApiModel = new GroupUserApiModel
+            {
+                GroupName = group.Name,
+                Users = group.Users?.Select(r => r.ToUserApiModel()),
                 GroupSource = group.Source
             };
 
