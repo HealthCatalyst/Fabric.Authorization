@@ -24,14 +24,14 @@ namespace Fabric.Authorization.API.Modules
             PermissionService permissionService,
             UserService userService,
             UserValidator validator,
-            ILogger logger) : base("/v1/users", logger, validator)
+            ILogger logger) : base("/v1/user", logger, validator)
         {
             _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
 
             // Get all the permissions for a user
-            Get("/permissions", async _ => await GetUserPermissions().ConfigureAwait(false), null,
+            Get("/permissions", async _ => await GetCurrentUserPermissions().ConfigureAwait(false), null,
                 "GetUserPermissions");
 
             Post("/{userId}/AdditionalPermissions",
@@ -74,7 +74,7 @@ namespace Fabric.Authorization.API.Modules
             return HttpStatusCode.NoContent;
         }
 
-        private async Task<dynamic> GetUserPermissions()
+        private async Task<dynamic> GetCurrentUserPermissions()
         {
             var userPermissionRequest = this.Bind<UserInfoRequest>();
             await SetDefaultRequest(userPermissionRequest);

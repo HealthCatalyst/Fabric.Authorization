@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
@@ -12,6 +13,8 @@ namespace Fabric.Authorization.Domain.Stores.Services
         private readonly IGroupStore _groupStore;
         private readonly IRoleStore _roleStore;
         private readonly IUserStore _userStore;
+
+        private readonly string[] _customGroupSources = {"Custom"};
 
         public GroupService(
             IGroupStore groupStore,
@@ -120,6 +123,12 @@ namespace Fabric.Authorization.Domain.Stores.Services
         public async Task<Group> AddUserToGroup(string groupName, string subjectId)
         {
             var group = await _groupStore.Get(groupName);
+
+            if (!_customGroupSources.Contains(group.Source))
+            {
+                throw new BadRequestException<Group>();
+            }
+
             User user;
             try
             {

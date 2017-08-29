@@ -6,6 +6,7 @@ using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores.Services;
 using Fabric.Authorization.Domain.Validators;
+using Microsoft.AspNetCore.Server.Kestrel;
 using Nancy;
 using Nancy.ModelBinding;
 using Nancy.Security;
@@ -227,6 +228,10 @@ namespace Fabric.Authorization.API.Modules
             catch (NotFoundException<User> ex)
             {
                 return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
+            }
+            catch (BadRequestException<Group> ex)
+            {
+                return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
             }
         }
 

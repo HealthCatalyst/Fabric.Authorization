@@ -679,6 +679,19 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [DisplayTestMethodName]
+        public void AddUserToGroup_NonCustomGroup_Fail()
+        {
+            const string group1Name = "Group1Name";
+            const string user1SubjectId = "User1SubjectId";
+
+            SetupGroup(group1Name, "Active Directory");
+            var response = SetupGroupUserMapping(group1Name, user1SubjectId);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
         public void AddUserToGroup_NonExistentGroup_Fail()
         {
             var response = SetupGroupUserMapping("NonexistentGroup", "SubjectId");
@@ -804,7 +817,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             SetupGroup(groupName, "Custom");
             SetupGroupUserMapping(groupName, "Subject1Name");
 
-            var response = Browser.Get("/users/Subject1Name/groups", with =>
+            var response = Browser.Get("/user/Subject1Name/groups", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
