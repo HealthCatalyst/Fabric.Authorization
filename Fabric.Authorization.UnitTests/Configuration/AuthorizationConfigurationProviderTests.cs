@@ -99,7 +99,7 @@ namespace Fabric.Authorization.UnitTests.Configuration
             Assert.Equal("test", config.EncryptionCertificateSettings.EncryptionCertificateThumbprint);
         }
 
-        [Fact(Skip = "")]
+        [Fact]
         public void GetConfiguration_GetsUnencryptedConfigurationFromDockerSecrets()
         {
             var certificateService = new Mock<ICertificateService>().Object;
@@ -143,7 +143,12 @@ namespace Fabric.Authorization.UnitTests.Configuration
 
         private void CreateDockerSecret(string name, string value)
         {
-            var secretFile = Path.Combine(@"/run/secrets", name);
+            var secretsDirectory = @"/run/secrets";
+            if (!Directory.Exists(secretsDirectory))
+            {
+                Directory.CreateDirectory(secretsDirectory);
+            }
+            var secretFile = Path.Combine(secretsDirectory, name);
             var setting = File.Create(secretFile);
             using (var writer = new StreamWriter(setting))
             {
