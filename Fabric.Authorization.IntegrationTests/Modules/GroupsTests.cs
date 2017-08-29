@@ -796,6 +796,27 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(0, userList.Count);
         }
 
+        [Fact]
+        [DisplayTestMethodName]
+        public void GetGroupsForUser_GroupAndUserExist_Success()
+        {
+            const string groupName = "GroupName";
+            SetupGroup(groupName, "Custom");
+            SetupGroupUserMapping(groupName, "Subject1Name");
+
+            var response = Browser.Get("/users/Subject1Name/groups", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var groupList = response.Body.DeserializeJson<string[]>();
+            Assert.Equal(1, groupList.Length);
+            Assert.Equal(groupName, groupList[0]);
+        }
+
         #endregion
     }
 }

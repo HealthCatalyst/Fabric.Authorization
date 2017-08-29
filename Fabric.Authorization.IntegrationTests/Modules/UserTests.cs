@@ -244,7 +244,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Wait();
 
             // Get the permissions
-            var get = this.Browser.Get($"/user/permissions", with =>
+            var get = this.Browser.Get("/users/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -346,7 +346,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Wait();
 
             // Get the permissions
-            var get = this.Browser.Get($"/user/permissions", with =>
+            var get = this.Browser.Get("/users/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -452,7 +452,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             // Adding blacklist (user cannot edit patient, even though role allows)
             string userId = "userprincipal";
             var granPerm = new GranularPermissionApiModel();
-            this.Browser.Post($"/user/{userId}/DeniedPermissions", with =>
+            this.Browser.Post($"/users/{userId}/DeniedPermissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -462,7 +462,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Wait();
 
             // Get the permissions
-            var get = this.Browser.Get($"/user/permissions", with =>
+            var get = this.Browser.Get("/users/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -574,7 +574,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             string userId = "userprincipal";
             var granPerm = new GranularPermissionApiModel();
-            this.Browser.Post($"/user/{userId}/AdditionalPermissions", with =>
+            this.Browser.Post($"/users/{userId}/AdditionalPermissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -584,7 +584,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Wait();
             
             // Get the permissions
-            var get = this.Browser.Get($"/user/permissions", with =>
+            var get = this.Browser.Get("/users/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -692,7 +692,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Wait();
 
             // Get the permissions
-            var get = this.Browser.Get($"/user/permissions", with =>
+            var get = this.Browser.Get("/users/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -797,7 +797,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             // Adding same permission to blacklist and whitellist
             string userId = "userprincipal";
             var granPerm = new GranularPermissionApiModel();
-            this.Browser.Post($"/user/{userId}/DeniedPermissions", with =>
+            this.Browser.Post($"/users/{userId}/DeniedPermissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -814,7 +814,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             };
 
             granPerm = new GranularPermissionApiModel();
-            this.Browser.Post($"/user/{userId}/AdditionalPermissions", with =>
+            this.Browser.Post($"/users/{userId}/AdditionalPermissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -824,7 +824,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Wait();
 
             // Get the permissions
-            var get = this.Browser.Get($"/user/permissions", with =>
+            var get = this.Browser.Get("/users/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -839,7 +839,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             // Deny modifypatient and try again
             granPerm = new GranularPermissionApiModel();
-            this.Browser.Post($"/user/{userId}/DeniedPermissions", with =>
+            this.Browser.Post($"/users/{userId}/DeniedPermissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -848,7 +848,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(granPerm);
             }).Wait();
 
-            get = this.Browser.Get($"/user/permissions", with =>
+            get = this.Browser.Get("/users/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");

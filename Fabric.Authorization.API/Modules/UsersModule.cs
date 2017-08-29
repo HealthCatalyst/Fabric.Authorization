@@ -24,7 +24,7 @@ namespace Fabric.Authorization.API.Modules
             PermissionService permissionService,
             UserService userService,
             UserValidator validator,
-            ILogger logger) : base("/v1/user", logger, validator)
+            ILogger logger) : base("/v1/users", logger, validator)
         {
             _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
