@@ -8,6 +8,7 @@ using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
+using Fabric.Authorization.Domain.Stores.InMemory;
 using Fabric.Authorization.Domain.Stores.Services;
 using Fabric.Authorization.Domain.Validators;
 using Nancy;
@@ -29,18 +30,23 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 ? new InMemoryRoleStore()
                 : (IRoleStore) new CouchDbRoleStore(DbService(), Logger, EventContextResolverService);
 
+            var userStore = useInMemoryDB
+                ? new InMemoryUserStore()
+                : (IUserStore)new CouchDbUserStore(DbService(), Logger, EventContextResolverService);
+
             var permissionStore = useInMemoryDB
                 ? new InMemoryPermissionStore()
-                : (IPermissionStore) new CouchDbPermissionStore(DbService(), Logger, EventContextResolverService);
-
-            var groupService = new GroupService(groupStore, roleStore, new RoleService(roleStore, permissionStore));
+                : (IPermissionStore)new CouchDbPermissionStore(DbService(), Logger, EventContextResolverService);
 
             var clientStore = useInMemoryDB
                 ? new InMemoryClientStore()
                 : (IClientStore)new CouchDbClientStore(DbService(), Logger, EventContextResolverService);
 
+            var groupService = new GroupService(groupStore, roleStore, userStore);
+            var userService = new UserService(userStore);
             var roleService = new RoleService(roleStore, new InMemoryPermissionStore());
             var clientService = new ClientService(clientStore);
+            var permissionService = new PermissionService(permissionStore, roleService);
 
             Browser = new Browser(with =>
             {
@@ -58,6 +64,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.Module(new ClientsModule(
                     clientService,
                     new ClientValidator(clientService),
+                    Logger));
+
+                with.Module(new UsersModule(
+                    clientService,
+                    permissionService,
+                    userService,
+                    new UserValidator(),
                     Logger));
 
                 with.RequestStartup((_, pipelines, context) =>
@@ -428,7 +441,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
-                with.FormValue("Id", roleId.ToString());
+                with.FormValue("Id", roleId);
             }).Result;
 
             return response;
@@ -572,7 +585,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [DisplayTestMethodName]
         public void DeleteRoleFromGroup_NonExistentGroupRoleMapping_Fail()
         {
-            var response = Browser.Delete("/groups/invalidGroup/roles", with =>
+            SetupGroup("Group1Name", "Custom");
+            var response = Browser.Delete("/groups/Group1Name/roles", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -603,60 +617,217 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         #region User->Group Mapping Tests 
 
+        private BrowserResponse SetupGroupUserMapping(string groupName, string subjectId)
+        {
+            var response = Browser.Post($"/groups/{groupName}/users", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("SubjectId", subjectId);
+            }).Result;
+
+            return response;
+        }
+
         [Fact]
         [DisplayTestMethodName]
         public void AddUserToGroup_GroupExists_Success()
         {
+            const string group1Name = "Group1Name";
+            const string user1SubjectId = "User1SubjectId";
 
+            SetupGroup(group1Name, "Custom");
+            var response = SetupGroupUserMapping(group1Name, user1SubjectId);
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+            response = Browser.Get($"/groups/{group1Name}/users", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var responseEntity = response.Body.DeserializeJson<GroupUserApiModel>();
+            var userList = responseEntity.Users.ToList();
+            Assert.Equal(1, userList.Count);
+            Assert.Equal(user1SubjectId, userList[0].SubjectId);
+
+            // set up another role->group mapping
+            const string group2Name = "Group2Name";
+            const string user2SubjectId = "User2SubjectId";
+
+            SetupGroup(group2Name, "Custom");
+            response = SetupGroupUserMapping(group2Name, user2SubjectId);
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+            response = Browser.Get($"/groups/{group2Name}/users", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            responseEntity = response.Body.DeserializeJson<GroupUserApiModel>();
+            userList = responseEntity.Users.ToList();
+            Assert.Equal(1, userList.Count);
+            Assert.Equal(user2SubjectId, userList[0].SubjectId);
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void AddUserToGroup_NonCustomGroup_Fail()
+        {
+            const string group1Name = "Group1Name";
+            const string user1SubjectId = "User1SubjectId";
+
+            SetupGroup(group1Name, "Active Directory");
+            var response = SetupGroupUserMapping(group1Name, user1SubjectId);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
         [Fact]
         [DisplayTestMethodName]
         public void AddUserToGroup_NonExistentGroup_Fail()
         {
-
+            var response = SetupGroupUserMapping("NonexistentGroup", "SubjectId");
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [Fact]
         [DisplayTestMethodName]
-        public void AddUserToGroup_GroupUserMappingAlreadyExists_Fail()
+        public void AddUserToGroup_GroupUserMappingAlreadyExists_Success()
         {
+            const string group1Name = "Group1Name";
+            const string subject1Id = "Subject1Id";
 
+            SetupGroup(group1Name, "Custom");
+            var response = SetupGroupUserMapping(group1Name, subject1Id);
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+            // attempt to set up the same mapping (the API treats this as an update to the existing
+            // group-user mapping)
+            response = SetupGroupUserMapping(group1Name, subject1Id);
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+            response = Browser.Get($"/groups/{group1Name}/users", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var responseEntity = response.Body.DeserializeJson<GroupUserApiModel>();
+            var userList = responseEntity.Users.ToList();
+            Assert.Equal(1, userList.Count);
+            Assert.Equal(subject1Id, userList[0].SubjectId);
         }
 
-        [Fact]
+        [Fact(Skip = "Test does not pass when run against CouchDB")]
         [DisplayTestMethodName]
         public void DeleteUserFromGroup_GroupExists_Success()
         {
+            const string group1Name = "Group1Name";
+            SetupGroup(group1Name, "Custom");
+            const string subject1Id = "Subject1Id";
+            var response = SetupGroupUserMapping(group1Name, subject1Id);
 
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+            // delete the mapping
+            response = Browser.Delete($"/groups/{group1Name}/users", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("SubjectId", subject1Id);
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            response = Browser.Get($"/groups/{group1Name}/users", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var responseEntity = response.Body.DeserializeJson<GroupUserApiModel>();
+            var userList = responseEntity.Users.ToList();
+            Assert.Equal(0, userList.Count);
         }
 
         [Fact]
         [DisplayTestMethodName]
         public void DeleteUserFromGroup_NonExistentGroup_Fail()
         {
+            var response = Browser.Delete("/groups/invalidGroup/users", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("SubjectId", "SubjectId");
+            }).Result;
 
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [Fact]
         [DisplayTestMethodName]
         public void DeleteUserFromGroup_NonExistentGroupUserMapping_Fail()
         {
+            SetupGroup("Group1Name", "Custom");
+            var response = Browser.Delete("/groups/Group1Name/users", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("SubjectId", "Subject1Id");
+            }).Result;
 
-        }
-
-        [Fact]
-        [DisplayTestMethodName]
-        public void GetUsersForGroup_GroupExists_Success()
-        {
-
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [Fact]
         [DisplayTestMethodName]
         public void GetUsersForGroup_NonExistentGroup_Fail()
         {
+            var response = Browser.Get("/groups/invalidGroup/users", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
 
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var responseEntity = response.Body.DeserializeJson<GroupUserApiModel>();
+            var userList = responseEntity.Users.ToList();
+            Assert.Equal(0, userList.Count);
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void GetGroupsForUser_GroupAndUserExist_Success()
+        {
+            const string groupName = "GroupName";
+            SetupGroup(groupName, "Custom");
+            SetupGroupUserMapping(groupName, "Subject1Name");
+
+            var response = Browser.Get("/user/Subject1Name/groups", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var groupList = response.Body.DeserializeJson<string[]>();
+            Assert.Equal(1, groupList.Length);
+            Assert.Equal(groupName, groupList[0]);
         }
 
         #endregion

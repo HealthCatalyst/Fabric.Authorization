@@ -8,6 +8,7 @@ using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
+using Fabric.Authorization.Domain.Stores.InMemory;
 using Fabric.Authorization.Domain.Stores.Services;
 using IdentityModel;
 using Nancy;
@@ -28,12 +29,14 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         public UserTests(bool useInMemoryDB = true)
         {
             var roleStore = useInMemoryDB ? new InMemoryRoleStore() : (IRoleStore)new CouchDbRoleStore(this.DbService(), this.Logger, this.EventContextResolverService);
+            var userStore = useInMemoryDB ? new InMemoryUserStore() : (IUserStore)new CouchDbUserStore(this.DbService(), this.Logger, this.EventContextResolverService);
             var groupStore = useInMemoryDB ? new InMemoryGroupStore() : (IGroupStore)new CouchDbGroupStore(this.DbService(), this.Logger, this.EventContextResolverService);
             var clientStore = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDbClientStore(this.DbService(), this.Logger, this.EventContextResolverService);
             var permissionStore = useInMemoryDB ? new InMemoryPermissionStore() : (IPermissionStore)new CouchDbPermissionStore(this.DbService(), this.Logger, this.EventContextResolverService);
 
             var roleService = new RoleService(roleStore, permissionStore);
-            var groupService = new GroupService(groupStore, roleStore, roleService);
+            var groupService = new GroupService(groupStore, roleStore, userStore);
+            var userService = new UserService(userStore);
             var clientService = new ClientService(clientStore);
             var permissionService = new PermissionService(permissionStore, roleService);
 
@@ -53,6 +56,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.Module(new UsersModule(
                         clientService,
                         permissionService,
+                        userService,
                         new Domain.Validators.UserValidator(),
                         this.Logger));
 
@@ -240,7 +244,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Wait();
 
             // Get the permissions
-            var get = this.Browser.Get($"/user/permissions", with =>
+            var get = this.Browser.Get("/user/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -342,7 +346,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Wait();
 
             // Get the permissions
-            var get = this.Browser.Get($"/user/permissions", with =>
+            var get = this.Browser.Get("/user/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -458,7 +462,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Wait();
 
             // Get the permissions
-            var get = this.Browser.Get($"/user/permissions", with =>
+            var get = this.Browser.Get("/user/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -580,7 +584,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Wait();
             
             // Get the permissions
-            var get = this.Browser.Get($"/user/permissions", with =>
+            var get = this.Browser.Get("/user/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -688,7 +692,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Wait();
 
             // Get the permissions
-            var get = this.Browser.Get($"/user/permissions", with =>
+            var get = this.Browser.Get("/user/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -820,7 +824,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Wait();
 
             // Get the permissions
-            var get = this.Browser.Get($"/user/permissions", with =>
+            var get = this.Browser.Get("/user/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -844,7 +848,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(granPerm);
             }).Wait();
 
-            get = this.Browser.Get($"/user/permissions", with =>
+            get = this.Browser.Get("/user/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");

@@ -5,23 +5,23 @@ using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 
-namespace Fabric.Authorization.Domain.Stores
+namespace Fabric.Authorization.Domain.Stores.InMemory
 {
     public class InMemoryGenericStore<T> : IGenericStore<string, T> where T : ITrackable, IIdentifiable, ISoftDelete
     {
-        protected readonly ConcurrentDictionary<string, T> _dictionary = new ConcurrentDictionary<string, T>();
+        protected readonly ConcurrentDictionary<string, T> Dictionary = new ConcurrentDictionary<string, T>();
 
         public async Task<T> Get(string id)
         {
-            if (await Exists(id).ConfigureAwait(false) && !_dictionary[id].IsDeleted)
+            if (await Exists(id).ConfigureAwait(false) && !Dictionary[id].IsDeleted)
             {
-                return _dictionary[id];
+                return Dictionary[id];
             }
 
             throw new NotFoundException<T>(id);
         }
 
-        public async virtual Task<T> Add(T model)
+        public virtual async Task<T> Add(T model)
         {
             model.Track(creation: true);
 
@@ -30,7 +30,7 @@ namespace Fabric.Authorization.Domain.Stores
                 throw new AlreadyExistsException<T>(model, model.Identifier);
             }
 
-            _dictionary.TryAdd(model.Identifier, model);
+            Dictionary.TryAdd(model.Identifier, model);
             return model;
         }
 
@@ -46,7 +46,7 @@ namespace Fabric.Authorization.Domain.Stores
 
             if (await this.Exists(model.Identifier).ConfigureAwait(false))
             {
-                if (!_dictionary.TryUpdate(model.Identifier, model, _dictionary[model.Identifier]))
+                if (!Dictionary.TryUpdate(model.Identifier, model, Dictionary[model.Identifier]))
                 {
                     throw new CouldNotCompleteOperationException();
                 }
@@ -57,8 +57,8 @@ namespace Fabric.Authorization.Domain.Stores
             }
         }
 
-        public Task<bool> Exists(string id) => Task.FromResult(_dictionary.ContainsKey(id));
+        public Task<bool> Exists(string id) => Task.FromResult(Dictionary.ContainsKey(id));
 
-        public Task<IEnumerable<T>> GetAll() => Task.FromResult(_dictionary.Values.Where(g => !g.IsDeleted));
+        public Task<IEnumerable<T>> GetAll() => Task.FromResult(Dictionary.Values.Where(g => !g.IsDeleted));
     }
 }

@@ -17,15 +17,21 @@ namespace Fabric.Authorization.API.Modules
     {
         private readonly ClientService _clientService;
         private readonly PermissionService _permissionService;
+        private readonly UserService _userService;
 
-        public UsersModule(ClientService clientService, PermissionService permissionService, UserValidator validator,
+        public UsersModule(
+            ClientService clientService,
+            PermissionService permissionService,
+            UserService userService,
+            UserValidator validator,
             ILogger logger) : base("/v1/user", logger, validator)
         {
             _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
 
             // Get all the permissions for a user
-            Get("/permissions", async _ => await GetUserPermissions().ConfigureAwait(false), null,
+            Get("/permissions", async _ => await GetCurrentUserPermissions().ConfigureAwait(false), null,
                 "GetUserPermissions");
 
             Post("/{userId}/AdditionalPermissions",
@@ -35,6 +41,15 @@ namespace Fabric.Authorization.API.Modules
             Post("/{userId}/DeniedPermissions",
                 async param => await this.AddGranularPermissions(param, denied: true).ConfigureAwait(false), null,
                 "AddDeniedPermissions");
+
+            Get("/{subjectId}/groups", async _ => await GetUserGroups().ConfigureAwait(false), null, "GetUserGroups");
+        }
+
+        private async Task<dynamic> GetUserGroups()
+        {
+            var groupUserRequest = this.Bind<GroupUserRequest>();
+            var groups = await _userService.GetGroupsForUser(groupUserRequest.SubjectId);
+            return groups;
         }
 
         private async Task<dynamic> AddGranularPermissions(dynamic param, bool denied)
@@ -59,7 +74,7 @@ namespace Fabric.Authorization.API.Modules
             return HttpStatusCode.NoContent;
         }
 
-        private async Task<dynamic> GetUserPermissions()
+        private async Task<dynamic> GetCurrentUserPermissions()
         {
             var userPermissionRequest = this.Bind<UserInfoRequest>();
             await SetDefaultRequest(userPermissionRequest);

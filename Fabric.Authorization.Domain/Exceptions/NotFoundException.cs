@@ -4,7 +4,7 @@ namespace Fabric.Authorization.Domain.Exceptions
 {
     public class NotFoundException<T> : Exception
     {
-        private T Model { get; set; }
+        private readonly T _model;
 
         public NotFoundException()
         {
@@ -12,12 +12,12 @@ namespace Fabric.Authorization.Domain.Exceptions
 
         public NotFoundException(T model)
         {
-            this.Model = model;
+            _model = model;
         }
 
         public NotFoundException(T model, string message) : base(message)
         {
-            this.Model = model;
+            _model = model;
         }
 
         public NotFoundException(string message) : base(message)
@@ -26,7 +26,7 @@ namespace Fabric.Authorization.Domain.Exceptions
 
         public NotFoundException(T model, string message, Exception inner) : base(message, inner)
         {
-            this.Model = model;
+            _model = model;
         }
     }
 }

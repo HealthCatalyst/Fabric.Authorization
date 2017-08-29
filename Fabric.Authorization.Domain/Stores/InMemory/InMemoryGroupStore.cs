@@ -1,7 +1,7 @@
 ﻿using System;
 using Fabric.Authorization.Domain.Models;
 
-namespace Fabric.Authorization.Domain.Stores
+namespace Fabric.Authorization.Domain.Stores.InMemory
 {
     public class InMemoryGroupStore : InMemoryGenericStore<Group>, IGroupStore
     {

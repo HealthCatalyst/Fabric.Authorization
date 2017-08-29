@@ -6,7 +6,6 @@ using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.ModuleExtensions;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
-using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores.Services;
 using FluentValidation;
 using Nancy;
@@ -17,8 +16,18 @@ namespace Fabric.Authorization.API.Modules
 {
     public abstract class FabricModule<T> : NancyModule
     {
-        protected AbstractValidator<T> Validator;
         protected ILogger Logger;
+        protected AbstractValidator<T> Validator;
+
+        protected FabricModule()
+        {
+        }
+
+        protected FabricModule(string path, ILogger logger, AbstractValidator<T> abstractValidator) : base(path)
+        {
+            Validator = abstractValidator ?? throw new ArgumentNullException(nameof(abstractValidator));
+            Logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
 
         protected Predicate<Claim> AuthorizationReadClaim
         {
@@ -37,16 +46,8 @@ namespace Fabric.Authorization.API.Modules
 
         protected string ClientId => Context.CurrentUser?.FindFirst(Claims.ClientId)?.Value;
 
-        protected FabricModule()
-        { }
-
-        protected FabricModule(string path, ILogger logger, AbstractValidator<T> abstractValidator) : base(path)
-        {
-            Validator = abstractValidator ?? throw new ArgumentNullException(nameof(abstractValidator));
-            Logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
-
-        protected Negotiator CreateSuccessfulPostResponse(IIdentifiable model, HttpStatusCode statusCode = HttpStatusCode.Created)
+        protected Negotiator CreateSuccessfulPostResponse(IIdentifiable model,
+            HttpStatusCode statusCode = HttpStatusCode.Created)
         {
             var uriBuilder = new UriBuilder(Request.Url.Scheme,
                 Request.Url.HostName,
@@ -67,11 +68,12 @@ namespace Fabric.Authorization.API.Modules
             return Negotiate.WithModel(error).WithStatusCode(statusCode);
         }
 
-        protected async Task CheckAccess(ClientService clientService, dynamic grain, dynamic securableItem, params Predicate<Claim>[] requiredClaims)
+        protected async Task CheckAccess(ClientService clientService, dynamic grain, dynamic securableItem,
+            params Predicate<Claim>[] requiredClaims)
         {
             string grainAsString = grain.ToString();
             string securableItemAsString = securableItem.ToString();
-            bool doesClientOwnItem = false;
+            var doesClientOwnItem = false;
 
             try
             {
@@ -86,19 +88,20 @@ namespace Fabric.Authorization.API.Modules
             this.RequiresOwnershipAndClaims<T>(doesClientOwnItem, grainAsString, securableItemAsString, requiredClaims);
         }
 
-    protected void Validate(T model)
-    {
-        var validationResults = Validator.Validate(model);
-        if (!validationResults.IsValid)
+        protected void Validate(T model)
         {
-            Logger.Information("Validation failed for model: {@model}. ValidationResults: {@validationResults}.", model, validationResults);
-            this.CreateValidationFailureResponse<T>(validationResults);
+            var validationResults = Validator.Validate(model);
+            if (!validationResults.IsValid)
+            {
+                Logger.Information("Validation failed for model: {@model}. ValidationResults: {@validationResults}.",
+                    model, validationResults);
+                this.CreateValidationFailureResponse<T>(validationResults);
+            }
+        }
+
+        protected Predicate<Claim> GetClientIdPredicate(string clientId)
+        {
+            return claim => claim.Type == Claims.ClientId && claim.Value == clientId;
         }
     }
-
-    protected Predicate<Claim> GetClientIdPredicate(string clientId)
-    {
-        return claim => claim.Type == Claims.ClientId && claim.Value == clientId;
-    }
-}
 }

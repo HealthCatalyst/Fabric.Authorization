@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 
-namespace Fabric.Authorization.Domain.Stores
+namespace Fabric.Authorization.Domain.Stores.InMemory
 {
     public class InMemoryPermissionStore : InMemoryGenericStore<Permission>, IPermissionStore
     {
@@ -23,7 +23,7 @@ namespace Fabric.Authorization.Domain.Stores
 
         public Task<IEnumerable<Permission>> GetPermissions(string grain = null, string securableItem = null, string permissionName = null)
         {
-            var permissions = _dictionary.Select(kvp => kvp.Value);
+            var permissions = Dictionary.Select(kvp => kvp.Value);
             if (!string.IsNullOrEmpty(grain))
             {
                 permissions = permissions.Where(p => p.Grain == grain);
