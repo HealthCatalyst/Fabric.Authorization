@@ -11,5 +11,6 @@ namespace Fabric.Authorization.API.Configuration
         CouchDbSettings CouchDbSettings { get; }
         ApplicationInsights ApplicationInsights { get; }
         HostingOptions HostingOptions { get; }
+        EncryptionCertificateSettings EncryptionCertificateSettings { get; }
     }
 }

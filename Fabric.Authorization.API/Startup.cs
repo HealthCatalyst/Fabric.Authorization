@@ -8,10 +8,8 @@ using Fabric.Authorization.Domain.Stores.CouchDB;
 using Fabric.Platform.Auth;
 using Fabric.Platform.Logging;
 using Fabric.Platform.Shared.Configuration;
-using Fabric.Platform.Shared.Configuration.Docker;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Nancy;
@@ -31,15 +29,7 @@ namespace Fabric.Authorization.API
 
         public Startup(IHostingEnvironment env)
         {
-            var config = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json")
-                .AddEnvironmentVariables()
-                .AddDockerSecrets(typeof(IAppConfiguration))
-                .SetBasePath(env.ContentRootPath)
-                .Build();
-            
-            _appConfig = new AppConfiguration();
-            ConfigurationBinder.Bind(config, _appConfig);
+            _appConfig = new AuthorizationConfigurationProvider(new WindowsCertificateService()).GetAppConfiguration(env.ContentRootPath);
 
             _levelSwitch = new LoggingLevelSwitch();
             _idServerSettings = _appConfig.IdentityServerConfidentialClientSettings;
