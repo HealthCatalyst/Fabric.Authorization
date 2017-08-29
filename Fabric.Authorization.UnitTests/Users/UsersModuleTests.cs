@@ -41,7 +41,7 @@ namespace Fabric.Authorization.UnitTests.Users
                 new Claim(JwtClaimTypes.Role, group),
                 new Claim(Claims.Sub, existingClient.Id)
             );
-            var result = usersModule.Get($"/user/permissions", with =>
+            var result = usersModule.Get("/users/permissions", with =>
                 {
                     with.Query("grain", grain);
                     with.Query("securableItem", securableItem);
@@ -60,7 +60,7 @@ namespace Fabric.Authorization.UnitTests.Users
                 new Claim(JwtClaimTypes.Role, @"Fabric\Health Catalyst Admin"),
                 new Claim(Claims.Sub, existingClient.Id)
                 );
-            var result = usersModule.Get($"/user/permissions").Result;
+            var result = usersModule.Get("/users/permissions").Result;
             AssertOk(result, 2);
         }
 
@@ -70,7 +70,7 @@ namespace Fabric.Authorization.UnitTests.Users
             var existingClient = ExistingClients.First();
             var usersModule = CreateBrowser(new Claim(Claims.Scope, scope),
                 new Claim(Claims.ClientId, existingClient.Id), new Claim(JwtClaimTypes.Role, @"Fabric\Health Catalyst Admin"));
-            var result = usersModule.Get($"/user/permissions", with =>
+            var result = usersModule.Get("/users/permissions", with =>
                 {
                     with.Query("grain", "app");
                     with.Query("securableItem", securableItem);
