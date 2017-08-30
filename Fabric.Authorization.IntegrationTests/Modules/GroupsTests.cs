@@ -6,6 +6,7 @@ using Fabric.Authorization.API;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
+using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
 using Fabric.Authorization.Domain.Stores.InMemory;
@@ -20,13 +21,15 @@ namespace Fabric.Authorization.IntegrationTests.Modules
     [Collection("InMemoryTests")]
     public class GroupsTests : IntegrationTestsFixture
     {
+        private readonly IRoleStore _roleStore;
+
         public GroupsTests(bool useInMemoryDB = true)
         {
             var groupStore = useInMemoryDB
                 ? new InMemoryGroupStore()
                 : (IGroupStore) new CouchDbGroupStore(DbService(), Logger, EventContextResolverService);
 
-            var roleStore = useInMemoryDB
+            _roleStore = useInMemoryDB
                 ? new InMemoryRoleStore()
                 : (IRoleStore) new CouchDbRoleStore(DbService(), Logger, EventContextResolverService);
 
@@ -42,9 +45,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 ? new InMemoryClientStore()
                 : (IClientStore)new CouchDbClientStore(DbService(), Logger, EventContextResolverService);
 
-            var groupService = new GroupService(groupStore, roleStore, userStore);
+            var groupService = new GroupService(groupStore, _roleStore, userStore);
             var userService = new UserService(userStore);
-            var roleService = new RoleService(roleStore, new InMemoryPermissionStore());
+            var roleService = new RoleService(_roleStore, new InMemoryPermissionStore());
             var clientService = new ClientService(clientStore);
             var permissionService = new PermissionService(permissionStore, roleService);
 
@@ -405,7 +408,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         #region Role->Group Mapping Tests
 
-        private void SetupGroup(string groupName, string groupSource)
+        protected void SetupGroup(string groupName, string groupSource)
         {
             var response = Browser.Post("/groups", with =>
             {
@@ -419,7 +422,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         }
 
-        private Guid? SetupRole(string roleName)
+        protected Guid SetupRole(string roleName)
         {
             var response = Browser.Post("/roles", with =>
             {
@@ -432,10 +435,15 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
-            return response.Body.DeserializeJson<RoleApiModel>().Id;
+            var id = response.Body.DeserializeJson<RoleApiModel>().Id;
+
+            if (id == null)
+                throw new Exception("Guid not generated.");
+
+            return id.Value;
         }
 
-        private BrowserResponse SetupGroupRoleMapping(string groupName, string roleId)
+        protected BrowserResponse SetupGroupRoleMapping(string groupName, string roleId)
         {
             var response = Browser.Post($"/groups/{groupName}/roles", with =>
             {
@@ -532,7 +540,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal("Role1Name", roleList[0].Name);
         }
 
-        [Fact(Skip = "Test does not pass when run against CouchDB")]
+        [Fact]
         [DisplayTestMethodName]
         public void DeleteRoleFromGroup_GroupExists_Success()
         {
@@ -564,6 +572,11 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var responseEntity = response.Body.DeserializeJson<GroupRoleApiModel>();
             var roleList = responseEntity.Roles.ToList();
             Assert.Equal(0, roleList.Count);
+
+            // ensure the deletion is reflected in the role model
+            var role = _roleStore.Get(roleId).Result;
+            var groupList = role.Groups;
+            Assert.Equal(0, groupList.Count);
         }
 
         [Fact]
@@ -617,7 +630,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         #region User->Group Mapping Tests 
 
-        private BrowserResponse SetupGroupUserMapping(string groupName, string subjectId)
+        protected BrowserResponse SetupGroupUserMapping(string groupName, string subjectId)
         {
             var response = Browser.Post($"/groups/{groupName}/users", with =>
             {
@@ -729,7 +742,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(subject1Id, userList[0].SubjectId);
         }
 
-        [Fact(Skip = "Test does not pass when run against CouchDB")]
+        [Fact]
         [DisplayTestMethodName]
         public void DeleteUserFromGroup_GroupExists_Success()
         {
@@ -761,6 +774,18 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var responseEntity = response.Body.DeserializeJson<GroupUserApiModel>();
             var userList = responseEntity.Users.ToList();
             Assert.Equal(0, userList.Count);
+
+            // ensure the deletion is reflected in the user model
+            response = Browser.Get($"/user/{subject1Id}/groups", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var groups = response.Body.DeserializeJson<string[]>();
+            Assert.Equal(0, groups.Length);
         }
 
         [Fact]

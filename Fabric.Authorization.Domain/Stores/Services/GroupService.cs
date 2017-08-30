@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
@@ -99,8 +98,9 @@ namespace Fabric.Authorization.Domain.Stores.Services
             var group = await _groupStore.Get(groupName);
             var role = await _roleStore.Get(roleId);
 
-            if (group.Roles.Any(r => r.Id == roleId))
-                group.Roles.Remove(role);
+            var groupRole = group.Roles.FirstOrDefault(r => r.Id == roleId);
+            if (groupRole != null)
+                group.Roles.Remove(groupRole);
 
             if (role.Groups.Any(g => g == groupName))
                 role.Groups.Remove(groupName);
@@ -155,8 +155,9 @@ namespace Fabric.Authorization.Domain.Stores.Services
             var group = await _groupStore.Get(groupName);
             var user = await _userStore.Get(subjectId);
 
-            if (group.Users.Any(r => r.SubjectId == subjectId))
-                group.Users.Remove(user);
+            var groupUser = group.Users.FirstOrDefault(u => u.SubjectId == subjectId);
+            if (groupUser != null)
+                group.Users.Remove(groupUser);
 
             if (user.Groups.Any(g => g == groupName))
                 user.Groups.Remove(groupName);
