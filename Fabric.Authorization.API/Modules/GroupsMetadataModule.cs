@@ -47,7 +47,7 @@ namespace Fabric.Authorization.API.Modules
                        Code = (int)HttpStatusCode.Forbidden,
                        Message = "Client does not have access"
                    },
-                   new HttpResponseMetadata
+                   new HttpResponseMetadata<Error>
                    {
                        Code = (int)HttpStatusCode.BadRequest,
                        Message = "Group already exists"
@@ -82,7 +82,7 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int)HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int)HttpStatusCode.BadRequest,
                         Message = "Group already exists"
@@ -179,7 +179,7 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int)HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int)HttpStatusCode.BadRequest,
                         Message = "Group already exists"

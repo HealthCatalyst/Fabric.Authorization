@@ -50,7 +50,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     new HttpResponseMetadata {Code = (int) HttpStatusCode.NoContent},
-                    new HttpResponseMetadata {Code = (int) HttpStatusCode.BadRequest, Message = "Bad Request"},
+                    new HttpResponseMetadata<Error> {Code = (int) HttpStatusCode.BadRequest, Message = "Bad Request"},
                     new HttpResponseMetadata
                     {
                         Code = (int) HttpStatusCode.Forbidden,
@@ -78,7 +78,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     new HttpResponseMetadata {Code = (int) HttpStatusCode.NoContent},
-                    new HttpResponseMetadata {Code = (int) HttpStatusCode.BadRequest, Message = "Bad Request"},
+                    new HttpResponseMetadata<Error> {Code = (int) HttpStatusCode.BadRequest, Message = "Bad Request"},
                     new HttpResponseMetadata
                     {
                         Code = (int) HttpStatusCode.Forbidden,
