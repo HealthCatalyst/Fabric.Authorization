@@ -31,5 +31,7 @@ convertSwagger2markup {
 	logger.info("----------OUTPUT DIR = ${dir}----------")
 	outputDir file(dir)
 
-    config = ['swagger2markup.markupLanguage' : 'MARKDOWN']
+    config = ['swagger2markup.markupLanguage' : 'MARKDOWN',
+              'swagger2markup.pathsGroupedBy' : 'TAGS',
+              'swagger2markup.interDocumentCrossReferencesEnabled' : true]
 }

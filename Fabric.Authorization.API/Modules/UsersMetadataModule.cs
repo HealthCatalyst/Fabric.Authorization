@@ -1,4 +1,5 @@
-﻿using Fabric.Authorization.API.Models;
+﻿using System.Collections.Generic;
+using Fabric.Authorization.API.Models;
 using Nancy;
 using Nancy.Swagger;
 using Nancy.Swagger.Modules;
@@ -58,7 +59,12 @@ namespace Fabric.Authorization.API.Modules
                 },
                 new[]
                 {
-                    _userIdParameter
+                    _userIdParameter,
+                    new BodyParameter<GranularPermissionApiModel>(modelCatalog)
+                    {
+                        Name = "GranularPermissions",
+                        Description = "The permissions to explicitly allow for the user."
+                    }
                 },
                 new[]
                 {
@@ -81,7 +87,12 @@ namespace Fabric.Authorization.API.Modules
                 },
                 new[]
                 {
-                    _userIdParameter
+                    _userIdParameter,
+                    new BodyParameter<GranularPermissionApiModel>(modelCatalog)
+                    {
+                        Name = "GranularPermissions",
+                        Description = "The permissions to explicitly deny for the user."
+                    }
                 },
                 new[]
                 {

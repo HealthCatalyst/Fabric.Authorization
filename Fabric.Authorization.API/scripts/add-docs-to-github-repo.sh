@@ -10,6 +10,11 @@ mv paths.md API-Reference-Resources.md
 mv definitions.md API-Reference-Models.md
 mv security.md API-Reference-Security.md
 
+sed -i 's/overview.md/API-Reference-Overview/g' *.md
+sed -i 's/paths.md/API-Reference-Resources/g' *.md
+sed -i 's/definitions.md/API-Reference-Models/g' *.md
+sed -i 's/security.md/API-Reference-Security/g' *.md
+
 mv *.md Fabric.Authorization.wiki
 
 echo "Changing directory..."

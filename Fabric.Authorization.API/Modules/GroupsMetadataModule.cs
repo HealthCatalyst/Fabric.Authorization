@@ -69,7 +69,7 @@ namespace Fabric.Authorization.API.Modules
             RouteDescriber.DescribeRouteWithParams(
                 "UpdateGroups",
                 "",
-                "Updates a list of groups",
+                "Updates a list of groups, useful for syncing 3rd party ID Provider groups with Fabric.Authorization groups.",
                 new[]
                 {
                     new HttpResponseMetadata
