@@ -1,7 +1,0 @@
-{
-  "profiles": {
-    "Fabric.Authorization.ApdexCalculator": {
-      "commandName": "Project"
-    }
-  }
-}
