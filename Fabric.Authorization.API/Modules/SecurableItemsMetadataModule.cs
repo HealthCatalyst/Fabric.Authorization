@@ -76,7 +76,7 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int)HttpStatusCode.NotFound,
                         Message = "The client was not found by client id or the securable item was not found"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int)HttpStatusCode.BadRequest,
                         Message = "The securable item id must be a guid"
@@ -107,7 +107,7 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int)HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int)HttpStatusCode.BadRequest,
                         Message = "The securable item id is not a guid, the securable item failed validation, or it already exists"
@@ -147,7 +147,7 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int)HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int)HttpStatusCode.BadRequest,
                         Message = "The securable item id is not a guid, the securable item failed validation, or it already exists"

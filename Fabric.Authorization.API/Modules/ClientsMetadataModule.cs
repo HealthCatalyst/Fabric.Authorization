@@ -27,7 +27,8 @@ namespace Fabric.Authorization.API.Modules
         {
             modelCatalog.AddModels(
                 typeof(SecurableItemApiModel),                
-                typeof(DateTime?));
+                typeof(DateTime?),
+                typeof(InnerError));
 
             RouteDescriber.DescribeRoute(
                 "GetClients",
@@ -63,7 +64,7 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int)HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int)HttpStatusCode.NotFound,
                         Message = "Client with specified id was not found"
@@ -94,10 +95,10 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int)HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int)HttpStatusCode.BadRequest,
-                        Message = "Client with specified id already exists or Client object in body failed validation"
+                        Message = "Client with specified id already exists or Client object in body failed validation"                       
                     }
                 },
                 new[]

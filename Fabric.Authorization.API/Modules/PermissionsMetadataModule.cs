@@ -101,7 +101,7 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int)HttpStatusCode.OK,
                         Message = "Permission was found"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int)HttpStatusCode.BadRequest,
                         Message = "Permission id must be a Guid"
@@ -137,7 +137,7 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int)HttpStatusCode.Created,
                         Message = "Permission was created"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int)HttpStatusCode.BadRequest,
                         Message = "Permission data in body is invalid"
@@ -172,7 +172,7 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int)HttpStatusCode.NoContent,
                         Message = "Permission with the specified id was deleted"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int)HttpStatusCode.BadRequest,
                         Message = "Permission id must be a guid"

@@ -58,10 +58,8 @@ namespace Fabric.Authorization.API
 
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
         {
-            SwaggerMetadataProvider.SetInfo("Fabric Authorization Api", "v1", "Fabric Authorization Api", new Contact
-            {
-                EmailAddress = "fabric@healthcatalyst.com"
-            });
+            SwaggerMetadataProvider.SetInfo("Fabric Authorization API", "v1",
+                "Fabric.Authorization contains a set of APIs that allow client applications to manage roles and permissions for users.");
 
             base.ApplicationStartup(container, pipelines);
 

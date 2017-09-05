@@ -112,7 +112,7 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int)HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int)HttpStatusCode.BadRequest,
                         Message = "Role with specified id already exists or Role object in body failed validation"
@@ -142,7 +142,7 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int)HttpStatusCode.NoContent,
                         Message = "Role with the specified id was deleted"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int)HttpStatusCode.BadRequest,
                         Message = "Invalid roled id provided"
@@ -183,7 +183,7 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int)HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int)HttpStatusCode.BadRequest,
                         Message = "Invalid role id, no permissions specified to add, or incompatible permission provided"
@@ -224,7 +224,7 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int)HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int)HttpStatusCode.BadRequest,
                         Message = "Invalid role id or no permissions specified to delete from role"
