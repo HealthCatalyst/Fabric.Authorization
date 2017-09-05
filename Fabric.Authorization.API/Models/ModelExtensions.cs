@@ -86,6 +86,7 @@ namespace Fabric.Authorization.API.Models
         {
             var groupRoleApiModel = new GroupUserApiModel
             {
+                Id = group.Id,
                 GroupName = group.Name,
                 Users = group.Users?.Select(r => r.ToUserApiModel()),
                 GroupSource = group.Source
@@ -98,7 +99,7 @@ namespace Fabric.Authorization.API.Models
         {
             var group = new Group
             {
-                Id = groupRoleApiModel.Id,
+                Id = string.IsNullOrEmpty(groupRoleApiModel.Id) ? groupRoleApiModel.GroupName : groupRoleApiModel.Id,
                 Name = groupRoleApiModel.GroupName,
                 Source = groupRoleApiModel.GroupSource
             };
