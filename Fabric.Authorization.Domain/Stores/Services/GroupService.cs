@@ -60,22 +60,19 @@ namespace Fabric.Authorization.Domain.Stores.Services
             return await _groupStore.Exists(id);
         }
 
-        public async Task<IEnumerable<Role>> GetRolesForGroup(string groupName, string grain = null,
-            string securableItem = null)
+        // TODO: move this out of GroupService to another library
+        public static Func<Role, string, string, bool> GroupRoleFilter = (role, grain, securableItem) =>
         {
-            if (!await _groupStore.Exists(groupName))
-                return new List<Role>();
+            var match = true;
 
-            var group = await _groupStore.Get(groupName);
+            if (!string.IsNullOrWhiteSpace(grain))
+                match = role.Grain == grain;
 
-            var roles = group.Roles;
-            if (!string.IsNullOrEmpty(grain))
-                roles = roles.Where(p => p.Grain == grain).ToList();
-            if (!string.IsNullOrEmpty(securableItem))
-                roles = roles.Where(p => p.SecurableItem == securableItem).ToList();
+            if (match && !string.IsNullOrWhiteSpace(securableItem))
+                match = role.SecurableItem == securableItem;
 
-            return roles.Where(r => !r.IsDeleted);
-        }
+            return match;
+        };
 
         public async Task<Group> AddRoleToGroup(string groupName, Guid roleId)
         {
@@ -108,16 +105,6 @@ namespace Fabric.Authorization.Domain.Stores.Services
             await _roleStore.Update(role);
             await _groupStore.Update(group);
             return group;
-        }
-
-        public async Task<IEnumerable<User>> GetUsersForGroup(string groupName)
-        {
-            if (!await _groupStore.Exists(groupName))
-                return new List<User>();
-
-            var group = await _groupStore.Get(groupName);
-            var users = group.Users;
-            return users.Where(u => !u.IsDeleted);
         }
 
         public async Task<Group> AddUserToGroup(string groupName, string subjectId)

@@ -83,7 +83,7 @@ namespace Fabric.Authorization.API.Modules
 
         private async Task<dynamic> AddGroup()
         {
-            this.RequiresClaims(AuthorizationWriteClaim, AuthorizationWriteClaim);
+            this.RequiresClaims(AuthorizationWriteClaim);
             var group = this.Bind<GroupRoleApiModel>();
             var incomingGroup = group.ToGroupDomainModel();
             Validate(incomingGroup);
@@ -120,16 +120,8 @@ namespace Fabric.Authorization.API.Modules
             {
                 this.RequiresClaims(AuthorizationReadClaim);
                 var groupRoleRequest = this.Bind<GroupRoleRequest>();
-                var roles = await _groupService.GetRolesForGroup(groupRoleRequest.GroupName, groupRoleRequest.Grain,
-                    groupRoleRequest.SecurableItem);
-
-                return new GroupRoleApiModel
-                {
-                    // RequestedGrain = groupInfoRequest.Grain,
-                    // RequestedSecurableItem = groupInfoRequest.SecurableItem,
-                    GroupName = groupRoleRequest.GroupName,
-                    Roles = roles.Select(r => r.ToRoleApiModel())
-                };
+                var group = await _groupService.GetGroup(groupRoleRequest.GroupName);
+                return group.ToGroupRoleApiModel(groupRoleRequest, GroupService.GroupRoleFilter);
             }
             catch (NotFoundException<Group> ex)
             {
@@ -191,15 +183,8 @@ namespace Fabric.Authorization.API.Modules
             {
                 this.RequiresClaims(AuthorizationReadClaim);
                 var groupUserRequest = this.Bind<GroupUserRequest>();
-                var users = await _groupService.GetUsersForGroup(groupUserRequest.GroupName);
-
-                return new GroupUserApiModel
-                {
-                    // RequestedGrain = groupInfoRequest.Grain,
-                    // RequestedSecurableItem = groupInfoRequest.SecurableItem,
-                    GroupName = groupUserRequest.GroupName,
-                    Users = users.Select(u => u.ToUserApiModel())
-                };
+                var group = await _groupService.GetGroup(groupUserRequest.GroupName);
+                return group.ToGroupUserApiModel();
             }
             catch (NotFoundException<Group> ex)
             {

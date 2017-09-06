@@ -73,9 +73,25 @@ namespace Fabric.Authorization.API.Models
         {
             var groupRoleApiModel = new GroupRoleApiModel
             {
-                GroupName = group.Name,
                 Id = group.Id,
-                Roles = group.Roles?.Select(r => r.ToRoleApiModel()),
+                GroupName = group.Name,
+                Roles = group.Roles?.Where(r => !r.IsDeleted).Select(r => r.ToRoleApiModel()),
+                GroupSource = group.Source
+            };
+
+            return groupRoleApiModel;
+        }
+
+        public static GroupRoleApiModel ToGroupRoleApiModel(this Group group, GroupRoleRequest groupRoleRequest, Func<Role, string, string, bool> groupRoleFilter)
+        {
+            var groupRoleApiModel = new GroupRoleApiModel
+            {
+                Id = group.Id,
+                GroupName = group.Name,
+                Roles = group.Roles?
+                    .Where(r => !r.IsDeleted 
+                        && groupRoleFilter(r, groupRoleRequest.Grain, groupRoleRequest.SecurableItem))
+                    .Select(r => r.ToRoleApiModel()),
                 GroupSource = group.Source
             };
 
@@ -84,15 +100,15 @@ namespace Fabric.Authorization.API.Models
 
         public static GroupUserApiModel ToGroupUserApiModel(this Group group)
         {
-            var groupRoleApiModel = new GroupUserApiModel
+            var groupUserApiModel = new GroupUserApiModel
             {
                 Id = group.Id,
                 GroupName = group.Name,
-                Users = group.Users?.Select(r => r.ToUserApiModel()),
+                Users = group.Users?.Where(u => !u.IsDeleted).Select(r => r.ToUserApiModel()),
                 GroupSource = group.Source
             };
 
-            return groupRoleApiModel;
+            return groupUserApiModel;
         }
 
         public static Group ToGroupDomainModel(this GroupRoleApiModel groupRoleApiModel)
