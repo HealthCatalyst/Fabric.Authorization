@@ -74,11 +74,6 @@ namespace Fabric.Authorization.API.Services
 
         public async Task<T> GetDocument<T>(string documentId)
         {
-            if (!initialized)
-            {
-                await Initialize();
-            }
-
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
                 var documentResponse = await client.Documents.GetAsync(GetFullDocumentId<T>(documentId));
@@ -98,11 +93,6 @@ namespace Fabric.Authorization.API.Services
 
         public async Task<IEnumerable<T>> GetDocuments<T>(string documentType)
         {
-            if (!initialized)
-            {
-                await Initialize();
-            }
-
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
                 var viewQuery = new QueryViewRequest(SystemViewIdentity.AllDocs)
@@ -133,11 +123,6 @@ namespace Fabric.Authorization.API.Services
 
         public async Task<int> GetDocumentCount(string documentType)
         {
-            if (!initialized)
-            {
-                await Initialize();
-            }
-
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
                 var viewQuery = new QueryViewRequest("TODO", documentType);
@@ -153,11 +138,6 @@ namespace Fabric.Authorization.API.Services
 
         public async Task AddDocument<T>(string documentId, T documentObject)
         {
-            if (!initialized)
-            {
-                await Initialize();
-            }
-
             var fullDocumentId = GetFullDocumentId<T>(documentId);
 
             using (var client = new MyCouchClient(DbConnectionInfo))
@@ -181,11 +161,6 @@ namespace Fabric.Authorization.API.Services
 
         public async Task UpdateDocument<T>(string documentId, T documentObject)
         {
-            if (!initialized)
-            {
-                await Initialize();
-            }
-
             var fullDocumentId = GetFullDocumentId<T>(documentId);
 
             using (var client = new MyCouchClient(DbConnectionInfo))
@@ -209,11 +184,6 @@ namespace Fabric.Authorization.API.Services
 
         public async Task DeleteDocument<T>(string documentId)
         {
-            if (!initialized)
-            {
-                await Initialize();
-            }
-
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
                 var documentResponse = await client.Documents.GetAsync(GetFullDocumentId<T>(documentId));
@@ -224,11 +194,6 @@ namespace Fabric.Authorization.API.Services
 
         private async Task Delete(string documentId, string rev)
         {
-            if (!initialized)
-            {
-                await Initialize();
-            }
-
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
                 var response = await client.Documents.DeleteAsync(documentId, rev);
@@ -242,11 +207,6 @@ namespace Fabric.Authorization.API.Services
 
         public async Task AddViews(string documentId, CouchDbViews views)
         {
-            if (!initialized)
-            {            
-                await Initialize();             
-            }
-
             var fullDocumentId = $"_design/{documentId}";
 
             using (var client = new MyCouchClient(DbConnectionInfo))
@@ -274,11 +234,6 @@ namespace Fabric.Authorization.API.Services
 
         public async Task<IEnumerable<T>> GetDocuments<T>(string designdoc, string viewName, Dictionary<string, object> customParams)
         {
-            if (!initialized)
-            {
-                await Initialize();
-            }
-
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
                 var viewQuery = new QueryViewRequest(designdoc, viewName);
@@ -305,11 +260,6 @@ namespace Fabric.Authorization.API.Services
 
         public async Task<IEnumerable<T>> GetDocuments<T>(string designdoc, string viewName, string key)
         {
-            if (!initialized)
-            {
-                await Initialize();
-            }
-
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
                 var viewQuery = new QueryViewRequest(designdoc, viewName);
