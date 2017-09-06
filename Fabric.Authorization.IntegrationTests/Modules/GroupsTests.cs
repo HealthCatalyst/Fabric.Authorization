@@ -611,7 +611,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [DisplayTestMethodName]
-        public void GetRolesForGroup_NonExistentGroup_Success()
+        public void GetRolesForGroup_NonExistentGroup_Fail()
         {
             var response = Browser.Get("/groups/invalidGroup/roles", with =>
             {
@@ -619,11 +619,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.Header("Accept", "application/json");
             }).Result;
 
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            var responseEntity = response.Body.DeserializeJson<GroupRoleApiModel>();
-            var roleList = responseEntity.Roles.ToList();
-            Assert.Equal(0, roleList.Count);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         #endregion
@@ -827,11 +823,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.Header("Accept", "application/json");
             }).Result;
 
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            var responseEntity = response.Body.DeserializeJson<GroupUserApiModel>();
-            var userList = responseEntity.Users.ToList();
-            Assert.Equal(0, userList.Count);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [Fact]
