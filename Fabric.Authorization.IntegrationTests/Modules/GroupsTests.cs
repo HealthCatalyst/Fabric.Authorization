@@ -123,7 +123,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var postResponse = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", groupName);
                 with.FormValue("GroupName", groupName);
                 with.FormValue("GroupSource", groupSource);
                 with.Header("Accept", "application/json");
@@ -207,7 +206,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var postResponse = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", groupName);
                 with.FormValue("GroupName", groupName);
                 with.FormValue("GroupSource", groupSource);
                 with.Header("Accept", "application/json");
@@ -224,7 +222,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var postResponse = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", "GroupId");
                 with.FormValue("GroupSource", groupSource);
                 with.Header("Accept", "application/json");
             }).Result;
@@ -241,7 +238,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var postResponse = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", groupName);
                 with.FormValue("GroupName", groupName);
                 with.FormValue("GroupSource", groupSource);
                 with.Header("Accept", "application/json");
@@ -258,7 +254,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var postResponse = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", groupName);
                 with.FormValue("GroupName", groupName);
                 with.Header("Accept", "application/json");
             }).Result;
@@ -275,7 +270,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", groupName);
                 with.FormValue("GroupName", groupName);
                 with.Header("Accept", "application/json");
             }).Wait();
@@ -284,7 +278,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var postResponse = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", groupName);
                 with.FormValue("GroupName", groupName);
                 with.Header("Accept", "application/json");
             }).Result;
@@ -376,7 +369,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", groupName);
                 with.FormValue("GroupName", groupName);
                 with.FormValue("GroupSource", groupSource);
                 with.Header("Accept", "application/json");
@@ -413,7 +405,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var response = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", groupName);
                 with.FormValue("GroupName", groupName);
                 with.FormValue("GroupSource", groupSource);
                 with.Header("Accept", "application/json");
