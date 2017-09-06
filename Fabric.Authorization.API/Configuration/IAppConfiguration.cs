@@ -12,5 +12,6 @@ namespace Fabric.Authorization.API.Configuration
         ApplicationInsights ApplicationInsights { get; }
         HostingOptions HostingOptions { get; }
         EncryptionCertificateSettings EncryptionCertificateSettings { get; }
+        DefaultPropertySettings DefaultPropertySettings{ get; set; }
     }
 }

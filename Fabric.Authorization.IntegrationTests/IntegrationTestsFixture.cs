@@ -26,6 +26,11 @@ namespace Fabric.Authorization.IntegrationTests
 
         private readonly string CouchDbServerEnvironmentVariable = "COUCHDBSETTINGS__SERVER";
 
+        protected DefaultPropertySettings DefaultPropertySettings = new DefaultPropertySettings
+        {
+            GroupSource = "Windows"
+        };
+
         protected IDocumentDbService DbService()
         {
             if (dbService == null)

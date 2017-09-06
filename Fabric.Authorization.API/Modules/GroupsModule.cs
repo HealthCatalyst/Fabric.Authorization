@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
@@ -18,8 +19,11 @@ namespace Fabric.Authorization.API.Modules
     {
         private readonly GroupService _groupService;
 
-        public GroupsModule(GroupService groupService, GroupValidator validator, ILogger logger) : base(
-            "/v1/groups", logger, validator)
+        public GroupsModule(
+            GroupService groupService,
+            GroupValidator validator,
+            ILogger logger,
+            DefaultPropertySettings defaultPropertySettings = null) : base("/v1/groups", logger, validator, defaultPropertySettings)
         {
             _groupService = groupService;
 
@@ -86,6 +90,12 @@ namespace Fabric.Authorization.API.Modules
             this.RequiresClaims(AuthorizationWriteClaim);
             var group = this.Bind<GroupRoleApiModel>();
             var incomingGroup = group.ToGroupDomainModel();
+
+            if (string.IsNullOrWhiteSpace(incomingGroup.Source))
+            {
+                incomingGroup.Source = DefaultPropertySettings.GroupSource;
+            }
+            
             Validate(incomingGroup);
 
             try

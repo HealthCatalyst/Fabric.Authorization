@@ -61,15 +61,19 @@ namespace Fabric.Authorization.Domain.Stores.Services
         }
 
         // TODO: move this out of GroupService to another library
-        public static Func<Role, string, string, bool> GroupRoleFilter = (role, grain, securableItem) =>
+        public static readonly Func<Role, string, string, bool> GroupRoleFilter = (role, grain, securableItem) =>
         {
             var match = true;
 
             if (!string.IsNullOrWhiteSpace(grain))
+            {
                 match = role.Grain == grain;
+            }
 
             if (match && !string.IsNullOrWhiteSpace(securableItem))
+            {
                 match = role.SecurableItem == securableItem;
+            }
 
             return match;
         };

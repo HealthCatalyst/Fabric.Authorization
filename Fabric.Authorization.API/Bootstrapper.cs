@@ -20,7 +20,6 @@ using Nancy.Swagger.Services;
 using Nancy.TinyIoc;
 using Serilog;
 using Serilog.Core;
-using Swagger.ObjectModel;
 
 namespace Fabric.Authorization.API
 {
