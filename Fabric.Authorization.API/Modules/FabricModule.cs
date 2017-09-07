@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.ModuleExtensions;
@@ -18,15 +19,17 @@ namespace Fabric.Authorization.API.Modules
     {
         protected ILogger Logger;
         protected AbstractValidator<T> Validator;
+        protected IPropertySettings PropertySettings { get; set; }
 
         protected FabricModule()
         {
         }
 
-        protected FabricModule(string path, ILogger logger, AbstractValidator<T> abstractValidator) : base(path)
+        protected FabricModule(string path, ILogger logger, AbstractValidator<T> abstractValidator, IPropertySettings propertySettings = null) : base(path)
         {
             Validator = abstractValidator ?? throw new ArgumentNullException(nameof(abstractValidator));
             Logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            PropertySettings = propertySettings;
         }
 
         protected Predicate<Claim> AuthorizationReadClaim

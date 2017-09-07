@@ -20,7 +20,6 @@ using Nancy.Swagger.Services;
 using Nancy.TinyIoc;
 using Serilog;
 using Serilog.Core;
-using Swagger.ObjectModel;
 
 namespace Fabric.Authorization.API
 {
@@ -89,6 +88,7 @@ namespace Fabric.Authorization.API
             container.Register<IEventWriter>(serilogEventWriter, "innerEventWriter");
             container.Register(options);
             container.Register<ICouchDbSettings>(_appConfig.CouchDbSettings);
+            container.Register<IPropertySettings>(_appConfig.DefaultPropertySettings);
             container.Register(typeof(IOptions<>), typeof(OptionsManager<>));
             container.Register<IMemoryCache, MemoryCache>();
             if (_appConfig.UseInMemoryStores)

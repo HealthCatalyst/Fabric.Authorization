@@ -6,7 +6,6 @@ using Fabric.Authorization.API;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
-using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
 using Fabric.Authorization.Domain.Stores.InMemory;
@@ -56,7 +55,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.Module(new GroupsModule(
                     groupService,
                     new GroupValidator(groupService),
-                    Logger));
+                    Logger,
+                    DefaultPropertySettings));
 
                 with.Module(new RolesModule(
                     roleService,
@@ -102,7 +102,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [DisplayTestMethodName]
         [InlineData("NonexistentGroup")]
         [InlineData("NonexistentGroup2")]
-        public void GetGroup_NonexistentGroup_Fail(string groupName)
+        public void GetGroup_NonexistentGroup_NotFound(string groupName)
         {
             var get = Browser.Get($"/groups/{groupName}", with =>
             {
@@ -123,7 +123,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var postResponse = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", groupName);
                 with.FormValue("GroupName", groupName);
                 with.FormValue("GroupSource", groupSource);
                 with.Header("Accept", "application/json");
@@ -207,7 +206,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var postResponse = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", groupName);
                 with.FormValue("GroupName", groupName);
                 with.FormValue("GroupSource", groupSource);
                 with.Header("Accept", "application/json");
@@ -224,7 +222,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var postResponse = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", "GroupId");
                 with.FormValue("GroupSource", groupSource);
                 with.Header("Accept", "application/json");
             }).Result;
@@ -236,46 +233,61 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [DisplayTestMethodName]
         [InlineData("Source1", "")]
         [InlineData("Source2", null)]
-        public void AddGroup_NullOrEmptySource_BadRequest(string groupName, string groupSource)
+        public void AddGroup_NullOrEmptySource_Success(string groupName, string groupSource)
         {
             var postResponse = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", groupName);
                 with.FormValue("GroupName", groupName);
                 with.FormValue("GroupSource", groupSource);
                 with.Header("Accept", "application/json");
             }).Result;
 
-            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+
+            var getResponse = Browser.Get($"/groups/{groupName}", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            var source = getResponse.Body.DeserializeJson<GroupRoleApiModel>().GroupSource;
+            Assert.Equal(DefaultPropertySettings.GroupSource, source);
         }
 
         [Theory]
         [DisplayTestMethodName]
         [InlineData("Name1")]
-        public void AddGroup_MissingSource_BadRequest(string groupName)
+        public void AddGroup_MissingSource_Success(string groupName)
         {
             var postResponse = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", groupName);
                 with.FormValue("GroupName", groupName);
                 with.Header("Accept", "application/json");
             }).Result;
 
-            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+
+            var getResponse = Browser.Get($"/groups/{groupName}", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            var source = getResponse.Body.DeserializeJson<GroupRoleApiModel>().GroupSource;
+            Assert.Equal(DefaultPropertySettings.GroupSource, source);
         }
 
         [Theory]
         [DisplayTestMethodName]
         [InlineData("RepeatedGroup1")]
         [InlineData("RepeatedGroup2")]
-        public void AddGroup_AlreadyExists_Fail(string groupName)
+        public void AddGroup_AlreadyExists_BadRequest(string groupName)
         {
             Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", groupName);
                 with.FormValue("GroupName", groupName);
                 with.Header("Accept", "application/json");
             }).Wait();
@@ -284,7 +296,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var postResponse = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", groupName);
                 with.FormValue("GroupName", groupName);
                 with.Header("Accept", "application/json");
             }).Result;
@@ -376,7 +387,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", groupName);
                 with.FormValue("GroupName", groupName);
                 with.FormValue("GroupSource", groupSource);
                 with.Header("Accept", "application/json");
@@ -395,7 +405,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [DisplayTestMethodName]
         [InlineData("NonexistentGroup")]
         [InlineData("NonexistentGroup2")]
-        public void DeleteGroup_NonExistentGroup_Fail(string groupName)
+        public void DeleteGroup_NonExistentGroup_NotFound(string groupName)
         {
             var delete = Browser.Delete($"/groups/{groupName}", with =>
             {
@@ -413,7 +423,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var response = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", groupName);
                 with.FormValue("GroupName", groupName);
                 with.FormValue("GroupSource", groupSource);
                 with.Header("Accept", "application/json");
@@ -503,7 +512,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [DisplayTestMethodName]
-        public void AddRoleToGroup_NonExistentGroup_Fail()
+        public void AddRoleToGroup_NonExistentGroup_NotFound()
         {
             var roleId = SetupRole("RoleName");
             var response = SetupGroupRoleMapping("NonexistentGroup", roleId.ToString());
@@ -581,7 +590,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [DisplayTestMethodName]
-        public void DeleteRoleFromGroup_NonExistentGroup_Fail()
+        public void DeleteRoleFromGroup_NonExistentGroup_NotFound()
         {
             var roleId = SetupRole("RoleName");
             var response = Browser.Delete("/groups/invalidGroup/roles", with =>
@@ -596,7 +605,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [DisplayTestMethodName]
-        public void DeleteRoleFromGroup_NonExistentGroupRoleMapping_Fail()
+        public void DeleteRoleFromGroup_NonExistentGroupRoleMapping_NotFound()
         {
             SetupGroup("Group1Name", "Custom");
             var response = Browser.Delete("/groups/Group1Name/roles", with =>
@@ -611,7 +620,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [DisplayTestMethodName]
-        public void GetRolesForGroup_NonExistentGroup_Fail()
+        public void GetRolesForGroup_NonExistentGroup_NotFound()
         {
             var response = Browser.Get("/groups/invalidGroup/roles", with =>
             {
@@ -688,7 +697,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [DisplayTestMethodName]
-        public void AddUserToGroup_NonCustomGroup_Fail()
+        public void AddUserToGroup_NonCustomGroup_BadRequest()
         {
             const string group1Name = "Group1Name";
             const string user1SubjectId = "User1SubjectId";
@@ -701,7 +710,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [DisplayTestMethodName]
-        public void AddUserToGroup_NonExistentGroup_Fail()
+        public void AddUserToGroup_NonExistentGroup_NotFound()
         {
             var response = SetupGroupUserMapping("NonexistentGroup", "SubjectId");
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -786,7 +795,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [DisplayTestMethodName]
-        public void DeleteUserFromGroup_NonExistentGroup_Fail()
+        public void DeleteUserFromGroup_NonExistentGroup_NotFound()
         {
             var response = Browser.Delete("/groups/invalidGroup/users", with =>
             {
@@ -800,7 +809,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [DisplayTestMethodName]
-        public void DeleteUserFromGroup_NonExistentGroupUserMapping_Fail()
+        public void DeleteUserFromGroup_NonExistentGroupUserMapping_NotFound()
         {
             SetupGroup("Group1Name", "Custom");
             var response = Browser.Delete("/groups/Group1Name/users", with =>
@@ -815,7 +824,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [DisplayTestMethodName]
-        public void GetUsersForGroup_NonExistentGroup_Fail()
+        public void GetUsersForGroup_NonExistentGroup_NotFound()
         {
             var response = Browser.Get("/groups/invalidGroup/users", with =>
             {

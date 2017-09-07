@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Fabric.Authorization.API.Configuration;
+﻿using Fabric.Authorization.API.Configuration;
 using Microsoft.AspNetCore.Hosting;
 
 namespace Fabric.Authorization.API.Extensions
@@ -13,9 +9,7 @@ namespace Fabric.Authorization.API.Extensions
             IAppConfiguration appConfiguration)
         {
             if (appConfiguration.HostingOptions != null && appConfiguration.HostingOptions.UseIis)
-            {
                 builder.UseIISIntegration();
-            }
             return builder;
         }
     }
