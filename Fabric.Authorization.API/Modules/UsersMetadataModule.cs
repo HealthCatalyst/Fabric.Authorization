@@ -11,24 +11,34 @@ namespace Fabric.Authorization.API.Modules
 {
     public class UsersMetadataModule : SwaggerMetadataModule
     {
-        private readonly Tag _usersTag = new Tag {Name = "Users", Description = "Operations related to user permissions"};
         private readonly Parameter _userIdParameter = new Parameter
         {
             Name = "userId",
             Description = "UserId to use for the request",
             In = ParameterIn.Path,
-            Required = true,            
+            Required = true,
             Type = "integer"
         };
 
-    public UsersMetadataModule(ISwaggerModelCatalog modelCatalog, ISwaggerTagCatalog tagCatalog) 
+        private readonly Parameter _subjectIdParameter = new Parameter
+        {
+            Name = "subjectId",
+            Description = "Subject ID (from external identity provider)",
+            In = ParameterIn.Path,
+            Required = true,
+            Type = "string"
+        };
+
+        private readonly Tag _usersTag =
+            new Tag {Name = "Users", Description = "Operations related to user permissions"};
+
+        public UsersMetadataModule(ISwaggerModelCatalog modelCatalog, ISwaggerTagCatalog tagCatalog)
             : base(modelCatalog, tagCatalog)
         {
-
             RouteDescriber.DescribeRoute(
-                "GetUserPermissions", 
+                "GetUserPermissions",
                 "",
-                "Gets permissions for a user", 
+                "Gets permissions for a user",
                 new[]
                 {
                     new HttpResponseMetadata<UserPermissionsApiModel> {Code = (int) HttpStatusCode.OK, Message = "OK"},
@@ -44,9 +54,9 @@ namespace Fabric.Authorization.API.Modules
                 });
 
             RouteDescriber.DescribeRouteWithParams(
-                "AddPermissions", 
-                "", 
-                "Adds granular permissions for a user", 
+                "AddPermissions",
+                "",
+                "Adds granular permissions for a user",
                 new[]
                 {
                     new HttpResponseMetadata {Code = (int) HttpStatusCode.NoContent},
@@ -99,6 +109,37 @@ namespace Fabric.Authorization.API.Modules
                     _usersTag
                 });
 
+
+            RouteDescriber.DescribeRouteWithParams(
+                "GetUserGroups",
+                "",
+                "Gets groups for a user",
+                new[]
+                {
+                    new HttpResponseMetadata<IEnumerable<string>>
+                    {
+                        Code = (int) HttpStatusCode.OK,
+                        Message = "List of strings representing group names in which the user belongs"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.Forbidden,
+                        Message = "Client does not have access"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.NotFound,
+                        Message = "User was not found"
+                    }
+                },
+                new []
+                {
+                    _subjectIdParameter
+                },
+                new[]
+                {
+                    _usersTag
+                });
         }
     }
 }
