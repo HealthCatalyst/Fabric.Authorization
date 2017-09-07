@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Reflection.Metadata;
 using Fabric.Authorization.API.Models;
 using Nancy;
 using Nancy.Swagger;
@@ -9,13 +7,12 @@ using Nancy.Swagger.Modules;
 using Nancy.Swagger.Services;
 using Nancy.Swagger.Services.RouteUtils;
 using Swagger.ObjectModel;
+using Parameter = Swagger.ObjectModel.Parameter;
 
 namespace Fabric.Authorization.API.Modules
 {
     public class GroupsMetadataModule : SwaggerMetadataModule
     {
-        private readonly Tag _groupsTag = new Tag { Name = "Groups", Description = "Operations for managing groups" };
-
         private readonly Parameter _groupNameParameter = new Parameter
         {
             Name = "groupName",
@@ -25,46 +22,86 @@ namespace Fabric.Authorization.API.Modules
             In = ParameterIn.Path
         };
 
-        public GroupsMetadataModule(ISwaggerModelCatalog modelCatalog, ISwaggerTagCatalog tagCatalog) 
+        private readonly Parameter _subjectIdParameter = new Parameter
+        {
+            Name = "subjectId",
+            Description = "Subject ID of the user",
+            Type = "string",
+            Required = true,
+            In = ParameterIn.Body
+        };
+
+        private readonly Parameter _roleIdParameter = new Parameter
+        {
+            Name = "Id",
+            Description = "Role ID (GUID)",
+            Type = "string",
+            Required = true,
+            In = ParameterIn.Body
+        };
+
+        private readonly Parameter _grainParameter = new Parameter
+        {
+            Name = "grain",
+            Description = "grain",
+            Required = false,
+            Type = "string",
+            In = ParameterIn.Query
+        };
+
+        private readonly Parameter _securableItemParameter = new Parameter
+        {
+            Name = "securableItem",
+            Description = "securable item",
+            Required = false,
+            Type = "string",
+            In = ParameterIn.Query
+        };
+
+        private readonly Tag _groupsTag = new Tag {Name = "Groups", Description = "Operations for managing groups"};
+
+        public GroupsMetadataModule(ISwaggerModelCatalog modelCatalog, ISwaggerTagCatalog tagCatalog)
             : base(modelCatalog, tagCatalog)
         {
             modelCatalog.AddModels(
-                typeof(GroupRoleApiModel));
+                typeof(GroupRoleApiModel),
+                typeof(GroupUserApiModel),
+                typeof(UserApiModel));
 
-           RouteDescriber.DescribeRouteWithParams(
-               "AddGroup",
-               "",
-               "Adds a new group",
-               new []
-               {
-                   new HttpResponseMetadata<GroupRoleApiModel>
-                   {
-                       Code = (int)HttpStatusCode.Created,
-                       Message = "Created"
-                   },
-                   new HttpResponseMetadata
-                   {
-                       Code = (int)HttpStatusCode.Forbidden,
-                       Message = "Client does not have access"
-                   },
-                   new HttpResponseMetadata<Error>
-                   {
-                       Code = (int)HttpStatusCode.BadRequest,
-                       Message = "Group already exists"
-                   }
-               },
-               new []
-               {
-                   new BodyParameter<GroupRoleApiModel>(modelCatalog)
-                   {
+            RouteDescriber.DescribeRouteWithParams(
+                "AddGroup",
+                "GroupSource can only be 'Custom' or a 3rd party identity provider (e.g., Windows, Azure Active Directory, Google)",
+                "Adds a new group",
+                new[]
+                {
+                    new HttpResponseMetadata<GroupRoleApiModel>
+                    {
+                        Code = (int) HttpStatusCode.Created,
+                        Message = "Created"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.Forbidden,
+                        Message = "Client does not have access"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.BadRequest,
+                        Message = "Group already exists"
+                    }
+                },
+                new[]
+                {
+                    new BodyParameter<GroupRoleApiModel>(modelCatalog)
+                    {
                         Name = "Group",
                         Description = "The group to add"
-                   }
-               },
-               new []
-               {
-                   _groupsTag
-               });
+                    }
+                },
+                new[]
+                {
+                    _groupsTag
+                });
 
             RouteDescriber.DescribeRouteWithParams(
                 "UpdateGroups",
@@ -74,17 +111,17 @@ namespace Fabric.Authorization.API.Modules
                 {
                     new HttpResponseMetadata
                     {
-                        Code = (int)HttpStatusCode.NoContent,
+                        Code = (int) HttpStatusCode.NoContent,
                         Message = "Groups updated"
                     },
                     new HttpResponseMetadata
                     {
-                        Code = (int)HttpStatusCode.Forbidden,
+                        Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
                     new HttpResponseMetadata<Error>
                     {
-                        Code = (int)HttpStatusCode.BadRequest,
+                        Code = (int) HttpStatusCode.BadRequest,
                         Message = "Group already exists"
                     }
                 },
@@ -105,21 +142,21 @@ namespace Fabric.Authorization.API.Modules
                 "GetGroup",
                 "",
                 "Gets a group by name",
-                new []
+                new[]
                 {
                     new HttpResponseMetadata<GroupRoleApiModel>
                     {
-                        Code = (int)HttpStatusCode.OK,
+                        Code = (int) HttpStatusCode.OK,
                         Message = "OK"
                     },
                     new HttpResponseMetadata
                     {
-                        Code = (int)HttpStatusCode.Forbidden,
+                        Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
                     new HttpResponseMetadata
                     {
-                        Code = (int)HttpStatusCode.NotFound,
+                        Code = (int) HttpStatusCode.NotFound,
                         Message = "Group with specified name was not found"
                     }
                 },
@@ -127,10 +164,43 @@ namespace Fabric.Authorization.API.Modules
                 {
                     _groupNameParameter
                 },
-                new []
+                new[]
                 {
                     _groupsTag
                 });
+
+            RouteDescriber.DescribeRouteWithParams(
+                "DeleteGroup",
+                "",
+                "Deletes a group",
+                new[]
+                {
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.NoContent,
+                        Message = "Group deleted"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.Forbidden,
+                        Message = "Client does not have access"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.NotFound,
+                        Message = "Group with specified name was not found"
+                    }
+                },
+                new[]
+                {
+                    _groupNameParameter
+                },
+                new[]
+                {
+                    _groupsTag
+                });
+
+            #region Group -> Role Mapping Docs
 
             RouteDescriber.DescribeRouteWithParams(
                 "GetRolesFromGroup",
@@ -140,23 +210,25 @@ namespace Fabric.Authorization.API.Modules
                 {
                     new HttpResponseMetadata<GroupRoleApiModel>
                     {
-                        Code = (int)HttpStatusCode.OK,
+                        Code = (int) HttpStatusCode.OK,
                         Message = "OK"
                     },
                     new HttpResponseMetadata
                     {
-                        Code = (int)HttpStatusCode.Forbidden,
+                        Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
                     new HttpResponseMetadata
                     {
-                        Code = (int)HttpStatusCode.NotFound,
+                        Code = (int) HttpStatusCode.NotFound,
                         Message = "Group with specified name was not found"
                     }
                 },
                 new[]
                 {
-                    _groupNameParameter
+                    _groupNameParameter,
+                    _securableItemParameter,
+                    _grainParameter
                 },
                 new[]
                 {
@@ -171,66 +243,26 @@ namespace Fabric.Authorization.API.Modules
                 {
                     new HttpResponseMetadata<GroupRoleApiModel>
                     {
-                        Code = (int)HttpStatusCode.Created,
+                        Code = (int) HttpStatusCode.Created,
                         Message = "Created"
                     },
                     new HttpResponseMetadata
                     {
-                        Code = (int)HttpStatusCode.Forbidden,
+                        Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
-                    },
-                    new HttpResponseMetadata<Error>
-                    {
-                        Code = (int)HttpStatusCode.BadRequest,
-                        Message = "Group already exists"
                     },
                     new HttpResponseMetadata
                     {
-                        Code = (int)HttpStatusCode.NotFound,
+                        Code = (int) HttpStatusCode.NotFound,
                         Message = "Group with specified name was not found or the role was not found"
                     }
                 },
                 new[]
                 {
                     _groupNameParameter,
-                    new BodyParameter<RoleApiModel>(modelCatalog)
-                    {
-                        Name = "Role",
-                        Description = "The role to add to the group"
-                    }
+                    _roleIdParameter
                 },
                 new[]
-                {
-                    _groupsTag
-                });
-
-            RouteDescriber.DescribeRouteWithParams(
-                "DeleteGroup",
-                "",
-                "Deletes a group",
-                new []
-                {
-                    new HttpResponseMetadata
-                    {
-                        Code = (int)HttpStatusCode.NoContent,
-                        Message = "Group deleted"
-                    },
-                    new HttpResponseMetadata
-                    {
-                        Code = (int)HttpStatusCode.Forbidden,
-                        Message = "Client does not have access"
-                    },
-                    new HttpResponseMetadata
-                    {
-                        Code = (int)HttpStatusCode.NotFound,
-                        Message = "Group with specified name was not found"
-                    }
-                },
-                new []
-                {
-                    _groupNameParameter
-                },
-                new []
                 {
                     _groupsTag
                 });
@@ -241,35 +273,137 @@ namespace Fabric.Authorization.API.Modules
                 "Deletes a role from a group",
                 new[]
                 {
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<GroupRoleApiModel>
                     {
-                        Code = (int)HttpStatusCode.OK,
-                        Message = "Role deleted from group"
+                        Code = (int) HttpStatusCode.OK,
+                        Message = "Updated group entity including any mapped roles"
                     },
                     new HttpResponseMetadata
                     {
-                        Code = (int)HttpStatusCode.Forbidden,
+                        Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
                     new HttpResponseMetadata
                     {
-                    Code = (int)HttpStatusCode.NotFound,
-                    Message = "Group with specified name was not found or the role was not found"
+                        Code = (int) HttpStatusCode.NotFound,
+                        Message = "Group with specified name was not found or the role was not found"
                     }
                 },
                 new[]
                 {
                     _groupNameParameter,
-                    new BodyParameter<RoleApiModel>(modelCatalog)
-                    {
-                        Name = "Role",
-                        Description = "The role to delete from the group"
-                    }
+                    _roleIdParameter
                 },
                 new[]
                 {
                     _groupsTag
                 });
+
+            #endregion
+
+            #region Group -> User Mapping Docs
+
+            RouteDescriber.DescribeRouteWithParams(
+                "GetUsersFromGroup",
+                "",
+                "Gets users for a custom group by group name",
+                new[]
+                {
+                    new HttpResponseMetadata<GroupUserApiModel>
+                    {
+                        Code = (int) HttpStatusCode.OK,
+                        Message = "OK"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.Forbidden,
+                        Message = "Client does not have access"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.NotFound,
+                        Message = "Group with specified name was not found"
+                    }
+                },
+                new[]
+                {
+                    _groupNameParameter
+                },
+                new[]
+                {
+                    _groupsTag
+                });
+
+            RouteDescriber.DescribeRouteWithParams(
+                "AddUserToGroup",
+                "1) This operation is only valid for custom groups.<br/>The user specified by SubjectId parameter will be added silently if not found.",
+                "Adds a user to a group.",
+                new[]
+                {
+                    new HttpResponseMetadata<GroupUserApiModel>
+                    {
+                        Code = (int) HttpStatusCode.Created,
+                        Message = "Created"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.Forbidden,
+                        Message = "Client does not have access"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.NotFound,
+                        Message = "Group with specified name was not found"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.BadRequest,
+                        Message = "Group is not a custom group"
+                    }
+                },
+                new[]
+                {
+                    _groupNameParameter,
+                    _subjectIdParameter
+                },
+                new[]
+                {
+                    _groupsTag
+                });
+
+            RouteDescriber.DescribeRouteWithParams(
+                "DeleteUserFromGroup",
+                "",
+                "Deletes a user from a group",
+                new[]
+                {
+                    new HttpResponseMetadata<GroupUserApiModel>
+                    {
+                        Code = (int) HttpStatusCode.OK,
+                        Message = "Updated group entity including any mapped users"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.Forbidden,
+                        Message = "Client does not have access"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.NotFound,
+                        Message = "Group with specified name was not found or the user was not found"
+                    }
+                },
+                new[]
+                {
+                    _groupNameParameter,
+                    _subjectIdParameter
+                },
+                new[]
+                {
+                    _groupsTag
+                });
+
+            #endregion
         }
     }
 }

@@ -7,7 +7,6 @@ using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores.Services;
 using Fabric.Authorization.Domain.Validators;
-using Microsoft.AspNetCore.Server.Kestrel;
 using Nancy;
 using Nancy.ModelBinding;
 using Nancy.Security;
@@ -40,19 +39,19 @@ namespace Fabric.Authorization.API.Modules
             Get("/{groupName}/roles", async _ => await GetRolesFromGroup().ConfigureAwait(false), null,
                 "GetRolesFromGroup");
 
-            base.Post("/{groupName}/roles", async p => await this.AddRoleToGroup(p).ConfigureAwait(false), null,
+            Post("/{groupName}/roles", async _ => await AddRoleToGroup().ConfigureAwait(false), null,
                 "AddRoleToGroup");
 
-            base.Delete("/{groupName}/roles", async p => await this.DeleteRoleFromGroup(p).ConfigureAwait(false), null,
+            Delete("/{groupName}/roles", async _ => await DeleteRoleFromGroup().ConfigureAwait(false), null,
                 "DeleteRoleFromGroup");
 
             // (custom) group->user mappings
             Get("/{groupName}/users", async _ => await GetUsersFromGroup().ConfigureAwait(false), null,
                 "GetUsersFromGroup");
 
-            base.Post("/{groupName}/users", async _ => await AddUserToGroup().ConfigureAwait(false), null, "AddUserToGroup");
+            Post("/{groupName}/users", async _ => await AddUserToGroup().ConfigureAwait(false), null, "AddUserToGroup");
 
-            base.Delete("/{groupName}/users", async _ => await DeleteUserFromGroup().ConfigureAwait(false), null,
+            Delete("/{groupName}/users", async _ => await DeleteUserFromGroup().ConfigureAwait(false), null,
                 "DeleteUserFromGroup");
         }
 
@@ -95,7 +94,7 @@ namespace Fabric.Authorization.API.Modules
             {
                 incomingGroup.Source = PropertySettings?.GroupSource;
             }
-            
+
             Validate(incomingGroup);
 
             try
@@ -139,18 +138,19 @@ namespace Fabric.Authorization.API.Modules
             }
         }
 
-        private async Task<dynamic> AddRoleToGroup(dynamic parameters)
+        private async Task<dynamic> AddRoleToGroup()
         {
             try
             {
                 this.RequiresClaims(AuthorizationWriteClaim);
-                var roleApiModel = this.Bind<RoleApiModel>();
-                if (roleApiModel.Id == null)
+                var groupRoleRequest = this.Bind<GroupRoleRequest>();
+                if (groupRoleRequest.Id == null && groupRoleRequest.RoleId == null)
                 {
                     throw new NotFoundException<Role>();
                 }
 
-                Group group = await _groupService.AddRoleToGroup(parameters.groupName, roleApiModel.Id.Value);
+                var roleId = groupRoleRequest.Id ?? groupRoleRequest.RoleId;
+                var group = await _groupService.AddRoleToGroup(groupRoleRequest.GroupName, roleId.Value);
                 return CreateSuccessfulPostResponse(group.ToGroupRoleApiModel());
             }
             catch (NotFoundException<Group> ex)
@@ -163,18 +163,19 @@ namespace Fabric.Authorization.API.Modules
             }
         }
 
-        private async Task<dynamic> DeleteRoleFromGroup(dynamic parameters)
+        private async Task<dynamic> DeleteRoleFromGroup()
         {
             try
             {
                 this.RequiresClaims(AuthorizationWriteClaim);
-                var roleApiModel = this.Bind<RoleApiModel>();
-                if (roleApiModel.Id == null)
+                var groupRoleRequest = this.Bind<GroupRoleRequest>();
+                if (groupRoleRequest.Id == null && groupRoleRequest.RoleId == null)
                 {
                     throw new NotFoundException<Role>();
                 }
 
-                Group group = await _groupService.DeleteRoleFromGroup(parameters.groupName, roleApiModel.Id.Value);
+                var roleId = groupRoleRequest.Id ?? groupRoleRequest.RoleId;
+                var group = await _groupService.DeleteRoleFromGroup(groupRoleRequest.GroupName, roleId.Value);
                 return CreateSuccessfulPostResponse(group.ToGroupRoleApiModel(), HttpStatusCode.OK);
             }
             catch (NotFoundException<Group> ex)
@@ -241,8 +242,9 @@ namespace Fabric.Authorization.API.Modules
                     throw new NotFoundException<User>();
                 }
 
-                var group = await _groupService.DeleteUserFromGroup(groupUserRequest.GroupName, groupUserRequest.SubjectId);
-                return CreateSuccessfulPostResponse(group.ToGroupRoleApiModel(), HttpStatusCode.OK);
+                var group = await _groupService.DeleteUserFromGroup(groupUserRequest.GroupName,
+                    groupUserRequest.SubjectId);
+                return CreateSuccessfulPostResponse(group.ToGroupUserApiModel(), HttpStatusCode.OK);
             }
             catch (NotFoundException<Group> ex)
             {

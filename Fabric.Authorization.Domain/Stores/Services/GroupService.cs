@@ -9,11 +9,28 @@ namespace Fabric.Authorization.Domain.Stores.Services
 {
     public class GroupService
     {
+        // TODO: move this out of GroupService to another library
+        public static readonly Func<Role, string, string, bool> GroupRoleFilter = (role, grain, securableItem) =>
+        {
+            var match = true;
+
+            if (!string.IsNullOrWhiteSpace(grain))
+            {
+                match = role.Grain == grain;
+            }
+
+            if (match && !string.IsNullOrWhiteSpace(securableItem))
+            {
+                match = role.SecurableItem == securableItem;
+            }
+
+            return match;
+        };
+
+        private readonly string[] _customGroupSources = {"Custom"};
         private readonly IGroupStore _groupStore;
         private readonly IRoleStore _roleStore;
         private readonly IUserStore _userStore;
-
-        private readonly string[] _customGroupSources = {"Custom"};
 
         public GroupService(
             IGroupStore groupStore,
@@ -60,34 +77,20 @@ namespace Fabric.Authorization.Domain.Stores.Services
             return await _groupStore.Exists(id);
         }
 
-        // TODO: move this out of GroupService to another library
-        public static readonly Func<Role, string, string, bool> GroupRoleFilter = (role, grain, securableItem) =>
-        {
-            var match = true;
-
-            if (!string.IsNullOrWhiteSpace(grain))
-            {
-                match = role.Grain == grain;
-            }
-
-            if (match && !string.IsNullOrWhiteSpace(securableItem))
-            {
-                match = role.SecurableItem == securableItem;
-            }
-
-            return match;
-        };
-
         public async Task<Group> AddRoleToGroup(string groupName, Guid roleId)
         {
             var group = await _groupStore.Get(groupName);
             var role = await _roleStore.Get(roleId);
 
             if (group.Roles.All(r => r.Id != roleId))
+            {
                 group.Roles.Add(role);
+            }
 
             if (role.Groups.All(g => g != groupName))
+            {
                 role.Groups.Add(groupName);
+            }
 
             await _roleStore.Update(role);
             await _groupStore.Update(group);
@@ -101,10 +104,14 @@ namespace Fabric.Authorization.Domain.Stores.Services
 
             var groupRole = group.Roles.FirstOrDefault(r => r.Id == roleId);
             if (groupRole != null)
+            {
                 group.Roles.Remove(groupRole);
+            }
 
             if (role.Groups.Any(g => g == groupName))
+            {
                 role.Groups.Remove(groupName);
+            }
 
             await _roleStore.Update(role);
             await _groupStore.Update(group);
@@ -131,10 +138,14 @@ namespace Fabric.Authorization.Domain.Stores.Services
             }
 
             if (group.Users.All(u => u.SubjectId != subjectId))
+            {
                 group.Users.Add(user);
+            }
 
             if (user.Groups.All(g => g != groupName))
+            {
                 user.Groups.Add(groupName);
+            }
 
             await _userStore.Update(user);
             await _groupStore.Update(group);
@@ -148,10 +159,14 @@ namespace Fabric.Authorization.Domain.Stores.Services
 
             var groupUser = group.Users.FirstOrDefault(u => u.SubjectId == subjectId);
             if (groupUser != null)
+            {
                 group.Users.Remove(groupUser);
+            }
 
             if (user.Groups.Any(g => g == groupName))
+            {
                 user.Groups.Remove(groupName);
+            }
 
             await _userStore.Update(user);
             await _groupStore.Update(group);
