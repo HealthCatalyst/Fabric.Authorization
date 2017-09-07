@@ -11,15 +11,6 @@ namespace Fabric.Authorization.API.Modules
 {
     public class UsersMetadataModule : SwaggerMetadataModule
     {
-        private readonly Parameter _userIdParameter = new Parameter
-        {
-            Name = "userId",
-            Description = "UserId to use for the request",
-            In = ParameterIn.Path,
-            Required = true,
-            Type = "integer"
-        };
-
         private readonly Parameter _subjectIdParameter = new Parameter
         {
             Name = "subjectId",
@@ -27,6 +18,15 @@ namespace Fabric.Authorization.API.Modules
             In = ParameterIn.Path,
             Required = true,
             Type = "string"
+        };
+
+        private readonly Parameter _userIdParameter = new Parameter
+        {
+            Name = "userId",
+            Description = "UserId to use for the request",
+            In = ParameterIn.Path,
+            Required = true,
+            Type = "integer"
         };
 
         private readonly Tag _usersTag =
@@ -109,7 +109,6 @@ namespace Fabric.Authorization.API.Modules
                     _usersTag
                 });
 
-
             RouteDescriber.DescribeRouteWithParams(
                 "GetUserGroups",
                 "",
@@ -132,7 +131,7 @@ namespace Fabric.Authorization.API.Modules
                         Message = "User was not found"
                     }
                 },
-                new []
+                new[]
                 {
                     _subjectIdParameter
                 },

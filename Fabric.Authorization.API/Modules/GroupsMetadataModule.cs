@@ -33,8 +33,8 @@ namespace Fabric.Authorization.API.Modules
 
         private readonly Parameter _roleIdParameter = new Parameter
         {
-            Name = "roleId",
-            Description = "Role ID",
+            Name = "Id",
+            Description = "Role ID (GUID)",
             Type = "string",
             Required = true,
             In = ParameterIn.Body
