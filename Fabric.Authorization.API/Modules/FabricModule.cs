@@ -19,17 +19,17 @@ namespace Fabric.Authorization.API.Modules
     {
         protected ILogger Logger;
         protected AbstractValidator<T> Validator;
-        protected DefaultPropertySettings DefaultPropertySettings { get; set; }
+        protected IPropertySettings PropertySettings { get; set; }
 
         protected FabricModule()
         {
         }
 
-        protected FabricModule(string path, ILogger logger, AbstractValidator<T> abstractValidator, DefaultPropertySettings defaultPropertySettings = null) : base(path)
+        protected FabricModule(string path, ILogger logger, AbstractValidator<T> abstractValidator, IPropertySettings propertySettings = null) : base(path)
         {
             Validator = abstractValidator ?? throw new ArgumentNullException(nameof(abstractValidator));
             Logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            DefaultPropertySettings = defaultPropertySettings;
+            PropertySettings = propertySettings;
         }
 
         protected Predicate<Claim> AuthorizationReadClaim

@@ -88,6 +88,7 @@ namespace Fabric.Authorization.API
             container.Register<IEventWriter>(serilogEventWriter, "innerEventWriter");
             container.Register(options);
             container.Register<ICouchDbSettings>(_appConfig.CouchDbSettings);
+            container.Register<IPropertySettings>(_appConfig.DefaultPropertySettings);
             container.Register(typeof(IOptions<>), typeof(OptionsManager<>));
             container.Register<IMemoryCache, MemoryCache>();
             if (_appConfig.UseInMemoryStores)

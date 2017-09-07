@@ -23,7 +23,7 @@ namespace Fabric.Authorization.API.Modules
             GroupService groupService,
             GroupValidator validator,
             ILogger logger,
-            DefaultPropertySettings defaultPropertySettings = null) : base("/v1/groups", logger, validator, defaultPropertySettings)
+            IPropertySettings propertySettings = null) : base("/v1/groups", logger, validator, propertySettings)
         {
             _groupService = groupService;
 
@@ -93,7 +93,7 @@ namespace Fabric.Authorization.API.Modules
 
             if (string.IsNullOrWhiteSpace(incomingGroup.Source))
             {
-                incomingGroup.Source = DefaultPropertySettings.GroupSource;
+                incomingGroup.Source = PropertySettings?.GroupSource;
             }
             
             Validate(incomingGroup);
