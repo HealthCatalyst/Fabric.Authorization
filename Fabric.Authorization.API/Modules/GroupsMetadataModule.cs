@@ -72,14 +72,14 @@ namespace Fabric.Authorization.API.Modules
                 "AddGroup",
                 "GroupSource can only be 'Custom' or a 3rd party identity provider (e.g., Windows, Azure Active Directory, Google)",
                 "Adds a new group",
-                new[]
+                new List<HttpResponseMetadata>
                 {
                     new HttpResponseMetadata<GroupRoleApiModel>
                     {
                         Code = (int) HttpStatusCode.Created,
                         Message = "Created"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
@@ -107,14 +107,14 @@ namespace Fabric.Authorization.API.Modules
                 "UpdateGroups",
                 "",
                 "Updates a list of groups, useful for syncing 3rd party ID Provider groups with Fabric.Authorization groups.",
-                new[]
+                new List<HttpResponseMetadata>
                 {
                     new HttpResponseMetadata
                     {
                         Code = (int) HttpStatusCode.NoContent,
                         Message = "Groups updated"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
@@ -142,19 +142,19 @@ namespace Fabric.Authorization.API.Modules
                 "GetGroup",
                 "",
                 "Gets a group by name",
-                new[]
+                new List<HttpResponseMetadata>
                 {
                     new HttpResponseMetadata<GroupRoleApiModel>
                     {
                         Code = (int) HttpStatusCode.OK,
                         Message = "OK"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.NotFound,
                         Message = "Group with specified name was not found"
@@ -173,19 +173,19 @@ namespace Fabric.Authorization.API.Modules
                 "DeleteGroup",
                 "",
                 "Deletes a group",
-                new[]
+                new List<HttpResponseMetadata>
                 {
                     new HttpResponseMetadata
                     {
                         Code = (int) HttpStatusCode.NoContent,
                         Message = "Group deleted"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.NotFound,
                         Message = "Group with specified name was not found"
@@ -206,19 +206,19 @@ namespace Fabric.Authorization.API.Modules
                 "GetRolesFromGroup",
                 "",
                 "Gets roles for a group by group name",
-                new[]
+                new List<HttpResponseMetadata>
                 {
                     new HttpResponseMetadata<GroupRoleApiModel>
                     {
                         Code = (int) HttpStatusCode.OK,
                         Message = "OK"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.NotFound,
                         Message = "Group with specified name was not found"
@@ -239,19 +239,19 @@ namespace Fabric.Authorization.API.Modules
                 "AddRoleToGroup",
                 "",
                 "Adds a role to a group",
-                new[]
+                new List<HttpResponseMetadata>
                 {
                     new HttpResponseMetadata<GroupRoleApiModel>
                     {
                         Code = (int) HttpStatusCode.Created,
                         Message = "Created"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.NotFound,
                         Message = "Group with specified name was not found or the role was not found"
@@ -271,19 +271,19 @@ namespace Fabric.Authorization.API.Modules
                 "DeleteRoleFromGroup",
                 "",
                 "Deletes a role from a group",
-                new[]
+                new List<HttpResponseMetadata>
                 {
                     new HttpResponseMetadata<GroupRoleApiModel>
                     {
                         Code = (int) HttpStatusCode.OK,
                         Message = "Updated group entity including any mapped roles"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.NotFound,
                         Message = "Group with specified name was not found or the role was not found"
@@ -307,19 +307,19 @@ namespace Fabric.Authorization.API.Modules
                 "GetUsersFromGroup",
                 "",
                 "Gets users for a custom group by group name",
-                new[]
+                new List<HttpResponseMetadata>
                 {
                     new HttpResponseMetadata<GroupUserApiModel>
                     {
                         Code = (int) HttpStatusCode.OK,
                         Message = "OK"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.NotFound,
                         Message = "Group with specified name was not found"
@@ -336,26 +336,26 @@ namespace Fabric.Authorization.API.Modules
 
             RouteDescriber.DescribeRouteWithParams(
                 "AddUserToGroup",
-                "1) This operation is only valid for custom groups.<br/>The user specified by SubjectId parameter will be added silently if not found.",
+                "1) This operation is only valid for custom groups.<br/>2)The user specified by SubjectId parameter will be added silently if not found.",
                 "Adds a user to a group.",
-                new[]
+                new List<HttpResponseMetadata>
                 {
                     new HttpResponseMetadata<GroupUserApiModel>
                     {
                         Code = (int) HttpStatusCode.Created,
                         Message = "Created"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.NotFound,
                         Message = "Group with specified name was not found"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.BadRequest,
                         Message = "Group is not a custom group"
@@ -375,19 +375,19 @@ namespace Fabric.Authorization.API.Modules
                 "DeleteUserFromGroup",
                 "",
                 "Deletes a user from a group",
-                new[]
+                new List<HttpResponseMetadata>
                 {
                     new HttpResponseMetadata<GroupUserApiModel>
                     {
                         Code = (int) HttpStatusCode.OK,
                         Message = "Updated group entity including any mapped users"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.NotFound,
                         Message = "Group with specified name was not found or the user was not found"
