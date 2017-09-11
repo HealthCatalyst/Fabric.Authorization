@@ -64,10 +64,12 @@ namespace Fabric.Authorization.API
 
             var securitySchemeBuilder = new Oauth2SecuritySchemeBuilder();
             securitySchemeBuilder.Flow(Oauth2Flows.Implicit);
-            securitySchemeBuilder.Description("Authentication with Auth0");
-            securitySchemeBuilder.AuthorizationUrl(@"https://something.auth0.com");
-            securitySchemeBuilder.Scope("openid", "Grants access to user_id");
-            SwaggerMetadataProvider.SetSecuritySchemeBuilder(securitySchemeBuilder, "auth0");
+            securitySchemeBuilder.Description("Authentication with Fabric.Identity");
+            securitySchemeBuilder.AuthorizationUrl(@"http://localhost:5001");
+            securitySchemeBuilder.Scope("fabric/authorization.read", "Grants read access to fabric.authorization resources.");
+            securitySchemeBuilder.Scope("fabric/authorization.write", "Grants write access to fabric.authorization resources.");
+            securitySchemeBuilder.Scope("fabric/authorization.manageclients", "Grants 'manage clients' access to fabric.authorization resources.");
+            SwaggerMetadataProvider.SetSecuritySchemeBuilder(securitySchemeBuilder, "fabric.identity");
 
             base.ApplicationStartup(container, pipelines);
 
