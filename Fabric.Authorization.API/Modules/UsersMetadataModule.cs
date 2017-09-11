@@ -50,7 +50,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _usersTag
-                });
+                }).SecurityRequirement(OAuth2ReadScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "AdditionalPermissions",

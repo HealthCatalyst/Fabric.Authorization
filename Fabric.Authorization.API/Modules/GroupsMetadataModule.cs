@@ -133,7 +133,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupsTag
-                });
+                }).SecurityRequirement(OAuth2WriteScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "GetGroup",
