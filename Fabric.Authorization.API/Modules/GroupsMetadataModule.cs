@@ -1,12 +1,10 @@
 ﻿using System.Collections.Generic;
-using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Nancy;
 using Nancy.Swagger;
 using Nancy.Swagger.Services;
 using Nancy.Swagger.Services.RouteUtils;
 using Swagger.ObjectModel;
-using Swagger.ObjectModel.Builders;
 
 namespace Fabric.Authorization.API.Modules
 {
@@ -168,7 +166,7 @@ namespace Fabric.Authorization.API.Modules
                     _groupsTag
                 }).SecurityRequirement(OAuth2ReadScopeBuilder);
 
-            var builder = RouteDescriber.DescribeRouteWithParams(
+            RouteDescriber.DescribeRouteWithParams(
                 "DeleteGroup",
                 "",
                 "Deletes a group",

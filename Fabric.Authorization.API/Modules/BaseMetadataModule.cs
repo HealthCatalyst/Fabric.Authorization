@@ -12,27 +12,27 @@ namespace Fabric.Authorization.API.Modules
     {
         protected SecurityRequirementBuilder OAuth2ReadScopeBuilder = new SecurityRequirementBuilder()
             .SecurityScheme(SecuritySchemes.Oauth2)
-            .SecurityScheme(new List<string>() {Scopes.ReadScope});
+            .SecurityScheme(new List<string> {Scopes.ReadScope});
 
         protected SecurityRequirementBuilder OAuth2WriteScopeBuilder = new SecurityRequirementBuilder()
             .SecurityScheme(SecuritySchemes.Oauth2)
-            .SecurityScheme(new List<string>() { Scopes.WriteScope });
+            .SecurityScheme(new List<string> { Scopes.WriteScope });
 
         protected SecurityRequirementBuilder OAuth2ReadWriteScopeBuilder = new SecurityRequirementBuilder()
             .SecurityScheme(SecuritySchemes.Oauth2)
-            .SecurityScheme(new List<string>() { Scopes.ReadScope, Scopes.WriteScope });
+            .SecurityScheme(new List<string> { Scopes.ReadScope, Scopes.WriteScope });
 
         protected SecurityRequirementBuilder OAuth2ManageClientsScopeBuilder = new SecurityRequirementBuilder()
             .SecurityScheme(SecuritySchemes.Oauth2)
-            .SecurityScheme(new List<string>() { Scopes.ManageClientsScope });
+            .SecurityScheme(new List<string> { Scopes.ManageClientsScope });
 
         protected SecurityRequirementBuilder OAuth2ManageClientsAndReadScopeBuilder = new SecurityRequirementBuilder()
             .SecurityScheme(SecuritySchemes.Oauth2)
-            .SecurityScheme(new List<string>() { Scopes.ReadScope, Scopes.ManageClientsScope });
+            .SecurityScheme(new List<string> { Scopes.ReadScope, Scopes.ManageClientsScope });
 
         protected SecurityRequirementBuilder OAuth2ManageClientsAndWriteScopeBuilder = new SecurityRequirementBuilder()
             .SecurityScheme(SecuritySchemes.Oauth2)
-            .SecurityScheme(new List<string>() { Scopes.WriteScope, Scopes.ManageClientsScope });
+            .SecurityScheme(new List<string> { Scopes.WriteScope, Scopes.ManageClientsScope });
 
 
         protected BaseMetadataModule(ISwaggerModelCatalog modelCatalog, ISwaggerTagCatalog tagCatalog) : base(modelCatalog, tagCatalog)
