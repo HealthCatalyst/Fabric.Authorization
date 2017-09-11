@@ -1,18 +1,26 @@
 ﻿using System.Collections.Generic;
-using System.Reflection.Metadata;
+using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Nancy;
 using Nancy.Swagger;
-using Nancy.Swagger.Modules;
 using Nancy.Swagger.Services;
 using Nancy.Swagger.Services.RouteUtils;
 using Swagger.ObjectModel;
-using Parameter = Swagger.ObjectModel.Parameter;
+using Swagger.ObjectModel.Builders;
 
 namespace Fabric.Authorization.API.Modules
 {
-    public class GroupsMetadataModule : SwaggerMetadataModule
+    public class GroupsMetadataModule : BaseMetadataModule
     {
+        private readonly Parameter _grainParameter = new Parameter
+        {
+            Name = "grain",
+            Description = "grain",
+            Required = false,
+            Type = "string",
+            In = ParameterIn.Query
+        };
+
         private readonly Parameter _groupNameParameter = new Parameter
         {
             Name = "groupName",
@@ -22,14 +30,7 @@ namespace Fabric.Authorization.API.Modules
             In = ParameterIn.Path
         };
 
-        private readonly Parameter _subjectIdParameter = new Parameter
-        {
-            Name = "subjectId",
-            Description = "Subject ID of the user",
-            Type = "string",
-            Required = true,
-            In = ParameterIn.Body
-        };
+        private readonly Tag _groupsTag = new Tag {Name = "Groups", Description = "Operations for managing groups"};
 
         private readonly Parameter _roleIdParameter = new Parameter
         {
@@ -38,15 +39,6 @@ namespace Fabric.Authorization.API.Modules
             Type = "string",
             Required = true,
             In = ParameterIn.Body
-        };
-
-        private readonly Parameter _grainParameter = new Parameter
-        {
-            Name = "grain",
-            Description = "grain",
-            Required = false,
-            Type = "string",
-            In = ParameterIn.Query
         };
 
         private readonly Parameter _securableItemParameter = new Parameter
@@ -58,7 +50,14 @@ namespace Fabric.Authorization.API.Modules
             In = ParameterIn.Query
         };
 
-        private readonly Tag _groupsTag = new Tag {Name = "Groups", Description = "Operations for managing groups"};
+        private readonly Parameter _subjectIdParameter = new Parameter
+        {
+            Name = "subjectId",
+            Description = "Subject ID of the user",
+            Type = "string",
+            Required = true,
+            In = ParameterIn.Body
+        };
 
         public GroupsMetadataModule(ISwaggerModelCatalog modelCatalog, ISwaggerTagCatalog tagCatalog)
             : base(modelCatalog, tagCatalog)
@@ -79,7 +78,7 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int) HttpStatusCode.Created,
                         Message = "Created"
                     },
-                    new HttpResponseMetadata<Error>
+                    new HttpResponseMetadata
                     {
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
@@ -101,7 +100,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupsTag
-                });
+                }).SecurityRequirement(OAuth2ReadWriteScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "UpdateGroups",
@@ -114,7 +113,7 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int) HttpStatusCode.NoContent,
                         Message = "Groups updated"
                     },
-                    new HttpResponseMetadata<Error>
+                    new HttpResponseMetadata
                     {
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
@@ -149,7 +148,7 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int) HttpStatusCode.OK,
                         Message = "OK"
                     },
-                    new HttpResponseMetadata<Error>
+                    new HttpResponseMetadata
                     {
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
@@ -167,9 +166,9 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupsTag
-                });
+                }).SecurityRequirement(OAuth2ReadScopeBuilder);
 
-            RouteDescriber.DescribeRouteWithParams(
+            var builder = RouteDescriber.DescribeRouteWithParams(
                 "DeleteGroup",
                 "",
                 "Deletes a group",
@@ -180,7 +179,7 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int) HttpStatusCode.NoContent,
                         Message = "Group deleted"
                     },
-                    new HttpResponseMetadata<Error>
+                    new HttpResponseMetadata
                     {
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
@@ -198,7 +197,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupsTag
-                });
+                }).SecurityRequirement(OAuth2WriteScopeBuilder);
 
             #region Group -> Role Mapping Docs
 
@@ -213,7 +212,7 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int) HttpStatusCode.OK,
                         Message = "OK"
                     },
-                    new HttpResponseMetadata<Error>
+                    new HttpResponseMetadata
                     {
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
@@ -233,7 +232,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupsTag
-                });
+                }).SecurityRequirement(OAuth2ReadScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "AddRoleToGroup",
@@ -246,7 +245,7 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int) HttpStatusCode.Created,
                         Message = "Created"
                     },
-                    new HttpResponseMetadata<Error>
+                    new HttpResponseMetadata
                     {
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
@@ -265,7 +264,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupsTag
-                });
+                }).SecurityRequirement(OAuth2WriteScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "DeleteRoleFromGroup",
@@ -297,7 +296,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupsTag
-                });
+                }).SecurityRequirement(OAuth2WriteScopeBuilder);
 
             #endregion
 
@@ -332,7 +331,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupsTag
-                });
+                }).SecurityRequirement(OAuth2ReadScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "AddUserToGroup",
@@ -369,7 +368,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupsTag
-                });
+                }).SecurityRequirement(OAuth2WriteScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "DeleteUserFromGroup",
@@ -401,7 +400,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupsTag
-                });
+                }).SecurityRequirement(OAuth2WriteScopeBuilder);
 
             #endregion
         }

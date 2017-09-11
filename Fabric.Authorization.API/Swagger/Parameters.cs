@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Swagger.ObjectModel;
+﻿using Swagger.ObjectModel;
 
 namespace Fabric.Authorization.API.Swagger
 {
@@ -14,7 +10,7 @@ namespace Fabric.Authorization.API.Swagger
             Description = "The top level grain to return permissions for",
             Required = true,
             Type = "string",
-            In = ParameterIn.Path,
+            In = ParameterIn.Path
         };
 
         public static readonly Parameter SecurableItemParameter = new Parameter

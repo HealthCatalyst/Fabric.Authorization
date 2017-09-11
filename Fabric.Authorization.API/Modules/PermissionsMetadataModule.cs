@@ -2,7 +2,6 @@
 using Fabric.Authorization.API.Swagger;
 using Nancy;
 using Nancy.Swagger;
-using Nancy.Swagger.Modules;
 using Nancy.Swagger.Services;
 using Nancy.Swagger.Services.RouteUtils;
 using Swagger.ObjectModel;
@@ -10,7 +9,7 @@ using System.Collections.Generic;
 
 namespace Fabric.Authorization.API.Modules
 {
-    public class PermissionsMetadataModule : SwaggerMetadataModule
+    public class PermissionsMetadataModule : BaseMetadataModule
     {
         private readonly Tag _permissionsTag = new Tag { Name = "Permissions", Description = "Operations for managing permissions"};
         
@@ -60,7 +59,7 @@ namespace Fabric.Authorization.API.Modules
                  new[]
                  {
                     _permissionsTag
-                 });
+                 }).SecurityRequirement(OAuth2ReadScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "GetPermissionByName",
@@ -88,7 +87,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _permissionsTag
-                });
+                }).SecurityRequirement(OAuth2ReadScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "GetPermissionById",
@@ -124,7 +123,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _permissionsTag
-                });
+                }).SecurityRequirement(OAuth2ReadScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "AddPermission",
@@ -159,7 +158,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _permissionsTag
-                });
+                }).SecurityRequirement(OAuth2WriteScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "DeletePermission",
@@ -182,7 +181,7 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int)HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int)HttpStatusCode.NotFound,
                         Message = "Permission with specified id was not found"
@@ -195,7 +194,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _permissionsTag
-                });
+                }).SecurityRequirement(OAuth2WriteScopeBuilder);
         }
     }
 }
