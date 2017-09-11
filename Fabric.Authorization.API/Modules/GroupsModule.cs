@@ -59,7 +59,7 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
-                this.RequiresClaims(AuthorizationWriteClaim, AuthorizationReadClaim);
+                this.RequiresClaims(AuthorizationReadClaim);
                 Group group = await _groupService.GetGroup(parameters.groupName);
                 return group.ToGroupRoleApiModel();
             }
@@ -73,7 +73,7 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
-                this.RequiresClaims(AuthorizationWriteClaim, AuthorizationWriteClaim);
+                this.RequiresClaims(AuthorizationWriteClaim);
                 Group group = await _groupService.GetGroup(parameters.groupName);
                 await _groupService.DeleteGroup(group);
                 return HttpStatusCode.NoContent;
@@ -112,7 +112,7 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
-                this.RequiresClaims(AuthorizationWriteClaim, AuthorizationWriteClaim);
+                this.RequiresClaims(AuthorizationWriteClaim, AuthorizationReadClaim);
                 var group = this.Bind<List<GroupRoleApiModel>>();
                 await _groupService.UpdateGroupList(group.Select(g => g.ToGroupDomainModel()));
                 return HttpStatusCode.NoContent;

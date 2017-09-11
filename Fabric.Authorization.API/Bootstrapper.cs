@@ -20,6 +20,8 @@ using Nancy.Swagger.Services;
 using Nancy.TinyIoc;
 using Serilog;
 using Serilog.Core;
+using Swagger.ObjectModel;
+using Swagger.ObjectModel.Builders;
 
 namespace Fabric.Authorization.API
 {
@@ -59,6 +61,15 @@ namespace Fabric.Authorization.API
         {
             SwaggerMetadataProvider.SetInfo("Fabric Authorization API", "v1",
                 "Fabric.Authorization contains a set of APIs that allow client applications to manage roles and permissions for users.");
+
+            var securitySchemeBuilder = new Oauth2SecuritySchemeBuilder();
+            securitySchemeBuilder.Flow(Oauth2Flows.Implicit);
+            securitySchemeBuilder.Description("Authentication with Fabric.Identity");
+            securitySchemeBuilder.AuthorizationUrl(@"http://localhost:5001");
+            securitySchemeBuilder.Scope("fabric/authorization.read", "Grants read access to fabric.authorization resources.");
+            securitySchemeBuilder.Scope("fabric/authorization.write", "Grants write access to fabric.authorization resources.");
+            securitySchemeBuilder.Scope("fabric/authorization.manageclients", "Grants 'manage clients' access to fabric.authorization resources.");
+            SwaggerMetadataProvider.SetSecuritySchemeBuilder(securitySchemeBuilder, "fabric.identity");
 
             base.ApplicationStartup(container, pipelines);
 

@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Nancy;
-using Nancy.Routing;
-using Nancy.Metadata.Modules;
+﻿using Nancy;
 using Nancy.Swagger.Services;
-
 
 namespace Fabric.Authorization.API.Modules
 {
@@ -19,8 +12,9 @@ namespace Fabric.Authorization.API.Modules
         }
 
         private Response GetSwaggerUrl()
-        {            
-            return Response.AsRedirect($"{Request.Url.SiteBase}/swagger/index.html?url={Request.Url.SiteBase}/docs/swagger.json");
+        {
+            return Response.AsRedirect(
+                $"{Request.Url.SiteBase}/swagger/index.html?url={Request.Url.SiteBase}/docs/swagger.json");
         }
     }
 }

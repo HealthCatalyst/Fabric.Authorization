@@ -2,17 +2,14 @@
 using Fabric.Authorization.API.Models;
 using Nancy;
 using Nancy.Swagger;
-using Nancy.Swagger.Modules;
 using Nancy.Swagger.Services;
 using Nancy.Swagger.Services.RouteUtils;
 using Swagger.ObjectModel;
 
 namespace Fabric.Authorization.API.Modules
 {
-    public class ClientsMetadataModule : SwaggerMetadataModule
+    public class ClientsMetadataModule : BaseMetadataModule
     {
-        private readonly Tag _clientsTag =
-            new Tag {Name = "Clients", Description = "Operations for managing clients"};
         private readonly Parameter _clientIdParameter = new Parameter
         {
             Name = "clientid",
@@ -22,11 +19,14 @@ namespace Fabric.Authorization.API.Modules
             Type = "integer"
         };
 
-        public ClientsMetadataModule(ISwaggerModelCatalog modelCatalog, ISwaggerTagCatalog tagCatalog) 
+        private readonly Tag _clientsTag =
+            new Tag {Name = "Clients", Description = "Operations for managing clients"};
+
+        public ClientsMetadataModule(ISwaggerModelCatalog modelCatalog, ISwaggerTagCatalog tagCatalog)
             : base(modelCatalog, tagCatalog)
         {
             modelCatalog.AddModels(
-                typeof(SecurableItemApiModel),                
+                typeof(SecurableItemApiModel),
                 typeof(DateTime?),
                 typeof(InnerError));
 
@@ -46,7 +46,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _clientsTag
-                });
+                }).SecurityRequirement(OAuth2ManageClientsAndReadScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "GetClient",
@@ -56,17 +56,17 @@ namespace Fabric.Authorization.API.Modules
                 {
                     new HttpResponseMetadata<ClientApiModel>
                     {
-                        Code = (int)HttpStatusCode.OK,
+                        Code = (int) HttpStatusCode.OK,
                         Message = "Client found"
                     },
                     new HttpResponseMetadata
                     {
-                        Code = (int)HttpStatusCode.Forbidden,
+                        Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
                     new HttpResponseMetadata<Error>
                     {
-                        Code = (int)HttpStatusCode.NotFound,
+                        Code = (int) HttpStatusCode.NotFound,
                         Message = "Client with specified id was not found"
                     }
                 },
@@ -77,7 +77,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _clientsTag
-                });
+                }).SecurityRequirement(OAuth2ManageClientsAndReadScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "AddClient",
@@ -87,18 +87,18 @@ namespace Fabric.Authorization.API.Modules
                 {
                     new HttpResponseMetadata<ClientApiModel>
                     {
-                        Code = (int)HttpStatusCode.Created,
+                        Code = (int) HttpStatusCode.Created,
                         Message = "Created"
                     },
                     new HttpResponseMetadata
                     {
-                        Code = (int)HttpStatusCode.Forbidden,
+                        Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
                     new HttpResponseMetadata<Error>
                     {
-                        Code = (int)HttpStatusCode.BadRequest,
-                        Message = "Client with specified id already exists or Client object in body failed validation"                       
+                        Code = (int) HttpStatusCode.BadRequest,
+                        Message = "Client with specified id already exists or Client object in body failed validation"
                     }
                 },
                 new[]
@@ -112,7 +112,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _clientsTag
-                });
+                }).SecurityRequirement(OAuth2ManageClientsAndWriteScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "DeleteClient",
@@ -122,17 +122,17 @@ namespace Fabric.Authorization.API.Modules
                 {
                     new HttpResponseMetadata
                     {
-                        Code = (int)HttpStatusCode.NoContent,
+                        Code = (int) HttpStatusCode.NoContent,
                         Message = "Client deleted"
                     },
                     new HttpResponseMetadata
                     {
-                        Code = (int)HttpStatusCode.Forbidden,
+                        Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
-                        Code = (int)HttpStatusCode.NotFound,
+                        Code = (int) HttpStatusCode.NotFound,
                         Message = "Client with specified id was not found"
                     }
                 },
@@ -143,7 +143,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _clientsTag
-                });
+                }).SecurityRequirement(OAuth2ManageClientsAndWriteScopeBuilder);
         }
     }
 }

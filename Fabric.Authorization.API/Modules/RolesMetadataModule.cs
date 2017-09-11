@@ -1,19 +1,25 @@
-﻿using Fabric.Authorization.API.Models;
+﻿using System;
+using System.Collections.Generic;
+using Fabric.Authorization.API.Models;
+using Fabric.Authorization.API.Swagger;
 using Nancy;
 using Nancy.Swagger;
-using Nancy.Swagger.Modules;
 using Nancy.Swagger.Services;
 using Nancy.Swagger.Services.RouteUtils;
 using Swagger.ObjectModel;
-using System;
-using System.Collections.Generic;
-using Fabric.Authorization.API.Swagger;
 
 namespace Fabric.Authorization.API.Modules
 {
-    public class RolesMetadataModule : SwaggerMetadataModule
+    public class RolesMetadataModule : BaseMetadataModule
     {
-        private readonly Tag _rolesTag = new Tag {Name = "Roles", Description = "Operations for managing roles"};
+        private readonly Parameter _roleIdParameter = new Parameter
+        {
+            Name = "roleId",
+            Description = "The id of the role",
+            Required = true,
+            Type = "string",
+            In = ParameterIn.Path
+        };
 
         private readonly Parameter _roleNameParameter = new Parameter
         {
@@ -24,14 +30,7 @@ namespace Fabric.Authorization.API.Modules
             In = ParameterIn.Path
         };
 
-        private readonly Parameter _roleIdParameter = new Parameter
-        {
-            Name = "roleId",
-            Description = "The id of the role",
-            Required = true,
-            Type = "string",
-            In = ParameterIn.Path
-        };
+        private readonly Tag _rolesTag = new Tag {Name = "Roles", Description = "Operations for managing roles"};
 
         public RolesMetadataModule(ISwaggerModelCatalog modelCatalog, ISwaggerTagCatalog tagCatalog)
             : base(modelCatalog, tagCatalog)
@@ -54,7 +53,7 @@ namespace Fabric.Authorization.API.Modules
                     },
                     new HttpResponseMetadata
                     {
-                        Code = (int)HttpStatusCode.Forbidden,
+                        Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     }
                 },
@@ -66,7 +65,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _rolesTag
-                });
+                }).SecurityRequirement(OAuth2ReadScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "GetRoleByName",
@@ -74,7 +73,7 @@ namespace Fabric.Authorization.API.Modules
                 "Get a role by role name",
                 new[]
                 {
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<IEnumerable<RoleApiModel>>
                     {
                         Code = (int) HttpStatusCode.OK,
                         Message = "Role with specified name was found"
@@ -94,7 +93,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _rolesTag
-                });
+                }).SecurityRequirement(OAuth2ReadScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "AddRole",
@@ -104,17 +103,17 @@ namespace Fabric.Authorization.API.Modules
                 {
                     new HttpResponseMetadata<RoleApiModel>
                     {
-                        Code = (int)HttpStatusCode.Created,
+                        Code = (int) HttpStatusCode.Created,
                         Message = "Created"
                     },
                     new HttpResponseMetadata
                     {
-                        Code = (int)HttpStatusCode.Forbidden,
+                        Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
                     new HttpResponseMetadata<Error>
                     {
-                        Code = (int)HttpStatusCode.BadRequest,
+                        Code = (int) HttpStatusCode.BadRequest,
                         Message = "Role with specified id already exists or Role object in body failed validation"
                     }
                 },
@@ -129,7 +128,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _rolesTag
-                });
+                }).SecurityRequirement(OAuth2WriteScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "DeleteRole",
@@ -139,22 +138,22 @@ namespace Fabric.Authorization.API.Modules
                 {
                     new HttpResponseMetadata
                     {
-                        Code = (int)HttpStatusCode.NoContent,
+                        Code = (int) HttpStatusCode.NoContent,
                         Message = "Role with the specified id was deleted"
                     },
                     new HttpResponseMetadata<Error>
                     {
-                        Code = (int)HttpStatusCode.BadRequest,
+                        Code = (int) HttpStatusCode.BadRequest,
                         Message = "Invalid roled id provided"
                     },
                     new HttpResponseMetadata
                     {
-                        Code = (int)HttpStatusCode.Forbidden,
+                        Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
                     new HttpResponseMetadata
                     {
-                        Code = (int)HttpStatusCode.NotFound,
+                        Code = (int) HttpStatusCode.NotFound,
                         Message = "Role with specified id was not found"
                     }
                 },
@@ -165,7 +164,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _rolesTag
-                });
+                }).SecurityRequirement(OAuth2WriteScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "AddPermissionsToRole",
@@ -175,22 +174,23 @@ namespace Fabric.Authorization.API.Modules
                 {
                     new HttpResponseMetadata<RoleApiModel>
                     {
-                        Code = (int)HttpStatusCode.Created,
+                        Code = (int) HttpStatusCode.Created,
                         Message = "Permission added to role"
                     },
                     new HttpResponseMetadata
                     {
-                        Code = (int)HttpStatusCode.Forbidden,
+                        Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
                     new HttpResponseMetadata<Error>
                     {
-                        Code = (int)HttpStatusCode.BadRequest,
-                        Message = "Invalid role id, no permissions specified to add, or incompatible permission provided"
+                        Code = (int) HttpStatusCode.BadRequest,
+                        Message =
+                            "Invalid role id, no permissions specified to add, or incompatible permission provided"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
-                        Code = (int)HttpStatusCode.NotFound,
+                        Code = (int) HttpStatusCode.NotFound,
                         Message = "Role not found or permission not found"
                     }
                 },
@@ -206,7 +206,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _rolesTag
-                });
+                }).SecurityRequirement(OAuth2WriteScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "DeletePermissionsFromRole",
@@ -216,22 +216,22 @@ namespace Fabric.Authorization.API.Modules
                 {
                     new HttpResponseMetadata<RoleApiModel>
                     {
-                        Code = (int)HttpStatusCode.Created,
+                        Code = (int) HttpStatusCode.Created,
                         Message = "Permission removed from role"
                     },
                     new HttpResponseMetadata
                     {
-                        Code = (int)HttpStatusCode.Forbidden,
+                        Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
                     new HttpResponseMetadata<Error>
                     {
-                        Code = (int)HttpStatusCode.BadRequest,
+                        Code = (int) HttpStatusCode.BadRequest,
                         Message = "Invalid role id or no permissions specified to delete from role"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
-                        Code = (int)HttpStatusCode.NotFound,
+                        Code = (int) HttpStatusCode.NotFound,
                         Message = "Role not found or permission not found"
                     }
                 },
@@ -247,7 +247,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _rolesTag
-                });
+                }).SecurityRequirement(OAuth2WriteScopeBuilder);
         }
     }
 }

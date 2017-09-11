@@ -9,6 +9,7 @@ using Fabric.Authorization.Domain.Validators;
 using IdentityModel;
 using Nancy;
 using Nancy.ModelBinding;
+using Nancy.Security;
 using Serilog;
 
 namespace Fabric.Authorization.API.Modules
@@ -47,6 +48,7 @@ namespace Fabric.Authorization.API.Modules
 
         private async Task<dynamic> GetUserGroups()
         {
+            this.RequiresClaims(AuthorizationReadClaim);
             var groupUserRequest = this.Bind<GroupUserRequest>();
             var groups = await _userService.GetGroupsForUser(groupUserRequest.SubjectId);
             return groups;

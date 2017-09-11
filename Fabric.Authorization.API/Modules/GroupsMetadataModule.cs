@@ -1,18 +1,26 @@
 ﻿using System.Collections.Generic;
-using System.Reflection.Metadata;
+using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Nancy;
 using Nancy.Swagger;
-using Nancy.Swagger.Modules;
 using Nancy.Swagger.Services;
 using Nancy.Swagger.Services.RouteUtils;
 using Swagger.ObjectModel;
-using Parameter = Swagger.ObjectModel.Parameter;
+using Swagger.ObjectModel.Builders;
 
 namespace Fabric.Authorization.API.Modules
 {
-    public class GroupsMetadataModule : SwaggerMetadataModule
+    public class GroupsMetadataModule : BaseMetadataModule
     {
+        private readonly Parameter _grainParameter = new Parameter
+        {
+            Name = "grain",
+            Description = "grain",
+            Required = false,
+            Type = "string",
+            In = ParameterIn.Query
+        };
+
         private readonly Parameter _groupNameParameter = new Parameter
         {
             Name = "groupName",
@@ -22,14 +30,7 @@ namespace Fabric.Authorization.API.Modules
             In = ParameterIn.Path
         };
 
-        private readonly Parameter _subjectIdParameter = new Parameter
-        {
-            Name = "subjectId",
-            Description = "Subject ID of the user",
-            Type = "string",
-            Required = true,
-            In = ParameterIn.Body
-        };
+        private readonly Tag _groupsTag = new Tag {Name = "Groups", Description = "Operations for managing groups"};
 
         private readonly Parameter _roleIdParameter = new Parameter
         {
@@ -38,15 +39,6 @@ namespace Fabric.Authorization.API.Modules
             Type = "string",
             Required = true,
             In = ParameterIn.Body
-        };
-
-        private readonly Parameter _grainParameter = new Parameter
-        {
-            Name = "grain",
-            Description = "grain",
-            Required = false,
-            Type = "string",
-            In = ParameterIn.Query
         };
 
         private readonly Parameter _securableItemParameter = new Parameter
@@ -58,7 +50,14 @@ namespace Fabric.Authorization.API.Modules
             In = ParameterIn.Query
         };
 
-        private readonly Tag _groupsTag = new Tag {Name = "Groups", Description = "Operations for managing groups"};
+        private readonly Parameter _subjectIdParameter = new Parameter
+        {
+            Name = "subjectId",
+            Description = "Subject ID of the user",
+            Type = "string",
+            Required = true,
+            In = ParameterIn.Body
+        };
 
         public GroupsMetadataModule(ISwaggerModelCatalog modelCatalog, ISwaggerTagCatalog tagCatalog)
             : base(modelCatalog, tagCatalog)
@@ -72,7 +71,7 @@ namespace Fabric.Authorization.API.Modules
                 "AddGroup",
                 "GroupSource can only be 'Custom' or a 3rd party identity provider (e.g., Windows, Azure Active Directory, Google)",
                 "Adds a new group",
-                new[]
+                new List<HttpResponseMetadata>
                 {
                     new HttpResponseMetadata<GroupRoleApiModel>
                     {
@@ -101,13 +100,13 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupsTag
-                });
+                }).SecurityRequirement(OAuth2ReadWriteScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "UpdateGroups",
                 "",
                 "Updates a list of groups, useful for syncing 3rd party ID Provider groups with Fabric.Authorization groups.",
-                new[]
+                new List<HttpResponseMetadata>
                 {
                     new HttpResponseMetadata
                     {
@@ -142,7 +141,7 @@ namespace Fabric.Authorization.API.Modules
                 "GetGroup",
                 "",
                 "Gets a group by name",
-                new[]
+                new List<HttpResponseMetadata>
                 {
                     new HttpResponseMetadata<GroupRoleApiModel>
                     {
@@ -154,7 +153,7 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.NotFound,
                         Message = "Group with specified name was not found"
@@ -167,13 +166,13 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupsTag
-                });
+                }).SecurityRequirement(OAuth2ReadScopeBuilder);
 
-            RouteDescriber.DescribeRouteWithParams(
+            var builder = RouteDescriber.DescribeRouteWithParams(
                 "DeleteGroup",
                 "",
                 "Deletes a group",
-                new[]
+                new List<HttpResponseMetadata>
                 {
                     new HttpResponseMetadata
                     {
@@ -185,7 +184,7 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.NotFound,
                         Message = "Group with specified name was not found"
@@ -198,7 +197,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupsTag
-                });
+                }).SecurityRequirement(OAuth2WriteScopeBuilder);
 
             #region Group -> Role Mapping Docs
 
@@ -206,7 +205,7 @@ namespace Fabric.Authorization.API.Modules
                 "GetRolesFromGroup",
                 "",
                 "Gets roles for a group by group name",
-                new[]
+                new List<HttpResponseMetadata>
                 {
                     new HttpResponseMetadata<GroupRoleApiModel>
                     {
@@ -218,7 +217,7 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.NotFound,
                         Message = "Group with specified name was not found"
@@ -233,13 +232,13 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupsTag
-                });
+                }).SecurityRequirement(OAuth2ReadScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "AddRoleToGroup",
                 "",
                 "Adds a role to a group",
-                new[]
+                new List<HttpResponseMetadata>
                 {
                     new HttpResponseMetadata<GroupRoleApiModel>
                     {
@@ -251,7 +250,7 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.NotFound,
                         Message = "Group with specified name was not found or the role was not found"
@@ -265,25 +264,25 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupsTag
-                });
+                }).SecurityRequirement(OAuth2WriteScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "DeleteRoleFromGroup",
                 "",
                 "Deletes a role from a group",
-                new[]
+                new List<HttpResponseMetadata>
                 {
                     new HttpResponseMetadata<GroupRoleApiModel>
                     {
                         Code = (int) HttpStatusCode.OK,
                         Message = "Updated group entity including any mapped roles"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.NotFound,
                         Message = "Group with specified name was not found or the role was not found"
@@ -297,7 +296,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupsTag
-                });
+                }).SecurityRequirement(OAuth2WriteScopeBuilder);
 
             #endregion
 
@@ -307,19 +306,19 @@ namespace Fabric.Authorization.API.Modules
                 "GetUsersFromGroup",
                 "",
                 "Gets users for a custom group by group name",
-                new[]
+                new List<HttpResponseMetadata>
                 {
                     new HttpResponseMetadata<GroupUserApiModel>
                     {
                         Code = (int) HttpStatusCode.OK,
                         Message = "OK"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.NotFound,
                         Message = "Group with specified name was not found"
@@ -332,30 +331,30 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupsTag
-                });
+                }).SecurityRequirement(OAuth2ReadScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "AddUserToGroup",
-                "1) This operation is only valid for custom groups.<br/>The user specified by SubjectId parameter will be added silently if not found.",
+                "1) This operation is only valid for custom groups.<br/>2)The user specified by SubjectId parameter will be added silently if not found.",
                 "Adds a user to a group.",
-                new[]
+                new List<HttpResponseMetadata>
                 {
                     new HttpResponseMetadata<GroupUserApiModel>
                     {
                         Code = (int) HttpStatusCode.Created,
                         Message = "Created"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.NotFound,
                         Message = "Group with specified name was not found"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.BadRequest,
                         Message = "Group is not a custom group"
@@ -369,25 +368,25 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupsTag
-                });
+                }).SecurityRequirement(OAuth2WriteScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "DeleteUserFromGroup",
                 "",
                 "Deletes a user from a group",
-                new[]
+                new List<HttpResponseMetadata>
                 {
                     new HttpResponseMetadata<GroupUserApiModel>
                     {
                         Code = (int) HttpStatusCode.OK,
                         Message = "Updated group entity including any mapped users"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.NotFound,
                         Message = "Group with specified name was not found or the user was not found"
@@ -401,7 +400,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupsTag
-                });
+                }).SecurityRequirement(OAuth2WriteScopeBuilder);
 
             #endregion
         }

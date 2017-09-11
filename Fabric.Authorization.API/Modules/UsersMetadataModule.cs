@@ -2,14 +2,13 @@
 using Fabric.Authorization.API.Models;
 using Nancy;
 using Nancy.Swagger;
-using Nancy.Swagger.Modules;
 using Nancy.Swagger.Services;
 using Nancy.Swagger.Services.RouteUtils;
 using Swagger.ObjectModel;
 
 namespace Fabric.Authorization.API.Modules
 {
-    public class UsersMetadataModule : SwaggerMetadataModule
+    public class UsersMetadataModule : BaseMetadataModule
     {
         private readonly Parameter _subjectIdParameter = new Parameter
         {
@@ -54,7 +53,7 @@ namespace Fabric.Authorization.API.Modules
                 });
 
             RouteDescriber.DescribeRouteWithParams(
-                "AddPermissions",
+                "AdditionalPermissions",
                 "",
                 "Adds granular permissions for a user",
                 new[]
@@ -79,16 +78,23 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _usersTag
-                });
+                }).SecurityRequirement(OAuth2ManageClientsScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
-                "AddDeniedPermissions",
+                "DeniedPermissions",
                 "",
                 "Adds denied permissions for a user",
                 new[]
                 {
-                    new HttpResponseMetadata {Code = (int) HttpStatusCode.NoContent},
-                    new HttpResponseMetadata<Error> {Code = (int) HttpStatusCode.BadRequest, Message = "Bad Request"},
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.NoContent
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.BadRequest,
+                        Message = "Bad Request"
+                    },
                     new HttpResponseMetadata
                     {
                         Code = (int) HttpStatusCode.Forbidden,
@@ -107,7 +113,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _usersTag
-                });
+                }).SecurityRequirement(OAuth2ReadScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "GetUserGroups",
@@ -125,7 +131,7 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     },
-                    new HttpResponseMetadata
+                    new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.NotFound,
                         Message = "User was not found"
@@ -138,7 +144,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _usersTag
-                });
+                }).SecurityRequirement(OAuth2ReadScopeBuilder);
         }
     }
 }
