@@ -11,6 +11,9 @@ namespace Fabric.Authorization.API.Models
 
         public IEnumerable<RoleApiModel> Roles { get; set; }
 
+        /// <summary>
+        /// Group source (e.g., Custom, Windows, Google). For custom groups, use "Custom".
+        /// </summary>
         public string GroupSource { get; set; }
 
         public string Identifier => Id;

@@ -333,7 +333,7 @@ namespace Fabric.Authorization.API.Modules
 
             RouteDescriber.DescribeRouteWithParams(
                 "AddUserToGroup",
-                "1) This operation is only valid for custom groups.<br/>2)The user specified by SubjectId parameter will be added silently if not found.",
+                "1) This operation is only valid for custom groups. 2) The user specified by SubjectId parameter will be added silently if not found.",
                 "Adds a user to a group.",
                 new List<HttpResponseMetadata>
                 {
