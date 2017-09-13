@@ -30,8 +30,11 @@ namespace Fabric.Authorization.Domain.Stores.Services
             }
 
             var client = await _clientStore.Get(clientId);
-            var topLevelSecurableItem = client.TopLevelSecurableItem;
+            return DoesClientOwnItem(client.TopLevelSecurableItem, grain, securableItem);
+        }
 
+        public bool DoesClientOwnItem(SecurableItem topLevelSecurableItem, string grain, string securableItem)
+        {
             if (topLevelSecurableItem == null)
             {
                 return false;
@@ -42,7 +45,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
                 return true;
             }
 
-            return this.HasRequestedSecurableItem(topLevelSecurableItem, grain, securableItem);
+            return HasRequestedSecurableItem(topLevelSecurableItem, grain, securableItem);
         }
 
         public async Task<IEnumerable<Client>> GetClients(bool includeDeleted = false)
@@ -68,7 +71,10 @@ namespace Fabric.Authorization.Domain.Stores.Services
             return await _clientStore.Add(client);
         }
 
-        public async Task DeleteClient(Client client) => await _clientStore.Delete(client);
+        public async Task DeleteClient(Client client)
+        {
+            await _clientStore.Delete(client);
+        }
 
         private bool HasRequestedSecurableItem(SecurableItem parentSecurableItem, string grain, string securableItem)
         {
@@ -84,7 +90,8 @@ namespace Fabric.Authorization.Domain.Stores.Services
                 return true;
             }
 
-            return childSecurableItems.Any(childSecurableItem => HasRequestedSecurableItem(childSecurableItem, grain, securableItem));
+            return childSecurableItems.Any(
+                childSecurableItem => HasRequestedSecurableItem(childSecurableItem, grain, securableItem));
         }
 
         public async Task<bool> Exists(string id)

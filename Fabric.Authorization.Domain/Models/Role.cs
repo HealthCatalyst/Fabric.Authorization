@@ -47,5 +47,31 @@ namespace Fabric.Authorization.Domain.Models
         {
             return $"{Grain}/{SecurableItem}.{Name}";
         }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+
+            if (this == obj)
+            {
+                return true;
+            }
+
+            var role = obj as Role;
+            if (role == null)
+            {
+                return false;
+            }
+
+            return Id == role.Id;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
     }
 }

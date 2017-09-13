@@ -61,7 +61,7 @@ namespace Fabric.Authorization.API.Models
 
         public static User ToUserDomainModel(this UserApiModel user)
         {
-            var userDomainModel = new User()
+            var userDomainModel = new User
             {
                 SubjectId = user.SubjectId
             };
