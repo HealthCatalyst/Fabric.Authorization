@@ -29,6 +29,7 @@ namespace Fabric.Authorization.API.Modules
         {
             this.RequiresClaims(AuthorizationReadClaim);
             var searchRequest = this.Bind<IdentitySearchRequest>();
+            Validate(searchRequest);
             var results = await _identitySearchService.Search(searchRequest);
             return results;
         }

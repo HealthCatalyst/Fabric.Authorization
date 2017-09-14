@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
-using Fabric.Authorization.API.Models.External.Identity;
 using Fabric.Platform.Http;
+using Fabric.Authorization.API.RemoteServices.Identity.Models;
 
-namespace Fabric.Authorization.API.Services.External.Identity
+namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
 {
     public class IdentityServiceProvider : IIdentityServiceProvider
     {

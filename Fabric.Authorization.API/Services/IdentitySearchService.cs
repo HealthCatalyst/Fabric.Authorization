@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Models.Search;
-using Fabric.Authorization.API.Services.External.Identity;
+using Fabric.Authorization.API.RemoteServices.Identity.Providers;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores.Services;
 using Nancy.Extensions;
@@ -32,23 +32,22 @@ namespace Fabric.Authorization.API.Services
         {
             var searchResults = new List<IdentitySearchResponse>();
             var client = await _clientService.GetClient(request.ClientId);
-            var roles = await _roleService.GetRoles();
-            var clientRoles = new List<Role>();
+            var clientRoles = await _roleService.GetRoles(client);
 
-            foreach (var role in roles)
-            {
-                if (_clientService.DoesClientOwnItem(client.TopLevelSecurableItem, role.Grain, role.SecurableItem))
-                {
-                    clientRoles.Add(role);
-                }
-            }
+            var clientRoleList = clientRoles.ToList();
 
             // get all groups tied to clientRoles
-            var groups = await _groupService.GetAllGroups();
-            var groupList = groups.ToList();
+            var groupIds = clientRoleList.SelectMany(r => r.Groups).Distinct();
+
+            var groupList = new List<Group>();
+            foreach (var groupId in groupIds)
+            {
+                var group = await _groupService.GetGroup(groupId);
+                groupList.Add(group);
+            }
 
             // TODO: ensure Role equality works
-            var groupsMappedToClientRole = groupList.Where(g => g.Roles.Any(r => clientRoles.Contains(r))).ToList();
+            var groupsMappedToClientRole = groupList.Where(g => g.Roles.Any(r => clientRoleList.Contains(r))).ToList();
             var nonCustomGroups =
                 groupsMappedToClientRole.Where(g => !string.Equals(g.Source, GroupConstants.CustomSource));
 
@@ -59,7 +58,7 @@ namespace Fabric.Authorization.API.Services
                 Roles = g.Roles.Select(r => r.Name)
             }));
 
-            // get all users mapped to custom groups
+            // get all users mapped to groups in this role
             var users = groupsMappedToClientRole
                 .Where(r => r.Users != null && r.Users.Count > 0)
                 .SelectMany(r => r.Users)
@@ -100,6 +99,8 @@ namespace Fabric.Authorization.API.Services
                 userSearchResponse.LastName = user.LastName;
                 userSearchResponse.LastLogin = user.LastLoginDate;
             }
+
+            searchResults.AddRange(userList);
 
             // TODO: incorporate sort key and direction
             return searchResults

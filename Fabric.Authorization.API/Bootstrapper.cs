@@ -59,17 +59,7 @@ namespace Fabric.Authorization.API
 
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
         {
-            SwaggerMetadataProvider.SetInfo("Fabric Authorization API", "v1",
-                "Fabric.Authorization contains a set of APIs that allow client applications to manage roles and permissions for users.");
-
-            var securitySchemeBuilder = new Oauth2SecuritySchemeBuilder();
-            securitySchemeBuilder.Flow(Oauth2Flows.Implicit);
-            securitySchemeBuilder.Description("Authentication with Fabric.Identity");
-            securitySchemeBuilder.AuthorizationUrl(@"http://localhost:5001");
-            securitySchemeBuilder.Scope("fabric/authorization.read", "Grants read access to fabric.authorization resources.");
-            securitySchemeBuilder.Scope("fabric/authorization.write", "Grants write access to fabric.authorization resources.");
-            securitySchemeBuilder.Scope("fabric/authorization.manageclients", "Grants 'manage clients' access to fabric.authorization resources.");
-            SwaggerMetadataProvider.SetSecuritySchemeBuilder(securitySchemeBuilder, "fabric.identity");
+            InitializeSwaggerMetadata();
 
             base.ApplicationStartup(container, pipelines);
 
@@ -90,7 +80,26 @@ namespace Fabric.Authorization.API
                 ctx.Response.Headers.Add("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
             };
 
-            //container registrations
+            ConfigureRegistrations(container);
+        }
+
+        private static void InitializeSwaggerMetadata()
+        {
+            SwaggerMetadataProvider.SetInfo("Fabric Authorization API", "v1",
+                "Fabric.Authorization contains a set of APIs that allow client applications to manage roles and permissions for users.");
+
+            var securitySchemeBuilder = new Oauth2SecuritySchemeBuilder();
+            securitySchemeBuilder.Flow(Oauth2Flows.Implicit);
+            securitySchemeBuilder.Description("Authentication with Fabric.Identity");
+            securitySchemeBuilder.AuthorizationUrl(@"http://localhost:5001");
+            securitySchemeBuilder.Scope("fabric/authorization.read", "Grants read access to fabric.authorization resources.");
+            securitySchemeBuilder.Scope("fabric/authorization.write", "Grants write access to fabric.authorization resources.");
+            securitySchemeBuilder.Scope("fabric/authorization.manageclients", "Grants 'manage clients' access to fabric.authorization resources.");
+            SwaggerMetadataProvider.SetSecuritySchemeBuilder(securitySchemeBuilder, "fabric.identity");
+        }
+
+        private void ConfigureRegistrations(TinyIoCContainer container)
+        {
             container.Register(_appConfig);
             container.Register(_logger);
             var options = new MemoryCacheOptions();
@@ -102,6 +111,7 @@ namespace Fabric.Authorization.API
             container.Register<IPropertySettings>(_appConfig.DefaultPropertySettings);
             container.Register(typeof(IOptions<>), typeof(OptionsManager<>));
             container.Register<IMemoryCache, MemoryCache>();
+
             if (_appConfig.UseInMemoryStores)
             {
                 container.RegisterInMemoryStores();

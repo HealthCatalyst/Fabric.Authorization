@@ -1,8 +1,8 @@
-﻿using Fabric.Authorization.API.Models.External.Identity;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Fabric.Authorization.API.RemoteServices.Identity.Models;
 
-namespace Fabric.Authorization.API.Services.External.Identity
+namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
 {
     public interface IIdentityServiceProvider
     {
