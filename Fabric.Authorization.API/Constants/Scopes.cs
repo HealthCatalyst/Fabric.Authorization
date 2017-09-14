@@ -6,4 +6,9 @@
         public static readonly string WriteScope = "fabric/authorization.write";
         public static readonly string ManageClientsScope = "fabric/authorization.manageclients";
     }
+
+    public static class IdentityScopes
+    {
+        public static readonly string ReadScope = "fabric/identity.read";
+    }
 }

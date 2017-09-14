@@ -59,16 +59,6 @@ namespace Fabric.Authorization.API.Models
             return userApiModel;
         }
 
-        public static User ToUserDomainModel(this UserApiModel user)
-        {
-            var userDomainModel = new User
-            {
-                SubjectId = user.SubjectId
-            };
-
-            return userDomainModel;
-        }
-
         public static GroupRoleApiModel ToGroupRoleApiModel(this Group group)
         {
             var groupRoleApiModel = new GroupRoleApiModel
@@ -184,6 +174,7 @@ namespace Fabric.Authorization.API.Models
 
             return apiModel;
         }
+
         public static GranularPermission ToGranularPermissionDomainModel(this GranularPermissionApiModel perm)
         {
             var domainModel = new GranularPermission
