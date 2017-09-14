@@ -83,7 +83,7 @@ namespace Fabric.Authorization.API.Services
                 });
             }
 
-            var userDetails = await _identityServiceProvider.Search(userList.Select(u => u.SubjectId));
+            var userDetails = await _identityServiceProvider.Search(request.ClientId, userList.Select(u => u.SubjectId));
 
             // update user details
             foreach (var user in userDetails)

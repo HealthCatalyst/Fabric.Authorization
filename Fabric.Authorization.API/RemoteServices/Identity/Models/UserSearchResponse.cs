@@ -6,7 +6,7 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Models
     /// Represents the response from Fabric.Identity when searching for user(s) by
     /// 1 or more subject IDs.
     /// </summary>
-    public class IdentityUserSearchResponse
+    public class UserSearchResponse
     {
         public string SubjectId { get; set; }
         public DateTime? LastLoginDate { get; set; }

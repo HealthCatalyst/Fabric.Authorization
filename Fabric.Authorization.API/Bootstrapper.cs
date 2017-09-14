@@ -44,14 +44,14 @@ namespace Fabric.Authorization.API
             var owinEnvironment = context.GetOwinEnvironment();
             var principal = owinEnvironment[OwinConstants.RequestUser] as ClaimsPrincipal;
             context.CurrentUser = principal;
-            var appConfig = container.Resolve<IAppConfiguration>();
-            container.UseHttpClientFactory(context, appConfig.IdentityServerConfidentialClientSettings);
         }
 
         protected override void ConfigureRequestContainer(TinyIoCContainer container, NancyContext context)
         {
             base.ConfigureRequestContainer(container, context);
             container.Register(new NancyContextWrapper(context));
+            var appConfig = container.Resolve<IAppConfiguration>();
+            container.UseHttpClientFactory(context, appConfig.IdentityServerConfidentialClientSettings);
             container.RegisterServices();
             if (!_appConfig.UseInMemoryStores)
                 container.RegisterCouchDbStores(_appConfig, _loggingLevelSwitch);

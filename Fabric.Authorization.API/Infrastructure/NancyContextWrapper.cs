@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Nancy;
+﻿using Nancy;
 
 namespace Fabric.Authorization.API.Infrastructure
 {
@@ -12,6 +8,7 @@ namespace Fabric.Authorization.API.Infrastructure
         {
             Context = context;
         }
+
         public NancyContext Context { get; internal set; }
     }
 }

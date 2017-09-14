@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
-using Fabric.Platform.Http;
 using Fabric.Authorization.API.RemoteServices.Identity.Models;
+using Fabric.Platform.Http;
+using Newtonsoft.Json;
 
 namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
 {
@@ -19,7 +22,7 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
             _appConfiguration = appConfiguration;
         }
 
-        public async Task<IEnumerable<IdentityUserSearchResponse>> Search(IEnumerable<string> subjectIds)
+        public async Task<IEnumerable<UserSearchResponse>> Search(string clientId, IEnumerable<string> documentIds)
         {
             // get all users in groups tied to clientRoles
             var httpClient =
@@ -27,9 +30,16 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
                     new Uri(_appConfiguration.IdentityServerConfidentialClientSettings.Authority),
                     IdentityScopes.ReadScope);
 
-            var response = await httpClient.GetAsync("users");
+            var request = new UserSearchRequest
+            {
+                ClientId = clientId,
+                DocumentIds = documentIds
+            };
 
-            return new List<IdentityUserSearchResponse>();
+            var response = await httpClient.PostAsync("/users",
+                new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json"));
+
+            return JsonConvert.DeserializeObject<IEnumerable<UserSearchResponse>>(await response.Content.ReadAsStringAsync());
         }
     }
 }

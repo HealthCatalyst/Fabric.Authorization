@@ -1,4 +1,5 @@
 ﻿using Fabric.Authorization.API.Configuration;
+using Fabric.Authorization.API.RemoteServices.Identity.Providers;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Events;
 using Fabric.Authorization.Domain.Services;
@@ -6,6 +7,8 @@ using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
 using Fabric.Authorization.Domain.Stores.InMemory;
 using Fabric.Authorization.Domain.Stores.Services;
+using Fabric.Platform.Bootstrappers.Nancy;
+using Fabric.Platform.Http;
 using Nancy.TinyIoc;
 using Serilog.Core;
 
@@ -21,6 +24,8 @@ namespace Fabric.Authorization.API.Extensions
             container.Register<GroupService, GroupService>();
             container.Register<ClientService, ClientService>();
             container.Register<SecurableItemService, SecurableItemService>();
+            container.Register<IdentitySearchService, IdentitySearchService>();
+            container.Register<IIdentityServiceProvider, IdentityServiceProvider>();
 
             return container;
         }

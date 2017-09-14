@@ -6,6 +6,6 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
 {
     public interface IIdentityServiceProvider
     {
-        Task<IEnumerable<IdentityUserSearchResponse>> Search(IEnumerable<string> subjectIds);
+        Task<IEnumerable<UserSearchResponse>> Search(string clientId, IEnumerable<string> subjectIds);
     }
 }
