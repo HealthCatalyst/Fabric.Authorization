@@ -112,7 +112,7 @@ namespace Fabric.Authorization.API.Services
             return searchResults
                 .Filter(request)
                 .Sort(request)
-                .Skip(request.PageNumber * request.PageSize)
+                .Skip((request.PageNumber - 1) * request.PageSize)
                 .Take(request.PageSize > 0 ? request.PageSize : 100);
         }
     }

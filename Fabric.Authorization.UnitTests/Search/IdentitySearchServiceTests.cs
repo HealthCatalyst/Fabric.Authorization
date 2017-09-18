@@ -406,6 +406,26 @@ namespace Fabric.Authorization.UnitTests.Search
             Assert.Equal(IdentitySearchServiceFixture.AdminAtlasGroupName, result2.Name);
             Assert.Equal(IdentitySearchServiceFixture.AdminAtlasRoleName, result2.Roles.FirstOrDefault());
 
+            // search + sort + paging
+            results = _fixture.IdentitySearchService(lastLoginDate, mockIdentityServiceProvider.Object).Search(new IdentitySearchRequest
+            {
+                ClientId = IdentitySearchServiceFixture.AtlasClientId,
+                SortKey = "name",
+                SortDirection = "desc",
+                PageSize = 1,
+                PageNumber = 1
+            }).Result.ToList();
+
+            Assert.Equal(1, results.Count);
+
+            result1 = results[0];
+            Assert.Equal("atlas_user", result1.SubjectId);
+            Assert.Equal("Robert", result1.FirstName);
+            Assert.Equal("Brian", result1.MiddleName);
+            Assert.Equal("Smith", result1.LastName);
+            Assert.Equal(lastLoginDate, result1.LastLogin);
+            Assert.Equal(IdentitySearchServiceFixture.UserAtlasRoleName, result1.Roles.FirstOrDefault());
+
 
             // search + sort + filter
             results = _fixture.IdentitySearchService(lastLoginDate, mockIdentityServiceProvider.Object).Search(new IdentitySearchRequest
