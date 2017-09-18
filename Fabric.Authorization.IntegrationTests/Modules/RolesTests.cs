@@ -26,8 +26,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 ? new InMemoryClientStore()
                 : (IClientStore) new CouchDbClientStore(DbService(), Logger, EventContextResolverService);
 
-            var roleService = new RoleService(store, new InMemoryPermissionStore());
             var clientService = new ClientService(clientStore);
+            var roleService = new RoleService(store, new InMemoryPermissionStore(), clientService);
 
             Browser = new Browser(with =>
             {

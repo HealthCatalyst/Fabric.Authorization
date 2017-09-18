@@ -112,7 +112,7 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
-                this.RequiresClaims(AuthorizationWriteClaim, AuthorizationReadClaim);
+                this.RequiresClaims(AuthorizationWriteClaim);
                 var group = this.Bind<List<GroupRoleApiModel>>();
                 await _groupService.UpdateGroupList(group.Select(g => g.ToGroupDomainModel()));
                 return HttpStatusCode.NoContent;

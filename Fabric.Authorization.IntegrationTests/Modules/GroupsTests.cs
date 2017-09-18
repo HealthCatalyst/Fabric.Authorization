@@ -46,8 +46,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             var groupService = new GroupService(groupStore, _roleStore, userStore);
             var userService = new UserService(userStore);
-            var roleService = new RoleService(_roleStore, new InMemoryPermissionStore());
             var clientService = new ClientService(clientStore);
+            var roleService = new RoleService(_roleStore, new InMemoryPermissionStore(), clientService);
             var permissionService = new PermissionService(permissionStore, roleService);
 
             Browser = new Browser(with =>

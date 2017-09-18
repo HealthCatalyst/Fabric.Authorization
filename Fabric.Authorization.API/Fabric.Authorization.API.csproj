@@ -72,7 +72,4 @@
   <ItemGroup>
     <WCFMetadata Include="Connected Services" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Modules\Swagger\" />
-  </ItemGroup>
 </Project>

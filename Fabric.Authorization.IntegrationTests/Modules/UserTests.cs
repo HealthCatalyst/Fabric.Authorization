@@ -34,10 +34,10 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var clientStore = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDbClientStore(this.DbService(), this.Logger, this.EventContextResolverService);
             var permissionStore = useInMemoryDB ? new InMemoryPermissionStore() : (IPermissionStore)new CouchDbPermissionStore(this.DbService(), this.Logger, this.EventContextResolverService);
 
-            var roleService = new RoleService(roleStore, permissionStore);
+            var clientService = new ClientService(clientStore);
+            var roleService = new RoleService(roleStore, permissionStore, clientService);
             var groupService = new GroupService(groupStore, roleStore, userStore);
             var userService = new UserService(userStore);
-            var clientService = new ClientService(clientStore);
             var permissionService = new PermissionService(permissionStore, roleService);
 
             this.Browser = new Browser(with =>

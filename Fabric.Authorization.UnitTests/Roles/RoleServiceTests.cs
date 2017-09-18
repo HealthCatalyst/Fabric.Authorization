@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
-using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.Services;
 using Fabric.Authorization.UnitTests.Mocks;
@@ -14,38 +12,10 @@ namespace Fabric.Authorization.UnitTests.Roles
 {
     public class RoleServiceTests
     {
-        [Fact]
-        public void AddPermissionToRole_Succeeds()
-        {
-            var existingRole = new Role
-            {
-                Id = Guid.NewGuid(),
-                Grain = "app",
-                SecurableItem = "patientsafety",
-                Name = "admin"
-            };
-            var mockRoleStore = new Mock<IRoleStore>()
-                .SetupGetRoles(new List<Role> { existingRole })
-                .Create();
-
-            var permissionToAdd = new Permission
-            {
-                Id = Guid.NewGuid(),
-                Grain = "app",
-                SecurableItem = "patientsafety",
-                Name = "manageusers"
-            };
-            var mockPermissionStore = new Mock<IPermissionStore>()
-                .SetupGetPermissions(new List<Permission> { permissionToAdd })
-                .Create();
-            var roleService = new RoleService(mockRoleStore, mockPermissionStore);
-            var updatedRole = roleService.AddPermissionsToRole(existingRole, new Guid[] { permissionToAdd.Id }).Result;
-            Assert.Equal(1, updatedRole.Permissions.Count);
-            Assert.Equal(permissionToAdd.Id, updatedRole.Permissions.First().Id);
-        }
-
-        [Theory, MemberData(nameof(IncompatiblePermissionData))]
-        public void AddPermissionToRole_ThrowsIncompatiblePermissionException(Role existingRole, Permission existingPermission, Permission permissionToAdd)
+        [Theory]
+        [MemberData(nameof(IncompatiblePermissionData))]
+        public void AddPermissionToRole_ThrowsIncompatiblePermissionException(Role existingRole,
+            Permission existingPermission, Permission permissionToAdd)
         {
             var permissions = new List<Permission>();
             if (existingPermission != null)
@@ -60,74 +30,12 @@ namespace Fabric.Authorization.UnitTests.Roles
                 .Create();
 
             var mockRoleStore = new Mock<IRoleStore>()
-            .SetupGetRoles(new List<Role> { existingRole })
-            .Create();
-            
-            var roleService = new RoleService(mockRoleStore, mockPermissionStore);
-            Assert.Throws<AggregateException>(() => roleService.AddPermissionsToRole(existingRole, new Guid[] { permissionToAdd.Id }).Result);
-        }
-
-        [Fact]
-        public void RemovePermissionFromRole_Succeeds()
-        {
-            var permissionToRemove = new Permission
-            {
-                Id = Guid.NewGuid(),
-                Grain = "app",
-                SecurableItem = "patientsafety",
-                Name = "manageusers"
-            };
-            var mockPermissionStore = new Mock<IPermissionStore>()
-                .SetupGetPermissions(new List<Permission> { permissionToRemove })
+                .SetupGetRoles(new List<Role> {existingRole})
                 .Create();
-
-            var existingRole = new Role
-            {
-                Id = Guid.NewGuid(),
-                Grain = "app",
-                SecurableItem = "patientsafety",
-                Name = "admin",
-                Permissions = new List<Permission> { permissionToRemove }
-            };
-            var mockRoleStore = new Mock<IRoleStore>()
-                .SetupGetRoles(new List<Role> { existingRole })
-                .Create();
-
-            
-            var roleService = new RoleService(mockRoleStore, mockPermissionStore);
-            var updatedRole = roleService.RemovePermissionsFromRole(existingRole, new []{permissionToRemove.Id}).Result;
-            Assert.False(updatedRole.Permissions.Any());
-
-        }
-
-        [Fact]
-        public void RemovePermissionFromRole_ThrowsPermissionNotFoundException()
-        {
-            var permissionToRemove = new Permission
-            {
-                Id = Guid.NewGuid(),
-                Grain = "app",
-                SecurableItem = "patientsafety",
-                Name = "manageusers"
-            };
-            var mockPermissionStore = new Mock<IPermissionStore>()
-                .SetupGetPermissions(new List<Permission> { permissionToRemove })
-                .Create();
-
-            var existingRole = new Role
-            {
-                Id = Guid.NewGuid(),
-                Grain = "app",
-                SecurableItem = "patientsafety",
-                Name = "admin",
-            };
-            var mockRoleStore = new Mock<IRoleStore>()
-                .SetupGetRoles(new List<Role> { existingRole })
-                .Create();
-
 
             var roleService = new RoleService(mockRoleStore, mockPermissionStore);
-            Assert.Throws<AggregateException>(() => roleService.RemovePermissionsFromRole(existingRole, new[] { permissionToRemove.Id }).Result);
+            Assert.Throws<AggregateException>(() => roleService
+                .AddPermissionsToRole(existingRole, new[] {permissionToAdd.Id}).Result);
         }
 
         public static IEnumerable<object[]> IncompatiblePermissionData()
@@ -170,8 +78,101 @@ namespace Fabric.Authorization.UnitTests.Roles
                         SecurableItem = "patientsafety",
                         Name = "manageusers"
                     }
-                },
+                }
             };
-        } 
+        }
+
+        [Fact]
+        public void AddPermissionToRole_Succeeds()
+        {
+            var existingRole = new Role
+            {
+                Id = Guid.NewGuid(),
+                Grain = "app",
+                SecurableItem = "patientsafety",
+                Name = "admin"
+            };
+            var mockRoleStore = new Mock<IRoleStore>()
+                .SetupGetRoles(new List<Role> {existingRole})
+                .Create();
+
+            var permissionToAdd = new Permission
+            {
+                Id = Guid.NewGuid(),
+                Grain = "app",
+                SecurableItem = "patientsafety",
+                Name = "manageusers"
+            };
+            var mockPermissionStore = new Mock<IPermissionStore>()
+                .SetupGetPermissions(new List<Permission> {permissionToAdd})
+                .Create();
+            var roleService = new RoleService(mockRoleStore, mockPermissionStore);
+            var updatedRole = roleService.AddPermissionsToRole(existingRole, new[] {permissionToAdd.Id}).Result;
+            Assert.Equal(1, updatedRole.Permissions.Count);
+            Assert.Equal(permissionToAdd.Id, updatedRole.Permissions.First().Id);
+        }
+
+        [Fact]
+        public void RemovePermissionFromRole_Succeeds()
+        {
+            var permissionToRemove = new Permission
+            {
+                Id = Guid.NewGuid(),
+                Grain = "app",
+                SecurableItem = "patientsafety",
+                Name = "manageusers"
+            };
+            var mockPermissionStore = new Mock<IPermissionStore>()
+                .SetupGetPermissions(new List<Permission> {permissionToRemove})
+                .Create();
+
+            var existingRole = new Role
+            {
+                Id = Guid.NewGuid(),
+                Grain = "app",
+                SecurableItem = "patientsafety",
+                Name = "admin",
+                Permissions = new List<Permission> {permissionToRemove}
+            };
+            var mockRoleStore = new Mock<IRoleStore>()
+                .SetupGetRoles(new List<Role> {existingRole})
+                .Create();
+
+
+            var roleService = new RoleService(mockRoleStore, mockPermissionStore);
+            var updatedRole = roleService.RemovePermissionsFromRole(existingRole, new[] {permissionToRemove.Id}).Result;
+            Assert.False(updatedRole.Permissions.Any());
+        }
+
+        [Fact]
+        public void RemovePermissionFromRole_ThrowsPermissionNotFoundException()
+        {
+            var permissionToRemove = new Permission
+            {
+                Id = Guid.NewGuid(),
+                Grain = "app",
+                SecurableItem = "patientsafety",
+                Name = "manageusers"
+            };
+            var mockPermissionStore = new Mock<IPermissionStore>()
+                .SetupGetPermissions(new List<Permission> {permissionToRemove})
+                .Create();
+
+            var existingRole = new Role
+            {
+                Id = Guid.NewGuid(),
+                Grain = "app",
+                SecurableItem = "patientsafety",
+                Name = "admin"
+            };
+            var mockRoleStore = new Mock<IRoleStore>()
+                .SetupGetRoles(new List<Role> {existingRole})
+                .Create();
+
+
+            var roleService = new RoleService(mockRoleStore, mockPermissionStore);
+            Assert.Throws<AggregateException>(() => roleService
+                .RemovePermissionsFromRole(existingRole, new[] {permissionToRemove.Id}).Result);
+        }
     }
 }

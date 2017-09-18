@@ -1,12 +1,10 @@
 ﻿using System.Collections.Generic;
-using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Nancy;
 using Nancy.Swagger;
 using Nancy.Swagger.Services;
 using Nancy.Swagger.Services.RouteUtils;
 using Swagger.ObjectModel;
-using Swagger.ObjectModel.Builders;
 
 namespace Fabric.Authorization.API.Modules
 {
@@ -135,7 +133,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupsTag
-                });
+                }).SecurityRequirement(OAuth2WriteScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "GetGroup",
@@ -168,7 +166,7 @@ namespace Fabric.Authorization.API.Modules
                     _groupsTag
                 }).SecurityRequirement(OAuth2ReadScopeBuilder);
 
-            var builder = RouteDescriber.DescribeRouteWithParams(
+            RouteDescriber.DescribeRouteWithParams(
                 "DeleteGroup",
                 "",
                 "Deletes a group",
@@ -335,7 +333,7 @@ namespace Fabric.Authorization.API.Modules
 
             RouteDescriber.DescribeRouteWithParams(
                 "AddUserToGroup",
-                "1) This operation is only valid for custom groups.<br/>2)The user specified by SubjectId parameter will be added silently if not found.",
+                "1) This operation is only valid for custom groups. 2) The user specified by SubjectId parameter will be added silently if not found.",
                 "Adds a user to a group.",
                 new List<HttpResponseMetadata>
                 {

@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Nancy;
 
 namespace Fabric.Authorization.API
@@ -30,7 +28,8 @@ namespace Fabric.Authorization.API
 
             var version1Url = $"{siteBase}/v1{path}{url.Query}";
 
-            var headers = originalRequest.Headers.ToDictionary(originalRequestHeader => originalRequestHeader.Key, originalRequestHeader => originalRequestHeader.Value);
+            var headers = originalRequest.Headers.ToDictionary(originalRequestHeader => originalRequestHeader.Key,
+                originalRequestHeader => originalRequestHeader.Value);
 
             var updatedRequest = new Request(
                 originalRequest.Method,

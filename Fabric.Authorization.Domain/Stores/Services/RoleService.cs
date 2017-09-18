@@ -11,6 +11,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
     {
         private readonly IRoleStore _roleStore;
         private readonly IPermissionStore _permissionStore;
+        private readonly ClientService _clientService;
 
         /// <summary>
         /// Constructor
@@ -22,12 +23,43 @@ namespace Fabric.Authorization.Domain.Stores.Services
         }
 
         /// <summary>
+        /// Constructor
+        /// </summary>
+        public RoleService(IRoleStore roleStore, IPermissionStore permissionStore, ClientService clientService)
+        {
+            _roleStore = roleStore ?? throw new ArgumentNullException(nameof(roleStore));
+            _permissionStore = permissionStore ?? throw new ArgumentNullException(nameof(permissionStore));
+            _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
+        }
+
+        /// <summary>
         /// Gets all roles for a grain / secitem
         /// </summary>
         public async Task<IEnumerable<Role>> GetRoles(string grain = null, string securableItem = null, string roleName = null, bool includeDeleted = false)
         {
             var roles = await _roleStore.GetRoles(grain, securableItem, roleName);
             return roles.Where(r => !r.IsDeleted || includeDeleted);
+        }
+
+        /// <summary>
+        /// Gets all roles owned by the specified <paramref name="client"/>.
+        /// </summary>
+        /// <param name="client"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<Role>> GetRoles(Client client)
+        {
+            var clientRoles = new List<Role>();
+            var roles = await GetRoles();
+
+            foreach (var role in roles)
+            {
+                if (_clientService.DoesClientOwnItem(client.TopLevelSecurableItem, role.Grain, role.SecurableItem))
+                {
+                    clientRoles.Add(role);
+                }
+            }
+
+            return clientRoles;
         }
 
         /// <summary>

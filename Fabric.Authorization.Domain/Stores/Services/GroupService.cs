@@ -27,7 +27,6 @@ namespace Fabric.Authorization.Domain.Stores.Services
             return match;
         };
 
-        private readonly string[] _customGroupSources = {"Custom"};
         private readonly IGroupStore _groupStore;
         private readonly IRoleStore _roleStore;
         private readonly IUserStore _userStore;
@@ -50,6 +49,11 @@ namespace Fabric.Authorization.Domain.Stores.Services
         public async Task<Group> GetGroup(string id)
         {
             return await _groupStore.Get(id);
+        }
+
+        public async Task<IEnumerable<Group>> GetAllGroups()
+        {
+            return await _groupStore.GetAll();
         }
 
         public async Task DeleteGroup(Group group)
@@ -122,7 +126,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
         {
             var group = await _groupStore.Get(groupName);
 
-            if (!_customGroupSources.Contains(group.Source))
+            if (!string.Equals(group.Source, GroupConstants.CustomSource))
             {
                 throw new BadRequestException<Group>();
             }
