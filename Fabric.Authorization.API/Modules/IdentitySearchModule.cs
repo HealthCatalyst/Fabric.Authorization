@@ -27,7 +27,7 @@ namespace Fabric.Authorization.API.Modules
 
         private async Task<dynamic> SearchIdentities()
         {
-            this.RequiresClaims(AuthorizationReadClaim);
+            this.RequiresClaims(AuthorizationReadClaim, UserIdentityReadClaim);
             var searchRequest = this.Bind<IdentitySearchRequest>();
             Validate(searchRequest);
             var results = await _identitySearchService.Search(searchRequest);

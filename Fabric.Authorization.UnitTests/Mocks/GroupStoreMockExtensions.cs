@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
@@ -29,12 +28,10 @@ namespace Fabric.Authorization.UnitTests.Mocks
         public static Mock<IGroupStore> SetupGroupExists(this Mock<IGroupStore> mockGroupStore, List<Group> groups)
         {
             mockGroupStore.Setup(groupStore => groupStore.Exists(It.IsAny<string>()))
-                .Returns((string groupName) =>
-                {
-                    return Task.FromResult(groups.Any(g => g.Name == groupName));
-                });
+                .Returns((string groupName) => { return Task.FromResult(groups.Any(g => g.Name == groupName)); });
             return mockGroupStore;
         }
+
         public static Mock<IGroupStore> SetupAddGroup(this Mock<IGroupStore> mockGroupStore)
         {
             mockGroupStore.Setup(GroupStore => GroupStore.Add(It.IsAny<Group>()))
@@ -44,6 +41,11 @@ namespace Fabric.Authorization.UnitTests.Mocks
                     return Task.FromResult(g);
                 });
             return mockGroupStore;
+        }
+
+        public static IGroupStore Create(this Mock<IGroupStore> mockGroupStore)
+        {
+            return mockGroupStore.Object;
         }
     }
 }

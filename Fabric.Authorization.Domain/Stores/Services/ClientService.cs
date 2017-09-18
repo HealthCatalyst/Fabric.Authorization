@@ -76,7 +76,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
             await _clientStore.Delete(client);
         }
 
-        private bool HasRequestedSecurableItem(SecurableItem parentSecurableItem, string grain, string securableItem)
+        private static bool HasRequestedSecurableItem(SecurableItem parentSecurableItem, string grain, string securableItem)
         {
             var childSecurableItems = parentSecurableItem.SecurableItems;
 

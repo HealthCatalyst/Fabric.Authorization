@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Models.Search;
 using Fabric.Authorization.API.RemoteServices.Identity.Providers;
+using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores.Services;
 using Nancy.Extensions;
@@ -31,6 +32,12 @@ namespace Fabric.Authorization.API.Services
         public async Task<IEnumerable<IdentitySearchResponse>> Search(IdentitySearchRequest request)
         {
             var searchResults = new List<IdentitySearchResponse>();
+
+            if (string.IsNullOrWhiteSpace(request.ClientId))
+            {
+                throw new BadRequestException<IdentitySearchRequest>("Client ID is required.");
+            }
+
             var client = await _clientService.GetClient(request.ClientId);
             var clientRoles = await _roleService.GetRoles(client);
 
@@ -60,8 +67,8 @@ namespace Fabric.Authorization.API.Services
 
             // get all users mapped to groups in this role
             var users = groupsMappedToClientRole
-                .Where(r => r.Users != null && r.Users.Count > 0)
-                .SelectMany(r => r.Users)
+                .Where(g => g.Users != null && g.Users.Count > 0)
+                .SelectMany(g => g.Users)
                 .DistinctBy(u => u.SubjectId);
 
             var userList = new List<IdentitySearchResponse>();
@@ -83,7 +90,8 @@ namespace Fabric.Authorization.API.Services
                 });
             }
 
-            var userDetails = await _identityServiceProvider.Search(request.ClientId, userList.Select(u => u.SubjectId));
+            var userDetails =
+                await _identityServiceProvider.Search(request.ClientId, userList.Select(u => u.SubjectId));
 
             // update user details
             foreach (var user in userDetails)
@@ -105,7 +113,7 @@ namespace Fabric.Authorization.API.Services
             // TODO: incorporate sort key and direction
             return searchResults
                 .Skip(request.PageNumber * request.PageSize)
-                .Take(request.PageSize);
+                .Take(request.PageSize > 0 ? request.PageSize : 100);
         }
     }
 }

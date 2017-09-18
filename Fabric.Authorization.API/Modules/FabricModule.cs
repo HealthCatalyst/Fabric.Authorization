@@ -42,6 +42,11 @@ namespace Fabric.Authorization.API.Modules
             get { return claim => claim.Type == Claims.Scope && claim.Value == Scopes.ReadScope; }
         }
 
+        protected Predicate<Claim> UserIdentityReadClaim
+        {
+            get { return claim => claim.Type == Claims.Scope && claim.Value == IdentityScopes.ReadScope; }
+        }
+
         protected Predicate<Claim> AuthorizationWriteClaim
         {
             get { return claim => claim.Type == Claims.Scope && claim.Value == Scopes.WriteScope; }

@@ -15,10 +15,25 @@ namespace Fabric.Authorization.UnitTests.Mocks
         {
             mockRoleStore
                 .Setup(roleStore => roleStore.GetRoles(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                .Returns((string grain, string securableItem, string name) => Task.FromResult(roles.Where(
-                    r => r.Grain == grain && r.SecurableItem == securableItem &&
-                         (r.Name == name || string.IsNullOrEmpty(name)))));
-            return mockRoleStore.SetupGetRole(roles);
+                .Returns((string grain, string securableItem, string name) =>
+                {
+                    if (!string.IsNullOrEmpty(grain))
+                    {
+                        roles = roles.Where(r => r.Grain == grain).ToList();
+                    }
+                    if (!string.IsNullOrEmpty(securableItem))
+                    {
+                        roles = roles.Where(r => r.SecurableItem == securableItem).ToList();
+                    }
+                    if (!string.IsNullOrEmpty(name))
+                    {
+                        roles = roles.Where(r => r.Name == name).ToList();
+                    }
+
+                    return Task.FromResult(roles.Where(r => !r.IsDeleted));
+                });
+
+            return mockRoleStore.SetupGetRole(roles.ToList());
         }
 
         public static Mock<IRoleStore> SetupGetRole(this Mock<IRoleStore> mockRoleStore, List<Role> roles)

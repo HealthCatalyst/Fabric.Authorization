@@ -42,7 +42,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
         }
 
         /// <summary>
-        /// Gets all roles owned by the specified <paramref name="client"/>/
+        /// Gets all roles owned by the specified <paramref name="client"/>.
         /// </summary>
         /// <param name="client"></param>
         /// <returns></returns>

@@ -7,8 +7,6 @@ using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
 using Fabric.Authorization.Domain.Stores.InMemory;
 using Fabric.Authorization.Domain.Stores.Services;
-using Fabric.Platform.Bootstrappers.Nancy;
-using Fabric.Platform.Http;
 using Nancy.TinyIoc;
 using Serilog.Core;
 
@@ -41,7 +39,8 @@ namespace Fabric.Authorization.API.Extensions
             return container;
         }
 
-        public static TinyIoCContainer RegisterCouchDbStores(this TinyIoCContainer container, IAppConfiguration appConfiguration, LoggingLevelSwitch levelSwitch)
+        public static TinyIoCContainer RegisterCouchDbStores(this TinyIoCContainer container,
+            IAppConfiguration appConfiguration, LoggingLevelSwitch levelSwitch)
         {
             container.Register<IEventService, EventService>();
             container.Register<IEventContextResolverService, EventContextResolverService>();
