@@ -6,7 +6,7 @@ namespace Fabric.Authorization.API.Models.Search.Validators
 {
     public class IdentitySearchRequestValidator : BaseSearchRequestValidator<IdentitySearchRequest>
     {
-        private static readonly string[] ValidSortKeys = {"name", "role", "lastlogin", "status"};
+        private static readonly string[] ValidSortKeys = {"name", "role", "lastlogin", "subjectid"};
 
         public IdentitySearchRequestValidator()
         {

@@ -112,6 +112,7 @@ namespace Fabric.Authorization.API.Services
 
             // TODO: incorporate sort key and direction
             return searchResults
+                .Sort(request)
                 .Skip(request.PageNumber * request.PageSize)
                 .Take(request.PageSize > 0 ? request.PageSize : 100);
         }

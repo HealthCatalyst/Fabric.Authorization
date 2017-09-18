@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace Fabric.Authorization.API.Models.Search
 {
@@ -12,5 +13,8 @@ namespace Fabric.Authorization.API.Models.Search
         public string MiddleName { get; set; }
         public string LastName { get; set; }
         public DateTime? LastLogin { get; set; }
+
+        [JsonIgnore]
+        public string Name => string.IsNullOrWhiteSpace(GroupName) ? $"{FirstName} {MiddleName} {LastName}" : GroupName;
     }
 }
