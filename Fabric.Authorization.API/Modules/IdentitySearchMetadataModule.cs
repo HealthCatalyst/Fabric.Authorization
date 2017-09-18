@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Net;
+using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Models.Search;
 using Nancy.Swagger;
 using Nancy.Swagger.Services;
@@ -42,6 +43,16 @@ namespace Fabric.Authorization.API.Modules
                     {
                         Code = (int) HttpStatusCode.OK,
                         Message = "OK"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) Nancy.HttpStatusCode.Forbidden,
+                        Message = "Client does not have access"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) Nancy.HttpStatusCode.BadRequest,
+                        Message = "Group already exists"
                     }
                 },
                 new[]
