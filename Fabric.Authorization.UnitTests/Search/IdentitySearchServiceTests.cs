@@ -265,11 +265,6 @@ namespace Fabric.Authorization.UnitTests.Search
             }
         };
 
-        /*
-INPUTS
-client id | page number | page size | filter | sort key | sort direction
-         */
-
         private Role _adminPatientSafetyRole;
         private Role _userPatientSafetyRole;
         private Group _adminPatientSafetyGroup;
@@ -293,8 +288,6 @@ client id | page number | page size | filter | sort key | sort direction
         public async Task IdentitySearch_ClientIdMissing_BadRequestExceptionAsync()
         {
             var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
-           /* mockIdentityServiceProvider.Setup(m => m.Search(null, new List<string> {"12345"}))
-                .Throws<BadRequestException<IdentitySearchRequest>>();*/
 
             var identitySearchService = new IdentitySearchService(
                 _clientService,
@@ -305,6 +298,10 @@ client id | page number | page size | filter | sort key | sort direction
             await Assert.ThrowsAsync<BadRequestException<IdentitySearchRequest>>(() => identitySearchService.Search(new IdentitySearchRequest()));
         }
 
+        /*
+INPUTS
+client id | page number | page size | filter | sort key | sort direction
+ */
         [Fact]
         public void IdentitySearch_ValidRequest_Success()
         {
@@ -328,7 +325,9 @@ client id | page number | page size | filter | sort key | sort direction
 
             var results = identitySearchService.Search(new IdentitySearchRequest
             {
-                ClientId = AtlasClientId
+                ClientId = AtlasClientId,
+                SortKey = "name",
+                SortDirection = "desc"
             }).Result.ToList();
 
             Assert.Equal(2, results.Count);

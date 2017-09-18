@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Fabric.Authorization.API.Models.Search
 {
-    public static class UserSearchResponseExtensions
+    public static class IdentitySearchResponseExtensions
     {
         public static IOrderedEnumerable<IdentitySearchResponse> Sort(this IEnumerable<IdentitySearchResponse> results,
             IdentitySearchRequest request)
