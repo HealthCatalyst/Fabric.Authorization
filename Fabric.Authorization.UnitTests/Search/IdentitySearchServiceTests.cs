@@ -16,10 +16,40 @@ using Xunit;
 
 namespace Fabric.Authorization.UnitTests.Search
 {
-    [Collection("Identity Search Tests")]
-    public class IdentitySearchServiceTests
+    public class IdentitySearchServiceFixture
     {
-        public IdentitySearchServiceTests()
+        private const string PatientSafetyClientId = "patientsafety";
+        private const string AdminPatientSafetyGroupName = "adminPatientSafetyGroup";
+        private const string UserPatientSafetyGroupName = "userPatientSafetyGroup";
+        private const string AdminPatientSafetyRoleName = "adminPatientSafetyRole";
+        private const string UserPatientSafetyRoleName = "userPatientSafetyRole";
+
+        public const string AtlasClientId = "atlas";
+        public const string AdminAtlasGroupName = "adminAtlasGroup";
+        public const string UserAtlasGroupName = "userAtlasGroup";
+        public const string AdminAtlasRoleName = "adminAtlasRole";
+        public const string UserAtlasRoleName = "userAtlasRole";
+
+        private Role _adminPatientSafetyRole;
+        private Role _userPatientSafetyRole;
+        private Group _adminPatientSafetyGroup;
+        private Group _userPatientSafetyGroup;
+
+        private Role _adminAtlasRole;
+        private Role _userAtlasRole;
+        private Group _adminAtlasGroup;
+        private Group _userAtlasGroup;
+
+        private readonly Mock<IClientStore> _mockClientStore = new Mock<IClientStore>();
+        private readonly Mock<IPermissionStore> _mockPermissionStore = new Mock<IPermissionStore>();
+        private readonly Mock<IRoleStore> _mockRoleStore = new Mock<IRoleStore>();
+        private readonly Mock<IGroupStore> _mockGroupStore = new Mock<IGroupStore>();
+
+        private readonly ClientService _clientService;
+        private readonly RoleService _roleService;
+        private readonly GroupService _groupService;
+
+        public IdentitySearchServiceFixture()
         {
             InitializeData();
 
@@ -53,6 +83,12 @@ namespace Fabric.Authorization.UnitTests.Search
         {
             InitializePatientSafetyData();
             InitializeAtlasData();
+        }
+
+        public IdentitySearchService IdentitySearchService(DateTime? lastLoginDate, IIdentityServiceProvider identityServiceProvider)
+        {
+            var identitySearchService = new IdentitySearchService(_clientService, _roleService, _groupService, identityServiceProvider);
+            return identitySearchService;
         }
 
         private void InitializePatientSafetyData()
@@ -207,12 +243,6 @@ namespace Fabric.Authorization.UnitTests.Search
             };
         }
 
-        private const string PatientSafetyClientId = "patientsafety";
-        private const string AdminPatientSafetyGroupName = "adminPatientSafetyGroup";
-        private const string UserPatientSafetyGroupName = "userPatientSafetyGroup";
-        private const string AdminPatientSafetyRoleName = "adminPatientSafetyRole";
-        private const string UserPatientSafetyRoleName = "userPatientSafetyRole";
-
         private readonly Client _patientSafetyClient = new Client
         {
             Id = PatientSafetyClientId,
@@ -262,12 +292,6 @@ namespace Fabric.Authorization.UnitTests.Search
             }
         };
 
-        private const string AtlasClientId = "atlas";
-        private const string AdminAtlasGroupName = "adminAtlasGroup";
-        private const string UserAtlasGroupName = "userAtlasGroup";
-        private const string AdminAtlasRoleName = "adminAtlasRole";
-        private const string UserAtlasRoleName = "userAtlasRole";
-
         private readonly Client _atlasClient = new Client
         {
             Id = AtlasClientId,
@@ -316,36 +340,25 @@ namespace Fabric.Authorization.UnitTests.Search
                 }
             }
         };
+}
 
-        private Role _adminPatientSafetyRole;
-        private Role _userPatientSafetyRole;
-        private Group _adminPatientSafetyGroup;
-        private Group _userPatientSafetyGroup;
+    [Collection("Identity Search Tests")]
+    public class IdentitySearchServiceTests : IClassFixture<IdentitySearchServiceFixture>
+    {
+        private readonly IdentitySearchServiceFixture _fixture;
+        
 
-        private Role _adminAtlasRole;
-        private Role _userAtlasRole;
-        private Group _adminAtlasGroup;
-        private Group _userAtlasGroup;
-
-        private readonly Mock<IClientStore> _mockClientStore = new Mock<IClientStore>();
-        private readonly Mock<IPermissionStore> _mockPermissionStore = new Mock<IPermissionStore>();
-        private readonly Mock<IRoleStore> _mockRoleStore = new Mock<IRoleStore>();
-        private readonly Mock<IGroupStore> _mockGroupStore = new Mock<IGroupStore>();
-
-        private readonly ClientService _clientService;
-        private readonly RoleService _roleService;
-        private readonly GroupService _groupService;
+        public IdentitySearchServiceTests(IdentitySearchServiceFixture fixture)
+        {
+            _fixture = fixture;
+            
+        }
 
         [Fact]
         public async Task IdentitySearch_ClientIdMissing_BadRequestExceptionAsync()
         {
             var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
-
-            var identitySearchService = new IdentitySearchService(
-                _clientService,
-                _roleService,
-                _groupService,
-                mockIdentityServiceProvider.Object);
+            var identitySearchService = _fixture.IdentitySearchService(null, mockIdentityServiceProvider.Object);
 
             await Assert.ThrowsAsync<BadRequestException<IdentitySearchRequest>>(
                 () => identitySearchService.Search(new IdentitySearchRequest()));
@@ -358,7 +371,7 @@ namespace Fabric.Authorization.UnitTests.Search
 
             var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
             mockIdentityServiceProvider
-                .Setup(m => m.Search(AtlasClientId, new List<string> {"atlas_user"}))
+                .Setup(m => m.Search(IdentitySearchServiceFixture.AtlasClientId, new List<string> { "atlas_user" }))
                 .ReturnsAsync(() => new List<UserSearchResponse>
                 {
                     new UserSearchResponse
@@ -371,12 +384,10 @@ namespace Fabric.Authorization.UnitTests.Search
                     }
                 });
 
-            var identitySearchService = new IdentitySearchService(_clientService, _roleService, _groupService,
-                mockIdentityServiceProvider.Object);
-
-            var results = identitySearchService.Search(new IdentitySearchRequest
+            // search + sort
+            var results = _fixture.IdentitySearchService(lastLoginDate, mockIdentityServiceProvider.Object).Search(new IdentitySearchRequest
             {
-                ClientId = AtlasClientId,
+                ClientId = IdentitySearchServiceFixture.AtlasClientId,
                 SortKey = "name",
                 SortDirection = "desc"
             }).Result.ToList();
@@ -389,11 +400,31 @@ namespace Fabric.Authorization.UnitTests.Search
             Assert.Equal("Brian", result1.MiddleName);
             Assert.Equal("Smith", result1.LastName);
             Assert.Equal(lastLoginDate, result1.LastLogin);
-            Assert.Equal(UserAtlasRoleName, result1.Roles.FirstOrDefault());
+            Assert.Equal(IdentitySearchServiceFixture.UserAtlasRoleName, result1.Roles.FirstOrDefault());
 
             var result2 = results[1];
-            Assert.Equal(AdminAtlasGroupName, result2.Name);
-            Assert.Equal(AdminAtlasRoleName, result2.Roles.FirstOrDefault());
+            Assert.Equal(IdentitySearchServiceFixture.AdminAtlasGroupName, result2.Name);
+            Assert.Equal(IdentitySearchServiceFixture.AdminAtlasRoleName, result2.Roles.FirstOrDefault());
+
+
+            // search + sort + filter
+            results = _fixture.IdentitySearchService(lastLoginDate, mockIdentityServiceProvider.Object).Search(new IdentitySearchRequest
+            {
+                ClientId = IdentitySearchServiceFixture.AtlasClientId,
+                SortKey = "name",
+                SortDirection = "desc",
+                Filter = "brian"
+            }).Result.ToList();
+
+            Assert.Equal(1, results.Count);
+
+            result1 = results[0];
+            Assert.Equal("atlas_user", result1.SubjectId);
+            Assert.Equal("Robert", result1.FirstName);
+            Assert.Equal("Brian", result1.MiddleName);
+            Assert.Equal("Smith", result1.LastName);
+            Assert.Equal(lastLoginDate, result1.LastLogin);
+            Assert.Equal(IdentitySearchServiceFixture.UserAtlasRoleName, result1.Roles.FirstOrDefault());
         }
     }
 }

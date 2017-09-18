@@ -110,6 +110,7 @@ namespace Fabric.Authorization.API.Services
             searchResults.AddRange(userList);
 
             return searchResults
+                .Filter(request)
                 .Sort(request)
                 .Skip(request.PageNumber * request.PageSize)
                 .Take(request.PageSize > 0 ? request.PageSize : 100);
