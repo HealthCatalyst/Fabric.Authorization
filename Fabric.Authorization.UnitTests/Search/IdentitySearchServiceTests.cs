@@ -85,7 +85,20 @@ namespace Fabric.Authorization.UnitTests.Search
             {
                 Id = AdminPatientSafetyGroupName,
                 Name = AdminPatientSafetyGroupName,
-                Roles = new List<Role> {_adminPatientSafetyRole}
+                Roles = new List<Role>
+                {
+                    new Role
+                    {
+                        Id = _adminPatientSafetyRole.Id,
+                        Name = AdminPatientSafetyRoleName,
+                        Grain = "app",
+                        SecurableItem = "patientsafety",
+                        Groups = new List<string>
+                        {
+                            AdminPatientSafetyGroupName
+                        }
+                    }
+                }
             };
 
             _userPatientSafetyGroup = new Group
@@ -97,10 +110,23 @@ namespace Fabric.Authorization.UnitTests.Search
                     new User
                     {
                         SubjectId = "patientsafety_user",
-                        Groups = new List<string>{UserPatientSafetyGroupName}
+                        Groups = new List<string> {UserPatientSafetyGroupName}
                     }
                 },
-                Roles = new List<Role> {_userPatientSafetyRole},
+                Roles = new List<Role>
+                {
+                    new Role
+                    {
+                        Id = _userPatientSafetyRole.Id,
+                        Name = UserPatientSafetyRoleName,
+                        Grain = "patientsafety",
+                        SecurableItem = "patient",
+                        Groups = new List<string>
+                        {
+                            UserPatientSafetyGroupName
+                        }
+                    }
+                },
                 Source = "Custom"
             };
         }
@@ -124,7 +150,7 @@ namespace Fabric.Authorization.UnitTests.Search
                 Id = Guid.NewGuid(),
                 Name = UserAtlasRoleName,
                 Grain = "atlas",
-                SecurableItem = "atlas-si2",// "patient",
+                SecurableItem = "atlas-si2",
                 Groups = new List<string>
                 {
                     UserAtlasGroupName
@@ -135,7 +161,20 @@ namespace Fabric.Authorization.UnitTests.Search
             {
                 Id = AdminAtlasGroupName,
                 Name = AdminAtlasGroupName,
-                Roles = new List<Role> { _adminAtlasRole }
+                Roles = new List<Role>
+                {
+                    new Role
+                    {
+                        Id = _adminAtlasRole.Id,
+                        Name = AdminAtlasRoleName,
+                        Grain = "app",
+                        SecurableItem = "atlas",
+                        Groups = new List<string>
+                        {
+                            AdminAtlasGroupName
+                        }
+                    }
+                }
             };
 
             _userAtlasGroup = new Group
@@ -147,10 +186,23 @@ namespace Fabric.Authorization.UnitTests.Search
                     new User
                     {
                         SubjectId = "atlas_user",
-                        Groups = new List<string>{ UserAtlasGroupName }
+                        Groups = new List<string> {UserAtlasGroupName}
                     }
                 },
-                Roles = new List<Role> { _userAtlasRole },
+                Roles = new List<Role>
+                {
+                    new Role
+                    {
+                        Id = _userAtlasRole.Id,
+                        Name = UserAtlasRoleName,
+                        Grain = "atlas",
+                        SecurableItem = "atlas-si2",
+                        Groups = new List<string>
+                        {
+                            UserAtlasGroupName
+                        }
+                    }
+                },
                 Source = "Custom"
             };
         }
@@ -295,16 +347,15 @@ namespace Fabric.Authorization.UnitTests.Search
                 _groupService,
                 mockIdentityServiceProvider.Object);
 
-            await Assert.ThrowsAsync<BadRequestException<IdentitySearchRequest>>(() => identitySearchService.Search(new IdentitySearchRequest()));
+            await Assert.ThrowsAsync<BadRequestException<IdentitySearchRequest>>(
+                () => identitySearchService.Search(new IdentitySearchRequest()));
         }
 
-        /*
-INPUTS
-client id | page number | page size | filter | sort key | sort direction
- */
         [Fact]
         public void IdentitySearch_ValidRequest_Success()
         {
+            var lastLoginDate = new DateTime(2017, 9, 15);
+
             var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
             mockIdentityServiceProvider
                 .Setup(m => m.Search(AtlasClientId, new List<string> {"atlas_user"}))
@@ -316,7 +367,7 @@ client id | page number | page size | filter | sort key | sort direction
                         FirstName = "Robert",
                         MiddleName = "Brian",
                         LastName = "Smith",
-                        LastLoginDate = new DateTime(2017, 9, 15)
+                        LastLoginDate = lastLoginDate
                     }
                 });
 
@@ -331,6 +382,18 @@ client id | page number | page size | filter | sort key | sort direction
             }).Result.ToList();
 
             Assert.Equal(2, results.Count);
+
+            var result1 = results[0];
+            Assert.Equal("atlas_user", result1.SubjectId);
+            Assert.Equal("Robert", result1.FirstName);
+            Assert.Equal("Brian", result1.MiddleName);
+            Assert.Equal("Smith", result1.LastName);
+            Assert.Equal(lastLoginDate, result1.LastLogin);
+            Assert.Equal(UserAtlasRoleName, result1.Roles.FirstOrDefault());
+
+            var result2 = results[1];
+            Assert.Equal(AdminAtlasGroupName, result2.Name);
+            Assert.Equal(AdminAtlasRoleName, result2.Roles.FirstOrDefault());
         }
     }
 }

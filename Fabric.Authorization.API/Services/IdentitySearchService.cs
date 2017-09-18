@@ -53,7 +53,6 @@ namespace Fabric.Authorization.API.Services
                 groupList.Add(group);
             }
 
-            // TODO: ensure Role equality works
             var groupsMappedToClientRole = groupList.Where(g => g.Roles.Any(r => clientRoleList.Contains(r))).ToList();
             var nonCustomGroups =
                 groupsMappedToClientRole.Where(g => !string.Equals(g.Source, GroupConstants.CustomSource));
@@ -93,7 +92,7 @@ namespace Fabric.Authorization.API.Services
             var userDetails =
                 await _identityServiceProvider.Search(request.ClientId, userList.Select(u => u.SubjectId));
 
-            // update user details
+            // update user details with Fabric.Identity response
             foreach (var user in userDetails)
             {
                 var userSearchResponse = userList.FirstOrDefault(u => u.SubjectId == user.SubjectId);
@@ -110,7 +109,6 @@ namespace Fabric.Authorization.API.Services
 
             searchResults.AddRange(userList);
 
-            // TODO: incorporate sort key and direction
             return searchResults
                 .Sort(request)
                 .Skip(request.PageNumber * request.PageSize)

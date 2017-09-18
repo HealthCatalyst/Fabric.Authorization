@@ -71,7 +71,7 @@ namespace Fabric.Authorization.Domain.Models
 
         public override int GetHashCode()
         {
-            return Id.GetHashCode();
+            return Identifier.GetHashCode();
         }
     }
 }
