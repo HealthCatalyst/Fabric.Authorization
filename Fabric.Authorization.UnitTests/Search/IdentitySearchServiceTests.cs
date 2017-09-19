@@ -85,7 +85,7 @@ namespace Fabric.Authorization.UnitTests.Search
             InitializeAtlasData();
         }
 
-        public IdentitySearchService IdentitySearchService(DateTime? lastLoginDate, IIdentityServiceProvider identityServiceProvider)
+        public IdentitySearchService IdentitySearchService(IIdentityServiceProvider identityServiceProvider)
         {
             var identitySearchService = new IdentitySearchService(_clientService, _roleService, _groupService, identityServiceProvider);
             return identitySearchService;
@@ -134,7 +134,8 @@ namespace Fabric.Authorization.UnitTests.Search
                             AdminPatientSafetyGroupName
                         }
                     }
-                }
+                },
+                Source = "Windows"
             };
 
             _userPatientSafetyGroup = new Group
@@ -358,7 +359,7 @@ namespace Fabric.Authorization.UnitTests.Search
         public async Task IdentitySearch_ClientIdMissing_BadRequestExceptionAsync()
         {
             var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
-            var identitySearchService = _fixture.IdentitySearchService(null, mockIdentityServiceProvider.Object);
+            var identitySearchService = _fixture.IdentitySearchService(mockIdentityServiceProvider.Object);
 
             await Assert.ThrowsAsync<BadRequestException<IdentitySearchRequest>>(
                 () => identitySearchService.Search(new IdentitySearchRequest()));
@@ -367,7 +368,7 @@ namespace Fabric.Authorization.UnitTests.Search
         [Fact]
         public void IdentitySearch_ValidRequest_Success()
         {
-            var lastLoginDate = new DateTime(2017, 9, 15);
+            var lastLoginDate = new DateTime(2017, 9, 15).ToUniversalTime();
 
             var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
             mockIdentityServiceProvider
@@ -385,7 +386,7 @@ namespace Fabric.Authorization.UnitTests.Search
                 });
 
             // search + sort
-            var results = _fixture.IdentitySearchService(lastLoginDate, mockIdentityServiceProvider.Object).Search(new IdentitySearchRequest
+            var results = _fixture.IdentitySearchService(mockIdentityServiceProvider.Object).Search(new IdentitySearchRequest
             {
                 ClientId = IdentitySearchServiceFixture.AtlasClientId,
                 SortKey = "name",
@@ -399,7 +400,8 @@ namespace Fabric.Authorization.UnitTests.Search
             Assert.Equal("Robert", result1.FirstName);
             Assert.Equal("Brian", result1.MiddleName);
             Assert.Equal("Smith", result1.LastName);
-            Assert.Equal(lastLoginDate, result1.LastLogin);
+            Assert.NotNull(result1.LastLogin);
+            Assert.Equal(lastLoginDate, result1.LastLogin.Value.ToUniversalTime());
             Assert.Equal(IdentitySearchServiceFixture.UserAtlasRoleName, result1.Roles.FirstOrDefault());
 
             var result2 = results[1];
@@ -407,7 +409,7 @@ namespace Fabric.Authorization.UnitTests.Search
             Assert.Equal(IdentitySearchServiceFixture.AdminAtlasRoleName, result2.Roles.FirstOrDefault());
 
             // search + sort + paging
-            results = _fixture.IdentitySearchService(lastLoginDate, mockIdentityServiceProvider.Object).Search(new IdentitySearchRequest
+            results = _fixture.IdentitySearchService(mockIdentityServiceProvider.Object).Search(new IdentitySearchRequest
             {
                 ClientId = IdentitySearchServiceFixture.AtlasClientId,
                 SortKey = "name",
@@ -423,12 +425,13 @@ namespace Fabric.Authorization.UnitTests.Search
             Assert.Equal("Robert", result1.FirstName);
             Assert.Equal("Brian", result1.MiddleName);
             Assert.Equal("Smith", result1.LastName);
-            Assert.Equal(lastLoginDate, result1.LastLogin);
+            Assert.NotNull(result1.LastLogin);
+            Assert.Equal(lastLoginDate, result1.LastLogin.Value.ToUniversalTime());
             Assert.Equal(IdentitySearchServiceFixture.UserAtlasRoleName, result1.Roles.FirstOrDefault());
 
 
             // search + sort + filter
-            results = _fixture.IdentitySearchService(lastLoginDate, mockIdentityServiceProvider.Object).Search(new IdentitySearchRequest
+            results = _fixture.IdentitySearchService(mockIdentityServiceProvider.Object).Search(new IdentitySearchRequest
             {
                 ClientId = IdentitySearchServiceFixture.AtlasClientId,
                 SortKey = "name",
@@ -443,7 +446,8 @@ namespace Fabric.Authorization.UnitTests.Search
             Assert.Equal("Robert", result1.FirstName);
             Assert.Equal("Brian", result1.MiddleName);
             Assert.Equal("Smith", result1.LastName);
-            Assert.Equal(lastLoginDate, result1.LastLogin);
+            Assert.NotNull(result1.LastLogin);
+            Assert.Equal(lastLoginDate, result1.LastLogin.Value.ToUniversalTime());
             Assert.Equal(IdentitySearchServiceFixture.UserAtlasRoleName, result1.Roles.FirstOrDefault());
         }
     }
