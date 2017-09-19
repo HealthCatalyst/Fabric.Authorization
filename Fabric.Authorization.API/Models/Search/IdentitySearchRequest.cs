@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-
-namespace Fabric.Authorization.API.Models.Search
+﻿namespace Fabric.Authorization.API.Models.Search
 {
     public class IdentitySearchRequest : SearchRequest
     {
