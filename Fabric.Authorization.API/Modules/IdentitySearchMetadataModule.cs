@@ -39,7 +39,7 @@ namespace Fabric.Authorization.API.Modules
                 "Searches Fabric.Identity for users by 1 or more subject IDs.",
                 new List<HttpResponseMetadata>
                 {
-                    new HttpResponseMetadata<IdentitySearchResponse>
+                    new HttpResponseMetadata<IEnumerable<IdentitySearchResponse>>
                     {
                         Code = (int) HttpStatusCode.OK,
                         Message = "OK"
@@ -47,7 +47,7 @@ namespace Fabric.Authorization.API.Modules
                     new HttpResponseMetadata
                     {
                         Code = (int) Nancy.HttpStatusCode.Forbidden,
-                        Message = "Client does not have access"
+                        Message = "Client does not have the required scopes to read data in Fabric.Authorization (fabric/authorization.read) and/or Fabric.Identity (fabric/identity.read)."
                     },
                     new HttpResponseMetadata<Error>
                     {

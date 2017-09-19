@@ -11,7 +11,7 @@ namespace Fabric.Authorization.API.Modules
             Name = "page_number",
             Description = "Page number",
             Required = false,
-            Type = "int",
+            Type = "integer",
             In = ParameterIn.Query
         };
 
@@ -20,7 +20,7 @@ namespace Fabric.Authorization.API.Modules
             Name = "page_size",
             Description = "Page size",
             Required = false,
-            Type = "int",
+            Type = "integer",
             In = ParameterIn.Query
         };
 
