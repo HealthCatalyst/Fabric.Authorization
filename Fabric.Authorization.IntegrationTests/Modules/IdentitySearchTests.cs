@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Claims;
 using Fabric.Authorization.API;
 using Fabric.Authorization.API.Constants;
+using Fabric.Authorization.API.Converters;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Models.Search;
 using Fabric.Authorization.API.Models.Search.Validators;
@@ -17,6 +18,7 @@ using Fabric.Authorization.Domain.Stores.InMemory;
 using Fabric.Authorization.Domain.Stores.Services;
 using Fabric.Authorization.Domain.Validators;
 using Moq;
+using Nancy;
 using Nancy.Testing;
 using Xunit;
 
@@ -95,7 +97,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         private RoleService _roleService;
         private GroupService _groupService;
 
-        private bool _isInitialized = false;
+        private bool _isInitialized;
 
         public void Initialize(bool useInMemoryDb)
         {
@@ -164,6 +166,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         {
             Browser = new Browser(with =>
             {
+                with.FieldNameConverter<UnderscoredFieldNameConverter>();
+
                 with.Module(new IdentitySearchModule(
                     new IdentitySearchService(_clientService, _roleService, _groupService, identityServiceProvider), 
                     new IdentitySearchRequestValidator(), 

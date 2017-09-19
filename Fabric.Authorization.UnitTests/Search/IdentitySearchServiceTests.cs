@@ -30,24 +30,123 @@ namespace Fabric.Authorization.UnitTests.Search
         public const string AdminAtlasRoleName = "adminAtlasRole";
         public const string UserAtlasRoleName = "userAtlasRole";
 
-        private Role _adminPatientSafetyRole;
-        private Role _userPatientSafetyRole;
-        private Group _adminPatientSafetyGroup;
-        private Group _userPatientSafetyGroup;
-
-        private Role _adminAtlasRole;
-        private Role _userAtlasRole;
-        private Group _adminAtlasGroup;
-        private Group _userAtlasGroup;
-
-        private readonly Mock<IClientStore> _mockClientStore = new Mock<IClientStore>();
-        private readonly Mock<IPermissionStore> _mockPermissionStore = new Mock<IPermissionStore>();
-        private readonly Mock<IRoleStore> _mockRoleStore = new Mock<IRoleStore>();
-        private readonly Mock<IGroupStore> _mockGroupStore = new Mock<IGroupStore>();
+        private readonly Client _atlasClient = new Client
+        {
+            Id = AtlasClientId,
+            TopLevelSecurableItem = new SecurableItem
+            {
+                Id = Guid.NewGuid(),
+                Name = "atlas",
+                SecurableItems = new List<SecurableItem>
+                {
+                    new SecurableItem
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "atlas-si1",
+                        SecurableItems = new List<SecurableItem>
+                        {
+                            new SecurableItem
+                            {
+                                Id = Guid.NewGuid(),
+                                Name = "patient"
+                            },
+                            new SecurableItem
+                            {
+                                Id = Guid.NewGuid(),
+                                Name = "diagnoses"
+                            }
+                        }
+                    },
+                    new SecurableItem
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "atlas-si2",
+                        SecurableItems = new List<SecurableItem>
+                        {
+                            new SecurableItem
+                            {
+                                Id = Guid.NewGuid(),
+                                Name = "patient"
+                            },
+                            new SecurableItem
+                            {
+                                Id = Guid.NewGuid(),
+                                Name = "observations"
+                            }
+                        }
+                    }
+                }
+            }
+        };
 
         private readonly ClientService _clientService;
-        private readonly RoleService _roleService;
         private readonly GroupService _groupService;
+
+        private readonly Mock<IClientStore> _mockClientStore = new Mock<IClientStore>();
+        private readonly Mock<IGroupStore> _mockGroupStore = new Mock<IGroupStore>();
+        private readonly Mock<IPermissionStore> _mockPermissionStore = new Mock<IPermissionStore>();
+        private readonly Mock<IRoleStore> _mockRoleStore = new Mock<IRoleStore>();
+
+        private readonly Client _patientSafetyClient = new Client
+        {
+            Id = PatientSafetyClientId,
+            TopLevelSecurableItem = new SecurableItem
+            {
+                Id = Guid.NewGuid(),
+                Name = "patientsafety",
+                SecurableItems = new List<SecurableItem>
+                {
+                    new SecurableItem
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "patientsafety-si1",
+                        SecurableItems = new List<SecurableItem>
+                        {
+                            new SecurableItem
+                            {
+                                Id = Guid.NewGuid(),
+                                Name = "patient"
+                            },
+                            new SecurableItem
+                            {
+                                Id = Guid.NewGuid(),
+                                Name = "diagnoses"
+                            }
+                        }
+                    },
+                    new SecurableItem
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "patientsafety-si2",
+                        SecurableItems = new List<SecurableItem>
+                        {
+                            new SecurableItem
+                            {
+                                Id = Guid.NewGuid(),
+                                Name = "patient"
+                            },
+                            new SecurableItem
+                            {
+                                Id = Guid.NewGuid(),
+                                Name = "observations"
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        private readonly RoleService _roleService;
+        private Group _adminAtlasGroup;
+
+        private Role _adminAtlasRole;
+        private Group _adminPatientSafetyGroup;
+
+        private Role _adminPatientSafetyRole;
+        private Group _userAtlasGroup;
+        private Role _userAtlasRole;
+        private Group _userPatientSafetyGroup;
+        private Role _userPatientSafetyRole;
 
         public IdentitySearchServiceFixture()
         {
@@ -87,7 +186,8 @@ namespace Fabric.Authorization.UnitTests.Search
 
         public IdentitySearchService IdentitySearchService(IIdentityServiceProvider identityServiceProvider)
         {
-            var identitySearchService = new IdentitySearchService(_clientService, _roleService, _groupService, identityServiceProvider);
+            var identitySearchService =
+                new IdentitySearchService(_clientService, _roleService, _groupService, identityServiceProvider);
             return identitySearchService;
         }
 
@@ -243,117 +343,17 @@ namespace Fabric.Authorization.UnitTests.Search
                 Source = "Custom"
             };
         }
-
-        private readonly Client _patientSafetyClient = new Client
-        {
-            Id = PatientSafetyClientId,
-            TopLevelSecurableItem = new SecurableItem
-            {
-                Id = Guid.NewGuid(),
-                Name = "patientsafety",
-                SecurableItems = new List<SecurableItem>
-                {
-                    new SecurableItem
-                    {
-                        Id = Guid.NewGuid(),
-                        Name = "patientsafety-si1",
-                        SecurableItems = new List<SecurableItem>
-                        {
-                            new SecurableItem
-                            {
-                                Id = Guid.NewGuid(),
-                                Name = "patient"
-                            },
-                            new SecurableItem
-                            {
-                                Id = Guid.NewGuid(),
-                                Name = "diagnoses"
-                            }
-                        }
-                    },
-                    new SecurableItem
-                    {
-                        Id = Guid.NewGuid(),
-                        Name = "patientsafety-si2",
-                        SecurableItems = new List<SecurableItem>
-                        {
-                            new SecurableItem
-                            {
-                                Id = Guid.NewGuid(),
-                                Name = "patient"
-                            },
-                            new SecurableItem
-                            {
-                                Id = Guid.NewGuid(),
-                                Name = "observations"
-                            }
-                        }
-                    }
-                }
-            }
-        };
-
-        private readonly Client _atlasClient = new Client
-        {
-            Id = AtlasClientId,
-            TopLevelSecurableItem = new SecurableItem
-            {
-                Id = Guid.NewGuid(),
-                Name = "atlas",
-                SecurableItems = new List<SecurableItem>
-                {
-                    new SecurableItem
-                    {
-                        Id = Guid.NewGuid(),
-                        Name = "atlas-si1",
-                        SecurableItems = new List<SecurableItem>
-                        {
-                            new SecurableItem
-                            {
-                                Id = Guid.NewGuid(),
-                                Name = "patient"
-                            },
-                            new SecurableItem
-                            {
-                                Id = Guid.NewGuid(),
-                                Name = "diagnoses"
-                            }
-                        }
-                    },
-                    new SecurableItem
-                    {
-                        Id = Guid.NewGuid(),
-                        Name = "atlas-si2",
-                        SecurableItems = new List<SecurableItem>
-                        {
-                            new SecurableItem
-                            {
-                                Id = Guid.NewGuid(),
-                                Name = "patient"
-                            },
-                            new SecurableItem
-                            {
-                                Id = Guid.NewGuid(),
-                                Name = "observations"
-                            }
-                        }
-                    }
-                }
-            }
-        };
-}
+    }
 
     [Collection("Identity Search Tests")]
     public class IdentitySearchServiceTests : IClassFixture<IdentitySearchServiceFixture>
     {
-        private readonly IdentitySearchServiceFixture _fixture;
-        
-
         public IdentitySearchServiceTests(IdentitySearchServiceFixture fixture)
         {
             _fixture = fixture;
-            
         }
+
+        private readonly IdentitySearchServiceFixture _fixture;
 
         [Fact]
         public async Task IdentitySearch_ClientIdMissing_BadRequestExceptionAsync()
@@ -372,7 +372,7 @@ namespace Fabric.Authorization.UnitTests.Search
 
             var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
             mockIdentityServiceProvider
-                .Setup(m => m.Search(IdentitySearchServiceFixture.AtlasClientId, new List<string> { "atlas_user" }))
+                .Setup(m => m.Search(IdentitySearchServiceFixture.AtlasClientId, new List<string> {"atlas_user"}))
                 .ReturnsAsync(() => new List<UserSearchResponse>
                 {
                     new UserSearchResponse
@@ -386,12 +386,13 @@ namespace Fabric.Authorization.UnitTests.Search
                 });
 
             // search + sort
-            var results = _fixture.IdentitySearchService(mockIdentityServiceProvider.Object).Search(new IdentitySearchRequest
-            {
-                ClientId = IdentitySearchServiceFixture.AtlasClientId,
-                SortKey = "name",
-                SortDirection = "desc"
-            }).Result.ToList();
+            var results = _fixture.IdentitySearchService(mockIdentityServiceProvider.Object).Search(
+                new IdentitySearchRequest
+                {
+                    ClientId = IdentitySearchServiceFixture.AtlasClientId,
+                    SortKey = "name",
+                    SortDirection = "desc"
+                }).Result.ToList();
 
             Assert.Equal(2, results.Count);
 
@@ -409,14 +410,15 @@ namespace Fabric.Authorization.UnitTests.Search
             Assert.Equal(IdentitySearchServiceFixture.AdminAtlasRoleName, result2.Roles.FirstOrDefault());
 
             // search + sort + paging
-            results = _fixture.IdentitySearchService(mockIdentityServiceProvider.Object).Search(new IdentitySearchRequest
-            {
-                ClientId = IdentitySearchServiceFixture.AtlasClientId,
-                SortKey = "name",
-                SortDirection = "desc",
-                PageSize = 1,
-                PageNumber = 1
-            }).Result.ToList();
+            results = _fixture.IdentitySearchService(mockIdentityServiceProvider.Object).Search(
+                new IdentitySearchRequest
+                {
+                    ClientId = IdentitySearchServiceFixture.AtlasClientId,
+                    SortKey = "name",
+                    SortDirection = "desc",
+                    PageSize = 1,
+                    PageNumber = 1
+                }).Result.ToList();
 
             Assert.Equal(1, results.Count);
 
@@ -431,13 +433,14 @@ namespace Fabric.Authorization.UnitTests.Search
 
 
             // search + sort + filter
-            results = _fixture.IdentitySearchService(mockIdentityServiceProvider.Object).Search(new IdentitySearchRequest
-            {
-                ClientId = IdentitySearchServiceFixture.AtlasClientId,
-                SortKey = "name",
-                SortDirection = "desc",
-                Filter = "brian"
-            }).Result.ToList();
+            results = _fixture.IdentitySearchService(mockIdentityServiceProvider.Object).Search(
+                new IdentitySearchRequest
+                {
+                    ClientId = IdentitySearchServiceFixture.AtlasClientId,
+                    SortKey = "name",
+                    SortDirection = "desc",
+                    Filter = "brian"
+                }).Result.ToList();
 
             Assert.Equal(1, results.Count);
 
