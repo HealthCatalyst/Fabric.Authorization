@@ -17,7 +17,7 @@ namespace Fabric.Authorization.API.Models.Search.Validators
         {
             RuleFor(request => request.ClientId)
                 .NotEmpty()
-                .WithMessage("Please specify a Client ID for searching.");
+                .WithMessage("Please specify client_id for searching.");
 
             RuleFor(request => request.SortKey)
                 .Must(sortKey => string.IsNullOrWhiteSpace(sortKey) ||
