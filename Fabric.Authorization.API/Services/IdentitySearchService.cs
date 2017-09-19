@@ -109,11 +109,14 @@ namespace Fabric.Authorization.API.Services
 
             searchResults.AddRange(userList);
 
+            var pageSize = request.PageSize ?? 100;
+            var pageNumber = request.PageNumber ?? 1;
+
             return searchResults
                 .Filter(request)
                 .Sort(request)
-                .Skip((request.PageNumber - 1) * request.PageSize)
-                .Take(request.PageSize > 0 ? request.PageSize : 100);
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize);
         }
     }
 }
