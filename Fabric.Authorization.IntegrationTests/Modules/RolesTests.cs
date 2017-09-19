@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using Fabric.Authorization.API;
 using Fabric.Authorization.API.Constants;
+using Fabric.Authorization.API.Infrastructure.PipelineHooks;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;

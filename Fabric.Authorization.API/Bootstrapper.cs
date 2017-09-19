@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Net.Http.Headers;
 using System.Security.Claims;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Extensions;
 using Fabric.Authorization.API.Infrastructure;
+using Fabric.Authorization.API.Infrastructure.PipelineHooks;
 using Fabric.Authorization.API.Logging;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Services;
@@ -67,7 +67,7 @@ namespace Fabric.Authorization.API
 
             base.ApplicationStartup(container, pipelines);
 
-            pipelines.OnError.AddItemToEndOfPipeline((ctx, ex) => HandleInternalServerError(ctx,ex, container.Resolve<IResponseNegotiator>()));
+            pipelines.OnError.AddItemToEndOfPipeline((ctx, ex) => new OnErrorHooks(_logger).HandleInternalServerError(ctx, ex, container.Resolve<IResponseNegotiator>())); 
 
             pipelines.BeforeRequest += ctx => RequestHooks.SetDefaultVersionInUrl(ctx);
 
@@ -80,28 +80,6 @@ namespace Fabric.Authorization.API
             };
 
             ConfigureRegistrations(container);
-        }
-
-        private dynamic HandleInternalServerError(NancyContext context, Exception exception,
-            IResponseNegotiator responseNegotiator)
-        {
-            _logger.Error(exception, "Unhandled error on request: @{Url}. Error Message: @{Message}", context.Request.Url,
-                exception.Message);
-
-           context.NegotiationContext = new NegotiationContext();
-
-            var negotiator = new Negotiator(context)
-                .WithStatusCode(HttpStatusCode.InternalServerError)
-                .WithModel(new Error()
-                {
-                    Message = "There was an internal server error while processing the request.",
-                    Code = ((int)HttpStatusCode.InternalServerError).ToString()
-                })
-                .WithHeaders(HttpResponseHeaders.CorsHeaders);
-
-
-            var response = responseNegotiator.NegotiateResponse(negotiator, context);            
-            return response;
         }
 
         private static void InitializeSwaggerMetadata()
@@ -150,7 +128,7 @@ namespace Fabric.Authorization.API
         protected void ApplicationStartupForTests(TinyIoCContainer container, IPipelines pipelines)
         {
             base.ApplicationStartup(container, pipelines);
-            pipelines.OnError.AddItemToEndOfPipeline((ctx, ex) => HandleInternalServerError(ctx, ex, container.Resolve<IResponseNegotiator>()));
+            pipelines.OnError.AddItemToEndOfPipeline((ctx, ex) => new OnErrorHooks(_logger).HandleInternalServerError(ctx, ex, container.Resolve<IResponseNegotiator>()));
 
             pipelines.AfterRequest += ctx =>
             {

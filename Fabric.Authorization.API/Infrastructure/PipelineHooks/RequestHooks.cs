@@ -4,7 +4,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using Nancy;
 
-namespace Fabric.Authorization.API
+namespace Fabric.Authorization.API.Infrastructure.PipelineHooks
 {
     public static class RequestHooks
     {
