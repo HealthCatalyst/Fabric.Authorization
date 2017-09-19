@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http.Headers;
 using System.Security.Claims;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Extensions;
@@ -24,6 +25,7 @@ using Serilog;
 using Serilog.Core;
 using Swagger.ObjectModel;
 using Swagger.ObjectModel.Builders;
+using HttpResponseHeaders = Fabric.Authorization.API.Constants.HttpResponseHeaders;
 
 namespace Fabric.Authorization.API
 {
@@ -71,10 +73,10 @@ namespace Fabric.Authorization.API
 
             pipelines.AfterRequest += ctx =>
             {
-                ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
-                ctx.Response.Headers.Add("Access-Control-Allow-Headers",
-                    "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-                ctx.Response.Headers.Add("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+                foreach (var corsHeader in HttpResponseHeaders.CorsHeaders)
+                {
+                    ctx.Response.Headers.Add(corsHeader.Item1, corsHeader.Item2);
+                }
             };
 
             ConfigureRegistrations(container);
@@ -95,10 +97,7 @@ namespace Fabric.Authorization.API
                     Message = "There was an internal server error while processing the request.",
                     Code = ((int)HttpStatusCode.InternalServerError).ToString()
                 })
-                .WithHeader("Access-Control-Allow-Origin", "*")
-                .WithHeader("Access-Control-Allow-Headers",
-                    "Origin, X-Requested-With, Content-Type, Accept, Authorization")
-                .WithHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+                .WithHeaders(HttpResponseHeaders.CorsHeaders);
 
 
             var response = responseNegotiator.NegotiateResponse(negotiator, context);            
