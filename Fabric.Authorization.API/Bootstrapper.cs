@@ -4,6 +4,7 @@ using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Extensions;
 using Fabric.Authorization.API.Infrastructure;
 using Fabric.Authorization.API.Logging;
+using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Events;
 using Fabric.Authorization.Domain.Stores;
@@ -16,6 +17,7 @@ using Nancy;
 using Nancy.Bootstrapper;
 using Nancy.Conventions;
 using Nancy.Owin;
+using Nancy.Responses.Negotiation;
 using Nancy.Swagger.Services;
 using Nancy.TinyIoc;
 using Serilog;
@@ -63,12 +65,7 @@ namespace Fabric.Authorization.API
 
             base.ApplicationStartup(container, pipelines);
 
-            pipelines.OnError.AddItemToEndOfPipeline((ctx, ex) =>
-            {
-                _logger.Error(ex, "Unhandled error on request: @{Url}. Error Message: @{Message}", ctx.Request.Url,
-                    ex.Message);
-                return ctx.Response;
-            });
+            pipelines.OnError.AddItemToEndOfPipeline((ctx, ex) => HandleInternalServerError(ctx,ex, container.Resolve<IResponseNegotiator>()));
 
             pipelines.BeforeRequest += ctx => RequestHooks.SetDefaultVersionInUrl(ctx);
 
@@ -81,6 +78,31 @@ namespace Fabric.Authorization.API
             };
 
             ConfigureRegistrations(container);
+        }
+
+        private dynamic HandleInternalServerError(NancyContext context, Exception exception,
+            IResponseNegotiator responseNegotiator)
+        {
+            _logger.Error(exception, "Unhandled error on request: @{Url}. Error Message: @{Message}", context.Request.Url,
+                exception.Message);
+
+           context.NegotiationContext = new NegotiationContext();
+
+            var negotiator = new Negotiator(context)
+                .WithStatusCode(HttpStatusCode.InternalServerError)
+                .WithModel(new Error()
+                {
+                    Message = "There was an internal server error while processing the request.",
+                    Code = ((int)HttpStatusCode.InternalServerError).ToString()
+                })
+                .WithHeader("Access-Control-Allow-Origin", "*")
+                .WithHeader("Access-Control-Allow-Headers",
+                    "Origin, X-Requested-With, Content-Type, Accept, Authorization")
+                .WithHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+
+
+            var response = responseNegotiator.NegotiateResponse(negotiator, context);            
+            return response;
         }
 
         private static void InitializeSwaggerMetadata()
@@ -167,5 +189,5 @@ namespace Fabric.Authorization.API
             else
                 container.RegisterCouchDbStores(_appConfig, _loggingLevelSwitch);
         }
-    }
+    }    
 }
