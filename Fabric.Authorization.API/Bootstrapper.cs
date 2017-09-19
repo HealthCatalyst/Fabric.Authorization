@@ -150,19 +150,14 @@ namespace Fabric.Authorization.API
         protected void ApplicationStartupForTests(TinyIoCContainer container, IPipelines pipelines)
         {
             base.ApplicationStartup(container, pipelines);
-            pipelines.OnError.AddItemToEndOfPipeline((ctx, ex) =>
-            {
-                _logger.Error(ex, "Unhandled error on request: @{Url}. Error Message: @{Message}", ctx.Request.Url,
-                    ex.Message);
-                return ctx.Response;
-            });
+            pipelines.OnError.AddItemToEndOfPipeline((ctx, ex) => HandleInternalServerError(ctx, ex, container.Resolve<IResponseNegotiator>()));
 
             pipelines.AfterRequest += ctx =>
             {
-                ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
-                ctx.Response.Headers.Add("Access-Control-Allow-Headers",
-                    "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-                ctx.Response.Headers.Add("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+                foreach (var corsHeader in HttpResponseHeaders.CorsHeaders)
+                {
+                    ctx.Response.Headers.Add(corsHeader.Item1, corsHeader.Item2);
+                }
             };
 
             //container registrations
