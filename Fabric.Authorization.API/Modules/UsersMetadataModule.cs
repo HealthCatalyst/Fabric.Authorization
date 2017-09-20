@@ -53,7 +53,7 @@ namespace Fabric.Authorization.API.Modules
                 }).SecurityRequirement(OAuth2ReadScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
-                "AdditionalPermissions",
+                "AddPermissions",
                 "",
                 "Adds granular permissions for a user",
                 new[]
@@ -81,7 +81,7 @@ namespace Fabric.Authorization.API.Modules
                 }).SecurityRequirement(OAuth2ManageClientsScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
-                "DeniedPermissions",
+                "AddDeniedPermissions",
                 "",
                 "Adds denied permissions for a user",
                 new[]
