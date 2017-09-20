@@ -166,6 +166,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         {
             Browser = new Browser(with =>
             {
+                // TODO: move this to base class and refactor all integration tests to use
                 with.FieldNameConverter<UnderscoredFieldNameConverter>();
 
                 with.Module(new IdentitySearchModule(
@@ -197,8 +198,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.FormValue("Name", AtlasClientId);
                 with.Header("Accept", "application/json");
             }).Wait();
-
-            // create the 
 
             // create roles
             var userAtlasRoleResponse = Browser.Post("/roles", with =>

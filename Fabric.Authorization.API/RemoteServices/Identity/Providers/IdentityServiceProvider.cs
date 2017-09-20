@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -39,7 +40,10 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
             var response = await httpClient.PostAsync("/users",
                 new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json"));
 
-            return JsonConvert.DeserializeObject<IEnumerable<UserSearchResponse>>(await response.Content.ReadAsStringAsync());
+            return response.StatusCode != HttpStatusCode.OK
+                ? new List<UserSearchResponse>()
+                : JsonConvert.DeserializeObject<IEnumerable<UserSearchResponse>>(await response.Content
+                    .ReadAsStringAsync());
         }
     }
 }

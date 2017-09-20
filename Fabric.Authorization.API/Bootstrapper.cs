@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Security.Claims;
 using Fabric.Authorization.API.Configuration;
+using Fabric.Authorization.API.Converters;
 using Fabric.Authorization.API.Extensions;
 using Fabric.Authorization.API.Infrastructure;
 using Fabric.Authorization.API.Infrastructure.PipelineHooks;
@@ -45,6 +46,9 @@ namespace Fabric.Authorization.API
             _loggingLevelSwitch = levelSwitch ?? throw new ArgumentNullException(nameof(levelSwitch));
         }
 
+        protected override Func<ITypeCatalog, NancyInternalConfiguration> InternalConfiguration =>
+            NancyInternalConfiguration.WithOverrides(config => config.FieldNameConverter = typeof(UnderscoredFieldNameConverter));
+
         protected override void RequestStartup(TinyIoCContainer container, IPipelines pipelines, NancyContext context)
         {
             base.RequestStartup(container, pipelines, context);
@@ -63,7 +67,7 @@ namespace Fabric.Authorization.API
             if (!_appConfig.UseInMemoryStores)
                 container.RegisterCouchDbStores(_appConfig, _loggingLevelSwitch);
         }
-
+        
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
         {
             InitializeSwaggerMetadata();

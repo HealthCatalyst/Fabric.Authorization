@@ -175,7 +175,6 @@ namespace Fabric.Authorization.UnitTests
             {
                 context.CurrentUser = new TestPrincipal(claims);
                 pipeline.BeforeRequest += ctx => RequestHooks.SetDefaultVersionInUrl(ctx);
-                ;
             });
             return configurableBootstrapperConfigurator;
         }
