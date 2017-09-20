@@ -1,6 +1,7 @@
 ﻿using System;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
+using Microsoft.AspNetCore.Hosting;
 using Nancy;
 using Nancy.Responses.Negotiation;
 using Serilog;
@@ -17,10 +18,13 @@ namespace Fabric.Authorization.API.Infrastructure.PipelineHooks
         }
 
         internal dynamic HandleInternalServerError(NancyContext context, Exception exception,
-            IResponseNegotiator responseNegotiator)
+            IResponseNegotiator responseNegotiator, IHostingEnvironment env)
         {
             _logger.Error(exception, "Unhandled error on request: @{Url}. Error Message: @{Message}", context.Request.Url,
                 exception.Message);
+
+            var errorMessage = "There was an internal server error while processing the request.";
+            errorMessage = env.IsDevelopment() ? $"{exception.Message} Stack Trace: {exception.StackTrace}" : errorMessage;
 
             context.NegotiationContext = new NegotiationContext();
 
@@ -28,9 +32,9 @@ namespace Fabric.Authorization.API.Infrastructure.PipelineHooks
                 .WithStatusCode(HttpStatusCode.InternalServerError)
                 .WithModel(new Error()
                 {
-                    Message = "There was an internal server error while processing the request.",
-                    Code = ((int)HttpStatusCode.InternalServerError).ToString()
-                })
+                    Message = errorMessage,
+                    Code = ((int)HttpStatusCode.InternalServerError).ToString(),                    
+                })                
                 .WithHeaders(HttpResponseHeaders.CorsHeaders);
 
 

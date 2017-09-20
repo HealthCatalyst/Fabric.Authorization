@@ -62,7 +62,7 @@ namespace Fabric.Authorization.API
                 .UseOwin()
                 .UseFabricLoggingAndMonitoring(_logger, HealthCheck, _levelSwitch)
                 .UseAuthPlatform(_idServerSettings.Scopes, _allowedPaths)
-                .UseNancy(opt => opt.Bootstrapper = new Bootstrapper(_logger, _appConfig, _levelSwitch));
+                .UseNancy(opt => opt.Bootstrapper = new Bootstrapper(_logger, _appConfig, _levelSwitch, env));
         }
 
         public async Task<bool> HealthCheck()
