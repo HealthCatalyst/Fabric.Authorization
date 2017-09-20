@@ -39,21 +39,29 @@ namespace Fabric.Authorization.API.Services
             }
 
             var client = await _clientService.GetClient(request.ClientId);
-            var clientRoles = await _roleService.GetRoles(client);
+            var clientRoles = _roleService.GetRoles(client).Result.ToList();
 
-            var clientRoleList = clientRoles.ToList();
+            if (clientRoles.Count == 0)
+            {
+                return new List<IdentitySearchResponse>();
+            }
 
             // get all groups tied to clientRoles
-            var groupIds = clientRoleList.SelectMany(r => r.Groups).Distinct();
+            var groupIds = clientRoles.SelectMany(r => r.Groups).Distinct().ToList();
 
-            var groupList = new List<Group>();
+            if (groupIds.Count == 0)
+            {
+                return new List<IdentitySearchResponse>();
+            }
+
+            var groupEntities = new List<Group>();
             foreach (var groupId in groupIds)
             {
                 var group = await _groupService.GetGroup(groupId);
-                groupList.Add(group);
+                groupEntities.Add(group);
             }
 
-            var groupsMappedToClientRole = groupList.Where(g => g.Roles.Any(r => clientRoleList.Contains(r))).ToList();
+            var groupsMappedToClientRole = groupEntities.Where(g => g.Roles.Any(r => clientRoles.Contains(r))).ToList();
             var nonCustomGroups =
                 groupsMappedToClientRole.Where(g => !string.Equals(g.Source, GroupConstants.CustomSource));
 
@@ -76,7 +84,7 @@ namespace Fabric.Authorization.API.Services
             {
                 // get groups for user
                 var userGroups = user.Groups;
-                var userGroupEntities = groupList.Where(g => userGroups.Contains(g.Name));
+                var userGroupEntities = groupEntities.Where(g => userGroups.Contains(g.Name));
 
                 // get roles for user
                 var userRoles = userGroupEntities.SelectMany(g => g.Roles).Select(r => r.Name);
@@ -92,19 +100,22 @@ namespace Fabric.Authorization.API.Services
             var userDetails =
                 await _identityServiceProvider.Search(request.ClientId, userList.Select(u => u.SubjectId));
 
-            // update user details with Fabric.Identity response
-            foreach (var user in userDetails)
+            if (userDetails != null)
             {
-                var userSearchResponse = userList.FirstOrDefault(u => u.SubjectId == user.SubjectId);
-                if (userSearchResponse == null)
+                // update user details with Fabric.Identity response
+                foreach (var user in userDetails)
                 {
-                    continue;
-                }
+                    var userSearchResponse = userList.FirstOrDefault(u => u.SubjectId == user.SubjectId);
+                    if (userSearchResponse == null)
+                    {
+                        continue;
+                    }
 
-                userSearchResponse.FirstName = user.FirstName;
-                userSearchResponse.MiddleName = user.MiddleName;
-                userSearchResponse.LastName = user.LastName;
-                userSearchResponse.LastLogin = user.LastLoginDate;
+                    userSearchResponse.FirstName = user.FirstName;
+                    userSearchResponse.MiddleName = user.MiddleName;
+                    userSearchResponse.LastName = user.LastName;
+                    userSearchResponse.LastLogin = user.LastLoginDate;
+                }
             }
 
             searchResults.AddRange(userList);

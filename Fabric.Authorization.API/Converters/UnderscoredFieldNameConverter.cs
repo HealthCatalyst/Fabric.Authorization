@@ -4,7 +4,8 @@ using Nancy.ModelBinding;
 namespace Fabric.Authorization.API.Converters
 {
     /// <summary>
-    /// NOT USED
+    /// Custom converter to handle underscores and property names to support Nancy model binding (e.g., converts client_id to clientId).
+    /// Invokes the built-in Nancy DefaultFieldNameConverter, which converts Camel case to Pascal case.
     /// </summary>
     public class UnderscoredFieldNameConverter : IFieldNameConverter
     {
@@ -17,6 +18,11 @@ namespace Fabric.Authorization.API.Converters
 
         public string Convert(string fieldName)
         {
+            if (!fieldName.Contains("_"))
+            {
+                return fieldName;
+            }
+
             var result = string.Concat(fieldName.Select((x, i) =>
                 i > 0 && fieldName[i - 1] == '_'
                     ? char.ToUpper(fieldName[i])
