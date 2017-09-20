@@ -12,6 +12,7 @@ using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
 using Fabric.Platform.Bootstrappers.Nancy;
 using LibOwin;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Nancy;
@@ -31,12 +32,14 @@ namespace Fabric.Authorization.API
 {
     public class Bootstrapper : DefaultNancyBootstrapper
     {
+        private readonly IHostingEnvironment _env;
         private readonly IAppConfiguration _appConfig;
         private readonly ILogger _logger;
         private readonly LoggingLevelSwitch _loggingLevelSwitch;
 
-        public Bootstrapper(ILogger logger, IAppConfiguration appConfig, LoggingLevelSwitch levelSwitch)
+        public Bootstrapper(ILogger logger, IAppConfiguration appConfig, LoggingLevelSwitch levelSwitch, IHostingEnvironment env)
         {
+            _env = env;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _appConfig = appConfig ?? throw new ArgumentNullException(nameof(appConfig));
             _loggingLevelSwitch = levelSwitch ?? throw new ArgumentNullException(nameof(levelSwitch));
@@ -67,7 +70,13 @@ namespace Fabric.Authorization.API
 
             base.ApplicationStartup(container, pipelines);
 
-            pipelines.OnError.AddItemToEndOfPipeline((ctx, ex) => new OnErrorHooks(_logger).HandleInternalServerError(ctx, ex, container.Resolve<IResponseNegotiator>())); 
+            pipelines.OnError.AddItemToEndOfPipeline(
+                (ctx, ex) => new OnErrorHooks(_logger)
+                    .HandleInternalServerError(
+                        ctx,
+                        ex,
+                        container.Resolve<IResponseNegotiator>(),
+                        _env));
 
             pipelines.BeforeRequest += ctx => RequestHooks.SetDefaultVersionInUrl(ctx);
 
@@ -128,7 +137,13 @@ namespace Fabric.Authorization.API
         protected void ApplicationStartupForTests(TinyIoCContainer container, IPipelines pipelines)
         {
             base.ApplicationStartup(container, pipelines);
-            pipelines.OnError.AddItemToEndOfPipeline((ctx, ex) => new OnErrorHooks(_logger).HandleInternalServerError(ctx, ex, container.Resolve<IResponseNegotiator>()));
+            pipelines.OnError.AddItemToEndOfPipeline(
+                (ctx, ex) => new OnErrorHooks(_logger)
+                    .HandleInternalServerError(
+                        ctx,
+                        ex,
+                        container.Resolve<IResponseNegotiator>(),
+                        _env));
 
             pipelines.AfterRequest += ctx =>
             {
