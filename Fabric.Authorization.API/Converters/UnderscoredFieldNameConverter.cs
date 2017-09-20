@@ -20,7 +20,7 @@ namespace Fabric.Authorization.API.Converters
         {
             if (!fieldName.Contains("_"))
             {
-                return fieldName;
+                return _defaultFieldNameConverter.Convert(fieldName);
             }
 
             var result = string.Concat(fieldName.Select((x, i) =>
