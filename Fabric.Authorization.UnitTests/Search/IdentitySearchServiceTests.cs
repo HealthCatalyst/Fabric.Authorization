@@ -366,6 +366,19 @@ namespace Fabric.Authorization.UnitTests.Search
         }
 
         [Fact]
+        public async Task IdentitySearch_ClientIdDoesNotExist_NotFoundExceptionAsync()
+        {
+            var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
+            var identitySearchService = _fixture.IdentitySearchService(mockIdentityServiceProvider.Object);
+
+            await Assert.ThrowsAsync<NotFoundException<Client>>(
+                () => identitySearchService.Search(new IdentitySearchRequest
+                {
+                    ClientId = "xyz"
+                }));
+        }
+
+        [Fact]
         public void IdentitySearch_ValidRequest_Success()
         {
             var lastLoginDate = new DateTime(2017, 9, 15).ToUniversalTime();
