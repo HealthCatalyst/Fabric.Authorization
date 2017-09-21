@@ -36,6 +36,75 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
+        public void IdentitySearch_ClientIdDoesNotExist_NotFoundException()
+        {
+            Fixture.InitializeBrowser(new Mock<IIdentityServiceProvider>().Object);
+
+            var result = Fixture.Browser.Get(
+                "/search/identities", with =>
+                {
+                    with.HttpRequest();
+                    with.Header("Accept", "application/json");
+                    with.Query("client_id", "blah");
+                    with.Query("sort_key", "name");
+                    with.Query("sort_dir", "desc");
+                    with.Query("filter", "brian");
+                    with.Query("page_number", "1");
+                    with.Query("page_size", "1");
+                }).Result;
+
+            Assert.Equal(HttpStatusCode.NotFound, result.StatusCode);
+        }
+
+        [Fact]
+        public void IdentitySearch_ClientWithoutRoles_EmptyResponse()
+        {
+            var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
+            Fixture.InitializeClientWithoutRoles(mockIdentityServiceProvider.Object);
+
+            var response = Fixture.Browser.Get(
+                "/search/identities", with =>
+                {
+                    with.HttpRequest();
+                    with.Header("Accept", "application/json");
+                    with.Query("client_id", Fixture.AtlasClientId);
+                    with.Query("sort_key", "name");
+                    with.Query("sort_dir", "desc");
+                    with.Query("filter", "brian");
+                    with.Query("page_number", "1");
+                    with.Query("page_size", "1");
+                }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var results = response.Body.DeserializeJson<List<IdentitySearchResponse>>();
+            Assert.Equal(0, results.Count);
+        }
+
+        [Fact]
+        public void IdentitySearch_ClientWithRolesAndNoGroups_EmptyResponse()
+        {
+            var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
+            Fixture.InitializeClientWithRolesAndNoGroups(mockIdentityServiceProvider.Object);
+
+            var response = Fixture.Browser.Get(
+                "/search/identities", with =>
+                {
+                    with.HttpRequest();
+                    with.Header("Accept", "application/json");
+                    with.Query("client_id", Fixture.AtlasClientId);
+                    with.Query("sort_key", "name");
+                    with.Query("sort_dir", "desc");
+                    with.Query("filter", "brian");
+                    with.Query("page_number", "1");
+                    with.Query("page_size", "1");
+                }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var results = response.Body.DeserializeJson<List<IdentitySearchResponse>>();
+            Assert.Equal(0, results.Count);
+        }
+
+        [Fact]
         public void IdentitySearch_ValidRequest_Success()
         {
             var lastLoginDate = new DateTime(2017, 9, 15).ToUniversalTime();
@@ -55,7 +124,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     }
                 });
 
-            Fixture.InitializeIdentitySearchBrowser(mockIdentityServiceProvider.Object);
+            Fixture.InitializeSuccessData(mockIdentityServiceProvider.Object);
 
             var response = Fixture.Browser.Get(
                 "/search/identities", with =>
@@ -87,25 +156,19 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
     public class IdentitySearchFixture : IntegrationTestsFixture
     {
-        public readonly string AtlasClientId = "atlas";
-        public readonly string AdminAtlasGroupName = "adminAtlasGroup";
-        public readonly string UserAtlasGroupName = "userAtlasGroup";
-        public readonly string AdminAtlasRoleName = "adminAtlasRole";
-        public readonly string UserAtlasRoleName = "userAtlasRole";
+        public string AtlasClientId { get; private set; }
+        public string AdminAtlasGroupName { get; private set; }
+        public string UserAtlasGroupName { get; private set; }
+        public string AdminAtlasRoleName { get; private set; }
+        public string UserAtlasRoleName { get; private set; }
 
         private ClientService _clientService;
-        private RoleService _roleService;
         private GroupService _groupService;
 
-        private bool _isInitialized;
+        public RoleService RoleService { get; private set; }
 
         public void Initialize(bool useInMemoryDb)
         {
-            if (_isInitialized)
-            {
-                return;
-            }
-
             var groupStore = useInMemoryDb
                 ? new InMemoryGroupStore()
                 : (IGroupStore)new CouchDbGroupStore(DbService(), Logger, EventContextResolverService);
@@ -124,10 +187,22 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             _groupService = new GroupService(groupStore, roleStore, userStore);
             _clientService = new ClientService(clientStore);
-            _roleService = new RoleService(roleStore, new InMemoryPermissionStore(), _clientService);
+            RoleService = new RoleService(roleStore, new InMemoryPermissionStore(), _clientService);
 
+            AtlasClientId = $"atlas-{DateTime.Now.Ticks}";
+            AdminAtlasGroupName = $"adminAtlasGroup-{DateTime.Now.Ticks}";
+            UserAtlasGroupName = $"userAtlasGroup-{DateTime.Now.Ticks}";
+            AdminAtlasRoleName = $"adminAtlasRole-{DateTime.Now.Ticks}";
+            UserAtlasRoleName = $"userAtlasRole-{DateTime.Now.Ticks}";
+        }
+
+        public void InitializeBrowser(IIdentityServiceProvider identityServiceProvider)
+        {
             Browser = new Browser(with =>
             {
+                // TODO: move this to base class and refactor all integration tests to use
+                with.FieldNameConverter<UnderscoredFieldNameConverter>();
+
                 with.Module(new GroupsModule(
                     _groupService,
                     new GroupValidator(_groupService),
@@ -135,14 +210,19 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     DefaultPropertySettings));
 
                 with.Module(new RolesModule(
-                    _roleService,
+                    RoleService,
                     _clientService,
-                    new RoleValidator(_roleService),
+                    new RoleValidator(RoleService),
                     Logger));
 
                 with.Module(new ClientsModule(
                     _clientService,
                     new ClientValidator(_clientService),
+                    Logger));
+
+                with.Module(new IdentitySearchModule(
+                    new IdentitySearchService(_clientService, RoleService, _groupService, identityServiceProvider),
+                    new IdentitySearchRequestValidator(),
                     Logger));
 
                 with.RequestStartup((_, pipelines, context) =>
@@ -157,47 +237,22 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     pipelines.BeforeRequest += ctx => RequestHooks.SetDefaultVersionInUrl(ctx);
                 });
             }, withDefaults => withDefaults.HostName("testhost"));
-
-            InitializeData();
-            _isInitialized = true;
         }
 
-        public void InitializeIdentitySearchBrowser(IIdentityServiceProvider identityServiceProvider)
+        public void InitializeSuccessData(IIdentityServiceProvider identityServiceProvider)
         {
-            Browser = new Browser(with =>
-            {
-                // TODO: move this to base class and refactor all integration tests to use
-                with.FieldNameConverter<UnderscoredFieldNameConverter>();
-
-                with.Module(new IdentitySearchModule(
-                    new IdentitySearchService(_clientService, _roleService, _groupService, identityServiceProvider), 
-                    new IdentitySearchRequestValidator(), 
-                    Logger));
-
-                with.RequestStartup((_, pipelines, context) =>
-                {
-                    context.CurrentUser = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
-                    {
-                        new Claim(Claims.Scope, Scopes.ReadScope),
-                        new Claim(Claims.Scope, IdentityScopes.ReadScope),
-                        new Claim(Claims.ClientId, AtlasClientId)
-                    }, "rolesprincipal"));
-                    pipelines.BeforeRequest += ctx => RequestHooks.SetDefaultVersionInUrl(ctx);
-                });
-            }, withDefaults => withDefaults.HostName("testhost"));
-        }
-
-        private void InitializeData()
-        {
+            InitializeBrowser(identityServiceProvider);
 
             // create the Atlas client
-            Browser.Post("/clients", with =>
+            var response = Browser.Post("/clients", with =>
             {
                 with.HttpRequest();
+                with.Header("Accept", "application/json");
                 with.FormValue("Id", AtlasClientId);
                 with.FormValue("Name", AtlasClientId);
-                with.Header("Accept", "application/json");
-            }).Wait();
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
             // create roles
             var userAtlasRoleResponse = Browser.Post("/roles", with =>
@@ -209,6 +264,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.FormValue("Name", UserAtlasRoleName);
             }).Result;
 
+            Assert.Equal(HttpStatusCode.Created, userAtlasRoleResponse.StatusCode);
+
             var adminAtlasRoleResponse = Browser.Post("/roles", with =>
             {
                 with.HttpRequest();
@@ -218,45 +275,112 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.FormValue("Name", AdminAtlasRoleName);
             }).Result;
 
+            Assert.Equal(HttpStatusCode.Created, adminAtlasRoleResponse.StatusCode);
+
             // create groups
-            Browser.Post("/groups", with =>
+            response = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.FormValue("GroupName", UserAtlasGroupName);
                 with.FormValue("GroupSource", "Custom");
                 with.Header("Accept", "application/json");
-            }).Wait();
+            }).Result;
 
-            Browser.Post("/groups", with =>
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+            response = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.FormValue("GroupName", AdminAtlasGroupName);
                 with.FormValue("GroupSource", "Windows");
                 with.Header("Accept", "application/json");
-            }).Wait();
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
             // add role to group
-            Browser.Post($"/groups/{AdminAtlasGroupName}/roles", with =>
+            response = Browser.Post($"/groups/{AdminAtlasGroupName}/roles", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
                 with.FormValue("Id", adminAtlasRoleResponse.Body.DeserializeJson<RoleApiModel>().Id.ToString());
-            }).Wait();
+            }).Result;
 
-            Browser.Post($"/groups/{UserAtlasGroupName}/roles", with =>
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+            response = Browser.Post($"/groups/{UserAtlasGroupName}/roles", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
                 with.FormValue("Id", userAtlasRoleResponse.Body.DeserializeJson<RoleApiModel>().Id.ToString());
-            }).Wait();
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
             // add user to custom group
-            Browser.Post($"/groups/{UserAtlasGroupName}/users", with =>
+            response = Browser.Post($"/groups/{UserAtlasGroupName}/users", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
                 with.FormValue("SubjectId", "atlas_user");
-            });
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        }
+
+        public void InitializeClientWithoutRoles(IIdentityServiceProvider identityServiceProvider)
+        {
+            InitializeBrowser(identityServiceProvider);
+
+            // create the Atlas client
+            var response = Browser.Post("/clients", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Id", AtlasClientId);
+                with.FormValue("Name", AtlasClientId);
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        }
+
+        public void InitializeClientWithRolesAndNoGroups(IIdentityServiceProvider identityServiceProvider)
+        {
+            InitializeBrowser(identityServiceProvider);
+
+            // create the Atlas client
+            var response = Browser.Post("/clients", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Id", AtlasClientId);
+                with.FormValue("Name", AtlasClientId);
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+            // create roles
+            response = Browser.Post("/roles", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", AtlasClientId);
+                with.FormValue("Name", UserAtlasRoleName);
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+            response = Browser.Post("/roles", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", AtlasClientId);
+                with.FormValue("Name", AdminAtlasRoleName);
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         }
     }
 }

@@ -39,15 +39,16 @@ namespace Fabric.Authorization.API.Services
             }
 
             var client = await _clientService.GetClient(request.ClientId);
-            var clientRoles = _roleService.GetRoles(client).Result.ToList();
+            var clientRoles = await _roleService.GetRoles(client);
 
-            if (clientRoles.Count == 0)
+            var clientRoleEntities = clientRoles.ToList();
+            if (clientRoleEntities.Count == 0)
             {
                 return new List<IdentitySearchResponse>();
             }
 
             // get all groups tied to clientRoles
-            var groupIds = clientRoles.SelectMany(r => r.Groups).Distinct().ToList();
+            var groupIds = clientRoleEntities.SelectMany(r => r.Groups).Distinct().ToList();
 
             if (groupIds.Count == 0)
             {
@@ -61,7 +62,7 @@ namespace Fabric.Authorization.API.Services
                 groupEntities.Add(group);
             }
 
-            var groupsMappedToClientRole = groupEntities.Where(g => g.Roles.Any(r => clientRoles.Contains(r))).ToList();
+            var groupsMappedToClientRole = groupEntities.Where(g => g.Roles.Any(r => clientRoleEntities.Contains(r))).ToList();
             var nonCustomGroups =
                 groupsMappedToClientRole.Where(g => !string.Equals(g.Source, GroupConstants.CustomSource));
 
