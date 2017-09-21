@@ -17,13 +17,25 @@ namespace Fabric.Authorization.API.Models.Search.Validators
         {
             RuleFor(request => request.ClientId)
                 .NotEmpty()
-                .WithMessage("Please specify a Client ID for searching.");
+                .WithMessage("Please specify client_id for searching.");
 
             RuleFor(request => request.SortKey)
-                .Must(sortKey => string.IsNullOrWhiteSpace(sortKey) || ValidSortKeys.Contains(sortKey, StringComparer.OrdinalIgnoreCase));
+                .Must(sortKey => string.IsNullOrWhiteSpace(sortKey) ||
+                                 ValidSortKeys.Contains(sortKey, StringComparer.OrdinalIgnoreCase))
+                .WithMessage($"sort_key must be one of the following values: {ValidSortKeys}");
 
             RuleFor(request => request.SortDirection)
-                .Must(sortDirection => string.IsNullOrWhiteSpace(sortDirection) || ValidSortDirections.Contains(sortDirection, StringComparer.OrdinalIgnoreCase));
+                .Must(sortDirection => string.IsNullOrWhiteSpace(sortDirection) ||
+                                       ValidSortDirections.Contains(sortDirection, StringComparer.OrdinalIgnoreCase))
+                .WithMessage($"sort_dir must be one of the following values: {ValidSortDirections}");
+
+            RuleFor(request => request.PageSize)
+                .Must(pageSize => pageSize == null || pageSize is int)
+                .WithMessage("page_size must be a valid number.");
+
+            RuleFor(request => request.PageNumber)
+                .Must(pageNumber => pageNumber == null || pageNumber is int)
+                .WithMessage("page_number must be a valid number.");
         }
     }
 }

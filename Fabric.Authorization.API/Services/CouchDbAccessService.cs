@@ -263,7 +263,12 @@ namespace Fabric.Authorization.API.Services
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
                 var viewQuery = new QueryViewRequest(designdoc, viewName);
-                ViewQueryResponse result = await client.Views.QueryAsync(viewQuery);
+                if (!string.IsNullOrEmpty(key))
+                {
+                    viewQuery.Key = key;
+                }
+
+                var result = await client.Views.QueryAsync(viewQuery);
 
                 if (!result.IsSuccess)
                 {
@@ -275,7 +280,7 @@ namespace Fabric.Authorization.API.Services
 
                 foreach (var responseRow in result.Rows)
                 {
-                    if (responseRow.Key != null && responseRow.Key.ToString() == key)
+                    if (responseRow.Key != null && (string.IsNullOrEmpty(key) || responseRow.Key.ToString() == key))
                     {
                         var resultRow = JsonConvert.DeserializeObject<T>(responseRow.Value);
                         results.Add(resultRow);

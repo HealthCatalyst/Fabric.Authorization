@@ -29,11 +29,17 @@ namespace Fabric.Authorization.Domain.Stores.InMemory
         {
             var roles = Dictionary.Select(kvp => kvp.Value);
             if (!string.IsNullOrEmpty(grain))
+            {
                 roles = roles.Where(r => r.Grain == grain);
+            }
             if (!string.IsNullOrEmpty(securableItem))
+            {
                 roles = roles.Where(r => r.SecurableItem == securableItem);
+            }
             if (!string.IsNullOrEmpty(roleName))
+            {
                 roles = roles.Where(r => r.Name == roleName);
+            }
             return Task.FromResult(roles.Where(r => !r.IsDeleted));
         }
     }

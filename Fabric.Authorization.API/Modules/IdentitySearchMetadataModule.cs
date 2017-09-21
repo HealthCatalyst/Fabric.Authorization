@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Net;
+using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Models.Search;
 using Nancy.Swagger;
 using Nancy.Swagger.Services;
@@ -38,10 +39,20 @@ namespace Fabric.Authorization.API.Modules
                 "Searches Fabric.Identity for users by 1 or more subject IDs.",
                 new List<HttpResponseMetadata>
                 {
-                    new HttpResponseMetadata<IdentitySearchResponse>
+                    new HttpResponseMetadata<IEnumerable<IdentitySearchResponse>>
                     {
                         Code = (int) HttpStatusCode.OK,
                         Message = "OK"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) Nancy.HttpStatusCode.Forbidden,
+                        Message = "Client does not have the required scopes to read data in Fabric.Authorization (fabric/authorization.read) and/or Fabric.Identity (fabric/identity.read)."
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) Nancy.HttpStatusCode.BadRequest,
+                        Message = "Group already exists"
                     }
                 },
                 new[]

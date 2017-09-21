@@ -23,7 +23,8 @@ namespace Fabric.Authorization.Domain.Validators
 
             RuleFor(client => client.Id)
                 .Must(BeUnique)
-                .When(client => !string.IsNullOrEmpty(client.Id));
+                .When(client => !string.IsNullOrEmpty(client.Id))
+                .WithMessage("The client Id already exists.");
 
             RuleFor(client => client.Name)
                 .NotEmpty()

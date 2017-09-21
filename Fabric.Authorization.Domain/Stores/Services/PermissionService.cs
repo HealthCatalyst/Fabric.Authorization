@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
@@ -15,7 +14,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
 
 
         /// <summary>
-        /// Constructor.
+        ///     Constructor.
         /// </summary>
         public PermissionService(IPermissionStore permissionStore, RoleService roleService)
         {
@@ -24,18 +23,20 @@ namespace Fabric.Authorization.Domain.Stores.Services
         }
 
         /// <summary>
-        /// Gets all permissions for a given grain/secitem.
+        ///     Gets all permissions for a given grain/secitem.
         /// </summary>
-        public async Task<IEnumerable<Permission>> GetPermissions(string grain = null, string securableItem = null, string permissionName = null, bool includeDeleted = false)
+        public async Task<IEnumerable<Permission>> GetPermissions(string grain = null, string securableItem = null,
+            string permissionName = null, bool includeDeleted = false)
         {
             var permissions = await _permissionStore.GetPermissions(grain, securableItem, permissionName);
             return permissions.Where(p => !p.IsDeleted || includeDeleted);
         }
 
         /// <summary>
-        /// Gets all the permissions associated to the groups through roles.
+        ///     Gets all the permissions associated to the groups through roles.
         /// </summary>
-        public async Task<IEnumerable<string>> GetPermissionsForGroups(string[] groupNames, string grain = null, string securableItem = null)
+        public async Task<IEnumerable<string>> GetPermissionsForGroups(string[] groupNames, string grain = null,
+            string securableItem = null)
         {
             var effectivePermissions = new List<string>();
             var deniedPermissions = new List<string>();
@@ -48,10 +49,10 @@ namespace Fabric.Authorization.Domain.Stores.Services
                 {
                     // Add permissions in current role
                     effectivePermissions.AddRange(role.Permissions.Where(p =>
-                                    !p.IsDeleted &&
-                                    (p.Grain == grain || grain == null) &&
-                                    (p.SecurableItem == securableItem || securableItem == null))
-                                    .Select(p => p.ToString()));
+                            !p.IsDeleted &&
+                            (p.Grain == grain || grain == null) &&
+                            (p.SecurableItem == securableItem || securableItem == null))
+                        .Select(p => p.ToString()));
 
                     deniedPermissions.AddRange(role.DeniedPermissions.Select(p => p.ToString()));
 
@@ -60,9 +61,9 @@ namespace Fabric.Authorization.Domain.Stores.Services
                     foreach (var ancestorRole in ancestorRoles)
                     {
                         effectivePermissions.AddRange(ancestorRole.Permissions.Where(p =>
-                            !p.IsDeleted &&
-                            (p.Grain == grain || grain == null) &&
-                            (p.SecurableItem == securableItem || securableItem == null))
+                                !p.IsDeleted &&
+                                (p.Grain == grain || grain == null) &&
+                                (p.SecurableItem == securableItem || securableItem == null))
                             .Select(p => p.ToString()));
 
                         deniedPermissions.AddRange(ancestorRole.DeniedPermissions.Select(p => p.ToString()));
@@ -75,18 +76,19 @@ namespace Fabric.Authorization.Domain.Stores.Services
         }
 
         /// <summary>
-        /// Gets all the permissions for a given user.
+        ///     Gets all the permissions for a given user.
         /// </summary>
-        public async Task<IEnumerable<string>> GetPermissionsForUser(string userId, string[] groupNames, string grain = null, string securableItem = null)
+        public async Task<IEnumerable<string>> GetPermissionsForUser(string userId, string[] groupNames,
+            string grain = null, string securableItem = null)
         {
-            var effectivePermissions = await this.GetPermissionsForGroups(groupNames, grain, securableItem);
+            var effectivePermissions = await GetPermissionsForGroups(groupNames, grain, securableItem);
 
             var additionalPermissions = Enumerable.Empty<string>();
             var deniedPermissions = Enumerable.Empty<string>();
 
             try
             {
-                var granularPermissions = await this.GetUserGranularPermissions(userId);
+                var granularPermissions = await GetUserGranularPermissions(userId);
 
                 if (granularPermissions.AdditionalPermissions != null)
                 {
@@ -110,13 +112,13 @@ namespace Fabric.Authorization.Domain.Stores.Services
 
 
         /// <summary>
-        /// Adds granular permissions to a user.
+        ///     Adds granular permissions to a user.
         /// </summary>
         public async Task AddUserGranularPermissions(GranularPermission granularPermission)
         {
             try
             {
-                var stored = await this.GetUserGranularPermissions(granularPermission.Target);
+                var stored = await GetUserGranularPermissions(granularPermission.Target);
 
                 if (granularPermission.AdditionalPermissions == null)
                 {
@@ -127,7 +129,6 @@ namespace Fabric.Authorization.Domain.Stores.Services
                 {
                     granularPermission.DeniedPermissions = stored.DeniedPermissions;
                 }
-
             }
             catch (NotFoundException<GranularPermission>)
             {
@@ -138,7 +139,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
         }
 
         /// <summary>
-        /// Gets the granular permissions for a user.
+        ///     Gets the granular permissions for a user.
         /// </summary>
         public async Task<GranularPermission> GetUserGranularPermissions(string userId)
         {
@@ -146,7 +147,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
         }
 
         /// <summary>
-        /// Get a single permission by Id.
+        ///     Get a single permission by Id.
         /// </summary>
         public async Task<Permission> GetPermission(Guid permissionId)
         {
@@ -154,7 +155,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
         }
 
         /// <summary>
-        /// Add a single permission.
+        ///     Add a single permission.
         /// </summary>
         public async Task<Permission> AddPermission(Permission permission)
         {
@@ -162,8 +163,9 @@ namespace Fabric.Authorization.Domain.Stores.Services
         }
 
         /// <summary>
-        /// Removes a single permission.
-        /// This both removes the permission from the db, and also removes the permission from all the roles that contain the permission.
+        ///     Removes a single permission.
+        ///     This both removes the permission from the db, and also removes the permission from all the roles that contain the
+        ///     permission.
         /// </summary>
         public async Task DeletePermission(Permission permission)
         {

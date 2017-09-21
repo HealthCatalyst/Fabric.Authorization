@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Fabric.Authorization.API.Models.Search
@@ -32,6 +33,22 @@ namespace Fabric.Authorization.API.Models.Search
                         ? results.OrderBy(r => r.SubjectId)
                         : results.OrderByDescending(r => r.SubjectId);
             }
+        }
+
+        public static IEnumerable<IdentitySearchResponse> Filter(this IEnumerable<IdentitySearchResponse> results,
+            IdentitySearchRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Filter))
+            {
+                return results;
+            }
+
+            var filter = request.Filter.ToLower();
+
+            return results.Where(r =>
+                (!string.IsNullOrWhiteSpace(r.Name) && r.Name.ToLower().Contains(filter))
+                || (!string.IsNullOrWhiteSpace(r.SubjectId) && r.SubjectId.ToLower().Contains(filter))
+                || r.Roles.Contains(filter, StringComparer.OrdinalIgnoreCase));
         }
     }
 }

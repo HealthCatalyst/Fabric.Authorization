@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Fabric.Authorization.Domain.Stores
+﻿namespace Fabric.Authorization.Domain.Stores
 {
     public static class DocumentDbHelpers
     {
