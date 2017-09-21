@@ -30,7 +30,7 @@ namespace Fabric.Authorization.API.Infrastructure.PipelineHooks
 
             var negotiator = new Negotiator(context)
                 .WithStatusCode(HttpStatusCode.InternalServerError)
-                .WithModel(new Error()
+                .WithModel(new Error
                 {
                     Message = errorMessage,
                     Code = ((int)HttpStatusCode.InternalServerError).ToString(),                    
