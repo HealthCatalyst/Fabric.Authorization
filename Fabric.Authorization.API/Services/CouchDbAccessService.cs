@@ -11,6 +11,7 @@ using MyCouch;
 using MyCouch.Net;
 using MyCouch.Requests;
 using MyCouch.Responses;
+using Nancy.Helpers;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -265,6 +266,7 @@ namespace Fabric.Authorization.API.Services
                 var viewQuery = new QueryViewRequest(designdoc, viewName);
                 if (!string.IsNullOrEmpty(key))
                 {
+                    key = HttpUtility.UrlEncode(key);
                     viewQuery.Key = key;
                 }
 
