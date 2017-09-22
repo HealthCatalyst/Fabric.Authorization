@@ -266,8 +266,8 @@ namespace Fabric.Authorization.API.Services
                 var viewQuery = new QueryViewRequest(designdoc, viewName);
                 if (!string.IsNullOrEmpty(key))
                 {
-                    key = HttpUtility.UrlEncode(key);
-                    viewQuery.Key = key;
+                    var encodedKey = HttpUtility.UrlEncode(key);
+                    viewQuery.Key = encodedKey;
                 }
 
                 var result = await client.Views.QueryAsync(viewQuery);
