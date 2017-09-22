@@ -264,12 +264,6 @@ namespace Fabric.Authorization.API.Services
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
                 var viewQuery = new QueryViewRequest(designdoc, viewName);
-                if (!string.IsNullOrEmpty(key))
-                {
-                    var encodedKey = HttpUtility.UrlEncode(key);
-                    viewQuery.Key = encodedKey;
-                }
-
                 var result = await client.Views.QueryAsync(viewQuery);
 
                 if (!result.IsSuccess)
