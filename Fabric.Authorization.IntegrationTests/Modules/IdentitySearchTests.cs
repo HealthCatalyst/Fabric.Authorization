@@ -41,7 +41,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Fixture.InitializeBrowser(new Mock<IIdentityServiceProvider>().Object);
 
             var result = Fixture.Browser.Get(
-                "/search/identities", with =>
+                "/identities", with =>
                 {
                     with.HttpRequest();
                     with.Header("Accept", "application/json");
@@ -63,7 +63,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Fixture.InitializeClientWithoutRoles(mockIdentityServiceProvider.Object);
 
             var response = Fixture.Browser.Get(
-                "/search/identities", with =>
+                "/identities", with =>
                 {
                     with.HttpRequest();
                     with.Header("Accept", "application/json");
@@ -87,7 +87,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Fixture.InitializeClientWithRolesAndNoGroups(mockIdentityServiceProvider.Object);
 
             var response = Fixture.Browser.Get(
-                "/search/identities", with =>
+                "/identities", with =>
                 {
                     with.HttpRequest();
                     with.Header("Accept", "application/json");
@@ -127,7 +127,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Fixture.InitializeSuccessData(mockIdentityServiceProvider.Object);
 
             var response = Fixture.Browser.Get(
-                "/search/identities", with =>
+                "/identities", with =>
                 {
                     with.HttpRequest();
                     with.Header("Accept", "application/json");

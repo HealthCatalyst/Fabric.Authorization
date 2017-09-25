@@ -22,15 +22,15 @@ namespace Fabric.Authorization.API.Modules
             IdentitySearchService identitySearchService,
             IdentitySearchRequestValidator validator,
             ILogger logger,
-            IPropertySettings propertySettings = null) : base("/v1/search/identities", logger, validator,
+            IPropertySettings propertySettings = null) : base("/v1/identities", logger, validator,
             propertySettings)
         {
             _identitySearchService = identitySearchService;
 
-            Get("/", async _ => await SearchIdentities().ConfigureAwait(false), null, "SearchIdentities");
+            Get("/", async _ => await GetIdentities().ConfigureAwait(false), null, "GetIdentities");
         }
 
-        private async Task<dynamic> SearchIdentities()
+        private async Task<dynamic> GetIdentities()
         {
             try
             {
