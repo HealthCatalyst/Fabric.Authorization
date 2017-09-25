@@ -34,9 +34,9 @@ namespace Fabric.Authorization.API.Modules
                 typeof(IdentitySearchResponse));
 
             RouteDescriber.DescribeRouteWithParams(
-                "SearchIdentities",
+                "GetIdentities",
                 string.Empty,
-                "Searches Fabric.Identity for users by 1 or more subject IDs.",
+                "Searches for users and (non-custom) groups by client ID and other optional parameters.",
                 new List<HttpResponseMetadata>
                 {
                     new HttpResponseMetadata<IEnumerable<IdentitySearchResponse>>
@@ -47,7 +47,7 @@ namespace Fabric.Authorization.API.Modules
                     new HttpResponseMetadata
                     {
                         Code = (int) Nancy.HttpStatusCode.Forbidden,
-                        Message = "Client does not have the required scopes to read data in Fabric.Authorization (fabric/authorization.read) and/or Fabric.Identity (fabric/identity.read)."
+                        Message = "Client does not have the required scopes to read data in Fabric.Authorization (fabric/authorization.read)."
                     },
                     new HttpResponseMetadata<Error>
                     {
@@ -67,7 +67,7 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _searchTag
-                });
+                }).SecurityRequirement(OAuth2ReadScopeBuilder);
         }
     }
 }

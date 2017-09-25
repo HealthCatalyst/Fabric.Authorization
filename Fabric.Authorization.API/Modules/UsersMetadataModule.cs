@@ -118,7 +118,7 @@ namespace Fabric.Authorization.API.Modules
             RouteDescriber.DescribeRouteWithParams(
                 "GetUserGroups",
                 "",
-                "Gets groups for a user",
+                "Gets custom groups for a user",
                 new[]
                 {
                     new HttpResponseMetadata<IEnumerable<string>>
