@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
@@ -106,6 +107,8 @@ namespace Fabric.Authorization.API.Modules
                 this.CreateValidationFailureResponse<T>(validationResults);
             }
         }
+
+        protected string SubjectId => Context.CurrentUser.Claims.First(c => c.Type == Claims.Sub).Value;
 
         protected Predicate<Claim> GetClientIdPredicate(string clientId)
         {

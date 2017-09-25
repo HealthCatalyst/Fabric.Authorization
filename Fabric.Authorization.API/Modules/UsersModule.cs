@@ -85,11 +85,11 @@ namespace Fabric.Authorization.API.Modules
             await CheckAccess(_clientService, userPermissionRequest.Grain, userPermissionRequest.SecurableItem,
                 AuthorizationReadClaim);
 
-            var subjectId = Context.CurrentUser.Claims.First(c => c.Type == Claims.Sub).Value;
+            var subjectId = SubjectId;
             var groups = await GetGroupsForAuthenticatedUser(subjectId);
 
             var permissions = await _permissionService.GetPermissionsForUser(
-                Context.CurrentUser.Claims.First(c => c.Type == Claims.Sub).Value,
+                subjectId,
                 groups,
                 userPermissionRequest.Grain,
                 userPermissionRequest.SecurableItem);
