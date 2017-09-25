@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
+using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores.Services;
 using Fabric.Authorization.Domain.Validators;
@@ -107,7 +109,16 @@ namespace Fabric.Authorization.API.Modules
                 .Distinct(new ClaimComparer())
                 .Select(c => c.Value.ToString());
 
-            var groups = await _userService.GetGroupsForUser(subjectId);
+            var groups = new List<string>();
+            try
+            {
+                groups = (await _userService.GetGroupsForUser(subjectId)).ToList();
+            }
+            catch (NotFoundException<User>)
+            {
+                
+            }
+
             var allClaims = userClaims?
                 .Concat(groups)
                 .Distinct()
