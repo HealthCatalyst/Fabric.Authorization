@@ -122,7 +122,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
             return group;
         }
 
-        public async Task<Group> AddUserToGroup(string groupName, string subjectId)
+        public async Task<Group> AddUserToGroup(string groupName, string subjectId, string identityProvider)
         {
             var group = await _groupStore.Get(groupName);
 
@@ -138,7 +138,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
             }
             catch (NotFoundException<User>)
             {
-                user = await _userStore.Add(new User {SubjectId = subjectId});
+                user = await _userStore.Add(new User {SubjectId = subjectId, IdentityProvider = identityProvider});
             }
 
             if (group.Users.All(u => u.SubjectId != subjectId))

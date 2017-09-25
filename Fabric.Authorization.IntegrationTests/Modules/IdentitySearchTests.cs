@@ -111,7 +111,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
             mockIdentityServiceProvider
-                .Setup(m => m.Search(Fixture.AtlasClientId, new List<string> {"atlas_user"}))
+                .Setup(m => m.Search(Fixture.AtlasClientId, new List<string> {"atlas_user:Windows"}))
                 .ReturnsAsync(() => new List<UserSearchResponse>
                 {
                     new UserSearchResponse
@@ -323,6 +323,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
                 with.FormValue("SubjectId", "atlas_user");
+                with.FormValue("IdentityProvider", "Windows");
             }).Result;
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
