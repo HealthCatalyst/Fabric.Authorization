@@ -62,19 +62,20 @@ namespace Fabric.Authorization.API.Services
                 groupEntities.Add(group);
             }
 
-            var groupsMappedToClientRole = groupEntities.Where(g => g.Roles.Any(r => clientRoleEntities.Contains(r))).ToList();
+            var groupsMappedToClientRoles = groupEntities.Where(g => g.Roles.Any(r => clientRoleEntities.Contains(r))).ToList();
             var nonCustomGroups =
-                groupsMappedToClientRole.Where(g => !string.Equals(g.Source, GroupConstants.CustomSource));
+                groupsMappedToClientRoles.Where(g => !string.Equals(g.Source, GroupConstants.CustomSource));
 
             // add all non-custom groups to the response
             searchResults.AddRange(nonCustomGroups.Select(g => new IdentitySearchResponse
             {
                 GroupName = g.Name,
-                Roles = g.Roles.Select(r => r.Name)
+                Roles = g.Roles.Select(r => r.Name),
+                EntityType = IdentitySearchResponseEntityType.Group
             }));
 
-            // get all users mapped to groups in this role
-            var users = groupsMappedToClientRole
+            // get all users mapped to groups in client roles
+            var users = groupsMappedToClientRoles
                 .Where(g => g.Users != null && g.Users.Count > 0)
                 .SelectMany(g => g.Users)
                 .DistinctBy(u => u.SubjectId);
@@ -94,7 +95,8 @@ namespace Fabric.Authorization.API.Services
                 userList.Add(new IdentitySearchResponse
                 {
                     SubjectId = user.SubjectId,
-                    Roles = userRoles
+                    Roles = userRoles,
+                    EntityType = IdentitySearchResponseEntityType.User
                 });
             }
 
