@@ -82,7 +82,9 @@ namespace Fabric.Authorization.API.Modules
             await SetDefaultRequest(userPermissionRequest);
             await CheckAccess(_clientService, userPermissionRequest.Grain, userPermissionRequest.SecurableItem,
                 AuthorizationReadClaim);
-            var groups = GetGroupsForAuthenticatedUser();
+
+            var subjectId = Context.CurrentUser.Claims.First(c => c.Type == Claims.Sub).Value;
+            var groups = await GetGroupsForAuthenticatedUser(subjectId);
 
             var permissions = await _permissionService.GetPermissionsForUser(
                 Context.CurrentUser.Claims.First(c => c.Type == Claims.Sub).Value,
@@ -98,14 +100,24 @@ namespace Fabric.Authorization.API.Modules
             };
         }
 
-        private string[] GetGroupsForAuthenticatedUser()
+        private async Task<string[]> GetGroupsForAuthenticatedUser(string subjectId)
         {
-            var userClaims = Context.CurrentUser?.Claims.Where(c => c.Type == "role" || c.Type == "groups")
-                .Distinct(new ClaimComparer()).Select(c => c.Value.ToString()).ToArray();
+            var userClaims = Context.CurrentUser?.Claims
+                .Where(c => c.Type == "role" || c.Type == "groups")
+                .Distinct(new ClaimComparer())
+                .Select(c => c.Value.ToString());
 
-            Logger.Information($"found claims for user: {string.Join(",", userClaims)}");
+            var groups = await _userService.GetGroupsForUser(subjectId);
+            var allClaims = userClaims?
+                .Concat(groups)
+                .Distinct()
+                .ToList();
 
-            return userClaims;
+            Logger.Information($"found claims for user: {string.Join(",", allClaims)}");
+
+            return allClaims == null
+                ? new string[] { }
+                : allClaims.ToArray();
         }
 
         private async Task SetDefaultRequest(UserInfoRequest request)
