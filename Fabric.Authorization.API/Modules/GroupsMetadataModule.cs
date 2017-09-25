@@ -67,7 +67,7 @@ namespace Fabric.Authorization.API.Modules
 
             RouteDescriber.DescribeRouteWithParams(
                 "AddGroup",
-                "GroupSource can only be 'Custom' or a 3rd party identity provider (e.g., Windows, Azure Active Directory, Google)",
+                "GroupSource can be either \"Custom\" for creating custom groups in Fabric or the displayName of the 3rd party identity provider if the group is from an external Idp. If groupSource is empty, it will be defaulted to the group source defined in the appsettings.json",
                 "Adds a new group",
                 new List<HttpResponseMetadata>
                 {
