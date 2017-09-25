@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Security.Claims;
-using Fabric.Authorization.API;
 using Fabric.Authorization.API.Infrastructure.PipelineHooks;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
@@ -24,7 +23,6 @@ namespace Fabric.Authorization.UnitTests
         protected readonly Mock<ILogger> MockLogger;
         protected readonly Mock<IPermissionStore> MockPermissionStore;
         protected readonly Mock<IRoleStore> MockRoleStore;
-        protected readonly Mock<IUserStore> MockUserStore;
 
         protected ModuleTestsBase()
         {
@@ -49,8 +47,6 @@ namespace Fabric.Authorization.UnitTests
             MockGroupStore = new Mock<IGroupStore>()
                 .SetupGetGroups(ExistingGroups)
                 .SetupAddGroup();
-
-            MockUserStore = new Mock<IUserStore>();
         }
 
         private List<Client> CreateClients => new List<Client>

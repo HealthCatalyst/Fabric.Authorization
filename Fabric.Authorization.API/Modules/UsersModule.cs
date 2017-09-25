@@ -116,7 +116,7 @@ namespace Fabric.Authorization.API.Modules
             }
             catch (NotFoundException<User>)
             {
-                
+                Logger.Information($"User {subjectId} not found while attempting to retrieve groups.");
             }
 
             var allClaims = userClaims?

@@ -34,7 +34,7 @@ namespace Fabric.Authorization.UnitTests.Mocks
 
         public static Mock<IGroupStore> SetupAddGroup(this Mock<IGroupStore> mockGroupStore)
         {
-            mockGroupStore.Setup(GroupStore => GroupStore.Add(It.IsAny<Group>()))
+            mockGroupStore.Setup(groupStore => groupStore.Add(It.IsAny<Group>()))
                 .Returns((Group g) =>
                 {
                     g.Id = Guid.NewGuid().ToString();

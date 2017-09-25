@@ -19,27 +19,39 @@ namespace Fabric.Authorization.UnitTests.Users
 {
     public class UsersModuleTests : ModuleTestsBase<UsersModule>
     {
-        private List<Group> _existingGroups;
-
-        private readonly Mock<IGroupStore> _mockGroupStore;
-
         public UsersModuleTests()
         {
             SetupTestData();
             _mockGroupStore = new Mock<IGroupStore>()
                 .SetupGetGroups(_existingGroups)
                 .SetupGroupExists(_existingGroups);
+
+            _mockUserStore = new Mock<IUserStore>()
+                .SetupGetUser(_existingUsers);
         }
 
-        [Theory, MemberData(nameof(GetPermissionsRequestData))]
-        public void GetUserPermissions_Succeeds(string group, string grain, string securableItem, int expectedCountPermissions)
+        private List<Group> _existingGroups;
+        private readonly Mock<IGroupStore> _mockGroupStore;
+
+        private List<User> _existingUsers;
+        private readonly Mock<IUserStore> _mockUserStore;
+
+        [Theory]
+        [MemberData(nameof(GetPermissionsRequestData))]
+        public void GetUserPermissions_Succeeds(
+            string group, 
+            string grain, 
+            string securableItem,
+            int expectedCountPermissions)
         {
             var existingClient = ExistingClients.First();
+            var existingUser = _existingUsers.First();
+
             var usersModule = CreateBrowser(
                 new Claim(Claims.Scope, Scopes.ReadScope),
-                new Claim(Claims.ClientId, existingClient.Id), 
+                new Claim(Claims.ClientId, existingClient.Id),
                 new Claim(JwtClaimTypes.Role, group),
-                new Claim(Claims.Sub, existingClient.Id)
+                new Claim(Claims.Sub, existingUser.SubjectId)
             );
             var result = usersModule.Get("/user/permissions", with =>
                 {
@@ -50,26 +62,15 @@ namespace Fabric.Authorization.UnitTests.Users
             AssertOk(result, expectedCountPermissions);
         }
 
-        [Fact]
-        public void GetUserPermissions_NoParameters_DefaultsToTopLevel()
-        {
-            var existingClient = ExistingClients.First();
-            var usersModule = CreateBrowser(
-                new Claim(Claims.Scope, Scopes.ReadScope),
-                new Claim(Claims.ClientId, existingClient.Id), 
-                new Claim(JwtClaimTypes.Role, @"Fabric\Health Catalyst Admin"),
-                new Claim(Claims.Sub, existingClient.Id)
-                );
-            var result = usersModule.Get("/user/permissions").Result;
-            AssertOk(result, 2);
-        }
-
-        [Theory, MemberData(nameof(GetPermissionsForbiddenData))]
+        [Theory]
+        [MemberData(nameof(GetPermissionsForbiddenData))]
         public void GetUserPermissions_Forbidden(string securableItem, string scope)
         {
             var existingClient = ExistingClients.First();
             var usersModule = CreateBrowser(new Claim(Claims.Scope, scope),
-                new Claim(Claims.ClientId, existingClient.Id), new Claim(JwtClaimTypes.Role, @"Fabric\Health Catalyst Admin"));
+                new Claim(Claims.ClientId, existingClient.Id),
+                new Claim(JwtClaimTypes.Role, @"Fabric\Health Catalyst Admin"));
+
             var result = usersModule.Get("/user/permissions", with =>
                 {
                     with.Query("grain", "app");
@@ -77,6 +78,22 @@ namespace Fabric.Authorization.UnitTests.Users
                 })
                 .Result;
             Assert.Equal(HttpStatusCode.Forbidden, result.StatusCode);
+        }
+
+        [Fact]
+        public void GetUserPermissions_NoParameters_DefaultsToTopLevel()
+        {
+            var existingClient = ExistingClients.First();
+            var existingUser = _existingUsers.First();
+
+            var usersModule = CreateBrowser(
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.ClientId, existingClient.Id),
+                new Claim(JwtClaimTypes.Role, @"Fabric\Health Catalyst Admin"),
+                new Claim(Claims.Sub, existingUser.SubjectId)
+            );
+            var result = usersModule.Get("/user/permissions").Result;
+            AssertOk(result, 3);
         }
 
         private void AssertOk(BrowserResponse result, int expectedCountPermissions)
@@ -89,18 +106,19 @@ namespace Fabric.Authorization.UnitTests.Users
 
         public static IEnumerable<object[]> GetPermissionsRequestData => new[]
         {
-            new object[] {@"Fabric\Health Catalyst Admin", "app", "patientsafety", 2},
-            new object[] {@"Fabric\Health Catalyst Contributor", "app", "patientsafety", 1},
-            new object[] {@"Fabric\Health Catalyst NonExistant", "app", "patientsafety", 0},
+            new object[] {@"Fabric\Health Catalyst Admin", "app", "patientsafety", 3},
+            new object[] {@"Fabric\Health Catalyst Contributor", "app", "patientsafety", 2},
+            new object[] {@"Fabric\Health Catalyst NonExistent", "app", "patientsafety", 1}
         };
 
         public static IEnumerable<object[]> GetPermissionsForbiddenData => new[]
         {
-            new object [] { "sourcemartdesigner", Scopes.ReadScope },
-            new object [] { "patientsafety", "badscope" },
+            new object[] {"sourcemartdesigner", Scopes.ReadScope},
+            new object[] {"patientsafety", "badscope"}
         };
 
-        protected override ConfigurableBootstrapper.ConfigurableBootstrapperConfigurator ConfigureBootstrapper(ConfigurableBootstrapper configurableBootstrapper,
+        protected override ConfigurableBootstrapper.ConfigurableBootstrapperConfigurator ConfigureBootstrapper(
+            ConfigurableBootstrapper configurableBootstrapper,
             params Claim[] claims)
         {
             return base.ConfigureBootstrapper(configurableBootstrapper, claims)
@@ -108,8 +126,9 @@ namespace Fabric.Authorization.UnitTests.Users
                 .Dependency<ClientService>(typeof(ClientService))
                 .Dependency<RoleService>(typeof(RoleService))
                 .Dependency<PermissionService>(typeof(PermissionService))
+                .Dependency<UserService>(typeof(UserService))
                 .Dependency(_mockGroupStore.Object)
-                .Dependency(MockUserStore.Object)
+                .Dependency(_mockUserStore.Object)
                 .Dependency(MockLogger.Object)
                 .Dependency(MockClientStore.Object)
                 .Dependency(MockRoleStore.Object)
@@ -130,10 +149,30 @@ namespace Fabric.Authorization.UnitTests.Users
                 Name = @"Fabric\Health Catalyst Contributor"
             };
 
+            var customGroup = new Group
+            {
+                Id = "Custom Group",
+                Name = "Custom Group"
+            };
+
             _existingGroups = new List<Group>
             {
                 adminGroup,
-                contributorGroup
+                contributorGroup,
+                customGroup
+            };
+
+            _existingUsers = new List<User>
+            {
+                new User
+                {
+                    Id = "user123",
+                    SubjectId = "user123",
+                    Groups = new List<string>
+                    {
+                        customGroup.Name
+                    }
+                }
             };
 
             var contributorRole = new Role
@@ -143,29 +182,58 @@ namespace Fabric.Authorization.UnitTests.Users
                 SecurableItem = "patientsafety",
                 Name = "contributor"
             };
-            ExistingRoles.Add(contributorRole);
 
-            var adminRole = ExistingRoles.First(r => r.Grain == "app" && r.SecurableItem == "patientsafety" &&
-                                                     r.Name == "admin");
+            var customGroupRole = new Role
+            {
+                Id = Guid.NewGuid(),
+                Grain = "app",
+                SecurableItem = "patientsafety",
+                Name = "custom"
+            };
+
+            ExistingRoles.Add(contributorRole);
+            ExistingRoles.Add(customGroupRole);
+
+            var adminRole = ExistingRoles.First(r => r.Grain == "app"
+                                                     && r.SecurableItem == "patientsafety"
+                                                     && r.Name == "admin");
 
             adminGroup.Roles.Add(adminRole);
             adminGroup.Roles.Add(contributorRole);
             contributorGroup.Roles.Add(contributorRole);
+            customGroup.Roles.Add(customGroupRole);
 
             adminRole.Groups.Add(adminGroup.Identifier);
             contributorRole.Groups.Add(adminGroup.Identifier);
             contributorRole.Groups.Add(contributorGroup.Identifier);
+            customGroupRole.Groups.Add(customGroup.Identifier);
 
             var manageUsersPermission =
-                ExistingPermissions.First(p => p.Grain == adminRole.Grain &&
-                                               p.SecurableItem == adminRole.SecurableItem && p.Name == "manageusers");
+                ExistingPermissions.First(p => p.Grain == adminRole.Grain
+                                               && p.SecurableItem == adminRole.SecurableItem
+                                               && p.Name == "manageusers");
 
             var updatePatientPermission =
-                ExistingPermissions.First(p => p.Grain == adminRole.Grain &&
-                                               p.SecurableItem == adminRole.SecurableItem && p.Name == "updatepatient");
+                ExistingPermissions.First(p => p.Grain == adminRole.Grain
+                                               && p.SecurableItem == adminRole.SecurableItem
+                                               && p.Name == "updatepatient");
+
+            ExistingPermissions.Add(new Permission
+            {
+                Id = Guid.NewGuid(),
+                Grain = "app",
+                SecurableItem = "patientsafety",
+                Name = "custom"
+            });
+
+            var customPermission =
+                ExistingPermissions.First(p => p.Grain == "app"
+                                               && p.SecurableItem == "patientsafety"
+                                               && p.Name == "custom");
 
             adminRole.Permissions.Add(manageUsersPermission);
             contributorRole.Permissions.Add(updatePatientPermission);
+            customGroupRole.Permissions.Add(customPermission);
         }
     }
 }
