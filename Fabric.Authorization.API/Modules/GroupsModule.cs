@@ -209,12 +209,16 @@ namespace Fabric.Authorization.API.Modules
             {
                 this.RequiresClaims(AuthorizationWriteClaim);
                 var groupUserRequest = this.Bind<GroupUserRequest>();
-                if (groupUserRequest.SubjectId == null)
+                if (string.IsNullOrWhiteSpace(groupUserRequest.SubjectId))
                 {
-                    throw new NotFoundException<Role>();
+                    return CreateFailureResponse("subjectId is required", HttpStatusCode.BadRequest);
+                }
+                if (string.IsNullOrWhiteSpace(groupUserRequest.IdentityProvider))
+                {
+                    return CreateFailureResponse("identityProvider is required", HttpStatusCode.BadRequest);
                 }
 
-                var group = await _groupService.AddUserToGroup(groupUserRequest.GroupName, groupUserRequest.SubjectId);
+                var group = await _groupService.AddUserToGroup(groupUserRequest.GroupName, groupUserRequest.SubjectId, groupUserRequest.IdentityProvider);
                 return CreateSuccessfulPostResponse(group.ToGroupUserApiModel());
             }
             catch (NotFoundException<Group> ex)

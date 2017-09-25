@@ -247,6 +247,7 @@ namespace Fabric.Authorization.UnitTests.Search
                     new User
                     {
                         SubjectId = "patientsafety_user",
+                        IdentityProvider = "Windows",
                         Groups = new List<string> {UserPatientSafetyGroupName}
                     }
                 },
@@ -323,6 +324,7 @@ namespace Fabric.Authorization.UnitTests.Search
                     new User
                     {
                         SubjectId = "atlas_user",
+                        IdentityProvider = "Windows",
                         Groups = new List<string> {UserAtlasGroupName}
                     }
                 },
@@ -385,7 +387,7 @@ namespace Fabric.Authorization.UnitTests.Search
 
             var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
             mockIdentityServiceProvider
-                .Setup(m => m.Search(IdentitySearchServiceFixture.AtlasClientId, new List<string> {"atlas_user"}))
+                .Setup(m => m.Search(IdentitySearchServiceFixture.AtlasClientId, new List<string> {"atlas_user:Windows"}))
                 .ReturnsAsync(() => new List<UserSearchResponse>
                 {
                     new UserSearchResponse

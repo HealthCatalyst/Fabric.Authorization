@@ -95,13 +95,14 @@ namespace Fabric.Authorization.API.Services
                 userList.Add(new IdentitySearchResponse
                 {
                     SubjectId = user.SubjectId,
+                    IdentityProvider = user.IdentityProvider,
                     Roles = userRoles,
                     EntityType = IdentitySearchResponseEntityType.User
                 });
             }
 
             var userDetails =
-                await _identityServiceProvider.Search(request.ClientId, userList.Select(u => u.SubjectId));
+                await _identityServiceProvider.Search(request.ClientId, userList.Select(u => $"{u.SubjectId}:{u.IdentityProvider}"));
 
             if (userDetails != null)
             {

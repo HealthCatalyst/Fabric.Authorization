@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
-using Fabric.Authorization.API;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Infrastructure.PipelineHooks;
 using Fabric.Authorization.API.Models;
@@ -636,13 +635,14 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         #region User->Group Mapping Tests 
 
-        protected BrowserResponse SetupGroupUserMapping(string groupName, string subjectId)
+        protected BrowserResponse SetupGroupUserMapping(string groupName, string subjectId, string identityProvider)
         {
             var response = Browser.Post($"/groups/{groupName}/users", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
                 with.FormValue("SubjectId", subjectId);
+                with.FormValue("IdentityProvider", identityProvider);
             }).Result;
 
             return response;
@@ -656,7 +656,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             const string user1SubjectId = "User1SubjectId";
 
             SetupGroup(group1Name, "Custom");
-            var response = SetupGroupUserMapping(group1Name, user1SubjectId);
+            var response = SetupGroupUserMapping(group1Name, user1SubjectId, "idP1");
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
@@ -678,7 +678,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             const string user2SubjectId = "User2SubjectId";
 
             SetupGroup(group2Name, "Custom");
-            response = SetupGroupUserMapping(group2Name, user2SubjectId);
+            response = SetupGroupUserMapping(group2Name, user2SubjectId, "idP1");
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
@@ -704,7 +704,20 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             const string user1SubjectId = "User1SubjectId";
 
             SetupGroup(group1Name, "Active Directory");
-            var response = SetupGroupUserMapping(group1Name, user1SubjectId);
+            var response = SetupGroupUserMapping(group1Name, user1SubjectId, "idP1");
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void AddUserToGroup_NoIdentityProvider_BadRequest()
+        {
+            const string group1Name = "Group1Name";
+            const string user1SubjectId = "User1SubjectId";
+
+            SetupGroup(group1Name, "Custom");
+            var response = SetupGroupUserMapping(group1Name, user1SubjectId, "");
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
@@ -713,7 +726,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [DisplayTestMethodName]
         public void AddUserToGroup_NonExistentGroup_NotFound()
         {
-            var response = SetupGroupUserMapping("NonexistentGroup", "SubjectId");
+            var response = SetupGroupUserMapping("NonexistentGroup", "SubjectId", "idP1");
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
@@ -725,13 +738,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             const string subject1Id = "Subject1Id";
 
             SetupGroup(group1Name, "Custom");
-            var response = SetupGroupUserMapping(group1Name, subject1Id);
+            var response = SetupGroupUserMapping(group1Name, subject1Id, "idP1");
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
             // attempt to set up the same mapping (the API treats this as an update to the existing
             // group-user mapping)
-            response = SetupGroupUserMapping(group1Name, subject1Id);
+            response = SetupGroupUserMapping(group1Name, subject1Id, "idP1");
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
             response = Browser.Get($"/groups/{group1Name}/users", with =>
@@ -755,7 +768,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             const string group1Name = "Group1Name";
             SetupGroup(group1Name, "Custom");
             const string subject1Id = "Subject1Id";
-            var response = SetupGroupUserMapping(group1Name, subject1Id);
+            var response = SetupGroupUserMapping(group1Name, subject1Id, "idP1");
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
@@ -842,7 +855,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         {
             const string groupName = "GroupName";
             SetupGroup(groupName, "Custom");
-            SetupGroupUserMapping(groupName, "Subject1Name");
+            SetupGroupUserMapping(groupName, "Subject1Name", "idP1");
 
             var response = Browser.Get("/user/Subject1Name/groups", with =>
             {

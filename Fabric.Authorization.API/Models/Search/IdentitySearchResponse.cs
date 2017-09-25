@@ -13,6 +13,7 @@ namespace Fabric.Authorization.API.Models.Search
     public class IdentitySearchResponse
     {
         public string SubjectId { get; set; }
+        public string IdentityProvider { get; set; }
         public IEnumerable<string> Roles { get; set; } = new List<string>();
         public string GroupName { get; set; }
         public string FirstName { get; set; }

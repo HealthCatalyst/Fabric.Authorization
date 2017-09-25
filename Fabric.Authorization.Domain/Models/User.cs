@@ -12,10 +12,11 @@ namespace Fabric.Authorization.Domain.Models
 
         public string Id { get; set; }
 
-        // TODO: should this be SubjectId?
         public string Identifier => Id;
 
         public string SubjectId { get; set; }
+
+        public string IdentityProvider { get; set; }
 
         public string Name { get; set; }
 
