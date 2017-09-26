@@ -19,14 +19,29 @@ namespace Fabric.Authorization.API.Models.Search
 
             switch (request.SortKey.ToLower())
             {
+                case "subjectid":
+                    return isAscending ? results.OrderBy(r => r.SubjectId) : results.OrderByDescending(r => r.SubjectId);
+
+                case "idp":
+                    return isAscending ? results.OrderBy(r => r.IdentityProvider) : results.OrderByDescending(r => r.IdentityProvider);
+
                 case "name":
                     return isAscending ? results.OrderBy(r => r.Name) : results.OrderByDescending(r => r.Name);
 
-                case "role":
-                    return isAscending ? results.OrderBy(r => r.Name) : results.OrderByDescending(r => r.Name);
+                case "firstname":
+                    return isAscending ? results.OrderBy(r => r.FirstName) : results.OrderByDescending(r => r.FirstName);
+
+                case "middlename":
+                    return isAscending ? results.OrderBy(r => r.MiddleName) : results.OrderByDescending(r => r.MiddleName);
+
+                case "lastname":
+                    return isAscending ? results.OrderBy(r => r.LastName) : results.OrderByDescending(r => r.LastName);
+
+                case "groupname":
+                    return isAscending ? results.OrderBy(r => r.GroupName) : results.OrderByDescending(r => r.GroupName);
 
                 case "lastlogin":
-                    return isAscending ? results.OrderBy(r => r.Name) : results.OrderByDescending(r => r.Name);
+                    return isAscending ? results.OrderBy(r => r.LastLogin) : results.OrderByDescending(r => r.LastLogin);
 
                 default:
                     return isAscending
