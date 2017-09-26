@@ -711,6 +711,19 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [DisplayTestMethodName]
+        public void AddUserToGroup_NoSubjectId_BadRequest()
+        {
+            const string group1Name = "Group1Name";
+            const string identityProvider = "idP1";
+
+            SetupGroup(group1Name, "Custom");
+            var response = SetupGroupUserMapping(group1Name, null, identityProvider);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
         public void AddUserToGroup_NoIdentityProvider_BadRequest()
         {
             const string group1Name = "Group1Name";
@@ -777,7 +790,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
-                with.FormValue("SubjectId", subject1Id);
+                with.FormValue("subjectId", subject1Id);
+                with.FormValue("identityProvider", "idP1");
             }).Result;
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -815,7 +829,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
-                with.FormValue("SubjectId", "SubjectId");
+                with.FormValue("subjectId", "SubjectId");
+                with.FormValue("identityProvider", "idP1");
             }).Result;
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -831,9 +846,56 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
                 with.FormValue("SubjectId", "Subject1Id");
+                with.FormValue("identityProvider", "idP1");
             }).Result;
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void DeleteUserFromGroup_NoSubjectId_BadRequest()
+        {
+            const string group1Name = "Group1Name";
+            SetupGroup(group1Name, "Custom");
+            const string subject1Id = "Subject1Id";
+            const string identityProvider = "idP1";
+            var response = SetupGroupUserMapping(group1Name, subject1Id, identityProvider);
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+            // attempt to delete the mapping
+            response = Browser.Delete($"/groups/{group1Name}/users", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("identityProvider", "idP1");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void DeleteUserFromGroup_NoIdentityProvider_BadRequest()
+        {
+            const string group1Name = "Group1Name";
+            SetupGroup(group1Name, "Custom");
+            const string subject1Id = "Subject1Id";
+            const string identityProvider = "idP1";
+            var response = SetupGroupUserMapping(group1Name, subject1Id, identityProvider);
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+            // attempt to delete the mapping
+            response = Browser.Delete($"/groups/{group1Name}/users", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("subjectId", subject1Id);
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
         [Fact]
