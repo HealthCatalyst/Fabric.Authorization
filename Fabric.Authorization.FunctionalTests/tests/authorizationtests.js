@@ -61,6 +61,11 @@ describe("authorization tests", function () {
         "groupSource": "Custom"
     }
 
+    var userBar = {
+        "subjectId": "first.last@gmail.com",
+        "identityProvider": "Windows"
+    }
+
     var roleFoo = {
         "Grain": "app",
         "SecurableItem": "func-test",
@@ -176,14 +181,14 @@ describe("authorization tests", function () {
     }
 
     before("running before", function(){
-        this.timeout(5000);            
+        this.timeout(5000);
         return bootstrapIdentityServer();
     });  
 
     describe("register client", function(){      
         
         it("should register a client", function(){        
-            this.timeout(4000);   
+            this.timeout(4000);
            return chakram.post(baseIdentityUrl + "/api/client", identityClientFuncTest, authRequestOptions)
             .then(function(clientResponse){
                 expect(clientResponse).to.have.status(201);                      
@@ -282,7 +287,36 @@ describe("authorization tests", function () {
                 expect(postResponse).to.have.status(201);
             });            
         });
-    });  
+    });
+
+    describe("associate users to groups", function(){
+        it("should return 400 when no subjectId provided", function(){
+            authRequestOptions.headers.Authorization = newAuthClientAccessToken;
+            
+            return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupBar.groupName) + "/users", {"identityProvider": "Windows"}, authRequestOptions)
+            .then(function(postResponse){
+                expect(postResponse).to.have.status(400);
+            });
+        });
+
+        it("should return 400 when no identityProvider provided", function(){
+            authRequestOptions.headers.Authorization = newAuthClientAccessToken;
+
+            return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupBar.groupName) + "/users", {"subjectId": "first.last@gmail.com"}, authRequestOptions)
+            .then(function(postResponse){
+                expect(postResponse).to.have.status(400);
+            });
+        });
+
+        it("should associate user bar with group bar", function(){
+            authRequestOptions.headers.Authorization = newAuthClientAccessToken;
+
+            return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupBar.groupName) + "/users", userBar, authRequestOptions)
+            .then(function(postResponse){
+                expect(postResponse).to.have.status(201);
+            });
+        });
+    });
 
     describe("associate roles to permissions", function(){
         it("should associate roleFoo with userCanViewPermission and userCanEditPermission", function(){
