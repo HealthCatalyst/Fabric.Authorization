@@ -49,15 +49,6 @@ describe("authorization tests", function () {
         "topLevelSecurableItem": { "name": "func-test" }
     }
 
-    var authClientFuncTest2 = {
-        "id": "func-test",
-        "name": "Functional Test Client",
-        "topLevelSecurableItem": { "name": "func-test" },
-        "allowedScopes": [
-            "fabric/authorization.read"
-        ]
-    }
-
     var groupFoo = {
         "id": "FABRIC\\\Health Catalyst Viewer",
         "groupName": "FABRIC\\\Health Catalyst Viewer",
@@ -190,7 +181,7 @@ describe("authorization tests", function () {
     }
 
     before("running before", function(){
-        this.timeout(5000);            
+        this.timeout(5000);
         return bootstrapIdentityServer();
     });  
 
@@ -338,7 +329,6 @@ describe("authorization tests", function () {
 
     describe("search identities", function(){
         it("should return a 404 when client_id does not exist", function(){
-            this.timeout(1000000);
             var options = {
                 headers: {
                     "Accept": "application/json",
@@ -353,7 +343,6 @@ describe("authorization tests", function () {
         });
 
         it("should return 200 and results with valid request", function(){
-            this.timeout(1000000);
             var options = {
                 headers: {
                     "Accept": "application/json",
