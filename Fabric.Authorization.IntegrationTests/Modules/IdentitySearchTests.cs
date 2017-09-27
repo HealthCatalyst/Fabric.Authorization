@@ -36,7 +36,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
-        public void IdentitySearch_ClientIdDoesNotExist_NotFoundException()
+        public void IdentitySearch_ClientIdDoesNotExist_NotFound()
         {
             Fixture.InitializeBrowser(new Mock<IIdentityServiceProvider>().Object);
 

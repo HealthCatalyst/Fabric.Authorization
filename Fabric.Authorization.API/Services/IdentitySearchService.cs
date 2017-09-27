@@ -71,7 +71,7 @@ namespace Fabric.Authorization.API.Services
             {
                 GroupName = g.Name,
                 Roles = g.Roles.Select(r => r.Name),
-                EntityType = IdentitySearchResponseEntityType.Group
+                EntityType = IdentitySearchResponseEntityType.Group.ToString()
             }));
 
             // get all users mapped to groups in client roles
@@ -97,7 +97,7 @@ namespace Fabric.Authorization.API.Services
                     SubjectId = user.SubjectId,
                     IdentityProvider = user.IdentityProvider,
                     Roles = userRoles,
-                    EntityType = IdentitySearchResponseEntityType.User
+                    EntityType = IdentitySearchResponseEntityType.User.ToString()
                 });
             }
 

@@ -49,6 +49,15 @@ describe("authorization tests", function () {
         "topLevelSecurableItem": { "name": "func-test" }
     }
 
+    var authClientFuncTest2 = {
+        "id": "func-test",
+        "name": "Functional Test Client",
+        "topLevelSecurableItem": { "name": "func-test" },
+        "allowedScopes": [
+            "fabric/authorization.read"
+        ]
+    }
+
     var groupFoo = {
         "id": "FABRIC\\\Health Catalyst Viewer",
         "groupName": "FABRIC\\\Health Catalyst Viewer",
@@ -181,14 +190,14 @@ describe("authorization tests", function () {
     }
 
     before("running before", function(){
-        this.timeout(5000);
+        this.timeout(5000);            
         return bootstrapIdentityServer();
     });  
 
     describe("register client", function(){      
         
         it("should register a client", function(){        
-            this.timeout(4000);
+            this.timeout(4000);   
            return chakram.post(baseIdentityUrl + "/api/client", identityClientFuncTest, authRequestOptions)
             .then(function(clientResponse){
                 expect(clientResponse).to.have.status(201);                      
@@ -287,7 +296,7 @@ describe("authorization tests", function () {
                 expect(postResponse).to.have.status(201);
             });            
         });
-    });
+    });  
 
     describe("associate users to groups", function(){
         it("should return 400 when no subjectId provided", function(){
@@ -308,12 +317,61 @@ describe("authorization tests", function () {
             });
         });
 
+        it("should return 400 when associating user with non-custom group", function(){
+            authRequestOptions.headers.Authorization = newAuthClientAccessToken;
+
+            return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupFoo.groupName) + "/users", userBar, authRequestOptions)
+            .then(function(postResponse){
+                expect(postResponse).to.have.status(400);
+            });
+        });
+
         it("should associate user bar with group bar", function(){
             authRequestOptions.headers.Authorization = newAuthClientAccessToken;
 
             return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupBar.groupName) + "/users", userBar, authRequestOptions)
             .then(function(postResponse){
                 expect(postResponse).to.have.status(201);
+            });
+        });
+    });
+
+    describe("search identities", function(){
+        it("should return a 404 when client_id does not exist", function(){
+            this.timeout(1000000);
+            var options = {
+                headers: {
+                    "Accept": "application/json",
+                    "Authorization": newAuthClientAccessToken
+                }
+            }
+
+            return chakram.get(baseAuthUrl + "/identities?client_id=blah", options)
+            .then(function(getResponse){
+                expect(getResponse).to.have.status(404);
+            });
+        });
+
+        it("should return 200 and results with valid request", function(){
+            this.timeout(1000000);
+            var options = {
+                headers: {
+                    "Accept": "application/json",
+                    "Authorization": newAuthClientAccessToken
+                }
+            }
+
+            return chakram.get(baseAuthUrl + "/identities?client_id=" + authClientFuncTest.id + "&filter=health", options)
+            .then(function(getResponse){
+                expect(getResponse).to.have.status(200);
+                var results = getResponse.body;
+                expect(results).to.be.an("array").that.is.not.empty;
+                var groupFooResult = results[0];
+                expect(groupFooResult.groupName).to.equal(groupFoo.groupName);
+                expect(groupFooResult.entityType).to.equal("Group");
+                expect(groupFooResult.roles).to.be.an("array").that.is.not.empty;
+                expect(groupFooResult.roles.length).to.equal(1);
+                expect(groupFooResult.roles[0]).to.equal(roleFoo.Name);
             });
         });
     });
