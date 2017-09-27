@@ -1,9 +1,14 @@
 var chakram = require("chakram");
 var expect = require("chakram").expect;
 
+var webdriver = require("selenium-webdriver"),
+By = webdriver.By,
+until = webdriver.until;
+
 describe("authorization tests", function () {
     var baseAuthUrl = process.env.BASE_AUTH_URL;
     var baseIdentityUrl = process.env.BASE_IDENTITY_URL;
+    var fabricInstallerSecret = process.env.FABRIC_INSTALLER_SECRET
 
     if (!baseAuthUrl) {
         baseAuthUrl = "http://localhost:5004";
@@ -13,8 +18,6 @@ describe("authorization tests", function () {
         baseIdentityUrl = "http://localhost:5001";
     }    
 
-    var installerSecret = "";
-    var newClientSecret = "";
     var newAuthClientAccessToken = "";
     var authRequestOptions = {
         headers: {
@@ -40,7 +43,7 @@ describe("authorization tests", function () {
             "fabric/authorization.write",
             "openid",
             "profile"
-        ]    
+        ]
     }
 
     var authClientFuncTest = {
@@ -90,46 +93,6 @@ describe("authorization tests", function () {
         "Name": "userCanEdit"
     }
 
-    function registerAuthorizationApi(){
-        var authApiResource = { 
-            "name": "authorization-api", 
-            "userClaims": ["name", "email", "role", "groups"], 
-            "scopes": [
-                {"name": "fabric/authorization.read"}, 
-                {"name": "fabric/authorization.write"}, 
-                {"name":"fabric/authorization.manageclients"}
-            ]
-        }
-
-        return chakram.post(baseIdentityUrl + "/api/apiresource", authApiResource, authRequestOptions);
-    }
-
-    function registerRegistrationApi(){
-        var registrationApi = {
-            "name": "registration-api", 
-            "userClaims": ["name","email", "role", "groups"], 
-            "scopes": [{ "name": "fabric/identity.manageresources"}]
-        }
-
-        return chakram.post(baseIdentityUrl + "/api/apiresource", registrationApi, requestOptions);
-    }
-
-    function registerInstallerClient(){
-        var installerClient = { 
-            "clientId": "fabric-installer",
-            "clientName": "Fabric Installer",
-            "requireConsent": "false",
-            "allowedGrantTypes": ["client_credentials"], 
-            "allowedScopes": [
-                "fabric/identity.manageresources", 
-                "fabric/authorization.read", 
-                "fabric/authorization.write", 
-                "fabric/authorization.manageclients"]
-        }
-
-        return chakram.post(baseIdentityUrl + "/api/client", installerClient, requestOptions);       
-    }
-
     function getAccessToken(clientData){        
         return chakram.post(baseIdentityUrl + "/connect/token", undefined, clientData)
             .then(function(postResponse){                  
@@ -144,7 +107,7 @@ describe("authorization tests", function () {
                 "client_id": "fabric-installer",
                 "client_secret": installerClientSecret,
                 "grant_type": "client_credentials",
-                "scope": "fabric/identity.manageresources fabric/authorization.read fabric/authorization.write fabric/authorization.manageclients"
+                "scope": "fabric/identity.manageresources fabric/authorization.read fabric/authorization.write fabric/authorization.manageclients fabric/identity.read"
             }
         };      
 
@@ -165,19 +128,10 @@ describe("authorization tests", function () {
     }    
 
     function bootstrapIdentityServer(){
-        return registerRegistrationApi()
-        .then(registerAuthorizationApi)
-        .then(registerInstallerClient)
-        .then(function(postResponse){                        
-            return postResponse.body.clientSecret;                        
-        })
-        .then(function(installerClientSecret){               
-            installerSecret = installerClientSecret;
-            return getAccessTokenForInstaller(installerSecret);
-        })
-        .then(function(retrievedAccessToken){                                   
-            authRequestOptions.headers.Authorization = retrievedAccessToken;            
-        });
+        return getAccessTokenForInstaller(fabricInstallerSecret)
+            .then(function(retrievedAccessToken){                                   
+                authRequestOptions.headers.Authorization = retrievedAccessToken;
+            });
     }
 
     before("running before", function(){
@@ -189,22 +143,21 @@ describe("authorization tests", function () {
         
         it("should register a client", function(){        
             this.timeout(4000);   
-           return chakram.post(baseIdentityUrl + "/api/client", identityClientFuncTest, authRequestOptions)
-            .then(function(clientResponse){
-                expect(clientResponse).to.have.status(201);                      
-                newClientSecret = clientResponse.body.clientSecret;
-                return getAccessTokenForAuthClient(clientResponse.body.clientSecret);
-            })
-            .then(function(authClientAccessToken){                
-                newAuthClientAccessToken = authClientAccessToken;
-            })    
-            .then(function(){
-                return chakram.post(baseAuthUrl + "/clients", authClientFuncTest, authRequestOptions);           
-            }) 
-            .then(function(clientResponse){                
-                expect(clientResponse).to.have.status(201);    
-            });
-            
+            return chakram.post(baseIdentityUrl + "/api/client", identityClientFuncTest, authRequestOptions)
+                .then(function(clientResponse){
+                    expect(clientResponse).to.have.status(201);
+                    newClientSecret = clientResponse.body.clientSecret;
+                    return getAccessTokenForAuthClient(clientResponse.body.clientSecret);
+                })
+                .then(function(authClientAccessToken){                
+                    newAuthClientAccessToken = authClientAccessToken;
+                })
+                .then(function(){
+                    return chakram.post(baseAuthUrl + "/clients", authClientFuncTest, authRequestOptions);
+                }) 
+                .then(function(clientResponse){                
+                    expect(clientResponse).to.have.status(201);    
+                });
         }); 
     });
 
@@ -257,35 +210,35 @@ describe("authorization tests", function () {
             authRequestOptions.headers.Authorization = newAuthClientAccessToken;                                  
 
             return chakram.get(baseAuthUrl + "/roles/"+ roleFoo.Grain + "/" + roleFoo.SecurableItem + "/" + encodeURIComponent(roleFoo.Name), authRequestOptions)
-            .then(function(getResponse){                            
-                expect(getResponse).to.have.status(200);
-                expect(getResponse).to.comprise.of.json([{name:"FABRIC\\Health Catalyst Viewer"}]);              
-                
-                return getResponse.body;                
-            })
-            .then(function(role){                
-                return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupFoo.groupName) + "/roles", role[0], authRequestOptions);
-            })
-            .then(function(postResponse){
-                expect(postResponse).to.have.status(201);
-            });            
+                .then(function(getResponse){                            
+                    expect(getResponse).to.have.status(200);
+                    expect(getResponse).to.comprise.of.json([{name:"FABRIC\\Health Catalyst Viewer"}]);              
+                    
+                    return getResponse.body;                
+                })
+                .then(function(role){                
+                    return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupFoo.groupName) + "/roles", role[0], authRequestOptions);
+                })
+                .then(function(postResponse){
+                    expect(postResponse).to.have.status(201);
+                });
         });
 
         it("should associate group bar with role bar", function(){
             authRequestOptions.headers.Authorization = newAuthClientAccessToken;
             
             return chakram.get(baseAuthUrl + "/roles/"+ roleBar.Grain + "/" + roleBar.SecurableItem + "/" + encodeURIComponent(roleBar.Name), authRequestOptions)
-            .then(function(getResponse){            
-                expect(getResponse).to.have.status(200);
-                expect(getResponse).to.comprise.of.json([{name:"FABRIC\\Health Catalyst Editor"}]);              
-                return getResponse.body;                
-            })
-            .then(function(role){                
-                return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupBar.groupName) + "/roles", role[0], authRequestOptions);
-            })
-            .then(function(postResponse){
-                expect(postResponse).to.have.status(201);
-            });            
+                .then(function(getResponse){            
+                    expect(getResponse).to.have.status(200);
+                    expect(getResponse).to.comprise.of.json([{name:"FABRIC\\Health Catalyst Editor"}]);              
+                    return getResponse.body;                
+                })
+                .then(function(role){                
+                    return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupBar.groupName) + "/roles", role[0], authRequestOptions);
+                })
+                .then(function(postResponse){
+                    expect(postResponse).to.have.status(201);
+                });            
         });
     });  
 
@@ -294,41 +247,42 @@ describe("authorization tests", function () {
             authRequestOptions.headers.Authorization = newAuthClientAccessToken;
             
             return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupBar.groupName) + "/users", {"identityProvider": "Windows"}, authRequestOptions)
-            .then(function(postResponse){
-                expect(postResponse).to.have.status(400);
-            });
+                .then(function(postResponse){
+                    expect(postResponse).to.have.status(400);
+                });
         });
 
         it("should return 400 when no identityProvider provided", function(){
             authRequestOptions.headers.Authorization = newAuthClientAccessToken;
 
             return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupBar.groupName) + "/users", {"subjectId": "first.last@gmail.com"}, authRequestOptions)
-            .then(function(postResponse){
-                expect(postResponse).to.have.status(400);
-            });
+                .then(function(postResponse){
+                    expect(postResponse).to.have.status(400);
+                });
         });
 
         it("should return 400 when associating user with non-custom group", function(){
             authRequestOptions.headers.Authorization = newAuthClientAccessToken;
 
             return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupFoo.groupName) + "/users", userBar, authRequestOptions)
-            .then(function(postResponse){
-                expect(postResponse).to.have.status(400);
-            });
+                .then(function(postResponse){
+                    expect(postResponse).to.have.status(400);
+                });
         });
 
         it("should associate user bar with group bar", function(){
             authRequestOptions.headers.Authorization = newAuthClientAccessToken;
 
             return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupBar.groupName) + "/users", userBar, authRequestOptions)
-            .then(function(postResponse){
-                expect(postResponse).to.have.status(201);
-            });
+                .then(function(postResponse){
+                    expect(postResponse).to.have.status(201);
+                });
         });
     });
 
     describe("search identities", function(){
         it("should return a 404 when client_id does not exist", function(){
+            this.timeout(1000000);
             var options = {
                 headers: {
                     "Accept": "application/json",
@@ -337,12 +291,39 @@ describe("authorization tests", function () {
             }
 
             return chakram.get(baseAuthUrl + "/identities?client_id=blah", options)
-            .then(function(getResponse){
-                expect(getResponse).to.have.status(404);
-            });
+                .then(function(getResponse){
+                    expect(getResponse).to.have.status(404);
+                });
         });
 
         it("should return 200 and results with valid request", function(){
+            this.timeout(1000000);
+
+            function loginUser() {
+                //setup custom phantomJS capability
+                var phantomjsExe = require("phantomjs").path;
+                var customPhantom = webdriver.Capabilities.phantomjs();
+                customPhantom.set("phantomjs.binary.path", phantomjsExe);
+
+                //build custom phantomJS driver
+                var driver = new webdriver.Builder().withCapabilities(customPhantom).build();
+
+                driver.manage().window().setSize(1024, 768);
+                var encodedRedirectUri = encodeURIComponent(baseIdentityUrl);
+                return driver.get(baseIdentityUrl +
+                        "/account/login?returnUrl=%2Fconnect%2Fauthorize%2Flogin%3Fclient_id%3Dfunc-test%26redirect_uri%3D" +
+                        encodedRedirectUri +
+                        "%26response_type%3Did_token%2520token%26scope%3Dopenid%2520profile%2520fabric%252Fauthorization.read%2520fabric%252Ffabric%252Fauthorization.write%26nonce%3Dd9bfc7af239b4e99b18cb08f69f77377")
+                    .then(function() {
+
+                        //sign in using driver
+                        driver.findElement(By.id("Username")).sendKeys("bob");
+                        driver.findElement(By.id("Password")).sendKeys("bob");
+                        driver.findElement(By.id("login_but")).click();
+                        return driver.getCurrentUrl();
+                    });
+            }
+
             var options = {
                 headers: {
                     "Accept": "application/json",
@@ -350,18 +331,22 @@ describe("authorization tests", function () {
                 }
             }
 
-            return chakram.get(baseAuthUrl + "/identities?client_id=" + authClientFuncTest.id + "&filter=health", options)
-            .then(function(getResponse){
-                expect(getResponse).to.have.status(200);
-                var results = getResponse.body;
-                expect(results).to.be.an("array").that.is.not.empty;
-                var groupFooResult = results[0];
-                expect(groupFooResult.groupName).to.equal(groupFoo.groupName);
-                expect(groupFooResult.entityType).to.equal("Group");
-                expect(groupFooResult.roles).to.be.an("array").that.is.not.empty;
-                expect(groupFooResult.roles.length).to.equal(1);
-                expect(groupFooResult.roles[0]).to.equal(roleFoo.Name);
-            });
+            return loginUser()
+                .then(function() {
+                        chakram.get(baseAuthUrl + "/identities?client_id=" + authClientFuncTest.id + "&filter=health",
+                            options);
+                })
+                .then(function(getResponse){
+                    expect(getResponse).to.have.status(200);
+                    var results = getResponse.body;
+                    expect(results).to.be.an("array").that.is.not.empty;
+                    var groupFooResult = results[0];
+                    expect(groupFooResult.groupName).to.equal(groupFoo.groupName);
+                    expect(groupFooResult.entityType).to.equal("Group");
+                    expect(groupFooResult.roles).to.be.an("array").that.is.not.empty;
+                    expect(groupFooResult.roles.length).to.equal(1);
+                    expect(groupFooResult.roles[0]).to.equal(roleFoo.Name);
+                });
         });
     });
 
@@ -371,24 +356,24 @@ describe("authorization tests", function () {
             var permissions = [];
             
             return chakram.get(baseAuthUrl + "/permissions/" + userCanViewPermission.Grain + "/" + userCanViewPermission.SecurableItem, authRequestOptions)
-            .then(function(getResponse){
-                expect(getResponse).to.have.status(200);
-                permissions = getResponse.body;                
-                return chakram.get(baseAuthUrl + "/roles/"+ roleFoo.Grain + "/" + roleFoo.SecurableItem + "/" + encodeURIComponent(roleFoo.Name), authRequestOptions);
-            })            
-            .then(function(getResponse){
-                expect(getResponse).to.have.status(200);
-                expect(getResponse).to.comprise.of.json([{name:"FABRIC\\Health Catalyst Viewer"}]);  
-                return getResponse.body;                
-            })            
-            .then(function(role){            
-                var roleId = role[0].id;                
-                return chakram.post(baseAuthUrl + "/roles/" + roleId + "/permissions",  permissions, authRequestOptions);
-            })
-            .then(function(postResponse){       
-                expect(postResponse).to.comprise.of.json({name:"FABRIC\\Health Catalyst Viewer"});                          
-                expect(postResponse).to.have.status(201);
-            });            
+                .then(function(getResponse){
+                    expect(getResponse).to.have.status(200);
+                    permissions = getResponse.body;                
+                    return chakram.get(baseAuthUrl + "/roles/"+ roleFoo.Grain + "/" + roleFoo.SecurableItem + "/" + encodeURIComponent(roleFoo.Name), authRequestOptions);
+                })            
+                .then(function(getResponse){
+                    expect(getResponse).to.have.status(200);
+                    expect(getResponse).to.comprise.of.json([{name:"FABRIC\\Health Catalyst Viewer"}]);  
+                    return getResponse.body;                
+                })            
+                .then(function(role){            
+                    var roleId = role[0].id;                
+                    return chakram.post(baseAuthUrl + "/roles/" + roleId + "/permissions",  permissions, authRequestOptions);
+                })
+                .then(function(postResponse){       
+                    expect(postResponse).to.comprise.of.json({name:"FABRIC\\Health Catalyst Viewer"});                          
+                    expect(postResponse).to.have.status(201);
+                });
         });        
     });
 
@@ -411,49 +396,49 @@ describe("authorization tests", function () {
                     };      
 
             return getAccessToken(postData)
-            .then(function(accessToken){
-                expect(accessToken).to.not.be.null;
-                 var headers =  {
-                        headers: {
-                            "Accept": "application/json",
-                            "Authorization": accessToken
-                        }   
-                    };                
-                return chakram.get(baseAuthUrl + "/user/permissions?grain=app&securableItem=func-test", headers);                
-            })
-            .then(function(getResponse){                
-                expect(getResponse).to.have.status(200);
-                
-                var permissions = getResponse.body.permissions;                
-                expect(permissions).to.be.an("array").that.is.not.empty;
-                expect(permissions).to.be.an("array").that.includes("app/func-test.userCanEdit");
-                expect(permissions).to.be.an("array").that.includes("app/func-test.userCanView");
-            }); 
+                .then(function(accessToken){
+                    expect(accessToken).to.not.be.null;
+                     var headers =  {
+                            headers: {
+                                "Accept": "application/json",
+                                "Authorization": accessToken
+                            }   
+                        };                
+                    return chakram.get(baseAuthUrl + "/user/permissions?grain=app&securableItem=func-test", headers);                
+                })
+                .then(function(getResponse){                
+                    expect(getResponse).to.have.status(200);
+                    
+                    var permissions = getResponse.body.permissions;                
+                    expect(permissions).to.be.an("array").that.is.not.empty;
+                    expect(permissions).to.be.an("array").that.includes("app/func-test.userCanEdit");
+                    expect(permissions).to.be.an("array").that.includes("app/func-test.userCanView");
+                });
         });
     });
 
     describe("validate security", function(){
         it("should return a 403 when no access token provided", function(){
             return chakram.get(baseAuthUrl + "/clients", requestOptions)
-            .then(function(getResponse){
-                expect(getResponse).to.have.status(403);
-            });
+                .then(function(getResponse){
+                    expect(getResponse).to.have.status(403);
+                });
         });              
 
         it("should return a 403 when an access token with invalid scope is used", function(){
             return getAccessTokenForAuthClient(newClientSecret)
-            .then(function(accessToken){                
-                var options = {
-                    headers: {
-                        "content-type": "application/json",
-                        "Authorization": accessToken
+                .then(function(accessToken){                
+                    var options = {
+                        headers: {
+                            "content-type": "application/json",
+                            "Authorization": accessToken
+                        }
                     }
-                }
-                return chakram.get(baseAuthUrl + "/clients", options);
-            })
-            .then(function(getResponse){
-                expect(getResponse).to.have.status(403);
-            });
+                    return chakram.get(baseAuthUrl + "/clients", options);
+                })
+                .then(function(getResponse){
+                    expect(getResponse).to.have.status(403);
+                });
         });
     });
 });
