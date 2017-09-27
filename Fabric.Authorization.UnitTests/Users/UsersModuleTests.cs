@@ -164,10 +164,8 @@ namespace Fabric.Authorization.UnitTests.Users
 
             _existingUsers = new List<User>
             {
-                new User
+                new User("user123", "Windows")
                 {
-                    Id = "user123",
-                    SubjectId = "user123",
                     Groups = new List<string>
                     {
                         customGroup.Name

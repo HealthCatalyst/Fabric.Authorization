@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
 using Serilog;
@@ -16,13 +15,17 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
 
         public override async Task<User> Add(User model)
         {
-            model.Id = model.SubjectId;
-            return await base.Add(model.Id, model);
+            return await base.Add(ReplaceInvalidChars(model.Identifier), model);
         }
 
         public override async Task Delete(User model)
         {
-            await base.Delete(model.Id, model);
+            await base.Delete(ReplaceInvalidChars(model.Identifier), model);
+        }
+
+        public static string ReplaceInvalidChars(string documentId)
+        {
+            return documentId.Replace(@"\", "::");
         }
     }
 }

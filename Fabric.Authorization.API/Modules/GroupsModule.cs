@@ -246,8 +246,7 @@ namespace Fabric.Authorization.API.Modules
                     throw new NotFoundException<User>();
                 }
 
-                var group = await _groupService.DeleteUserFromGroup(groupUserRequest.GroupName,
-                    groupUserRequest.SubjectId);
+                var group = await _groupService.DeleteUserFromGroup(groupUserRequest.GroupName, groupUserRequest.SubjectId, groupUserRequest.IdentityProvider);
                 return CreateSuccessfulPostResponse(group.ToGroupUserApiModel(), HttpStatusCode.OK);
             }
             catch (NotFoundException<Group> ex)

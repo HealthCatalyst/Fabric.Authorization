@@ -15,15 +15,15 @@ namespace Fabric.Authorization.UnitTests.Mocks
             mockUserStore.Setup(userStore => userStore.Get(It.IsAny<string>()))
                 .Returns((string userId) =>
                 {
-                    if (users.Any(c => c.Id== userId))
+                    if (users.Any(c => c.SubjectId == userId))
                     {
-                        return Task.FromResult(users.First(c => c.Id == userId));
+                        return Task.FromResult(users.First(c => c.SubjectId == userId));
                     }
                     throw new NotFoundException<User>();
                 });
 
             mockUserStore.Setup(userStore => userStore.Exists(It.IsAny<string>()))
-                .Returns((string userId) => Task.FromResult(users.Any(c => c.Id == userId)));
+                .Returns((string userId) => Task.FromResult(users.Any(c => c.SubjectId == userId)));
 
             mockUserStore.Setup(userStore => userStore.GetAll())
                 .Returns(() => Task.FromResult(users.AsEnumerable()));

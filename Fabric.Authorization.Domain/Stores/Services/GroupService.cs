@@ -138,10 +138,10 @@ namespace Fabric.Authorization.Domain.Stores.Services
             }
             catch (NotFoundException<User>)
             {
-                user = await _userStore.Add(new User {SubjectId = subjectId, IdentityProvider = identityProvider});
+                user = await _userStore.Add(new User(subjectId, identityProvider));
             }
 
-            if (group.Users.All(u => u.SubjectId != subjectId))
+            if (group.Users.All(u => u.SubjectId != subjectId && u.IdentityProvider != identityProvider))
             {
                 group.Users.Add(user);
             }
@@ -156,12 +156,15 @@ namespace Fabric.Authorization.Domain.Stores.Services
             return group;
         }
 
-        public async Task<Group> DeleteUserFromGroup(string groupName, string subjectId)
+        public async Task<Group> DeleteUserFromGroup(string groupName, string subjectId, string identityProvider)
         {
             var group = await _groupStore.Get(groupName);
             var user = await _userStore.Get(subjectId);
 
-            var groupUser = group.Users.FirstOrDefault(u => u.SubjectId == subjectId);
+            var groupUser = group.Users.FirstOrDefault(u => 
+                u.Id == subjectId
+                && u.IdentityProvider == identityProvider);
+
             if (groupUser != null)
             {
                 group.Users.Remove(groupUser);
