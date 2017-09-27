@@ -36,7 +36,7 @@ $zipPackage = $installSettings.zipPackage
 $webroot = $installSettings.webroot 
 $appName = $installSettings.appName
 $iisUser = $installSettings.iisUser
-$sslCertificateThumbprint = $installSettings.sslCertificateThumbprint
+$encryptionCertificateThumbprint = $installSettings.encryptionCertificateThumbprint
 $couchDbServer = $installSettings.couchDbServer
 $couchDbUsername = $installSettings.couchDbUsername
 $couchDbPassword = $installSettings.couchDbPassword
@@ -93,14 +93,14 @@ Publish-WebSite $zipPackage $appDirectory $appName
 Write-Host ""
 Write-Host "Loading up environment variables..."
 $environmentVariables = @{"HostingOptions__UseInMemoryStores" = "false"}
-$signingCert = Get-Item Cert:\LocalMachine\My\$sslCertificateThumbprint
+$signingCert = Get-Item Cert:\LocalMachine\My\$encryptionCertificateThumbprint
 
 if($clientName){
 	$environmentVariables.Add("ClientName", $clientName)
 }
 
-if ($sslCertificateThumbprint){
-	$environmentVariables.Add("EncryptionCertificateSettings__EncryptionCertificateThumbprint", $sslCertificateThumbprint)
+if ($encryptionCertificateThumbprint){
+	$environmentVariables.Add("EncryptionCertificateSettings__EncryptionCertificateThumbprint", $encryptionCertificateThumbprint)
 }
 
 if ($couchDbServer){
