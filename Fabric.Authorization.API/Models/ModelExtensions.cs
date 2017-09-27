@@ -52,7 +52,7 @@ namespace Fabric.Authorization.API.Models
         {
             var userApiModel = new UserApiModel
             {
-                SubjectId = user.SubjectId,
+                UserId = user.Id,
                 Groups = user.Groups
             };
 

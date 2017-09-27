@@ -1,18 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using Fabric.Authorization.Domain.Models.Formatters;
 
 namespace Fabric.Authorization.Domain.Models
 {
     public class User : ITrackable, IIdentifiable, ISoftDelete
     {
-        public User()
+        public User(string subjectId, string identityProvider)
         {
+            SubjectId = subjectId;
+            IdentityProvider = identityProvider;
+            Id = Identifier;
             Groups = new List<string>();
         }
 
         public string Id { get; set; }
 
-        public string Identifier => Id;
+        public string Identifier => new UserIdentifierFormatter().Format(this);
 
         public string SubjectId { get; set; }
 

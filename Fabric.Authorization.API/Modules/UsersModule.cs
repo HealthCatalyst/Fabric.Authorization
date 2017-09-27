@@ -45,7 +45,7 @@ namespace Fabric.Authorization.API.Modules
                 async param => await this.AddGranularPermissions(param, denied: true).ConfigureAwait(false), null,
                 "AddDeniedPermissions");
 
-            Get("/{subjectId}/groups", async _ => await GetUserGroups().ConfigureAwait(false), null, "GetUserGroups");
+            Get("/{userId}/groups", async _ => await GetUserGroups().ConfigureAwait(false), null, "GetUserGroups");
         }
 
         private async Task<dynamic> GetUserGroups()
@@ -86,7 +86,7 @@ namespace Fabric.Authorization.API.Modules
                 AuthorizationReadClaim);
 
             var subjectId = SubjectId;
-            var groups = await GetGroupsForAuthenticatedUser(subjectId);
+            var groups = await GetGroupsForAuthenticatedUser(subjectId).ConfigureAwait(false);
 
             var permissions = await _permissionService.GetPermissionsForUser(
                 subjectId,
