@@ -20,7 +20,7 @@ namespace Fabric.Authorization.API.Models.Search
         public string MiddleName { get; set; }
         public string LastName { get; set; }
         public DateTime? LastLogin { get; set; }
-        public IdentitySearchResponseEntityType EntityType { get; set; }
+        public string EntityType { get; set; }
 
         [JsonIgnore]
         public string Name => string.IsNullOrWhiteSpace(GroupName) ? $"{FirstName} {MiddleName} {LastName}" : GroupName;

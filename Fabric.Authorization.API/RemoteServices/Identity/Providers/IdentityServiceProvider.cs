@@ -23,7 +23,7 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
             _appConfiguration = appConfiguration;
         }
 
-        public async Task<IEnumerable<UserSearchResponse>> Search(string clientId, IEnumerable<string> documentIds)
+        public async Task<IEnumerable<UserSearchResponse>> Search(string clientId, IEnumerable<string> userIds)
         {
             // get all users in groups tied to clientRoles
             var httpClient =
@@ -34,10 +34,10 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
             var request = new UserSearchRequest
             {
                 ClientId = clientId,
-                DocumentIds = documentIds
+                UserIds = userIds
             };
 
-            var response = await httpClient.PostAsync("/users",
+            var response = await httpClient.PostAsync("/api/users",
                 new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json"));
 
             return response.StatusCode != HttpStatusCode.OK

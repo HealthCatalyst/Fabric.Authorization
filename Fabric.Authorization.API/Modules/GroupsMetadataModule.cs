@@ -57,6 +57,15 @@ namespace Fabric.Authorization.API.Modules
             In = ParameterIn.Body
         };
 
+        private readonly Parameter _identityProviderParameter = new Parameter
+        {
+            Name = "identityProvider",
+            Description = "3rd party identity provider (IdP) of the user",
+            Type = "string",
+            Required = true,
+            In = ParameterIn.Body
+        };
+
         public GroupsMetadataModule(ISwaggerModelCatalog modelCatalog, ISwaggerTagCatalog tagCatalog)
             : base(modelCatalog, tagCatalog)
         {
@@ -361,7 +370,8 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupNameParameter,
-                    _subjectIdParameter
+                    _subjectIdParameter,
+                    _identityProviderParameter
                 },
                 new[]
                 {
@@ -393,7 +403,8 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupNameParameter,
-                    _subjectIdParameter
+                    _subjectIdParameter,
+                    _identityProviderParameter
                 },
                 new[]
                 {

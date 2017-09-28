@@ -9,6 +9,7 @@ using Fabric.Authorization.Domain.Stores.Services;
 using Fabric.Authorization.Domain.Validators;
 using Nancy;
 using Nancy.ModelBinding;
+using Nancy.Responses.Negotiation;
 using Nancy.Security;
 using Serilog;
 
@@ -209,13 +210,10 @@ namespace Fabric.Authorization.API.Modules
             {
                 this.RequiresClaims(AuthorizationWriteClaim);
                 var groupUserRequest = this.Bind<GroupUserRequest>();
-                if (string.IsNullOrWhiteSpace(groupUserRequest.SubjectId))
+                var validationResult = ValidateGroupUserRequest(groupUserRequest);
+                if (validationResult != null)
                 {
-                    return CreateFailureResponse("subjectId is required", HttpStatusCode.BadRequest);
-                }
-                if (string.IsNullOrWhiteSpace(groupUserRequest.IdentityProvider))
-                {
-                    return CreateFailureResponse("identityProvider is required", HttpStatusCode.BadRequest);
+                    return validationResult;
                 }
 
                 var group = await _groupService.AddUserToGroup(groupUserRequest.GroupName, groupUserRequest.SubjectId, groupUserRequest.IdentityProvider);
@@ -241,9 +239,10 @@ namespace Fabric.Authorization.API.Modules
             {
                 this.RequiresClaims(AuthorizationWriteClaim);
                 var groupUserRequest = this.Bind<GroupUserRequest>();
-                if (groupUserRequest.SubjectId == null)
+                var validationResult = ValidateGroupUserRequest(groupUserRequest);
+                if (validationResult != null)
                 {
-                    throw new NotFoundException<User>();
+                    return validationResult;
                 }
 
                 var group = await _groupService.DeleteUserFromGroup(groupUserRequest.GroupName,
@@ -258,6 +257,20 @@ namespace Fabric.Authorization.API.Modules
             {
                 return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
             }
+        }
+
+        private Negotiator ValidateGroupUserRequest(GroupUserRequest groupUserRequest)
+        {
+            if (string.IsNullOrWhiteSpace(groupUserRequest.SubjectId))
+            {
+                return CreateFailureResponse("subjectId is required", HttpStatusCode.BadRequest);
+            }
+            if (string.IsNullOrWhiteSpace(groupUserRequest.IdentityProvider))
+            {
+                return CreateFailureResponse("identityProvider is required", HttpStatusCode.BadRequest);
+            }
+
+            return null;
         }
     }
 }
