@@ -89,45 +89,6 @@ New-AppPool $appName
 New-App $appName $siteName $appDirectory
 Publish-WebSite $zipPackage $appDirectory $appName
 
-#Write environment variables
-Write-Host ""
-Write-Host "Loading up environment variables..."
-$environmentVariables = @{"HostingOptions__UseInMemoryStores" = "false"}
-$signingCert = Get-Item Cert:\LocalMachine\My\$encryptionCertificateThumbprint
-
-if($clientName){
-	$environmentVariables.Add("ClientName", $clientName)
-}
-
-if ($encryptionCertificateThumbprint){
-	$environmentVariables.Add("EncryptionCertificateSettings__EncryptionCertificateThumbprint", $encryptionCertificateThumbprint)
-}
-
-if ($couchDbServer){
-	$environmentVariables.Add("CouchDbSettings__Server", $couchDbServer)
-}
-
-if ($couchDbUsername){
-	$environmentVariables.Add("CouchDbSettings__Username", $couchDbUsername)
-}
-
-if ($couchDbPassword){
-	$encryptedCouchDbPassword = Get-EncryptedString $signingCert $couchDbPassword
-	$environmentVariables.Add("CouchDbSettings__Password", $encryptedCouchDbPassword)
-}
-
-if($appInsightsInstrumentationKey){
-	$environmentVariables.Add("ApplicationInsights__Enabled", "true")
-	$environmentVariables.Add("ApplicationInsights__InstrumentationKey", $appInsightsInstrumentationKey)
-}
-
-$environmentVariables.Add("IdentityServerConfidentialClientSettings__Authority", $identityServerUrl)
-
-Set-EnvironmentVariables $appDirectory $environmentVariables
-Write-Host ""
-
-Set-Location $workingDirectory
-
 $accessToken = Get-AccessToken -authUrl $identityServerUrl -clientId "fabric-installer" -scope "fabric/identity.manageresources" -secret $fabricInstallerSecret
 
 #Register authorization api
@@ -139,19 +100,39 @@ $body = @'
 }
 '@
 
-Write-Host "Registering Fabric.Authorization."
+Write-Host "Registering Fabric.Authorization API."
 try {
 	$authorizationApiSecret = Add-ApiRegistration -authUrl $identityServerUrl -body $body -accessToken $accessToken
 	Write-Host "Fabric.Authorization apiSecret: $authorizationApiSecret"
 	Write-Host ""
 } catch {
-	Write-Host "Fabric.Authorization is already registered."
+	Write-Host "Fabric.Authorization API is already registered."
+	Write-Host ""
+}
+
+#Register Fabric.Authorization client
+$body = @'
+{
+    "clientId":"fabric-authorization-client", 
+    "clientName":"Fabric Authorization Client", 
+    "requireConsent":"false", 
+    "allowedGrantTypes": ["client_credentials"], 
+    "allowedScopes": ["fabric/identity.read"]
+}
+'@
+
+Write-Host "Registering Fabric.Authorization Client."
+try{
+	$authorizationClientSecret = Add-ClientRegistration -authUrl $identityServerUrl -body $body -accessToken $accessToken
+	Write-Host "Fabric.Authorization clientSecret: $authorizationClientSecret"
+	Write-Host ""
+} catch {
+	Write-Host "Fabric.Authorization Client is already registered."
 	Write-Host ""
 }
 
 
 #Register group fetcher client
-
 $body = @'
 {
     "clientId":"fabric-group-fetcher", 
@@ -171,6 +152,50 @@ try{
 	Write-Host "Fabric.GroupFetcher is already registered."
 	Write-Host ""
 }
+
+#Write environment variables
+Write-Host ""
+Write-Host "Loading up environment variables..."
+$environmentVariables = @{"HostingOptions__UseInMemoryStores" = "false"}
+$encryptionCert = Get-Item Cert:\LocalMachine\My\$encryptionCertificateThumbprint
+
+if($clientName){
+	$environmentVariables.Add("ClientName", $clientName)
+}
+
+if ($encryptionCertificateThumbprint){
+	$environmentVariables.Add("EncryptionCertificateSettings__EncryptionCertificateThumbprint", $encryptionCertificateThumbprint)
+}
+
+if ($couchDbServer){
+	$environmentVariables.Add("CouchDbSettings__Server", $couchDbServer)
+}
+
+if ($couchDbUsername){
+	$environmentVariables.Add("CouchDbSettings__Username", $couchDbUsername)
+}
+
+if ($couchDbPassword){
+	$encryptedCouchDbPassword = Get-EncryptedString $encryptionCert $couchDbPassword
+	$environmentVariables.Add("CouchDbSettings__Password", $encryptedCouchDbPassword)
+}
+
+if($appInsightsInstrumentationKey){
+	$environmentVariables.Add("ApplicationInsights__Enabled", "true")
+	$environmentVariables.Add("ApplicationInsights__InstrumentationKey", $appInsightsInstrumentationKey)
+}
+
+if($authorizationClientSecret){
+	$encryptedSecret = Get-EncryptedString $encryptionCert $authorizationClientSecret
+	$environmentVariables.Add("IdentityServerConfidentialClientSettings__ClientSecret", $encryptedSecret)
+}
+
+$environmentVariables.Add("IdentityServerConfidentialClientSettings__Authority", $identityServerUrl)
+
+Set-EnvironmentVariables $appDirectory $environmentVariables
+Write-Host ""
+
+Set-Location $workingDirectory
 
 Invoke-MonitorShallow "$hostUrl/$appName"
 Write-Host "Installation complete, exiting."
