@@ -31,6 +31,7 @@ namespace Fabric.Authorization.API.Modules
         {
             modelCatalog.AddModels(
                 typeof(IdentitySearchRequest),
+                typeof(IdentitySearchResponseEntityType),
                 typeof(IdentitySearchResponse));
 
             RouteDescriber.DescribeRouteWithParams(

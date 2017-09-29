@@ -19,15 +19,6 @@ namespace Fabric.Authorization.API.Modules
             Type = "string"
         };
 
-        private readonly Parameter _userIdParameter = new Parameter
-        {
-            Name = "userId",
-            Description = "SubjectId to use for the request",
-            In = ParameterIn.Path,
-            Required = true,
-            Type = "integer"
-        };
-
         private readonly Tag _usersTag =
             new Tag {Name = "Users", Description = "Operations related to user permissions"};
 
@@ -68,7 +59,7 @@ namespace Fabric.Authorization.API.Modules
                 },
                 new[]
                 {
-                    _userIdParameter,
+                    _subjectIdParameter,
                     new BodyParameter<GranularPermissionApiModel>(modelCatalog)
                     {
                         Name = "GranularPermissions",
@@ -103,7 +94,7 @@ namespace Fabric.Authorization.API.Modules
                 },
                 new[]
                 {
-                    _userIdParameter,
+                    _subjectIdParameter,
                     new BodyParameter<GranularPermissionApiModel>(modelCatalog)
                     {
                         Name = "GranularPermissions",
