@@ -213,6 +213,7 @@ namespace Fabric.Authorization.API.Modules
                 {
                     return CreateFailureResponse("subjectId is required", HttpStatusCode.BadRequest);
                 }
+            
                 if (string.IsNullOrWhiteSpace(groupUserRequest.IdentityProvider))
                 {
                     return CreateFailureResponse("identityProvider is required", HttpStatusCode.BadRequest);

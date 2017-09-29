@@ -9,6 +9,7 @@ using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores.Services;
 using Fabric.Authorization.Domain.Validators;
 using IdentityModel;
+using Microsoft.AspNetCore.Http;
 using Nancy;
 using Nancy.ModelBinding;
 using Nancy.Security;
@@ -37,22 +38,22 @@ namespace Fabric.Authorization.API.Modules
             Get("/permissions", async _ => await GetCurrentUserPermissions().ConfigureAwait(false), null,
                 "GetUserPermissions");
 
-            Post("/{userId}/AdditionalPermissions",
+            Post("/{subjectId}/AdditionalPermissions",
                 async param => await this.AddGranularPermissions(param, denied: false).ConfigureAwait(false), null,
                 "AddPermissions");
 
-            Post("/{userId}/DeniedPermissions",
+            Post("/{subjectId}/DeniedPermissions",
                 async param => await this.AddGranularPermissions(param, denied: true).ConfigureAwait(false), null,
                 "AddDeniedPermissions");
 
-            Get("/{userId}/groups", async _ => await GetUserGroups().ConfigureAwait(false), null, "GetUserGroups");
+            Get("/{subjectId}/{identityProvider}/groups", async _ => await GetUserGroups().ConfigureAwait(false), null, "GetUserGroups");
         }
 
         private async Task<dynamic> GetUserGroups()
         {
             this.RequiresClaims(AuthorizationReadClaim);
             var groupUserRequest = this.Bind<GroupUserRequest>();
-            var groups = await _userService.GetGroupsForUser(groupUserRequest.SubjectId);
+            var groups = await _userService.GetGroupsForUser(groupUserRequest.SubjectId, groupUserRequest.IdentityProvider);
             return groups;
         }
 
@@ -60,8 +61,8 @@ namespace Fabric.Authorization.API.Modules
         {
             var apiModel = this.Bind<GranularPermissionApiModel>();
 
-            if (apiModel.Target != param["userId"])
-                return CreateFailureResponse("Target must be the user id.", HttpStatusCode.BadRequest);
+            if (apiModel.Target != param["subjectId"])
+                return CreateFailureResponse("Target must be the subject id.", HttpStatusCode.BadRequest);
 
             foreach (var perm in apiModel.Permissions)
                 await CheckAccess(_clientService, perm.Grain, perm.SecurableItem, AuthorizationManageClientsClaim);
@@ -86,7 +87,8 @@ namespace Fabric.Authorization.API.Modules
                 AuthorizationReadClaim);
 
             var subjectId = SubjectId;
-            var groups = await GetGroupsForAuthenticatedUser(subjectId).ConfigureAwait(false);
+            var identityProvider = IdentityProvider;
+            var groups = await GetGroupsForAuthenticatedUser(subjectId, identityProvider).ConfigureAwait(false);
 
             var permissions = await _permissionService.GetPermissionsForUser(
                 subjectId,
@@ -102,7 +104,7 @@ namespace Fabric.Authorization.API.Modules
             };
         }
 
-        private async Task<string[]> GetGroupsForAuthenticatedUser(string subjectId)
+        private async Task<string[]> GetGroupsForAuthenticatedUser(string subjectId, string providerId)
         {
             var userClaims = Context.CurrentUser?.Claims
                 .Where(c => c.Type == "role" || c.Type == "groups")
@@ -112,7 +114,7 @@ namespace Fabric.Authorization.API.Modules
             var groups = new List<string>();
             try
             {
-                groups = (await _userService.GetGroupsForUser(subjectId)).ToList();
+                groups = (await _userService.GetGroupsForUser(subjectId, providerId)).ToList();
             }
             catch (NotFoundException<User>)
             {

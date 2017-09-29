@@ -22,7 +22,7 @@ namespace Fabric.Authorization.API.Modules
         private readonly Parameter _userIdParameter = new Parameter
         {
             Name = "userId",
-            Description = "UserId to use for the request",
+            Description = "SubjectId to use for the request",
             In = ParameterIn.Path,
             Required = true,
             Type = "integer"

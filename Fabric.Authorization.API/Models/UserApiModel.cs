@@ -4,7 +4,7 @@ namespace Fabric.Authorization.API.Models
 {
     public class UserApiModel
     {
-        public string UserId { get; set; }
+        public string SubjectId { get; set; }
 
         public IEnumerable<string> Groups { get; set; }
     }

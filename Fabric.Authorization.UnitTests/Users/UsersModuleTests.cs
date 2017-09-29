@@ -51,7 +51,8 @@ namespace Fabric.Authorization.UnitTests.Users
                 new Claim(Claims.Scope, Scopes.ReadScope),
                 new Claim(Claims.ClientId, existingClient.Id),
                 new Claim(JwtClaimTypes.Role, group),
-                new Claim(Claims.Sub, existingUser.SubjectId)
+                new Claim(Claims.Sub, existingUser.SubjectId),
+                new Claim(Claims.IdentityProvider, existingUser.IdentityProvider)
             );
             var result = usersModule.Get("/user/permissions", with =>
                 {
@@ -90,7 +91,8 @@ namespace Fabric.Authorization.UnitTests.Users
                 new Claim(Claims.Scope, Scopes.ReadScope),
                 new Claim(Claims.ClientId, existingClient.Id),
                 new Claim(JwtClaimTypes.Role, @"Fabric\Health Catalyst Admin"),
-                new Claim(Claims.Sub, existingUser.SubjectId)
+                new Claim(Claims.Sub, existingUser.SubjectId),
+                new Claim(Claims.IdentityProvider, existingUser.IdentityProvider )
             );
             var result = usersModule.Get("/user/permissions").Result;
             AssertOk(result, 3);

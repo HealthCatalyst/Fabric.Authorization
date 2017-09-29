@@ -111,7 +111,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
             mockIdentityServiceProvider
-                .Setup(m => m.Search(Fixture.AtlasClientId, new List<string> {"atlas_user:Windows"}))
+                .Setup(m => m.Search(Fixture.AtlasClientId, new List<string> { "atlas_user:Windows" }))
                 .ReturnsAsync(() => new List<UserSearchResponse>
                 {
                     new UserSearchResponse
@@ -232,7 +232,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                         new Claim(Claims.Scope, Scopes.ManageClientsScope),
                         new Claim(Claims.Scope, Scopes.ReadScope),
                         new Claim(Claims.Scope, Scopes.WriteScope),
-                        new Claim(Claims.ClientId, AtlasClientId)
+                        new Claim(Claims.ClientId, AtlasClientId),
+                        new Claim(Claims.IdentityProvider, "idP1")
                     }, "rolesprincipal"));
                     pipelines.BeforeRequest += ctx => RequestHooks.SetDefaultVersionInUrl(ctx);
                 });

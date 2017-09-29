@@ -126,6 +126,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
         {
             var group = await _groupStore.Get(groupName);
 
+            //only add users to a custom group
             if (!string.Equals(group.Source, GroupConstants.CustomSource))
             {
                 throw new BadRequestException<Group>();
@@ -134,7 +135,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
             User user;
             try
             {
-                user = await _userStore.Get(subjectId);
+                user = await _userStore.Get($"{subjectId}:{identityProvider}");
             }
             catch (NotFoundException<User>)
             {
@@ -159,11 +160,10 @@ namespace Fabric.Authorization.Domain.Stores.Services
         public async Task<Group> DeleteUserFromGroup(string groupName, string subjectId, string identityProvider)
         {
             var group = await _groupStore.Get(groupName);
-            var user = await _userStore.Get(subjectId);
+            var user = await _userStore.Get($"{subjectId}:{identityProvider}");
 
             var groupUser = group.Users.FirstOrDefault(u => 
-                u.Id == subjectId
-                && u.IdentityProvider == identityProvider);
+                u.Id == user.Id);
 
             if (groupUser != null)
             {

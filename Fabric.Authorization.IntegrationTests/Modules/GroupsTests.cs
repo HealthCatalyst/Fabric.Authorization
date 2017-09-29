@@ -83,7 +83,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                         new Claim(Claims.Scope, Scopes.ManageClientsScope),
                         new Claim(Claims.Scope, Scopes.ReadScope),
                         new Claim(Claims.Scope, Scopes.WriteScope),
-                        new Claim(Claims.ClientId, "rolesprincipal")
+                        new Claim(Claims.ClientId, "rolesprincipal"),
+                        new Claim(Claims.IdentityProvider, "idP1")
                     }, "rolesprincipal"));
                     pipelines.BeforeRequest += ctx => RequestHooks.SetDefaultVersionInUrl(ctx);
                 });
@@ -768,7 +769,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             const string group1Name = "Group1Name";
             SetupGroup(group1Name, "Custom");
             const string subject1Id = "Subject1Id";
-            var response = SetupGroupUserMapping(group1Name, subject1Id, "idP1");
+            const string identityProvider = "idP1";
+            var response = SetupGroupUserMapping(group1Name, subject1Id, identityProvider);
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
@@ -778,6 +780,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
                 with.FormValue("SubjectId", subject1Id);
+                with.FormValue("IdentityProvider", identityProvider);
             }).Result;
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -795,7 +798,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(0, userList.Count);
 
             // ensure the deletion is reflected in the user model
-            response = Browser.Get($"/user/{subject1Id}/groups", with =>
+            response = Browser.Get($"/user/{subject1Id}/{identityProvider}/groups", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -854,10 +857,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         public void GetGroupsForUser_GroupAndUserExist_Success()
         {
             const string groupName = "GroupName";
+            const string subjectId = "Subject1Name";
+            const string identityProvider = "idP1";
             SetupGroup(groupName, "Custom");
-            SetupGroupUserMapping(groupName, "Subject1Name", "idP1");
+            SetupGroupUserMapping(groupName, subjectId, identityProvider);
 
-            var response = Browser.Get("/user/Subject1Name/groups", with =>
+            var response = Browser.Get($"/user/{subjectId}/{identityProvider}/groups", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");

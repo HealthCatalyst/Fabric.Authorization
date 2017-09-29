@@ -12,9 +12,9 @@ namespace Fabric.Authorization.Domain.Stores.Services
             _userStore = userStore;
         }
 
-        public async Task<IEnumerable<string>> GetGroupsForUser(string subjectId)
+        public async Task<IEnumerable<string>> GetGroupsForUser(string subjectId, string identityProvider)
         {
-            var user = await _userStore.Get(subjectId);
+            var user = await _userStore.Get($"{subjectId}:{identityProvider}");
             return user.Groups;
         }
     }
