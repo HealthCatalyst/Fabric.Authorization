@@ -83,7 +83,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                             new Claim(Claims.ClientId, "userprincipal"),
                             new Claim(Claims.Sub, "userprincipal"),
                             new Claim(JwtClaimTypes.Role, Group1),
-                            new Claim(JwtClaimTypes.Role, Group2)
+                            new Claim(JwtClaimTypes.Role, Group2),
+                            new Claim(JwtClaimTypes.IdentityProvider, "idP1")
                         }, "userprincipal"));
                     pipelines.BeforeRequest += (ctx) => RequestHooks.SetDefaultVersionInUrl(ctx);
                 });
