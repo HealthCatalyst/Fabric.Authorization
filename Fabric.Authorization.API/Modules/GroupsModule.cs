@@ -147,7 +147,7 @@ namespace Fabric.Authorization.API.Modules
                 var groupRoleRequest = this.Bind<GroupRoleRequest>();
                 if (groupRoleRequest.Id == null && groupRoleRequest.RoleId == null)
                 {
-                    throw new NotFoundException<Role>();
+                    return CreateFailureResponse("Role ID is required.", HttpStatusCode.BadRequest);
                 }
 
                 var roleId = groupRoleRequest.Id ?? groupRoleRequest.RoleId;
@@ -172,7 +172,7 @@ namespace Fabric.Authorization.API.Modules
                 var groupRoleRequest = this.Bind<GroupRoleRequest>();
                 if (groupRoleRequest.Id == null && groupRoleRequest.RoleId == null)
                 {
-                    throw new NotFoundException<Role>();
+                    return CreateFailureResponse("Role ID is required.", HttpStatusCode.BadRequest);
                 }
 
                 var roleId = groupRoleRequest.Id ?? groupRoleRequest.RoleId;
