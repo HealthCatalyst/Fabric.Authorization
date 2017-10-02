@@ -28,14 +28,6 @@ namespace Fabric.Authorization.API.Models.Search.Validators
                 .Must(sortDirection => string.IsNullOrWhiteSpace(sortDirection) ||
                                        ValidSortDirections.Contains(sortDirection, StringComparer.OrdinalIgnoreCase))
                 .WithMessage($"sort_dir must be one of the following values: {ValidSortDirections}");
-
-            RuleFor(request => request.PageSize)
-                .Must(pageSize => pageSize == null || pageSize is int)
-                .WithMessage("page_size must be a valid number.");
-
-            RuleFor(request => request.PageNumber)
-                .Must(pageNumber => pageNumber == null || pageNumber is int)
-                .WithMessage("page_number must be a valid number.");
         }
     }
 }
