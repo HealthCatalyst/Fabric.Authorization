@@ -28,7 +28,7 @@ namespace Fabric.Authorization.API.Modules
             In = ParameterIn.Path
         };
 
-        private readonly Tag _groupsTag = new Tag {Name = "Groups", Description = "Operations for managing groups"};
+        private readonly Tag _groupsTag = new Tag { Name = "Groups", Description = "Operations for managing groups" };
 
         private readonly Parameter _roleIdParameter = new Parameter
         {
@@ -52,6 +52,15 @@ namespace Fabric.Authorization.API.Modules
         {
             Name = "subjectId",
             Description = "Subject ID of the user",
+            Type = "string",
+            Required = true,
+            In = ParameterIn.Body
+        };
+
+        private readonly Parameter _identityProviderParameter = new Parameter
+        {
+            Name = "identityProvider",
+            Description = "3rd party identity provider (IdP) of the user",
             Type = "string",
             Required = true,
             In = ParameterIn.Body
@@ -361,7 +370,8 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupNameParameter,
-                    _subjectIdParameter
+                    _subjectIdParameter,
+                    _identityProviderParameter
                 },
                 new[]
                 {
@@ -393,7 +403,8 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupNameParameter,
-                    _subjectIdParameter
+                    _subjectIdParameter,
+                    _identityProviderParameter
                 },
                 new[]
                 {
