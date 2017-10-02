@@ -37,7 +37,7 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
                 UserIds = userIds
             };
 
-            var response = await httpClient.PostAsync("/users",
+            var response = await httpClient.PostAsync("/api/users",
                 new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json"));
 
             return response.StatusCode != HttpStatusCode.OK
