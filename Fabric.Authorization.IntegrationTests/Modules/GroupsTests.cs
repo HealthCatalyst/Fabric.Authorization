@@ -655,9 +655,10 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         {
             const string group1Name = "Group1Name";
             const string user1SubjectId = "User1SubjectId";
+            const string identityProvider = "idP1";
 
             SetupGroup(group1Name, "Custom");
-            var response = SetupGroupUserMapping(group1Name, user1SubjectId, "idP1");
+            var response = SetupGroupUserMapping(group1Name, user1SubjectId, identityProvider);
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
@@ -679,7 +680,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             const string user2SubjectId = "User2SubjectId";
 
             SetupGroup(group2Name, "Custom");
-            response = SetupGroupUserMapping(group2Name, user2SubjectId, "idP1");
+            response = SetupGroupUserMapping(group2Name, user2SubjectId, identityProvider);
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
@@ -750,15 +751,16 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         {
             const string group1Name = "Group1Name";
             const string subject1Id = "Subject1Id";
+            const string identityProvider = "idP1";
 
             SetupGroup(group1Name, "Custom");
-            var response = SetupGroupUserMapping(group1Name, subject1Id, "idP1");
+            var response = SetupGroupUserMapping(group1Name, subject1Id, identityProvider);
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
             // attempt to set up the same mapping (the API treats this as an update to the existing
             // group-user mapping)
-            response = SetupGroupUserMapping(group1Name, subject1Id, "idP1");
+            response = SetupGroupUserMapping(group1Name, subject1Id, identityProvider);
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
             response = Browser.Get($"/groups/{group1Name}/users", with =>
@@ -871,7 +873,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
-                with.FormValue("identityProvider", "idP1");
+                with.FormValue("identityProvider", identityProvider);
             }).Result;
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
