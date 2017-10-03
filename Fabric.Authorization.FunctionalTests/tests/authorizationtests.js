@@ -176,6 +176,7 @@ describe("authorization tests", function () {
 
     describe("register groups", function () {
         it("should return 400 for group HC Editor (already exists)", function () {
+            this.timeout(5000);
             var registerGroupHcEditorResponse = chakram.post(baseAuthUrl + "/groups", groupHcEditor, authRequestOptions);
             return expect(registerGroupHcEditorResponse).to.have.status(400);
         });
@@ -337,8 +338,8 @@ describe("authorization tests", function () {
                 });
         });
 
-        xit("should return 200 and results with valid request", function () {
-            this.timeout(30000);
+        it("should return 200 and results with valid request", function () {
+            this.timeout(10000);
 
             function loginUser() {
                 //setup custom phantomJS capability
@@ -357,35 +358,32 @@ describe("authorization tests", function () {
                         "%26response_type%3Did_token%2520token%26scope%3Dopenid%2520profile%2520fabric%252Fauthorization.read%2520fabric%252Ffabric%252Fauthorization.write%26nonce%3Dd9bfc7af239b4e99b18cb08f69f77377")
                     .then(function () {
 
-                        var timeout = 6000;
+                        var timeout = 2000;
 
-                        driver.wait(function () {
-                            console.log("waiting for username");
+                        return driver.wait(function () {
                             return driver.findElement(By.id("Username")).isDisplayed();
                         }, timeout)
                         .then(function () {
-                            console.log("entering username");
                             return driver.findElement(By.id("Username")).sendKeys("bob");
-                        });
-
-                        driver.wait(function () {
-                            console.log("waiting for Password");
-                            return driver.findElement(By.id("Password")).isDisplayed();
-                        }, timeout)
-                        .then(function () {
-                            console.log("entering password");
-                            return driver.findElement(By.id("Password")).sendKeys("bob");
-                        });
-
-                        driver.wait(function () {
-                            console.log("waiting for login_but");
-                            return driver.findElement(By.id("login_but")).isDisplayed();
-                        }, timeout)
+                        })
                         .then(function() {
-                            console.log("clicking button");
+                            return driver.wait(function () {
+                                return driver.findElement(By.id("Password")).isDisplayed();
+                            }, timeout)
+                        })
+                        .then(function () {
+                            return driver.findElement(By.id("Password")).sendKeys("bob");
+                        })
+                        .then(function () {
+                            return driver.wait(function () {
+                                return driver.findElement(By.id("login_but")).isDisplayed();
+                            }, timeout)
+                        })
+                        .then(function() {
                             return driver.findElement(By.id("login_but")).click();
                         });
-
+                    })
+                    .then(function() {
                         return driver.getCurrentUrl();
                     });
             }
