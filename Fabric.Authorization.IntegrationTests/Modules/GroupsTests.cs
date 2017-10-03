@@ -613,7 +613,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
-                with.FormValue("Id", "invalidRole");
+                with.FormValue("Id", Guid.NewGuid().ToString());
             }).Result;
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
