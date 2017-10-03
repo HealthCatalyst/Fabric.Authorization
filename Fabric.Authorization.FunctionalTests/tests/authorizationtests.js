@@ -71,9 +71,9 @@ describe("authorization tests", function () {
         "groupSource": "Custom"
     }
 
-    var userEditor = {
-        "subjectId": "first.last@gmail.com",
-        "identityProvider": "Windows"
+    var userBob = {
+        "subjectId": "88421113",
+        "identityProvider": "test"
     }
 
     var roleHcViewer = {
@@ -86,6 +86,12 @@ describe("authorization tests", function () {
         "Grain": "app",
         "SecurableItem": "func-test",
         "Name": "FABRIC\\\Health Catalyst Editor"
+    }
+
+    var roleHcAdmin = {
+        "Grain": "app",
+        "SecurableItem": "func-test",
+        "Name": "FABRIC\\\Health Catalyst Admin"
     }
 
     var userCanViewPermission = {
@@ -137,7 +143,6 @@ describe("authorization tests", function () {
     function bootstrapIdentityServer() {
         return getAccessTokenForInstaller(fabricInstallerSecret)
             .then(function (retrievedAccessToken) {
-                console.log("token = " + retrievedAccessToken);
                 authRequestOptions.headers.Authorization = retrievedAccessToken;
             });
     }
@@ -171,21 +176,18 @@ describe("authorization tests", function () {
 
     describe("register groups", function () {
         it("should return 400 for group HC Editor (already exists)", function () {
-            this.timeout(1000000);
             var registerGroupHcEditorResponse = chakram.post(baseAuthUrl + "/groups", groupHcEditor, authRequestOptions);
             return expect(registerGroupHcEditorResponse).to.have.status(400);
         });
 
         it("should return 400 for group HC Viewer (already exists)", function () {
-            this.timeout(1000000);
             var registerGroupHcViewerResponse = chakram.post(baseAuthUrl + "/groups", groupHcViewer, authRequestOptions);
             return expect(registerGroupHcViewerResponse).to.have.status(400);
         });
 
         it("should register group HC Admin", function () {
-            this.timeout(1000000);
-            var registerGroupHcViewerResponse = chakram.post(baseAuthUrl + "/groups", groupHcAdmin, authRequestOptions);
-            return expect(registerGroupHcViewerResponse).to.have.status(201);
+            var registerGroupHcAdminResponse = chakram.post(baseAuthUrl + "/groups", groupHcAdmin, authRequestOptions);
+            return expect(registerGroupHcAdminResponse).to.have.status(201);
         });
     });
 
@@ -202,6 +204,13 @@ describe("authorization tests", function () {
 
             var registerRoleHcEditorResponse = chakram.post(baseAuthUrl + "/roles", roleHcEditor, authRequestOptions);
             return expect(registerRoleHcEditorResponse).to.have.status(201);
+        });
+
+        it("should register role HC Admin", function () {
+            authRequestOptions.headers.Authorization = funcTestAuthClientAccessToken;
+
+            var registerRoleHcAdminResponse = chakram.post(baseAuthUrl + "/roles", roleHcAdmin, authRequestOptions);
+            return expect(registerRoleHcAdminResponse).to.have.status(201);
         });
     });
 
@@ -223,7 +232,6 @@ describe("authorization tests", function () {
 
     describe("associate groups to roles", function () {
         it("should associate group HC Viewer with role HC Viewer", function () {
-            this.timeout(1000000);
             authRequestOptions.headers.Authorization = funcTestAuthClientAccessToken;
 
             return chakram.get(baseAuthUrl + "/roles/" + roleHcViewer.Grain + "/" + roleHcViewer.SecurableItem + "/" + encodeURIComponent(roleHcViewer.Name), authRequestOptions)
@@ -242,7 +250,6 @@ describe("authorization tests", function () {
         });
 
         it("should associate group HC Editor with role HC Editor", function () {
-            this.timeout(1000000);
             authRequestOptions.headers.Authorization = funcTestAuthClientAccessToken;
 
             return chakram.get(baseAuthUrl + "/roles/" + roleHcEditor.Grain + "/" + roleHcEditor.SecurableItem + "/" + encodeURIComponent(roleHcEditor.Name), authRequestOptions)
@@ -253,6 +260,23 @@ describe("authorization tests", function () {
                 })
                 .then(function (role) {
                     return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupHcEditor.groupName) + "/roles", role[0], authRequestOptions);
+                })
+                .then(function (postResponse) {
+                    expect(postResponse).to.have.status(201);
+                });
+        });
+
+        it("should associate group HC Admin with role HC Admin", function () {
+            authRequestOptions.headers.Authorization = funcTestAuthClientAccessToken;
+
+            return chakram.get(baseAuthUrl + "/roles/" + roleHcAdmin.Grain + "/" + roleHcAdmin.SecurableItem + "/" + encodeURIComponent(roleHcAdmin.Name), authRequestOptions)
+                .then(function (getResponse) {
+                    expect(getResponse).to.have.status(200);
+                    expect(getResponse).to.comprise.of.json([{ name: "FABRIC\\Health Catalyst Admin" }]);
+                    return getResponse.body;
+                })
+                .then(function (role) {
+                    return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupHcAdmin.groupName) + "/roles", role[0], authRequestOptions);
                 })
                 .then(function (postResponse) {
                     expect(postResponse).to.have.status(201);
@@ -282,7 +306,7 @@ describe("authorization tests", function () {
         it("should return 400 when associating user with non-custom group", function () {
             authRequestOptions.headers.Authorization = funcTestAuthClientAccessToken;
 
-            return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupHcViewer.groupName) + "/users", userEditor, authRequestOptions)
+            return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupHcViewer.groupName) + "/users", userBob, authRequestOptions)
                 .then(function (postResponse) {
                     expect(postResponse).to.have.status(400);
                 });
@@ -291,7 +315,7 @@ describe("authorization tests", function () {
         it("should associate user with group HC Admin", function () {
             authRequestOptions.headers.Authorization = funcTestAuthClientAccessToken;
 
-            return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupHcAdmin.groupName) + "/users", userEditor, authRequestOptions)
+            return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupHcAdmin.groupName) + "/users", userBob, authRequestOptions)
                 .then(function (postResponse) {
                     expect(postResponse).to.have.status(201);
                 });
@@ -300,7 +324,6 @@ describe("authorization tests", function () {
 
     describe("search identities", function () {
         it("should return a 404 when client_id does not exist", function () {
-            this.timeout(1000000);
             var options = {
                 headers: {
                     "Accept": "application/json",
@@ -315,7 +338,7 @@ describe("authorization tests", function () {
         });
 
         it("should return 200 and results with valid request", function () {
-            this.timeout(1000000);
+            this.timeout(5000);
 
             function loginUser() {
                 //setup custom phantomJS capability
@@ -351,19 +374,31 @@ describe("authorization tests", function () {
 
             return loginUser()
                 .then(function () {
-                    return chakram.get(baseAuthUrl + "/identities?client_id=" + authClientFuncTest.id + "&filter=viewer",
+                    return chakram.get(baseAuthUrl + "/identities?client_id=" + authClientFuncTest.id + "&sort_key=name&page_size=2",
                         options);
                 })
                 .then(function (getResponse) {
                     expect(getResponse).to.have.status(200);
                     var results = getResponse.body;
                     expect(results).to.be.an("array").that.is.not.empty;
-                    var groupHcViewerResult = results[0];
-                    expect(groupHcViewerResult.groupName).to.equal(groupHcViewer.groupName);
-                    expect(groupHcViewerResult.entityType).to.equal("Group");
-                    expect(groupHcViewerResult.roles).to.be.an("array").that.is.not.empty;
-                    expect(groupHcViewerResult.roles.length).to.equal(1);
-                    expect(groupHcViewerResult.roles[0]).to.equal(roleHcViewer.Name);
+                    expect(results.length).to.equal(2);
+
+                    var bobUserResult = results[0];
+                    expect(bobUserResult.firstName).to.equal("Bob");
+                    expect(bobUserResult.lastName).to.equal("Smith");
+                    expect(bobUserResult.subjectId).to.equal("88421113");
+                    expect(bobUserResult.identityProvider).to.equal("test");
+                    expect(bobUserResult.entityType).to.equal("User");
+                    expect(bobUserResult.roles).to.be.an("array").that.is.not.empty;
+                    expect(bobUserResult.roles.length).to.equal(1);
+                    expect(bobUserResult.roles[0]).to.equal(roleHcAdmin.Name);
+
+                    var groupHcEditorResult = results[1];
+                    expect(groupHcEditorResult.groupName).to.equal(groupHcEditor.groupName);
+                    expect(groupHcEditorResult.entityType).to.equal("Group");
+                    expect(groupHcEditorResult.roles).to.be.an("array").that.is.not.empty;
+                    expect(groupHcEditorResult.roles.length).to.equal(1);
+                    expect(groupHcEditorResult.roles[0]).to.equal(roleHcEditor.Name);
                 });
         });
     });
@@ -397,7 +432,6 @@ describe("authorization tests", function () {
 
     describe("get user permissions", function () {
         it("can get the users permissions", function () {
-            this.timeout(1000000);
             //hit the token endpoint for identity with the username and password of the user
             var stringToEncode = "func-test:" + newClientSecret;
             var encodedData = new Buffer(stringToEncode).toString("base64");

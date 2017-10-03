@@ -54,7 +54,6 @@ namespace Fabric.Authorization.API
             {
                 Authority = _idServerSettings.Authority,
                 RequireHttpsMetadata = false,
-
                 ApiName = _idServerSettings.ClientId
             });
 
