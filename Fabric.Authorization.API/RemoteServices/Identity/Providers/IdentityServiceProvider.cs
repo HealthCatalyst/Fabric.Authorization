@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
@@ -36,12 +35,16 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
 
             // TODO: clean this up / move to config
             var settings = _appConfiguration.IdentityServerConfidentialClientSettings;
-            var httpClient = await Create(
+
+            var tokenClient = new TokenClient($"{settings.Authority}/connect/token", "fabric-authorization-client", settings.ClientSecret);
+            var accessTokenResponse = await tokenClient.RequestClientCredentialsAsync(IdentityScopes.ReadScope).ConfigureAwait(false);
+
+            var httpClient = new HttpClientFactory(
                 $"{settings.Authority}/connect/token",
                 "fabric-authorization-client",
                 settings.ClientSecret,
-                new Uri(settings.Authority),
-                IdentityScopes.ReadScope);
+                null,
+                null).CreateWithAccessToken(new Uri(settings.Authority), accessTokenResponse.AccessToken);
 
             var request = new UserSearchRequest
             {
@@ -56,21 +59,6 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
                 ? new List<UserSearchResponse>()
                 : JsonConvert.DeserializeObject<IEnumerable<UserSearchResponse>>(await response.Content
                     .ReadAsStringAsync());
-        }
-
-        private async Task<HttpClient> Create(string tokenUrl, string clientId, string clientSecret, Uri uri, string requestScope)
-        {
-            var tokenClient = new TokenClient(tokenUrl, clientId, clientSecret);
-            var response = await tokenClient.RequestClientCredentialsAsync(requestScope).ConfigureAwait(false);
-            return CreateWithAccessToken(uri, response.AccessToken);
-        }
-
-        private HttpClient CreateWithAccessToken(Uri uri, string accessToken)
-        {
-            var client = new HttpClient { BaseAddress = uri };
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-            client.DefaultRequestHeaders.Add("correlation-token", string.Empty);
-            return client;
         }
     }
 }

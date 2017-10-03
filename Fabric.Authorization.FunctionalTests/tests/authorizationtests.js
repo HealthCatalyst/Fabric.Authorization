@@ -338,7 +338,7 @@ describe("authorization tests", function () {
         });
 
         it("should return 200 and results with valid request", function () {
-            this.timeout(5000);
+            this.timeout(7000);
 
             function loginUser() {
                 //setup custom phantomJS capability
