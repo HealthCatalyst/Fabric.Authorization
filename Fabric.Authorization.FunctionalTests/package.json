@@ -8,8 +8,9 @@
   },
   "dependencies": {
     "chai": "^4.1.0",
-    "chakram": "^1.5.0",    
-    "mocha": "^3.4.2"    
+    "chakram": "^1.5.0",
+    "mocha": "^3.4.2",
+    "selenium-webdriver": "^3.5.0"
   },
   "devDependencies": {},
   "scripts": {
