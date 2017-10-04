@@ -414,8 +414,8 @@ namespace Fabric.Authorization.UnitTests.Search
             Assert.Equal("Robert", result1.FirstName);
             Assert.Equal("Brian", result1.MiddleName);
             Assert.Equal("Smith", result1.LastName);
-            Assert.NotNull(result1.LastLogin);
-            Assert.Equal(lastLoginDate, result1.LastLogin.Value.ToUniversalTime());
+            Assert.NotNull(result1.LastLoginDateTimeUtc);
+            Assert.Equal(lastLoginDate, result1.LastLoginDateTimeUtc.Value.ToUniversalTime());
             Assert.Equal(IdentitySearchServiceFixture.UserAtlasRoleName, result1.Roles.FirstOrDefault());
 
             var result2 = results[1];
@@ -440,8 +440,8 @@ namespace Fabric.Authorization.UnitTests.Search
             Assert.Equal("Robert", result1.FirstName);
             Assert.Equal("Brian", result1.MiddleName);
             Assert.Equal("Smith", result1.LastName);
-            Assert.NotNull(result1.LastLogin);
-            Assert.Equal(lastLoginDate, result1.LastLogin.Value.ToUniversalTime());
+            Assert.NotNull(result1.LastLoginDateTimeUtc);
+            Assert.Equal(lastLoginDate, result1.LastLoginDateTimeUtc.Value.ToUniversalTime());
             Assert.Equal(IdentitySearchServiceFixture.UserAtlasRoleName, result1.Roles.FirstOrDefault());
 
 
@@ -462,8 +462,8 @@ namespace Fabric.Authorization.UnitTests.Search
             Assert.Equal("Robert", result1.FirstName);
             Assert.Equal("Brian", result1.MiddleName);
             Assert.Equal("Smith", result1.LastName);
-            Assert.NotNull(result1.LastLogin);
-            Assert.Equal(lastLoginDate, result1.LastLogin.Value.ToUniversalTime());
+            Assert.NotNull(result1.LastLoginDateTimeUtc);
+            Assert.Equal(lastLoginDate, result1.LastLoginDateTimeUtc.Value.ToUniversalTime());
             Assert.Equal(IdentitySearchServiceFixture.UserAtlasRoleName, result1.Roles.FirstOrDefault());
         }
     }
