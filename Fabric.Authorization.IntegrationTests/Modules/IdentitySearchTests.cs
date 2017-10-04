@@ -148,8 +148,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal("Robert", result1.FirstName);
             Assert.Equal("Brian", result1.MiddleName);
             Assert.Equal("Smith", result1.LastName);
-            Assert.NotNull(result1.LastLogin);
-            Assert.Equal(lastLoginDate, result1.LastLogin.Value.ToUniversalTime());
+            Assert.NotNull(result1.LastLoginDateTimeUtc);
+            Assert.Equal(lastLoginDate, result1.LastLoginDateTimeUtc.Value.ToUniversalTime());
             Assert.Equal(Fixture.UserAtlasRoleName, result1.Roles.FirstOrDefault());
         }
     }
