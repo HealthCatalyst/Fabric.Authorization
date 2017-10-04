@@ -41,7 +41,7 @@ namespace Fabric.Authorization.API.Models.Search
                     return isAscending ? results.OrderBy(r => r.GroupName) : results.OrderByDescending(r => r.GroupName);
 
                 case "lastlogin":
-                    return isAscending ? results.OrderBy(r => r.LastLogin) : results.OrderByDescending(r => r.LastLogin);
+                    return isAscending ? results.OrderBy(r => r.LastLoginDateTimeUtc) : results.OrderByDescending(r => r.LastLoginDateTimeUtc);
 
                 default:
                     return isAscending

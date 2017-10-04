@@ -118,7 +118,7 @@ namespace Fabric.Authorization.API.Services
                     userSearchResponse.FirstName = user.FirstName;
                     userSearchResponse.MiddleName = user.MiddleName;
                     userSearchResponse.LastName = user.LastName;
-                    userSearchResponse.LastLogin = user.LastLoginDate;
+                    userSearchResponse.LastLoginDateTimeUtc = user.LastLoginDate;
                 }
             }
 
