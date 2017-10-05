@@ -118,17 +118,11 @@ namespace Fabric.Authorization.Domain.Stores.Services
         {
             try
             {
-                var stored = await GetUserGranularPermissions(granularPermission.Target);
+                var stored = await GetUserGranularPermissions(granularPermission.Target);               
 
-                if (granularPermission.AdditionalPermissions == null)
-                {
-                    granularPermission.AdditionalPermissions = stored.AdditionalPermissions;
-                }
+                granularPermission.AdditionalPermissions.ToList().AddRange(stored.AdditionalPermissions);
+                granularPermission.DeniedPermissions.ToList().AddRange(stored.DeniedPermissions);
 
-                if (granularPermission.DeniedPermissions == null)
-                {
-                    granularPermission.DeniedPermissions = stored.DeniedPermissions;
-                }
             }
             catch (NotFoundException<GranularPermission>)
             {

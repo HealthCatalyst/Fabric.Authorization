@@ -36,17 +36,13 @@ namespace Fabric.Authorization.API.Modules
 
             // Get all the permissions for a user
             Get("/permissions", async _ => await GetCurrentUserPermissions().ConfigureAwait(false), null,
-                "GetUserPermissions");
+                "GetUserPermissions");           
 
-            Post("/{subjectId}/AdditionalPermissions",
-                async param => await this.AddGranularPermissions(param, denied: false).ConfigureAwait(false), null,
-                "AddPermissions");
+            Post("/{identityProvider}/{subjectId}/permissions",
+                async param => await this.AddGranularPermissions(param).ConfigureAwait(false), null,
+                "AddGranularPermissions");
 
-            Post("/{subjectId}/DeniedPermissions",
-                async param => await this.AddGranularPermissions(param, denied: true).ConfigureAwait(false), null,
-                "AddDeniedPermissions");
-
-            Get("/{subjectId}/{identityProvider}/groups", async _ => await GetUserGroups().ConfigureAwait(false), null, "GetUserGroups");
+            Get("/{identityProvider}/{subjectId}/groups", async _ => await GetUserGroups().ConfigureAwait(false), null, "GetUserGroups");
         }
 
         private async Task<dynamic> GetUserGroups()
@@ -57,27 +53,29 @@ namespace Fabric.Authorization.API.Modules
             return groups;
         }
 
-        private async Task<dynamic> AddGranularPermissions(dynamic param, bool denied)
+        private async Task<dynamic> AddGranularPermissions(dynamic param)
         {
-            var apiModel = this.Bind<GranularPermissionApiModel>();
-
-            if (apiModel.Target != param["subjectId"])
-                return CreateFailureResponse("Target must be the subject id.", HttpStatusCode.BadRequest);
+            var apiModel = this.Bind<GranularPermissionApiModel>();            
 
             foreach (var perm in apiModel.Permissions)
                 await CheckAccess(_clientService, perm.Grain, perm.SecurableItem, AuthorizationManageClientsClaim);
 
             var granularPermissions = apiModel.ToGranularPermissionDomainModel();
 
-            if (denied)
-                granularPermissions.DeniedPermissions = apiModel.Permissions.Select(p => p.ToPermissionDomainModel());
-            else
-                granularPermissions.AdditionalPermissions =
-                    apiModel.Permissions.Select(p => p.ToPermissionDomainModel());
+            granularPermissions.IdentityProvider = param.identityProvider;
+            granularPermissions.Target = param.subjectId;
+
+            granularPermissions.DeniedPermissions = apiModel.Permissions
+                .Where(p => p.PermissionAction == PermissionAction.Deny)
+                .Select(p => p.ToPermissionDomainModel());
+            
+            granularPermissions.AdditionalPermissions = apiModel.Permissions
+                .Where(p => p.PermissionAction == PermissionAction.Allow)
+                .Select(p => p.ToPermissionDomainModel());            
 
             await _permissionService.AddUserGranularPermissions(granularPermissions);
             return HttpStatusCode.NoContent;
-        }
+        }      
 
         private async Task<dynamic> GetCurrentUserPermissions()
         {

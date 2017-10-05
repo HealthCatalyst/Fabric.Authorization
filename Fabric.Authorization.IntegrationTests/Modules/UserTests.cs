@@ -452,13 +452,15 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Wait();
 
             // Adding blacklist (user cannot edit patient, even though role allows)
-            string userId = "userprincipal";
+            string subjectId = "userprincipal";
+            string identityProvider = "test";
             var granPerm = new GranularPermissionApiModel();
-            this.Browser.Post($"/user/{userId}/DeniedPermissions", with =>
+            editPatientPermission.PermissionAction = PermissionAction.Deny;
+
+            this.Browser.Post($"/user/{identityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
-                granPerm.Target = userId;
                 granPerm.Permissions = new List<PermissionApiModel> { editPatientPermission };
                 with.JsonBody(granPerm);
             }).Wait();
@@ -571,16 +573,18 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             {
                 Grain = "app",
                 SecurableItem = "userprincipal",
-                Name = "modifypatient"
+                Name = "modifypatient",
+                PermissionAction = PermissionAction.Allow
             };
 
-            string userId = "userprincipal";
+            string subjectId = "userprincipal";
+            string identityProvider = "test";
             var granPerm = new GranularPermissionApiModel();
-            this.Browser.Post($"/user/{userId}/AdditionalPermissions", with =>
+            this.Browser.Post($"/user/{identityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
-                granPerm.Target = userId;
+                granPerm.Target = subjectId;
                 granPerm.Permissions = new List<PermissionApiModel> { modifyPatientPermission };
                 with.JsonBody(granPerm);
             }).Wait();
@@ -797,13 +801,16 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Wait();
 
             // Adding same permission to blacklist and whitellist
-            string userId = "userprincipal";
+            string subjectId = "userprincipal";
+            string identityProvider = "test";
+            editPatientPermission.PermissionAction = PermissionAction.Deny;
+
             var granPerm = new GranularPermissionApiModel();
-            this.Browser.Post($"/user/{userId}/DeniedPermissions", with =>
+            this.Browser.Post($"/user/{identityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
-                granPerm.Target = userId;
+                granPerm.Target = subjectId;
                 granPerm.Permissions = new List<PermissionApiModel> { editPatientPermission };
                 with.JsonBody(granPerm);
             }).Wait();
@@ -816,11 +823,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             };
 
             granPerm = new GranularPermissionApiModel();
-            this.Browser.Post($"/user/{userId}/AdditionalPermissions", with =>
+            modifyPatientPermission.PermissionAction = PermissionAction.Allow;
+
+            this.Browser.Post($"/user/{identityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
-                granPerm.Target = userId;
+                granPerm.Target = subjectId;
                 granPerm.Permissions = new List<PermissionApiModel> { editPatientPermission, modifyPatientPermission };
                 with.JsonBody(granPerm);
             }).Wait();
@@ -840,12 +849,14 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(2, permissions.Permissions.Count());
 
             // Deny modifypatient and try again
-            granPerm = new GranularPermissionApiModel();
-            this.Browser.Post($"/user/{userId}/DeniedPermissions", with =>
+            granPerm = new GranularPermissionApiModel();            
+            modifyPatientPermission.PermissionAction = PermissionAction.Deny;
+
+            this.Browser.Post($"/user/{identityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
-                granPerm.Target = userId;
+                granPerm.Target = subjectId;
                 granPerm.Permissions = new List<PermissionApiModel>() { editPatientPermission, modifyPatientPermission };
                 with.JsonBody(granPerm);
             }).Wait();
