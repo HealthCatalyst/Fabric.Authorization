@@ -583,8 +583,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             this.Browser.Post($"/user/{identityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                granPerm.Target = subjectId;
+                with.Header("Accept", "application/json");      
                 granPerm.Permissions = new List<PermissionApiModel> { modifyPatientPermission };
                 with.JsonBody(granPerm);
             }).Wait();
@@ -809,8 +808,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             this.Browser.Post($"/user/{identityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                granPerm.Target = subjectId;
+                with.Header("Accept", "application/json");              
                 granPerm.Permissions = new List<PermissionApiModel> { editPatientPermission };
                 with.JsonBody(granPerm);
             }).Wait();
@@ -828,8 +826,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             this.Browser.Post($"/user/{identityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                granPerm.Target = subjectId;
+                with.Header("Accept", "application/json");              
                 granPerm.Permissions = new List<PermissionApiModel> { editPatientPermission, modifyPatientPermission };
                 with.JsonBody(granPerm);
             }).Wait();
@@ -855,8 +852,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             this.Browser.Post($"/user/{identityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                granPerm.Target = subjectId;
+                with.Header("Accept", "application/json");                
                 granPerm.Permissions = new List<PermissionApiModel>() { editPatientPermission, modifyPatientPermission };
                 with.JsonBody(granPerm);
             }).Wait();

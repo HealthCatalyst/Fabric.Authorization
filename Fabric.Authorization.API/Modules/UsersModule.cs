@@ -63,7 +63,7 @@ namespace Fabric.Authorization.API.Modules
             var granularPermissions = apiModel.ToGranularPermissionDomainModel();
 
             granularPermissions.IdentityProvider = param.identityProvider;
-            granularPermissions.Target = param.subjectId;
+            granularPermissions.Id = param.subjectId;
 
             granularPermissions.DeniedPermissions = apiModel.Permissions
                 .Where(p => p.PermissionAction == PermissionAction.Deny)

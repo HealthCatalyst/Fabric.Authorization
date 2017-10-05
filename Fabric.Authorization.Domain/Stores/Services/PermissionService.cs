@@ -118,7 +118,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
         {
             try
             {
-                var stored = await GetUserGranularPermissions(granularPermission.Target);               
+                var stored = await GetUserGranularPermissions(granularPermission.Id);               
 
                 granularPermission.AdditionalPermissions.ToList().AddRange(stored.AdditionalPermissions);
                 granularPermission.DeniedPermissions.ToList().AddRange(stored.DeniedPermissions);

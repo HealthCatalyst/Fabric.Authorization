@@ -11,14 +11,12 @@ namespace Fabric.Authorization.Domain.Models
             AdditionalPermissions = new List<Permission>();
         }
 
-        public string Id => Target;       
+        public string Id { get; set; }
 
         public IEnumerable<Permission> DeniedPermissions { get; set; }
 
         public IEnumerable<Permission> AdditionalPermissions { get; set; }
-
-        public string Target { get; set; }
-
+        
         public string IdentityProvider { get; set; }
 
         public string Identifier => Id;
@@ -35,7 +33,7 @@ namespace Fabric.Authorization.Domain.Models
 
         public override string ToString()
         {
-            return $"{Target}";
+            return $"{Identifier}";
         }
     }
 }

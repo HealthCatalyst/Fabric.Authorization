@@ -6,8 +6,7 @@ namespace Fabric.Authorization.API.Models
 {
     public class GranularPermissionApiModel : IIdentifiable, ITrackable
     {
-        public string Id { get; set; }
-        public string Target { get; set; }
+        public string Id { get; set; }        
         public IEnumerable<PermissionApiModel> Permissions { get; set; }
         public DateTime CreatedDateTimeUtc { get; set; }
         public DateTime? ModifiedDateTimeUtc { get; set; }
