@@ -24,7 +24,7 @@ namespace Fabric.Authorization.UnitTests.Configuration
                                                     ""Password"": ""test""
                                                   },
                                                   ""IdentityServerConfidentialClientSettings"": {
-                                                    ""Authority"": ""http://localhost:5001"",
+                                                    ""Authority"": ""http://localhost:5001/"",
                                                     ""ClientId"": ""authorization-api"",
                                                     ""ClientSecret"": ""secret"",
                                                     ""Scopes"": [
@@ -59,7 +59,7 @@ namespace Fabric.Authorization.UnitTests.Configuration
                                                     ""Password"": ""test""
                                                   },
                                                   ""IdentityServerConfidentialClientSettings"": {
-                                                    ""Authority"": ""http://localhost:5001"",
+                                                    ""Authority"": ""http://localhost:5001/"",
                                                     ""ClientId"": ""authorization-api"",
                                                     ""ClientSecret"": ""secret"",
                                                     ""Scopes"": [

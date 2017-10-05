@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Models.Search;
 using Fabric.Authorization.API.RemoteServices.Identity.Models;
@@ -386,15 +387,19 @@ namespace Fabric.Authorization.UnitTests.Search
             var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
             mockIdentityServiceProvider
                 .Setup(m => m.Search(IdentitySearchServiceFixture.AtlasClientId, new List<string> {"atlas_user:Windows"}))
-                .ReturnsAsync(() => new List<UserSearchResponse>
+                .ReturnsAsync(() => new FabricIdentityUserResponse
                 {
-                    new UserSearchResponse
+                    HttpStatusCode = HttpStatusCode.OK,
+                    Results = new List<UserSearchResponse>
                     {
-                        SubjectId = "atlas_user",
-                        FirstName = "Robert",
-                        MiddleName = "Brian",
-                        LastName = "Smith",
-                        LastLoginDate = lastLoginDate
+                        new UserSearchResponse
+                        {
+                            SubjectId = "atlas_user",
+                            FirstName = "Robert",
+                            MiddleName = "Brian",
+                            LastName = "Smith",
+                            LastLoginDate = lastLoginDate
+                        }
                     }
                 });
 
@@ -405,7 +410,7 @@ namespace Fabric.Authorization.UnitTests.Search
                     ClientId = IdentitySearchServiceFixture.AtlasClientId,
                     SortKey = "name",
                     SortDirection = "desc"
-                }).Result.ToList();
+                }).Result.Results.ToList();
 
             Assert.Equal(2, results.Count);
 
@@ -431,7 +436,7 @@ namespace Fabric.Authorization.UnitTests.Search
                     SortDirection = "desc",
                     PageSize = 1,
                     PageNumber = 1
-                }).Result.ToList();
+                }).Result.Results.ToList();
 
             Assert.Equal(1, results.Count);
 
@@ -453,7 +458,7 @@ namespace Fabric.Authorization.UnitTests.Search
                     SortKey = "name",
                     SortDirection = "desc",
                     Filter = "brian"
-                }).Result.ToList();
+                }).Result.Results.ToList();
 
             Assert.Equal(1, results.Count);
 

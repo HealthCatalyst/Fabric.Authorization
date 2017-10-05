@@ -37,8 +37,8 @@ namespace Fabric.Authorization.API.Modules
                 this.RequiresClaims(AuthorizationReadClaim);
                 var searchRequest = this.Bind<IdentitySearchRequest>();
                 Validate(searchRequest);
-                var results = await _identitySearchService.Search(searchRequest);
-                return results;
+                var authResponse = await _identitySearchService.Search(searchRequest);
+                return CreateSuccessfulGetResponse(authResponse.Results, authResponse.HttpStatusCode);
             }
             catch (NotFoundException<Client> ex)
             {

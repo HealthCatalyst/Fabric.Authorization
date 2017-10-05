@@ -44,6 +44,11 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int) HttpStatusCode.OK,
                         Message = "OK"
                     },
+                    new HttpResponseMetadata<IEnumerable<IdentitySearchResponse>>
+                    {
+                        Code = (int) Nancy.HttpStatusCode.PartialContent,
+                        Message = "Partial success (e.g., results were found in Fabric.Authorization but the call out to Fabric.Identity failed)"
+                    },
                     new HttpResponseMetadata
                     {
                         Code = (int) Nancy.HttpStatusCode.Forbidden,

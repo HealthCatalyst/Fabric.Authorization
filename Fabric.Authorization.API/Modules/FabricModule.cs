@@ -71,6 +71,13 @@ namespace Fabric.Authorization.API.Modules
                 .WithHeader(HttpResponseHeaders.Location, selfLink);
         }
 
+        protected Negotiator CreateSuccessfulGetResponse<T1>(T1 model, HttpStatusCode statusCode = HttpStatusCode.Created)
+        {
+            return Negotiate
+                .WithModel(model)
+                .WithStatusCode(statusCode);
+        }
+
         protected Negotiator CreateFailureResponse(string message, HttpStatusCode statusCode)
         {
             var error = ErrorFactory.CreateError<T>(message, statusCode);

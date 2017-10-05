@@ -112,15 +112,19 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
             mockIdentityServiceProvider
                 .Setup(m => m.Search(Fixture.AtlasClientId, new List<string> { "atlas_user:Windows" }))
-                .ReturnsAsync(() => new List<UserSearchResponse>
+                .ReturnsAsync(() => new FabricIdentityUserResponse
                 {
-                    new UserSearchResponse
+                    HttpStatusCode = System.Net.HttpStatusCode.OK,
+                    Results = new List<UserSearchResponse>
                     {
-                        SubjectId = "atlas_user",
-                        FirstName = "Robert",
-                        MiddleName = "Brian",
-                        LastName = "Smith",
-                        LastLoginDate = lastLoginDate
+                        new UserSearchResponse
+                        {
+                            SubjectId = "atlas_user",
+                            FirstName = "Robert",
+                            MiddleName = "Brian",
+                            LastName = "Smith",
+                            LastLoginDate = lastLoginDate
+                        }
                     }
                 });
 

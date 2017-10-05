@@ -1,11 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Models.Search;
 using Fabric.Authorization.API.RemoteServices.Identity.Providers;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores.Services;
+using Nancy;
 using Nancy.Extensions;
 
 namespace Fabric.Authorization.API.Services
@@ -29,7 +31,7 @@ namespace Fabric.Authorization.API.Services
             _identityServiceProvider = identityServiceProvider;
         }
 
-        public async Task<IEnumerable<IdentitySearchResponse>> Search(IdentitySearchRequest request)
+        public async Task<FabricAuthUserSearchResponse> Search(IdentitySearchRequest request)
         {
             var searchResults = new List<IdentitySearchResponse>();
 
@@ -44,7 +46,11 @@ namespace Fabric.Authorization.API.Services
             var clientRoleEntities = clientRoles.ToList();
             if (clientRoleEntities.Count == 0)
             {
-                return new List<IdentitySearchResponse>();
+                return new FabricAuthUserSearchResponse
+                {
+                    HttpStatusCode = Nancy.HttpStatusCode.OK,
+                    Results = new List<IdentitySearchResponse>()
+                };
             }
 
             // get all groups tied to clientRoles
@@ -52,7 +58,11 @@ namespace Fabric.Authorization.API.Services
 
             if (groupIds.Count == 0)
             {
-                return new List<IdentitySearchResponse>();
+                return new FabricAuthUserSearchResponse
+                {
+                    HttpStatusCode = Nancy.HttpStatusCode.OK,
+                    Results = new List<IdentitySearchResponse>()
+                };
             }
 
             var groupEntities = new List<Group>();
@@ -101,13 +111,13 @@ namespace Fabric.Authorization.API.Services
                 });
             }
 
-            var userDetails =
+            var fabricIdentityUserResponse =
                 await _identityServiceProvider.Search(request.ClientId, userList.Select(u => $"{u.SubjectId}:{u.IdentityProvider}"));
 
-            if (userDetails != null)
+            if (fabricIdentityUserResponse != null && fabricIdentityUserResponse.HttpStatusCode == System.Net.HttpStatusCode.OK)
             {
                 // update user details with Fabric.Identity response
-                foreach (var user in userDetails)
+                foreach (var user in fabricIdentityUserResponse.Results)
                 {
                     var userSearchResponse = userList.FirstOrDefault(u => u.SubjectId == user.SubjectId);
                     if (userSearchResponse == null)
@@ -127,11 +137,19 @@ namespace Fabric.Authorization.API.Services
             var pageSize = request.PageSize ?? 100;
             var pageNumber = request.PageNumber ?? 1;
 
-            return searchResults
-                .Filter(request)
-                .Sort(request)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize);
+            return new FabricAuthUserSearchResponse
+            {
+                HttpStatusCode =
+                    fabricIdentityUserResponse != null && fabricIdentityUserResponse.HttpStatusCode != System.Net.HttpStatusCode.OK
+                        ? Nancy.HttpStatusCode.PartialContent
+                        : Nancy.HttpStatusCode.OK,
+
+                Results = searchResults
+                    .Filter(request)
+                    .Sort(request)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+            };
         }
     }
 }
