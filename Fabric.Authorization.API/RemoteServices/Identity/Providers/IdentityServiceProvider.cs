@@ -68,7 +68,8 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
             var results = new List<UserSearchResponse>();
             if (response.StatusCode != HttpStatusCode.OK)
             {
-                _logger.Error($"Response from Fabric.Identity api/users => {response.StatusCode}");
+                _logger.Error($"Response status code from Fabric.Identity api/users => {response.StatusCode}");
+                _logger.Error($"Response content from Fabric.Identity api/users => {response.Content.ReadAsStringAsync()}");
             }
             else
             {

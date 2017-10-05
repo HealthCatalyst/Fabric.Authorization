@@ -47,7 +47,7 @@ namespace Fabric.Authorization.API.Modules
                     new HttpResponseMetadata<IEnumerable<IdentitySearchResponse>>
                     {
                         Code = (int) Nancy.HttpStatusCode.PartialContent,
-                        Message = "Partial success (e.g., results were found in Fabric.Authorization but the call out to Fabric.Identity failed)"
+                        Message = "Partial success (e.g., results were found in Fabric.Authorization but the call out to Fabric.Identity failed). Properties populated by Fabric.Identity data are FirstName, MiddleName, LastName, and LastLoginDateTimeUtc."
                     },
                     new HttpResponseMetadata
                     {
