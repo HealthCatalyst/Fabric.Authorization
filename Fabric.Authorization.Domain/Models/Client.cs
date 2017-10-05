@@ -13,5 +13,10 @@ namespace Fabric.Authorization.Domain.Models
         public string CreatedBy { get; set; }
         public string ModifiedBy { get; set; }
         public string Identifier => Id;
+
+        public override string ToString()
+        {
+            return $"Id={Id}, Name={Name}";
+        }
     }
 }

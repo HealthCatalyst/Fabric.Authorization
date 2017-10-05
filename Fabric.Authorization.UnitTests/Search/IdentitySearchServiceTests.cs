@@ -14,6 +14,7 @@ using Fabric.Authorization.Domain.Stores.Services;
 using Fabric.Authorization.UnitTests.Mocks;
 using Moq;
 using Xunit;
+using Serilog;
 
 namespace Fabric.Authorization.UnitTests.Search
 {
@@ -188,7 +189,7 @@ namespace Fabric.Authorization.UnitTests.Search
         public IdentitySearchService IdentitySearchService(IIdentityServiceProvider identityServiceProvider)
         {
             var identitySearchService =
-                new IdentitySearchService(_clientService, _roleService, _groupService, identityServiceProvider);
+                new IdentitySearchService(_clientService, _roleService, _groupService, identityServiceProvider, new Mock<ILogger>().Object);
             return identitySearchService;
         }
 

@@ -225,7 +225,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     Logger));
 
                 with.Module(new IdentitySearchModule(
-                    new IdentitySearchService(_clientService, RoleService, _groupService, identityServiceProvider),
+                    new IdentitySearchService(_clientService, RoleService, _groupService, identityServiceProvider, Logger),
                     new IdentitySearchRequestValidator(),
                     Logger));
 

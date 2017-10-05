@@ -1,14 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Models.Search;
 using Fabric.Authorization.API.RemoteServices.Identity.Providers;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores.Services;
-using Nancy;
 using Nancy.Extensions;
+using Serilog;
 
 namespace Fabric.Authorization.API.Services
 {
@@ -18,17 +17,20 @@ namespace Fabric.Authorization.API.Services
         private readonly GroupService _groupService;
         private readonly IIdentityServiceProvider _identityServiceProvider;
         private readonly RoleService _roleService;
+        private readonly ILogger _logger;
 
         public IdentitySearchService(
             ClientService clientService,
             RoleService roleService,
             GroupService groupService,
-            IIdentityServiceProvider identityServiceProvider)
+            IIdentityServiceProvider identityServiceProvider,
+            ILogger logger)
         {
             _clientService = clientService;
             _roleService = roleService;
             _groupService = groupService;
             _identityServiceProvider = identityServiceProvider;
+            _logger = logger;
         }
 
         public async Task<FabricAuthUserSearchResponse> Search(IdentitySearchRequest request)
@@ -44,6 +46,7 @@ namespace Fabric.Authorization.API.Services
             var clientRoles = await _roleService.GetRoles(client);
 
             var clientRoleEntities = clientRoles.ToList();
+            _logger.Debug($"clientRoles = {clientRoleEntities.ListToString()}");
             if (clientRoleEntities.Count == 0)
             {
                 return new FabricAuthUserSearchResponse
@@ -55,6 +58,7 @@ namespace Fabric.Authorization.API.Services
 
             // get all groups tied to clientRoles
             var groupIds = clientRoleEntities.SelectMany(r => r.Groups).Distinct().ToList();
+            _logger.Debug($"groupIds = {groupIds.ListToString()}");
 
             if (groupIds.Count == 0)
             {
@@ -72,9 +76,13 @@ namespace Fabric.Authorization.API.Services
                 groupEntities.Add(group);
             }
 
+            _logger.Debug($"groupEntities = {groupEntities.ListToString()}");
+
             var groupsMappedToClientRoles = groupEntities.Where(g => g.Roles.Any(r => clientRoleEntities.Contains(r))).ToList();
             var nonCustomGroups =
-                groupsMappedToClientRoles.Where(g => !string.Equals(g.Source, GroupConstants.CustomSource));
+                groupsMappedToClientRoles.Where(g => !string.Equals(g.Source, GroupConstants.CustomSource)).ToList();
+
+            _logger.Debug($"nonCustomGroups = {nonCustomGroups.ListToString()}");
 
             // add all non-custom groups to the response
             searchResults.AddRange(nonCustomGroups.Select(g => new IdentitySearchResponse
@@ -133,6 +141,8 @@ namespace Fabric.Authorization.API.Services
             }
 
             searchResults.AddRange(userList);
+
+            _logger.Debug($"searchResults = {searchResults.ListToString()}");
 
             var pageSize = request.PageSize ?? 100;
             var pageNumber = request.PageNumber ?? 1;
