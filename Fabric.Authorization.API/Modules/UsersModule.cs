@@ -41,7 +41,6 @@ namespace Fabric.Authorization.API.Modules
             Post("/{identityProvider}/{subjectId}/permissions",
                 async param => await this.AddGranularPermissions(param).ConfigureAwait(false), null,
                 "AddGranularPermissions");
-          
 
             Delete("/{identityProvider}/{subjectId}/permissions",
                 async param => await this.DeleteGranularPermissions(param).ConfigureAwait(false), null,

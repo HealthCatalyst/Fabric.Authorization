@@ -19,12 +19,23 @@ namespace Fabric.Authorization.API.Modules
             Type = "string"
         };
 
+        private readonly Parameter _identityProviderParameter = new Parameter
+        {
+            Name = "identityProvider",
+            Description = "External identity provider name",
+            In = ParameterIn.Path,
+            Required = true,
+            Type = "string"
+        };
+
         private readonly Tag _usersTag =
             new Tag {Name = "Users", Description = "Operations related to user permissions"};
 
         public UsersMetadataModule(ISwaggerModelCatalog modelCatalog, ISwaggerTagCatalog tagCatalog)
             : base(modelCatalog, tagCatalog)
         {
+            ModelCatalog.AddModels(typeof(PermissionAction));
+
             RouteDescriber.DescribeRoute(
                 "GetUserPermissions",
                 "",
@@ -44,13 +55,12 @@ namespace Fabric.Authorization.API.Modules
                 }).SecurityRequirement(OAuth2ReadScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
-                "AddPermissions",
+                "AddGranularPermissions",
                 "",
-                "Adds granular permissions for a user",
+                "Adds granular permissions for a user, either to allow or deny",
                 new[]
                 {
-                    new HttpResponseMetadata {Code = (int) HttpStatusCode.NoContent},
-                    new HttpResponseMetadata<Error> {Code = (int) HttpStatusCode.BadRequest, Message = "Bad Request"},
+                    new HttpResponseMetadata {Code = (int) HttpStatusCode.NoContent},                  
                     new HttpResponseMetadata
                     {
                         Code = (int) HttpStatusCode.Forbidden,
@@ -59,11 +69,12 @@ namespace Fabric.Authorization.API.Modules
                 },
                 new[]
                 {
+                    _identityProviderParameter,
                     _subjectIdParameter,
                     new BodyParameter<GranularPermissionApiModel>(modelCatalog)
                     {
                         Name = "GranularPermissions",
-                        Description = "The permissions to explicitly allow for the user."
+                        Description = "The permissions to add for the user."
                     }
                 },
                 new[]
@@ -72,20 +83,12 @@ namespace Fabric.Authorization.API.Modules
                 }).SecurityRequirement(OAuth2ManageClientsScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
-                "AddDeniedPermissions",
+                "DeleteGranularPermissions",
                 "",
-                "Adds denied permissions for a user",
+                "Deletes granular permissions for a user",
                 new[]
                 {
-                    new HttpResponseMetadata
-                    {
-                        Code = (int) HttpStatusCode.NoContent
-                    },
-                    new HttpResponseMetadata<Error>
-                    {
-                        Code = (int) HttpStatusCode.BadRequest,
-                        Message = "Bad Request"
-                    },
+                    new HttpResponseMetadata {Code = (int) HttpStatusCode.NoContent},                    
                     new HttpResponseMetadata
                     {
                         Code = (int) HttpStatusCode.Forbidden,
@@ -94,17 +97,18 @@ namespace Fabric.Authorization.API.Modules
                 },
                 new[]
                 {
+                    _identityProviderParameter,
                     _subjectIdParameter,
                     new BodyParameter<GranularPermissionApiModel>(modelCatalog)
                     {
                         Name = "GranularPermissions",
-                        Description = "The permissions to explicitly deny for the user."
+                        Description = "The permissions to delete from the user."
                     }
                 },
                 new[]
                 {
                     _usersTag
-                }).SecurityRequirement(OAuth2ReadScopeBuilder);
+                }).SecurityRequirement(OAuth2ManageClientsScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "GetUserGroups",
