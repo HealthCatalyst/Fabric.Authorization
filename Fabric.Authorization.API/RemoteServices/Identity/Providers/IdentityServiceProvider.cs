@@ -66,15 +66,18 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
                 new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json"));
 
             var results = new List<UserSearchResponse>();
+            var responseContent = await response.Content.ReadAsStringAsync();
+
             if (response.StatusCode != HttpStatusCode.OK)
             {
                 _logger.Error($"Response status code from Fabric.Identity api/users => {response.StatusCode}");
-                _logger.Error($"Response content from Fabric.Identity api/users => {response.Content.ReadAsStringAsync()}");
+                _logger.Error($"Response content from Fabric.Identity api/users => {responseContent}");
             }
             else
             {
-                results = JsonConvert.DeserializeObject<List<UserSearchResponse>>(await response.Content
-                    .ReadAsStringAsync());
+                results = JsonConvert.DeserializeObject<List<UserSearchResponse>>(responseContent);
+
+                _logger.Debug($"Fabric.Identity /users results: {results}");
             }
 
             return new FabricIdentityUserResponse

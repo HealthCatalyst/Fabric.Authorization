@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Models.Search;
@@ -127,7 +128,7 @@ namespace Fabric.Authorization.API.Services
                 // update user details with Fabric.Identity response
                 foreach (var user in fabricIdentityUserResponse.Results)
                 {
-                    var userSearchResponse = userList.FirstOrDefault(u => u.SubjectId == user.SubjectId);
+                    var userSearchResponse = userList.FirstOrDefault(u => string.Equals(u.SubjectId, user.SubjectId, StringComparison.OrdinalIgnoreCase));
                     if (userSearchResponse == null)
                     {
                         continue;
