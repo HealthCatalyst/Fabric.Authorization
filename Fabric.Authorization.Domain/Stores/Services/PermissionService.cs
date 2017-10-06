@@ -133,6 +133,32 @@ namespace Fabric.Authorization.Domain.Stores.Services
         }
 
         /// <summary>
+        /// removes granular permissions from a user
+        /// </summary>
+        /// <param name="granularPermission"></param>
+        /// <returns></returns>
+        public async Task DeleteGranularPermissions(GranularPermission granularPermission)
+        {
+            try
+            {
+                var stored = await GetUserGranularPermissions(granularPermission.Id);
+
+                var additionalPermissionsToRemove = granularPermission.AdditionalPermissions.Select(p => p.ToString()).ToList();
+                stored.AdditionalPermissions = stored.AdditionalPermissions.Where(p => !additionalPermissionsToRemove.Contains(p.ToString()));
+
+                var deniedPermissionsToRemove = granularPermission.DeniedPermissions.Select(ap => ap.ToString()).ToList();
+                stored.DeniedPermissions = stored.DeniedPermissions.Where(p => !deniedPermissionsToRemove.Contains(p.ToString()));
+
+                await _permissionStore.AddOrUpdateGranularPermission(stored);
+
+            }
+            catch (NotFoundException<GranularPermission>)
+            {
+                // Do nothing
+            }            
+        }
+
+        /// <summary>
         ///     Gets the granular permissions for a user.
         /// </summary>
         public async Task<GranularPermission> GetUserGranularPermissions(string userId)

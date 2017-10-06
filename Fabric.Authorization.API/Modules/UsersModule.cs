@@ -41,9 +41,14 @@ namespace Fabric.Authorization.API.Modules
             Post("/{identityProvider}/{subjectId}/permissions",
                 async param => await this.AddGranularPermissions(param).ConfigureAwait(false), null,
                 "AddGranularPermissions");
+          
+
+            Delete("/{identityProvider}/{subjectId}/permissions",
+                async param => await this.DeleteGranularPermissions(param).ConfigureAwait(false), null,
+                "DeleteGranularPermissions");
 
             Get("/{identityProvider}/{subjectId}/groups", async _ => await GetUserGroups().ConfigureAwait(false), null, "GetUserGroups");
-        }
+        }       
 
         private async Task<dynamic> GetUserGroups()
         {
@@ -76,6 +81,30 @@ namespace Fabric.Authorization.API.Modules
             await _permissionService.AddUserGranularPermissions(granularPermissions);
             return HttpStatusCode.NoContent;
         }      
+
+        private async Task<dynamic> DeleteGranularPermissions(dynamic param)
+        {
+            var apiModel = this.Bind<GranularPermissionApiModel>();
+
+            foreach (var perm in apiModel.Permissions)
+                await CheckAccess(_clientService, perm.Grain, perm.SecurableItem, AuthorizationManageClientsClaim);
+
+            var granularPermissions = apiModel.ToGranularPermissionDomainModel();
+
+            granularPermissions.IdentityProvider = param.identityProvider;
+            granularPermissions.Id = param.subjectId;
+
+            granularPermissions.DeniedPermissions = apiModel.Permissions
+                .Where(p => p.PermissionAction == PermissionAction.Deny)
+                .Select(p => p.ToPermissionDomainModel());
+
+            granularPermissions.AdditionalPermissions = apiModel.Permissions
+                .Where(p => p.PermissionAction == PermissionAction.Allow)
+                .Select(p => p.ToPermissionDomainModel());
+
+            await _permissionService.DeleteGranularPermissions(granularPermissions);
+            return HttpStatusCode.NoContent;
+        }
 
         private async Task<dynamic> GetCurrentUserPermissions()
         {

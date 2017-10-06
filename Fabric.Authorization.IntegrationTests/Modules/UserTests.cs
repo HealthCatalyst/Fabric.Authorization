@@ -870,5 +870,109 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.DoesNotContain("app/userprincipal.editpatient", permissions.Permissions);// from role & backlisted & whitelisted
             Assert.Equal(1, permissions.Permissions.Count());
         }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void Test_AllowGranularPermission_Delete()
+        {
+            // Adding permission
+            var modifyPatientPermission = new PermissionApiModel()
+            {
+                Grain = "app",
+                SecurableItem = "userprincipal",
+                Name = "modifypatient",
+                PermissionAction = PermissionAction.Allow
+            };
+
+            string subjectId = "userprincipal";
+            string identityProvider = "test";
+            var granPerm = new GranularPermissionApiModel();
+            this.Browser.Post($"/user/{identityProvider}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                granPerm.Permissions = new List<PermissionApiModel> { modifyPatientPermission };
+                with.JsonBody(granPerm);
+            }).Wait();
+
+            // Get the permissions
+            var get = this.Browser.Get("/user/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
+            var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
+            Assert.Contains("app/userprincipal.modifypatient", permissions.Permissions);
+
+            //delete the permission
+            this.Browser.Delete($"/user/{identityProvider}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                granPerm.Permissions = new List<PermissionApiModel> { modifyPatientPermission };
+                with.JsonBody(granPerm);
+            }).Wait();
+
+            // Get the permissions
+            get = this.Browser.Get("/user/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
+            permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
+            Assert.DoesNotContain("app/userprincipal.modifypatient", permissions.Permissions);
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void Test_InvalidGranularPermission_Delete()
+        {
+            // Get the permissions
+            var get = this.Browser.Get("/user/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
+            var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
+            Assert.Equal(0, permissions.Permissions.Count());
+
+            var modifyPatientPermission = new PermissionApiModel()
+            {
+                Grain = "app",
+                SecurableItem = "userprincipal",
+                Name = "modifypatient",
+                PermissionAction = PermissionAction.Allow
+            };
+
+            string subjectId = "userprincipal";
+            string identityProvider = "test";
+            var granPerm = new GranularPermissionApiModel();
+            //attempt to delete a permission the user does not have 
+            this.Browser.Delete($"/user/{identityProvider}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                granPerm.Permissions = new List<PermissionApiModel> { modifyPatientPermission };
+                with.JsonBody(granPerm);
+            }).Wait();
+
+            // Get the permissions
+            get = this.Browser.Get("/user/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
+            permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
+            Assert.Equal(0, permissions.Permissions.Count());
+            Assert.DoesNotContain("app/userprincipal.modifypatient", permissions.Permissions);
+        }
     }
 }
