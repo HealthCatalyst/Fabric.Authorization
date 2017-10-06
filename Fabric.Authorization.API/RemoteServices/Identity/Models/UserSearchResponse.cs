@@ -18,7 +18,7 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Models
 
         public override string ToString()
         {
-            return $"{SubjectId}/{FirstName}/{MiddleName}/{LastName}/{LastLoginDate}";
+            return $"SubjectId={SubjectId}, FirstName={FirstName}, MiddleName={MiddleName}, LastName={LastName}, LastLoginDateTimeUtc={LastLoginDate}";
         }
     }
 

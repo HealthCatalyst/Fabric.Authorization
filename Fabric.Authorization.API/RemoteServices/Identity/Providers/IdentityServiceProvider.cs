@@ -66,7 +66,7 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
                 new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json"));
 
             var results = new List<UserSearchResponse>();
-            var responseContent = await response.Content.ReadAsStringAsync();
+            var responseContent = response.Content == null ? string.Empty : await response.Content.ReadAsStringAsync();
 
             if (response.StatusCode != HttpStatusCode.OK)
             {
