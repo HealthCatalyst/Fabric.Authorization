@@ -5,27 +5,40 @@ using Serilog;
 
 namespace Fabric.Authorization.Domain.Stores.CouchDB
 {
-    public class CouchDbUserStore : CouchDbGenericStore<string, User>, IUserStore
+    public class CouchDbUserStore : CouchDbGenericStore<string, User>, IUserStore, IThirdPartyIdentifier
     {
-        public CouchDbUserStore(IDocumentDbService dbService, ILogger logger,
-            IEventContextResolverService eventContextResolverService) : base(dbService, logger,
-            eventContextResolverService)
+        private readonly IdpIdentifierFormatter _idpIdentifierFormatter = new IdpIdentifierFormatter();
+
+        public CouchDbUserStore(
+            IDocumentDbService dbService,
+            ILogger logger,
+            IEventContextResolverService eventContextResolverService) : base(dbService, logger, eventContextResolverService)
         {
+        }
+
+        public string FormatId(string id)
+        {
+            return _idpIdentifierFormatter.Format(id);
+        }
+
+        public override async Task<User> Get(string id)
+        {
+            return await base.Get(FormatId(id));
+        }
+
+        public override async Task<bool> Exists(string id)
+        {
+            return await base.Exists(FormatId(id));
         }
 
         public override async Task<User> Add(User model)
         {
-            return await base.Add(ReplaceInvalidChars(model.Identifier), model);
+            return await base.Add(FormatId(model.Id), model);
         }
 
         public override async Task Delete(User model)
         {
-            await base.Delete(ReplaceInvalidChars(model.Identifier), model);
-        }
-
-        public static string ReplaceInvalidChars(string documentId)
-        {
-            return documentId.Replace(@"\", "::");
+            await base.Delete(FormatId(model.Id), model);
         }
     }
 }

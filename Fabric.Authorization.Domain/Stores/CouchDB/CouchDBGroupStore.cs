@@ -6,15 +6,41 @@ using Serilog;
 
 namespace Fabric.Authorization.Domain.Stores.CouchDB
 {
-    public class CouchDbGroupStore : CouchDbGenericStore<string, Group>, IGroupStore
+    public class CouchDbGroupStore : CouchDbGenericStore<string, Group>, IGroupStore, IThirdPartyIdentifier
     {
-        public CouchDbGroupStore(IDocumentDbService dbService, ILogger logger, IEventContextResolverService eventContextResolverService) : base(dbService, logger, eventContextResolverService)
+        private readonly IdpIdentifierFormatter _idpIdentifierFormatter = new IdpIdentifierFormatter();
+
+        public CouchDbGroupStore(
+            IDocumentDbService dbService,
+            ILogger logger,
+            IEventContextResolverService eventContextResolverService) : base(dbService, logger, eventContextResolverService)
         {
         }
 
-        public override async Task<Group> Add(Group group) => await this.Add(group.Id, group);
+        public string FormatId(string id)
+        {
+            return _idpIdentifierFormatter.Format(id);
+        }
 
-        public override async Task Delete(Group group) => await this.Delete(group.Id, group);
+        public override async Task<Group> Get(string id)
+        {
+            return await base.Get(FormatId(id));
+        }
+
+        public override async Task<bool> Exists(string id)
+        {
+            return await base.Exists(FormatId(id));
+        }
+
+        public override async Task<Group> Add(Group group)
+        {
+            return await Add(FormatId(group.Id), group);
+        }
+
+        public override async Task Delete(Group group)
+        {
+            await Delete(FormatId(group.Id), group);
+        }
 
         public override async Task<IEnumerable<Group>> GetAll()
         {
