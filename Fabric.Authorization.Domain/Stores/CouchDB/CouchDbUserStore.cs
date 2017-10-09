@@ -7,18 +7,20 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
 {
     public class CouchDbUserStore : CouchDbGenericStore<string, User>, IUserStore, IThirdPartyIdentifier
     {
-        private readonly IdpIdentifierFormatter _idpIdentifierFormatter = new IdpIdentifierFormatter();
+        private readonly IIdentifierFormatter _identifierFormatter;
 
         public CouchDbUserStore(
             IDocumentDbService dbService,
             ILogger logger,
-            IEventContextResolverService eventContextResolverService) : base(dbService, logger, eventContextResolverService)
+            IEventContextResolverService eventContextResolverService,
+            IIdentifierFormatter identifierFormatter) : base(dbService, logger, eventContextResolverService)
         {
+            _identifierFormatter = identifierFormatter;
         }
 
         public string FormatId(string id)
         {
-            return _idpIdentifierFormatter.Format(id);
+            return _identifierFormatter.Format(id);
         }
 
         public override async Task<User> Get(string id)

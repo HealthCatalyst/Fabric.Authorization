@@ -11,7 +11,6 @@ using MyCouch;
 using MyCouch.Net;
 using MyCouch.Requests;
 using MyCouch.Responses;
-using Nancy.Helpers;
 using Newtonsoft.Json;
 using Serilog;
 

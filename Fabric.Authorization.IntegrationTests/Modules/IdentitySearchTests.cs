@@ -171,11 +171,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         public RoleService RoleService { get; private set; }
 
+        private readonly IIdentifierFormatter _identifierFormatter = new IdpIdentifierFormatter();
+
         public void Initialize(bool useInMemoryDb)
         {
             var groupStore = useInMemoryDb
                 ? new InMemoryGroupStore()
-                : (IGroupStore)new CouchDbGroupStore(DbService(), Logger, EventContextResolverService);
+                : (IGroupStore)new CouchDbGroupStore(DbService(), Logger, EventContextResolverService, _identifierFormatter);
 
             var roleStore = useInMemoryDb
                 ? new InMemoryRoleStore()
@@ -183,7 +185,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             var userStore = useInMemoryDb
                 ? new InMemoryUserStore()
-                : (IUserStore)new CouchDbUserStore(DbService(), Logger, EventContextResolverService);
+                : (IUserStore)new CouchDbUserStore(DbService(), Logger, EventContextResolverService, _identifierFormatter);
 
             var clientStore = useInMemoryDb
                 ? new InMemoryClientStore()

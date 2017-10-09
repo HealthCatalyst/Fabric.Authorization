@@ -1,6 +1,6 @@
 ﻿namespace Fabric.Authorization.Domain.Stores
 {
-    public class IdpIdentifierFormatter
+    public class IdpIdentifierFormatter : IIdentifierFormatter
     {
         private const string BackslashReplacementChars = "::";
 

@@ -129,7 +129,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
             //only add users to a custom group
             if (!string.Equals(group.Source, GroupConstants.CustomSource))
             {
-                throw new BadRequestException<Group>();
+                throw new BadRequestException<Group>("The group to which you are attempting to add a user is not specified as a 'Custom' group. Only 'Custom' groups allow associations with users.");
             }
 
             User user;
