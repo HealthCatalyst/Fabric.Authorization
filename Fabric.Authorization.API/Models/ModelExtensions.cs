@@ -184,6 +184,12 @@ namespace Fabric.Authorization.API.Models
                 ModifiedDateTimeUtc = perm.ModifiedDateTimeUtc,
                 CreatedBy = perm.CreatedBy,
                 ModifiedBy = perm.ModifiedBy,
+                DeniedPermissions = perm.Permissions
+                    .Where(p => p.PermissionAction == PermissionAction.Deny)
+                    .Select(p => p.ToPermissionDomainModel()),
+                AdditionalPermissions = perm.Permissions
+                    .Where(p => p.PermissionAction == PermissionAction.Allow)
+                    .Select(p => p.ToPermissionDomainModel())
             };
 
             return domainModel;

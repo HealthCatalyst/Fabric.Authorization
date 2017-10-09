@@ -27,6 +27,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         private static readonly string Group2 = Guid.Parse("ad2cea96-c020-4014-9cf6-029147454adc").ToString();
         private static readonly string Source2 = "Source2";
 
+        private static readonly string IdentityProvider = "idP1";
+
         public UserTests(bool useInMemoryDB = true)
         {
             var roleStore = useInMemoryDB ? new InMemoryRoleStore() : (IRoleStore)new CouchDbRoleStore(this.DbService(), this.Logger, this.EventContextResolverService);
@@ -84,7 +86,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                             new Claim(Claims.Sub, "userprincipal"),
                             new Claim(JwtClaimTypes.Role, Group1),
                             new Claim(JwtClaimTypes.Role, Group2),
-                            new Claim(JwtClaimTypes.IdentityProvider, "idP1")
+                            new Claim(JwtClaimTypes.IdentityProvider, IdentityProvider)
                         }, "userprincipal"));
                     pipelines.BeforeRequest += (ctx) => RequestHooks.SetDefaultVersionInUrl(ctx);
                 });
@@ -452,12 +454,11 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Wait();
 
             // Adding blacklist (user cannot edit patient, even though role allows)
-            string subjectId = "userprincipal";
-            string identityProvider = "test";
+            string subjectId = "userprincipal";            
             var granPerm = new GranularPermissionApiModel();
             editPatientPermission.PermissionAction = PermissionAction.Deny;
 
-            this.Browser.Post($"/user/{identityProvider}/{subjectId}/permissions", with =>
+            this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -578,9 +579,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             };
 
             string subjectId = "userprincipal";
-            string identityProvider = "test";
+            
             var granPerm = new GranularPermissionApiModel();
-            this.Browser.Post($"/user/{identityProvider}/{subjectId}/permissions", with =>
+            this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");      
@@ -800,12 +801,11 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Wait();
 
             // Adding same permission to blacklist and whitellist
-            string subjectId = "userprincipal";
-            string identityProvider = "test";
+            string subjectId = "userprincipal";           
             editPatientPermission.PermissionAction = PermissionAction.Deny;
 
             var granPerm = new GranularPermissionApiModel();
-            this.Browser.Post($"/user/{identityProvider}/{subjectId}/permissions", with =>
+            this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");              
@@ -823,7 +823,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             granPerm = new GranularPermissionApiModel();
             modifyPatientPermission.PermissionAction = PermissionAction.Allow;
 
-            this.Browser.Post($"/user/{identityProvider}/{subjectId}/permissions", with =>
+            this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");              
@@ -849,7 +849,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             granPerm = new GranularPermissionApiModel();            
             modifyPatientPermission.PermissionAction = PermissionAction.Deny;
 
-            this.Browser.Post($"/user/{identityProvider}/{subjectId}/permissions", with =>
+            this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");                
@@ -884,10 +884,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 PermissionAction = PermissionAction.Allow
             };
 
-            string subjectId = "userprincipal";
-            string identityProvider = "test";
+            string subjectId = "userprincipal";            
             var granPerm = new GranularPermissionApiModel();
-            this.Browser.Post($"/user/{identityProvider}/{subjectId}/permissions", with =>
+            this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -907,7 +906,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Contains("app/userprincipal.modifypatient", permissions.Permissions);
 
             //delete the permission
-            this.Browser.Delete($"/user/{identityProvider}/{subjectId}/permissions", with =>
+            this.Browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -929,7 +928,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [DisplayTestMethodName]
-        public void Test_InvalidGranularPermission_Delete()
+        public void Test_InvalidGranularPermission_UserHasNoGranularPermissions_Delete()
         {
             // Get the permissions
             var get = this.Browser.Get("/user/permissions", with =>
@@ -950,11 +949,36 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 PermissionAction = PermissionAction.Allow
             };
 
-            string subjectId = "userprincipal";
-            string identityProvider = "test";
+            string subjectId = "userprincipal";            
             var granPerm = new GranularPermissionApiModel();
             //attempt to delete a permission the user does not have 
-            this.Browser.Delete($"/user/{identityProvider}/{subjectId}/permissions", with =>
+            var deleteRequest = this.Browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                granPerm.Permissions = new List<PermissionApiModel> { modifyPatientPermission };
+                with.JsonBody(granPerm);
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.BadRequest, deleteRequest.StatusCode);
+            Assert.Contains("app/userprincipal.modifypatient", deleteRequest.Body.AsString());
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void Test_InvalidGranularPermission_WrongPermissionAction_Delete()
+        {
+            var modifyPatientPermission = new PermissionApiModel()
+            {
+                Grain = "app",
+                SecurableItem = "userprincipal",
+                Name = "modifypatient",
+                PermissionAction = PermissionAction.Allow
+            };
+
+            string subjectId = "userprincipal";
+            var granPerm = new GranularPermissionApiModel();
+            this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -962,17 +986,19 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(granPerm);
             }).Wait();
 
-            // Get the permissions
-            get = this.Browser.Get("/user/permissions", with =>
+            //attempt to delete modifyPatientPermission with permission action Deny
+            modifyPatientPermission.PermissionAction = PermissionAction.Deny;
+
+            var deleteRequest = this.Browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
+                granPerm.Permissions = new List<PermissionApiModel> { modifyPatientPermission };
+                with.JsonBody(granPerm);
             }).Result;
 
-            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
-            permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
-            Assert.Equal(0, permissions.Permissions.Count());
-            Assert.DoesNotContain("app/userprincipal.modifypatient", permissions.Permissions);
+            Assert.Equal(HttpStatusCode.BadRequest, deleteRequest.StatusCode);
+            Assert.Contains("app/userprincipal.modifypatient", deleteRequest.Body.AsString());
         }
     }
 }

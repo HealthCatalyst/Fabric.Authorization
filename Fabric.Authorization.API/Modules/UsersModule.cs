@@ -64,18 +64,9 @@ namespace Fabric.Authorization.API.Modules
             foreach (var perm in apiModel.Permissions)
                 await CheckAccess(_clientService, perm.Grain, perm.SecurableItem, AuthorizationManageClientsClaim);
 
-            var granularPermissions = apiModel.ToGranularPermissionDomainModel();
+            apiModel.Id = $"{param.subjectId}:{param.identityProvider}";
 
-            granularPermissions.IdentityProvider = param.identityProvider;
-            granularPermissions.Id = param.subjectId;
-
-            granularPermissions.DeniedPermissions = apiModel.Permissions
-                .Where(p => p.PermissionAction == PermissionAction.Deny)
-                .Select(p => p.ToPermissionDomainModel());
-            
-            granularPermissions.AdditionalPermissions = apiModel.Permissions
-                .Where(p => p.PermissionAction == PermissionAction.Allow)
-                .Select(p => p.ToPermissionDomainModel());            
+            var granularPermissions = apiModel.ToGranularPermissionDomainModel();                        
 
             await _permissionService.AddUserGranularPermissions(granularPermissions);
             return HttpStatusCode.NoContent;
@@ -88,21 +79,26 @@ namespace Fabric.Authorization.API.Modules
             foreach (var perm in apiModel.Permissions)
                 await CheckAccess(_clientService, perm.Grain, perm.SecurableItem, AuthorizationManageClientsClaim);
 
-            var granularPermissions = apiModel.ToGranularPermissionDomainModel();
+            apiModel.Id = $"{param.subjectId}:{param.identityProvider}";
 
-            granularPermissions.IdentityProvider = param.identityProvider;
-            granularPermissions.Id = param.subjectId;
+            var granularPermissions = apiModel.ToGranularPermissionDomainModel();            
+            
+            try
+            {
+                await _permissionService.DeleteGranularPermissions(granularPermissions);
+                return HttpStatusCode.NoContent;
+            }            
+            catch(BadRequestException<GranularPermission> ex)
+            {
+                //build a list of permissions that are invalid based on whats in the exception
 
-            granularPermissions.DeniedPermissions = apiModel.Permissions
-                .Where(p => p.PermissionAction == PermissionAction.Deny)
-                .Select(p => p.ToPermissionDomainModel());
+                var invalidAdditionalPermissionsString = string.Join(",", ex.Model.AdditionalPermissions.Select(p => p.ToString()));
+                var invalidDenyPermissionsString = string.Join(",", ex.Model.DeniedPermissions.Select(p => p.ToString()));
 
-            granularPermissions.AdditionalPermissions = apiModel.Permissions
-                .Where(p => p.PermissionAction == PermissionAction.Allow)
-                .Select(p => p.ToPermissionDomainModel());
-
-            await _permissionService.DeleteGranularPermissions(granularPermissions);
-            return HttpStatusCode.NoContent;
+                return CreateFailureResponse(
+                    $"{ex.Message} The following permissions are invalid: {invalidAdditionalPermissionsString} {invalidDenyPermissionsString}", 
+                    HttpStatusCode.BadRequest);
+            }
         }
 
         private async Task<dynamic> GetCurrentUserPermissions()
@@ -117,7 +113,7 @@ namespace Fabric.Authorization.API.Modules
             var groups = await GetGroupsForAuthenticatedUser(subjectId, identityProvider).ConfigureAwait(false);
 
             var permissions = await _permissionService.GetPermissionsForUser(
-                subjectId,
+                $"{subjectId}:{identityProvider}",
                 groups,
                 userPermissionRequest.Grain,
                 userPermissionRequest.SecurableItem);
@@ -168,5 +164,6 @@ namespace Fabric.Authorization.API.Modules
                 request.SecurableItem = client.TopLevelSecurableItem.Name;
             }
         }
+       
     }
 }

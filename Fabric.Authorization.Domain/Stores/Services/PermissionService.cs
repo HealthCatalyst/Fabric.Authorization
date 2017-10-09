@@ -143,19 +143,44 @@ namespace Fabric.Authorization.Domain.Stores.Services
             {
                 var stored = await GetUserGranularPermissions(granularPermission.Id);
 
-                var additionalPermissionsToRemove = granularPermission.AdditionalPermissions.Select(p => p.ToString()).ToList();
-                stored.AdditionalPermissions = stored.AdditionalPermissions.Where(p => !additionalPermissionsToRemove.Contains(p.ToString()));
+                //ensure every permission passed in belongs to the user or dont update anything - get a list of invalid permissions
+                var excludedAdditionalPermissions = granularPermission.AdditionalPermissions.Except(stored.AdditionalPermissions);
+                var excludedDeniedPermissions = granularPermission.DeniedPermissions.Except(stored.DeniedPermissions);
 
+                if (excludedAdditionalPermissions.Any() || excludedDeniedPermissions.Any())
+                {
+                    var invalidGranularPermission = new GranularPermission
+                    {
+                        Id = granularPermission.Id,
+                        AdditionalPermissions = excludedAdditionalPermissions,
+                        DeniedPermissions = excludedDeniedPermissions
+                    };
+
+                    throw new BadRequestException<GranularPermission>(invalidGranularPermission,
+                        "Cannot delete the specified permissions, permissions not associated with this user.");
+                }
+
+                //the user had all permissions to delete so do the delete 
+                var additionalPermissionsToRemove = granularPermission.AdditionalPermissions.Select(p => p.ToString()).ToList();
                 var deniedPermissionsToRemove = granularPermission.DeniedPermissions.Select(ap => ap.ToString()).ToList();
+
+                stored.AdditionalPermissions = stored.AdditionalPermissions.Where(p => !additionalPermissionsToRemove.Contains(p.ToString()));
                 stored.DeniedPermissions = stored.DeniedPermissions.Where(p => !deniedPermissionsToRemove.Contains(p.ToString()));
 
                 await _permissionStore.AddOrUpdateGranularPermission(stored);
-
             }
             catch (NotFoundException<GranularPermission>)
             {
-                // Do nothing
-            }            
+                var invalidGranularPermission = new GranularPermission
+                {
+                    Id = granularPermission.Id,
+                    AdditionalPermissions = granularPermission.AdditionalPermissions,
+                    DeniedPermissions = granularPermission.DeniedPermissions
+                };
+
+                throw new BadRequestException<GranularPermission>(invalidGranularPermission,
+                    "Cannot delete the specified permissions, permissions not associated with this user");
+            }                             
         }
 
         /// <summary>

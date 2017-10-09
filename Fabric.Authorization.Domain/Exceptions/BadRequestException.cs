@@ -6,6 +6,8 @@ namespace Fabric.Authorization.Domain.Exceptions
     {
         private readonly T _model;
 
+        public T Model => _model;
+
         public BadRequestException()
         {
         }

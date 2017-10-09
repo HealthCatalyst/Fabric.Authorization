@@ -15,9 +15,7 @@ namespace Fabric.Authorization.Domain.Models
 
         public IEnumerable<Permission> DeniedPermissions { get; set; }
 
-        public IEnumerable<Permission> AdditionalPermissions { get; set; }
-        
-        public string IdentityProvider { get; set; }
+        public IEnumerable<Permission> AdditionalPermissions { get; set; } 
 
         public string Identifier => Id;
 
