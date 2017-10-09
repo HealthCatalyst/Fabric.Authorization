@@ -37,6 +37,12 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
             return await Add(FormatId(group.Id), group);
         }
 
+        protected override async Task Update(string id, Group model)
+        {
+            model.Track(false, GetActor());
+            await ExponentialBackoff(_dbService.UpdateDocument(FormatId(model.Identifier), model)).ConfigureAwait(false);
+        }
+
         public override async Task Delete(Group group)
         {
             await Delete(FormatId(group.Id), group);
