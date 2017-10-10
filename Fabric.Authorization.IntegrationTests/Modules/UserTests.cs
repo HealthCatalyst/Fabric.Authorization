@@ -873,7 +873,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [DisplayTestMethodName]
-        public void Test_AllowGranularPermission_Delete()
+        public void Test_Delete_Success()
         {
             // Adding permission
             var modifyPatientPermission = new PermissionApiModel()
@@ -928,7 +928,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [DisplayTestMethodName]
-        public void Test_InvalidGranularPermission_UserHasNoGranularPermissions_Delete()
+        public void Test_Delete_UserHasNoGranularPermissions()
         {
             // Get the permissions
             var get = this.Browser.Get("/user/permissions", with =>
@@ -961,12 +961,14 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Result;
 
             Assert.Equal(HttpStatusCode.BadRequest, deleteRequest.StatusCode);
-            Assert.Contains("app/userprincipal.modifypatient", deleteRequest.Body.AsString());
+            Assert.Contains("Invalid allow permissions: app/userprincipal.modifypatient", deleteRequest.Body.AsString());
+            Assert.DoesNotContain("Invalid allow permission actions", deleteRequest.Body.AsString());
+            
         }
 
         [Fact]
         [DisplayTestMethodName]
-        public void Test_InvalidGranularPermission_WrongPermissionAction_Delete()
+        public void Test_Delete_WrongPermissionAction()
         {
             var modifyPatientPermission = new PermissionApiModel()
             {
@@ -986,6 +988,17 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(granPerm);
             }).Wait();
 
+            // Get the permissions
+            var get = this.Browser.Get("/user/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
+            var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
+            Assert.Contains("app/userprincipal.modifypatient", permissions.Permissions);
+
             //attempt to delete modifyPatientPermission with permission action Deny
             modifyPatientPermission.PermissionAction = PermissionAction.Deny;
 
@@ -998,7 +1011,68 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Result;
 
             Assert.Equal(HttpStatusCode.BadRequest, deleteRequest.StatusCode);
-            Assert.Contains("app/userprincipal.modifypatient", deleteRequest.Body.AsString());
+            Assert.Contains("Invalid deny permission actions: app/userprincipal.modifypatient", deleteRequest.Body.AsString());
+            Assert.DoesNotContain("Invalid deny permissions", deleteRequest.Body.AsString());
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void Test_Delete_WrongPermissionAction_InvalidPermission()
+        {
+            var modifyPatientPermission = new PermissionApiModel()
+            {
+                Grain = "app",
+                SecurableItem = "userprincipal",
+                Name = "modifypatient",
+                PermissionAction = PermissionAction.Allow
+            };            
+
+            string subjectId = "userprincipal";
+            var granPerm = new GranularPermissionApiModel();
+            this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                granPerm.Permissions = new List<PermissionApiModel> { modifyPatientPermission };
+                with.JsonBody(granPerm);
+            }).Wait();
+
+            // Get the permissions
+            var get = this.Browser.Get("/user/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
+            var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
+            Assert.Contains("app/userprincipal.modifypatient", permissions.Permissions);
+
+            //attempt to delete modifyPatientPermission with permission action Deny and include an invalid permission
+            modifyPatientPermission.PermissionAction = PermissionAction.Deny;
+
+            var deletePatientPermission = new PermissionApiModel()
+            {
+                Grain = "app",
+                SecurableItem = "userprincipal",
+                Name = "deletepatient",
+                PermissionAction = PermissionAction.Allow
+            };
+
+            var deleteRequest = this.Browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                granPerm.Permissions = new List<PermissionApiModel> { modifyPatientPermission, deletePatientPermission };
+                with.JsonBody(granPerm);
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.BadRequest, deleteRequest.StatusCode);
+            Assert.Contains("Invalid deny permission actions: app/userprincipal.modifypatient", deleteRequest.Body.AsString());
+            Assert.DoesNotContain("Invalid deny permissions", deleteRequest.Body.AsString());
+            Assert.Contains("Invalid allow permissions: app/userprincipal.deletepatient", deleteRequest.Body.AsString());
+            Assert.DoesNotContain("Invalid allow permission actions", deleteRequest.Body.AsString());
+
         }
     }
 }
