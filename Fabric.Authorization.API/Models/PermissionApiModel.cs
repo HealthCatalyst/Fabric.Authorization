@@ -21,6 +21,14 @@ namespace Fabric.Authorization.API.Models
 
         public string ModifiedBy { get; set; }
 
+        public PermissionAction PermissionAction { get; set; }
+
         public string Identifier => Id.HasValue ? Id.ToString() : "";
+    }
+  
+    public enum PermissionAction
+    {
+        Allow,
+        Deny
     }
 }

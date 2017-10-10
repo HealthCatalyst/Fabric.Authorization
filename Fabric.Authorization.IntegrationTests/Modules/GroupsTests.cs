@@ -814,7 +814,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(0, userList.Count);
 
             // ensure the deletion is reflected in the user model
-            response = Browser.Get($"/user/{subject1Id}/{identityProvider}/groups", with =>
+            response = Browser.Get($"/user/{identityProvider}/{subject1Id}/groups", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -926,7 +926,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             SetupGroup(groupName, "Custom");
             SetupGroupUserMapping(groupName, subjectId, identityProvider);
 
-            var response = Browser.Get($"/user/{subjectId}/{identityProvider}/groups", with =>
+            var response = Browser.Get($"/user/{identityProvider}/{subjectId}/groups", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");

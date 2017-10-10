@@ -165,7 +165,7 @@ namespace Fabric.Authorization.API.Models
         {
             var apiModel = new GranularPermissionApiModel
             {
-                Target = perm.Target,
+                Id = perm.Id,
                 CreatedDateTimeUtc = perm.CreatedDateTimeUtc,
                 ModifiedDateTimeUtc = perm.ModifiedDateTimeUtc,
                 CreatedBy = perm.CreatedBy,
@@ -179,11 +179,17 @@ namespace Fabric.Authorization.API.Models
         {
             var domainModel = new GranularPermission
             {
-                Target = perm.Target,
+                Id = perm.Id,
                 CreatedDateTimeUtc = perm.CreatedDateTimeUtc,
                 ModifiedDateTimeUtc = perm.ModifiedDateTimeUtc,
                 CreatedBy = perm.CreatedBy,
                 ModifiedBy = perm.ModifiedBy,
+                DeniedPermissions = perm.Permissions
+                    .Where(p => p.PermissionAction == PermissionAction.Deny)
+                    .Select(p => p.ToPermissionDomainModel()),
+                AdditionalPermissions = perm.Permissions
+                    .Where(p => p.PermissionAction == PermissionAction.Allow)
+                    .Select(p => p.ToPermissionDomainModel())
             };
 
             return domainModel;

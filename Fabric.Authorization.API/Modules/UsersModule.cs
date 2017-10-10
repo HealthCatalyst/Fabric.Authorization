@@ -36,18 +36,18 @@ namespace Fabric.Authorization.API.Modules
 
             // Get all the permissions for a user
             Get("/permissions", async _ => await GetCurrentUserPermissions().ConfigureAwait(false), null,
-                "GetUserPermissions");
+                "GetUserPermissions");           
 
-            Post("/{subjectId}/AdditionalPermissions",
-                async param => await this.AddGranularPermissions(param, denied: false).ConfigureAwait(false), null,
-                "AddPermissions");
+            Post("/{identityProvider}/{subjectId}/permissions",
+                async param => await this.AddGranularPermissions(param).ConfigureAwait(false), null,
+                "AddGranularPermissions");
 
-            Post("/{subjectId}/DeniedPermissions",
-                async param => await this.AddGranularPermissions(param, denied: true).ConfigureAwait(false), null,
-                "AddDeniedPermissions");
+            Delete("/{identityProvider}/{subjectId}/permissions",
+                async param => await this.DeleteGranularPermissions(param).ConfigureAwait(false), null,
+                "DeleteGranularPermissions");
 
-            Get("/{subjectId}/{identityProvider}/groups", async _ => await GetUserGroups().ConfigureAwait(false), null, "GetUserGroups");
-        }
+            Get("/{identityProvider}/{subjectId}/groups", async _ => await GetUserGroups().ConfigureAwait(false), null, "GetUserGroups");
+        }       
 
         private async Task<dynamic> GetUserGroups()
         {
@@ -57,26 +57,48 @@ namespace Fabric.Authorization.API.Modules
             return groups;
         }
 
-        private async Task<dynamic> AddGranularPermissions(dynamic param, bool denied)
+        private async Task<dynamic> AddGranularPermissions(dynamic param)
         {
-            var apiModel = this.Bind<GranularPermissionApiModel>();
-
-            if (apiModel.Target != param["subjectId"])
-                return CreateFailureResponse("Target must be the subject id.", HttpStatusCode.BadRequest);
+            var apiModel = this.Bind<GranularPermissionApiModel>();            
 
             foreach (var perm in apiModel.Permissions)
                 await CheckAccess(_clientService, perm.Grain, perm.SecurableItem, AuthorizationManageClientsClaim);
 
-            var granularPermissions = apiModel.ToGranularPermissionDomainModel();
+            apiModel.Id = $"{param.subjectId}:{param.identityProvider}";
 
-            if (denied)
-                granularPermissions.DeniedPermissions = apiModel.Permissions.Select(p => p.ToPermissionDomainModel());
-            else
-                granularPermissions.AdditionalPermissions =
-                    apiModel.Permissions.Select(p => p.ToPermissionDomainModel());
+            var granularPermissions = apiModel.ToGranularPermissionDomainModel();                        
 
             await _permissionService.AddUserGranularPermissions(granularPermissions);
             return HttpStatusCode.NoContent;
+        }      
+
+        private async Task<dynamic> DeleteGranularPermissions(dynamic param)
+        {
+            var apiModel = this.Bind<GranularPermissionApiModel>();
+
+            foreach (var perm in apiModel.Permissions)
+                await CheckAccess(_clientService, perm.Grain, perm.SecurableItem, AuthorizationManageClientsClaim);
+
+            apiModel.Id = $"{param.subjectId}:{param.identityProvider}";
+
+            var granularPermissions = apiModel.ToGranularPermissionDomainModel();            
+            
+            try
+            {
+                await _permissionService.DeleteGranularPermissions(granularPermissions);
+                return HttpStatusCode.NoContent;
+            }            
+            catch(BadRequestException<GranularPermission> ex)
+            {
+                //build a list of permissions that are invalid based on whats in the exception
+
+                var invalidAdditionalPermissionsString = string.Join(",", ex.Model.AdditionalPermissions.Select(p => p.ToString()));
+                var invalidDenyPermissionsString = string.Join(",", ex.Model.DeniedPermissions.Select(p => p.ToString()));
+
+                return CreateFailureResponse(
+                    $"{ex.Message} The following permissions are invalid: {invalidAdditionalPermissionsString} {invalidDenyPermissionsString}", 
+                    HttpStatusCode.BadRequest);
+            }
         }
 
         private async Task<dynamic> GetCurrentUserPermissions()
@@ -91,7 +113,7 @@ namespace Fabric.Authorization.API.Modules
             var groups = await GetGroupsForAuthenticatedUser(subjectId, identityProvider).ConfigureAwait(false);
 
             var permissions = await _permissionService.GetPermissionsForUser(
-                subjectId,
+                $"{subjectId}:{identityProvider}",
                 groups,
                 userPermissionRequest.Grain,
                 userPermissionRequest.SecurableItem);
@@ -142,5 +164,6 @@ namespace Fabric.Authorization.API.Modules
                 request.SecurableItem = client.TopLevelSecurableItem.Name;
             }
         }
+       
     }
 }
