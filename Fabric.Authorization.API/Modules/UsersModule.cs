@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Constants;
@@ -14,6 +15,7 @@ using Nancy;
 using Nancy.ModelBinding;
 using Nancy.Security;
 using Serilog;
+using System.Text;
 
 namespace Fabric.Authorization.API.Modules
 {
@@ -90,13 +92,14 @@ namespace Fabric.Authorization.API.Modules
             }            
             catch(BadRequestException<GranularPermission> ex)
             {
-                //build a list of permissions that are invalid based on whats in the exception
-
-                var invalidAdditionalPermissionsString = string.Join(",", ex.Model.AdditionalPermissions.Select(p => p.ToString()));
-                var invalidDenyPermissionsString = string.Join(",", ex.Model.DeniedPermissions.Select(p => p.ToString()));
+                var invalidPermissions = new StringBuilder();
+                foreach (DictionaryEntry item in ex.Data)
+                {
+                    invalidPermissions.Append($"{item.Key}: {item.Value}. ");
+                }
 
                 return CreateFailureResponse(
-                    $"{ex.Message} The following permissions are invalid: {invalidAdditionalPermissionsString} {invalidDenyPermissionsString}", 
+                    $"{ex.Message} The following permissions are invalid: {invalidPermissions}", 
                     HttpStatusCode.BadRequest);
             }
         }
