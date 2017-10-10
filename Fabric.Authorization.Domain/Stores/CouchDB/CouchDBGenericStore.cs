@@ -29,7 +29,7 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
 
         public virtual async Task Update(T model)
         {
-            await Update(model.Identifier, model);
+            await Update(model.Identifier, model).ConfigureAwait(false);
         }
 
         protected virtual async Task Update(string id, T model)
