@@ -6,7 +6,6 @@ using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Infrastructure.PipelineHooks;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
-using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
 using Fabric.Authorization.Domain.Stores.InMemory;
@@ -47,10 +46,10 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 ? new InMemoryClientStore()
                 : (IClientStore)new CouchDbClientStore(DbService(), Logger, EventContextResolverService);
 
-            var groupService = new GroupService(groupStore, _roleStore, userStore);
             var userService = new UserService(userStore);
             var clientService = new ClientService(clientStore);
-            var roleService = new RoleService(_roleStore, new InMemoryPermissionStore(), clientService);
+            var roleService = new RoleService(_roleStore, permissionStore, clientService);
+            var groupService = new GroupService(groupStore, _roleStore, userStore, roleService);
             var permissionService = new PermissionService(permissionStore, roleService);
 
             Browser = new Browser(with =>
@@ -77,6 +76,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     permissionService,
                     userService,
                     new UserValidator(),
+                    Logger));
+
+                with.Module(new PermissionsModule(
+                    permissionService,
+                    clientService,
+                    new PermissionValidator(permissionService), 
                     Logger));
 
                 with.RequestStartup((_, pipelines, context) =>
@@ -941,9 +946,11 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(groupName, groupList[0]);
         }
 
+        #endregion
+
         [Fact]
         [DisplayTestMethodName]
-        public void GetGroups_AddPermissionToRole_GroupSynced()
+        public void GetGroups_AddPermissionToRole_AllGroupsSynced()
         {
             const string groupName = "Admin";
             const string roleName = "Administrator";
@@ -985,10 +992,25 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
 
+            // add permission
+            postResponse = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "rolesprincipal");
+                with.FormValue("Name", permissionName);
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+
+            var permission = postResponse.Body.DeserializeJson<PermissionApiModel>();
+
             var permissionApiModels = new List<PermissionApiModel>
             {
                 new PermissionApiModel
                 {
+                    Id = permission.Id,
                     Grain = "app",
                     SecurableItem = "rolesprincipal",
                     Name = permissionName
@@ -1006,6 +1028,107 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
 
+            VerifyPermission(groupName, roleName, permissionName, true);
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void GetGroups_DeletePermissionFromRole_AllGroupsSynced()
+        {
+            const string groupName = "Admin";
+            const string roleName = "Administrator";
+            const string permissionName = "app-write";
+
+            // create group
+            var postResponse = Browser.Post("/groups", with =>
+            {
+                with.HttpRequest();
+                with.FormValue("GroupName", groupName);
+                with.FormValue("GroupSource", "Custom");
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+
+            // create role
+            postResponse = Browser.Post("/roles", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "rolesprincipal");
+                with.FormValue("Name", roleName);
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+
+            var role = postResponse.Body.DeserializeJson<RoleApiModel>();
+            var roleId = role.Id.ToString();
+
+            // add role to group
+            postResponse = Browser.Post($"/groups/{groupName}/roles", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Id", roleId);
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+
+            // add permission
+            postResponse = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "rolesprincipal");
+                with.FormValue("Name", permissionName);
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+
+            var permission = postResponse.Body.DeserializeJson<PermissionApiModel>();
+
+            var permissionApiModels = new List<PermissionApiModel>
+            {
+                new PermissionApiModel
+                {
+                    Id = permission.Id,
+                    Grain = "app",
+                    SecurableItem = "rolesprincipal",
+                    Name = permissionName
+                }
+            };
+
+            // add permission to role
+            postResponse = Browser.Post($"/roles/{roleId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Body(JsonConvert.SerializeObject(permissionApiModels));
+                with.Header("Accept", "application/json");
+                with.Header("Content-Type", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+
+            VerifyPermission(groupName, roleName, permissionName, true);
+
+            // delete permission from role
+            postResponse = Browser.Delete($"/roles/{roleId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Body(JsonConvert.SerializeObject(permissionApiModels));
+                with.Header("Accept", "application/json");
+                with.Header("Content-Type", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+
+            VerifyPermission(groupName, roleName, permissionName, false);
+        }
+
+        private void VerifyPermission(string groupName, string roleName, string permissionName, bool exists)
+        {
             // get the group
             var getResponse = Browser.Get($"/groups/{groupName}", with =>
             {
@@ -1019,10 +1142,15 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var adminRole = group.Roles.FirstOrDefault(r => r.Name == roleName);
             Assert.NotNull(adminRole);
 
-            var permission = adminRole.Permissions.FirstOrDefault(p => p.Name == permissionName);
-            Assert.NotNull(permission);
+            var appWritePermission = adminRole.Permissions.FirstOrDefault(p => p.Name == permissionName);
+            if (exists)
+            {
+                Assert.NotNull(appWritePermission);
+            }
+            else
+            {
+                Assert.Null(appWritePermission);
+            }
         }
-
-        #endregion
     }
 }

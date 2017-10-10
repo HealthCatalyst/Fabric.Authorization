@@ -73,7 +73,7 @@ namespace Fabric.Authorization.API.Services
             var groupEntities = new List<Group>();
             foreach (var groupId in groupIds)
             {
-                var group = await _groupService.GetGroup(groupId);
+                var group = await _groupService.GetGroup(groupId, request.ClientId);
                 groupEntities.Add(group);
             }
 

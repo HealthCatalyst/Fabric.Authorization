@@ -61,7 +61,7 @@ namespace Fabric.Authorization.API.Modules
             try
             {
                 this.RequiresClaims(AuthorizationReadClaim);
-                Group group = await _groupService.GetGroup(parameters.groupName);
+                Group group = await _groupService.GetGroup(parameters.groupName, ClientId);
                 return group.ToGroupRoleApiModel();
             }
             catch (NotFoundException<Group> ex)
@@ -75,7 +75,7 @@ namespace Fabric.Authorization.API.Modules
             try
             {
                 this.RequiresClaims(AuthorizationWriteClaim);
-                Group group = await _groupService.GetGroup(parameters.groupName);
+                Group group = await _groupService.GetGroup(parameters.groupName, ClientId);
                 await _groupService.DeleteGroup(group);
                 return HttpStatusCode.NoContent;
             }
@@ -130,7 +130,7 @@ namespace Fabric.Authorization.API.Modules
             {
                 this.RequiresClaims(AuthorizationReadClaim);
                 var groupRoleRequest = this.Bind<GroupRoleRequest>();
-                var group = await _groupService.GetGroup(groupRoleRequest.GroupName);
+                var group = await _groupService.GetGroup(groupRoleRequest.GroupName, ClientId);
                 return group.ToGroupRoleApiModel(groupRoleRequest, GroupService.GroupRoleFilter);
             }
             catch (NotFoundException<Group> ex)
@@ -195,7 +195,7 @@ namespace Fabric.Authorization.API.Modules
             {
                 this.RequiresClaims(AuthorizationReadClaim);
                 var groupUserRequest = this.Bind<GroupUserRequest>();
-                var group = await _groupService.GetGroup(groupUserRequest.GroupName);
+                var group = await _groupService.GetGroup(groupUserRequest.GroupName, ClientId);
                 return group.ToGroupUserApiModel();
             }
             catch (NotFoundException<Group> ex)

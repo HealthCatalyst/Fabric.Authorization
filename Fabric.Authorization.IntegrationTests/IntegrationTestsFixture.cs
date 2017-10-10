@@ -38,8 +38,8 @@ namespace Fabric.Authorization.IntegrationTests
                 ICouchDbSettings config = new CouchDbSettings()
                 {
                     DatabaseName = "integration-" + DateTime.UtcNow.Ticks,
-                    Username = "",
-                    Password = "",
+                    Username = "admin",
+                    Password = "admin",
                     Server = "http://127.0.0.1:5984"
                 };
 
