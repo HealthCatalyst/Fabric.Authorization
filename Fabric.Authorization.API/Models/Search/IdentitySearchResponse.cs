@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using Fabric.Authorization.Domain.Models;
+using Nancy;
 using Newtonsoft.Json;
 
 namespace Fabric.Authorization.API.Models.Search
@@ -24,5 +26,16 @@ namespace Fabric.Authorization.API.Models.Search
 
         [JsonIgnore]
         public string Name => string.IsNullOrWhiteSpace(GroupName) ? $"{FirstName} {MiddleName} {LastName}" : GroupName;
+
+        public override string ToString()
+        {
+            return $"SubjectId={SubjectId}, IdentityProvider={IdentityProvider}, Roles={Roles.ListToString()}, GroupName={GroupName}, FirstName={FirstName}, MiddleName={MiddleName}, LastName={LastName}, LastLoginDateTimeUtc={LastLoginDateTimeUtc}";
+        }
+    }
+
+    public class FabricAuthUserSearchResponse
+    {
+        public HttpStatusCode HttpStatusCode { get; set; }
+        public IEnumerable<IdentitySearchResponse> Results { get; set; }
     }
 }

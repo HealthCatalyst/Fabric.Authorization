@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
-using Fabric.Authorization.API;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Infrastructure.PipelineHooks;
 using Fabric.Authorization.API.Models;
@@ -28,12 +27,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         private static readonly string Source2 = "Source2";
 
         private static readonly string IdentityProvider = "idP1";
+        private readonly IIdentifierFormatter _identifierFormatter = new IdpIdentifierFormatter();
 
         public UserTests(bool useInMemoryDB = true)
         {
             var roleStore = useInMemoryDB ? new InMemoryRoleStore() : (IRoleStore)new CouchDbRoleStore(this.DbService(), this.Logger, this.EventContextResolverService);
-            var userStore = useInMemoryDB ? new InMemoryUserStore() : (IUserStore)new CouchDbUserStore(this.DbService(), this.Logger, this.EventContextResolverService);
-            var groupStore = useInMemoryDB ? new InMemoryGroupStore() : (IGroupStore)new CouchDbGroupStore(this.DbService(), this.Logger, this.EventContextResolverService);
+            var userStore = useInMemoryDB ? new InMemoryUserStore() : (IUserStore)new CouchDbUserStore(this.DbService(), this.Logger, this.EventContextResolverService, _identifierFormatter);
+            var groupStore = useInMemoryDB ? new InMemoryGroupStore() : (IGroupStore)new CouchDbGroupStore(this.DbService(), this.Logger, this.EventContextResolverService, _identifierFormatter);
             var clientStore = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDbClientStore(this.DbService(), this.Logger, this.EventContextResolverService);
             var permissionStore = useInMemoryDB ? new InMemoryPermissionStore() : (IPermissionStore)new CouchDbPermissionStore(this.DbService(), this.Logger, this.EventContextResolverService);
 

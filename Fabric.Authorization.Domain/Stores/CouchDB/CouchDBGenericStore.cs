@@ -29,8 +29,13 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
 
         public virtual async Task Update(T model)
         {
+            await Update(model.Identifier, model);
+        }
+
+        protected virtual async Task Update(string id, T model)
+        {
             model.Track(false, GetActor());
-            await ExponentialBackoff(_dbService.UpdateDocument(model.Identifier, model)).ConfigureAwait(false);
+            await ExponentialBackoff(_dbService.UpdateDocument(id, model)).ConfigureAwait(false);
         }
 
         public abstract Task Delete(T model);
@@ -82,12 +87,12 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
             }
         }
 
-        private string GetActor()
+        protected string GetActor()
         {
             return _eventContextResolverService.Username ?? _eventContextResolverService.ClientId;
         }
 
-        private static async Task ExponentialBackoff(Task action, int maxRetries = 4, int wait = 100)
+        protected static async Task ExponentialBackoff(Task action, int maxRetries = 4, int wait = 100)
         {
             var retryCount = 1;
 

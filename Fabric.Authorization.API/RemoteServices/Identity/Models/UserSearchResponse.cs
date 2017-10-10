@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Net;
 
 namespace Fabric.Authorization.API.RemoteServices.Identity.Models
 {
@@ -13,5 +15,16 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Models
         public string FirstName { get; set; }
         public string MiddleName { get; set; }
         public string LastName { get; set; }
+
+        public override string ToString()
+        {
+            return $"SubjectId={SubjectId}, FirstName={FirstName}, MiddleName={MiddleName}, LastName={LastName}, LastLoginDateTimeUtc={LastLoginDate}";
+        }
+    }
+
+    public class FabricIdentityUserResponse
+    {
+        public HttpStatusCode HttpStatusCode { get; set; }
+        public IEnumerable<UserSearchResponse> Results { get; set; }
     }
 }

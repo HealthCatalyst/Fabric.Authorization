@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Text;
 
 namespace Fabric.Authorization.Domain.Models
 {
@@ -24,6 +26,23 @@ namespace Fabric.Authorization.Domain.Models
 
                 model.ModifiedDateTimeUtc = DateTime.UtcNow;
             }
+        }
+
+        public static string ListToString(this IEnumerable list)
+        {
+            return list.ListToString(Environment.NewLine);
+        }
+
+        public static string ListToString(this IEnumerable list, string lineBreak)
+        {
+            var sb = new StringBuilder();
+            foreach (var item in list)
+            {
+                sb.Append(item);
+                sb.Append(lineBreak);
+            }
+
+            return sb.ToString();
         }
     }
 }

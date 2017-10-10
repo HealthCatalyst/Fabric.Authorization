@@ -112,15 +112,19 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
             mockIdentityServiceProvider
                 .Setup(m => m.Search(Fixture.AtlasClientId, new List<string> { "atlas_user:Windows" }))
-                .ReturnsAsync(() => new List<UserSearchResponse>
+                .ReturnsAsync(() => new FabricIdentityUserResponse
                 {
-                    new UserSearchResponse
+                    HttpStatusCode = System.Net.HttpStatusCode.OK,
+                    Results = new List<UserSearchResponse>
                     {
-                        SubjectId = "atlas_user",
-                        FirstName = "Robert",
-                        MiddleName = "Brian",
-                        LastName = "Smith",
-                        LastLoginDate = lastLoginDate
+                        new UserSearchResponse
+                        {
+                            SubjectId = "atlas_user",
+                            FirstName = "Robert",
+                            MiddleName = "Brian",
+                            LastName = "Smith",
+                            LastLoginDate = lastLoginDate
+                        }
                     }
                 });
 
@@ -167,11 +171,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         public RoleService RoleService { get; private set; }
 
+        private readonly IIdentifierFormatter _identifierFormatter = new IdpIdentifierFormatter();
+
         public void Initialize(bool useInMemoryDb)
         {
             var groupStore = useInMemoryDb
                 ? new InMemoryGroupStore()
-                : (IGroupStore)new CouchDbGroupStore(DbService(), Logger, EventContextResolverService);
+                : (IGroupStore)new CouchDbGroupStore(DbService(), Logger, EventContextResolverService, _identifierFormatter);
 
             var roleStore = useInMemoryDb
                 ? new InMemoryRoleStore()
@@ -179,7 +185,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             var userStore = useInMemoryDb
                 ? new InMemoryUserStore()
-                : (IUserStore)new CouchDbUserStore(DbService(), Logger, EventContextResolverService);
+                : (IUserStore)new CouchDbUserStore(DbService(), Logger, EventContextResolverService, _identifierFormatter);
 
             var clientStore = useInMemoryDb
                 ? new InMemoryClientStore()
@@ -221,7 +227,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     Logger));
 
                 with.Module(new IdentitySearchModule(
-                    new IdentitySearchService(_clientService, RoleService, _groupService, identityServiceProvider),
+                    new IdentitySearchService(_clientService, RoleService, _groupService, identityServiceProvider, Logger),
                     new IdentitySearchRequestValidator(),
                     Logger));
 

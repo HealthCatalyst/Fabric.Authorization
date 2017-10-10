@@ -63,6 +63,9 @@ namespace Fabric.Authorization.API.Extensions
                     {"innerDocumentDbService", c.Resolve<IDocumentDbService>("auditing")}
                 }));
 
+            // TODO: if other CouchDB store types need a different formatter, we'll have to register those
+            container.Register<IIdentifierFormatter, IdpIdentifierFormatter>();
+
             container.Register<IRoleStore, CouchDbRoleStore>();
             container.Register<IUserStore, CouchDbUserStore>();
             container.Register<IPermissionStore, CouchDbPermissionStore>();

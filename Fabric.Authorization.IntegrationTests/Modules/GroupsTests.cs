@@ -21,12 +21,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
     public class GroupsTests : IntegrationTestsFixture
     {
         private readonly IRoleStore _roleStore;
+        private readonly IIdentifierFormatter _identifierFormatter = new IdpIdentifierFormatter();
 
         public GroupsTests(bool useInMemoryDB = true)
         {
             var groupStore = useInMemoryDB
                 ? new InMemoryGroupStore()
-                : (IGroupStore)new CouchDbGroupStore(DbService(), Logger, EventContextResolverService);
+                : (IGroupStore)new CouchDbGroupStore(DbService(), Logger, EventContextResolverService, _identifierFormatter);
 
             _roleStore = useInMemoryDB
                 ? new InMemoryRoleStore()
@@ -34,7 +35,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             var userStore = useInMemoryDB
                 ? new InMemoryUserStore()
-                : (IUserStore)new CouchDbUserStore(DbService(), Logger, EventContextResolverService);
+                : (IUserStore)new CouchDbUserStore(DbService(), Logger, EventContextResolverService, _identifierFormatter);
 
             var permissionStore = useInMemoryDB
                 ? new InMemoryPermissionStore()
