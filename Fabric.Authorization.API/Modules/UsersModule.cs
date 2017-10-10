@@ -90,7 +90,7 @@ namespace Fabric.Authorization.API.Modules
                 await _permissionService.DeleteGranularPermissions(granularPermissions);
                 return HttpStatusCode.NoContent;
             }            
-            catch(BadRequestException<GranularPermission> ex)
+            catch(InvalidPermissionException ex)
             {
                 var invalidPermissions = new StringBuilder();
                 foreach (DictionaryEntry item in ex.Data)
@@ -99,7 +99,7 @@ namespace Fabric.Authorization.API.Modules
                 }
 
                 return CreateFailureResponse(
-                    $"{ex.Message} The following permissions are invalid: {invalidPermissions}", 
+                    $"{ex.Message} {invalidPermissions}", 
                     HttpStatusCode.BadRequest);
             }
         }

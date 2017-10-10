@@ -168,13 +168,15 @@ namespace Fabric.Authorization.Domain.Stores.Services
             IEnumerable<Permission> existingAllowPermissions, 
             IEnumerable<Permission> existingDenyPermissions)
         {
-            var invalidPermissionActionAllowPermissions = existingDenyPermissions?.Where(p => allowPermissionsToDelete.Contains(p)) ?? Enumerable.Empty<Permission>();
+            var invalidPermissionActionAllowPermissions = existingDenyPermissions?
+                .Where(p => allowPermissionsToDelete.Contains(p)) ?? Enumerable.Empty<Permission>();
 
             var invalidAllowPermissions = allowPermissionsToDelete
                 .Except(existingAllowPermissions ?? Enumerable.Empty<Permission>())
                 .Except(invalidPermissionActionAllowPermissions);            
 
-            var invalidPermissionActionDenyPermissions = existingAllowPermissions?.Where(p => denyPermissionsToDelete.Contains(p)) ?? Enumerable.Empty<Permission>();
+            var invalidPermissionActionDenyPermissions = existingAllowPermissions?
+                .Where(p => denyPermissionsToDelete.Contains(p)) ?? Enumerable.Empty<Permission>();
 
             var invalidDenyPermissions = denyPermissionsToDelete
                 .Except(existingDenyPermissions ?? Enumerable.Empty<Permission>())
@@ -185,26 +187,27 @@ namespace Fabric.Authorization.Domain.Stores.Services
                 || invalidPermissionActionAllowPermissions.Any() 
                 || invalidPermissionActionDenyPermissions.Any())
             {
-                var badRequestException = new BadRequestException<GranularPermission>("Cannot delete the specified permissions, please correct the issues and attempt to delete again.");
+                var invalidPermissionException = 
+                    new InvalidPermissionException("Cannot delete the specified permissions, please correct the issues and attempt to delete again. The following permissions are invalid:");
 
                 if (invalidAllowPermissions.Any())
                 {
-                    badRequestException.Data.Add("Invalid allow permissions", string.Join(",", invalidAllowPermissions));
+                    invalidPermissionException.Data.Add("Invalid allow permissions", string.Join(",", invalidAllowPermissions));
                 }
                 if (invalidDenyPermissions.Any())
                 {
-                    badRequestException.Data.Add("Invalid deny permissions", string.Join(",", invalidDenyPermissions));
+                    invalidPermissionException.Data.Add("Invalid deny permissions", string.Join(",", invalidDenyPermissions));
                 }
                 if(invalidPermissionActionAllowPermissions.Any())
                 {
-                    badRequestException.Data.Add("Invalid allow permission actions", string.Join(",", invalidPermissionActionAllowPermissions));
+                    invalidPermissionException.Data.Add("Invalid allow permission actions", string.Join(",", invalidPermissionActionAllowPermissions));
                 }
                 if (invalidPermissionActionDenyPermissions.Any())
                 {
-                    badRequestException.Data.Add("Invalid deny permission actions", string.Join(",", invalidPermissionActionDenyPermissions));
+                    invalidPermissionException.Data.Add("Invalid deny permission actions", string.Join(",", invalidPermissionActionDenyPermissions));
                 }
 
-                throw badRequestException;
+                throw invalidPermissionException;
             }
         }
 
