@@ -62,6 +62,12 @@ namespace Fabric.Authorization.Domain.Stores.Services
             return clientRoles;
         }
 
+        public async Task<IEnumerable<Role>> GetRoles(string clientId)
+        {
+            var client = await _clientService.GetClient(clientId);
+            return await GetRoles(client);
+        }
+
         /// <summary>
         /// Gets a role by Id.
         /// </summary>

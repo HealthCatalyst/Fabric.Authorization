@@ -191,9 +191,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 ? new InMemoryClientStore()
                 : (IClientStore)new CouchDbClientStore(DbService(), Logger, EventContextResolverService);
 
-            _groupService = new GroupService(groupStore, roleStore, userStore);
             _clientService = new ClientService(clientStore);
             RoleService = new RoleService(roleStore, new InMemoryPermissionStore(), _clientService);
+            _groupService = new GroupService(groupStore, roleStore, userStore, RoleService);
 
             AtlasClientId = $"atlas-{DateTime.Now.Ticks}";
             AdminAtlasGroupName = $"adminAtlasGroup-{DateTime.Now.Ticks}";
