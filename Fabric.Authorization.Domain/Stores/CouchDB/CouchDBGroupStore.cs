@@ -36,7 +36,7 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
 
         public override async Task<Group> Add(Group group)
         {
-            return await Add(FormatId(group.Id), group);
+            return await Add(FormatId(group.Id), group).ConfigureAwait(false);
         }
 
         protected override async Task Update(string id, Group model)
@@ -47,7 +47,7 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
 
         public override async Task Delete(Group group)
         {
-            await Delete(FormatId(group.Id), group);
+            await Delete(FormatId(group.Id), group).ConfigureAwait(false);
         }
 
         public override async Task<IEnumerable<Group>> GetAll()
