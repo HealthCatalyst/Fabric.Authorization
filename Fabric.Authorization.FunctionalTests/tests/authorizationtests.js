@@ -188,25 +188,21 @@ describe("authorization tests", function () {
 
     describe("register groups", function () {
         it("should return 400 for group HC Editor (already exists)", function () {
-            this.timeout(1000000);
             var registerGroupHcEditorResponse = chakram.post(baseAuthUrl + "/groups", groupHcEditor, authRequestOptions);
             return expect(registerGroupHcEditorResponse).to.have.status(400);
         });
 
         it("should return 400 for group HC Viewer (already exists)", function () {
-            this.timeout(1000000);
             var registerGroupHcViewerResponse = chakram.post(baseAuthUrl + "/groups", groupHcViewer, authRequestOptions);
             return expect(registerGroupHcViewerResponse).to.have.status(400);
         });
 
         it("should register group HC Admin", function () {
-            this.timeout(1000000);
             var registerGroupHcAdminResponse = chakram.post(baseAuthUrl + "/groups", groupHcAdmin, authRequestOptions);
             return expect(registerGroupHcAdminResponse).to.have.status(201);
         });
 
         it("should register group Non-Custom", function () {
-            this.timeout(1000000);
             var registerGroupNonCustomResponse = chakram.post(baseAuthUrl + "/groups", groupNonCustom, authRequestOptions);
             return expect(registerGroupNonCustomResponse).to.have.status(201);
         });
@@ -331,7 +327,6 @@ describe("authorization tests", function () {
 
     describe("associate users to groups", function () {
         it("should return 400 when no subjectId provided", function () {
-            this.timeout(1000000);
             authRequestOptions.headers.Authorization = funcTestAuthClientAccessToken;
 
             return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupHcEditor.groupName) + "/users", { "identityProvider": "Windows" }, authRequestOptions)
@@ -341,7 +336,6 @@ describe("authorization tests", function () {
         });
 
         it("should return 400 when no identityProvider provided", function () {
-            this.timeout(1000000);
             authRequestOptions.headers.Authorization = funcTestAuthClientAccessToken;
 
             return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupHcEditor.groupName) + "/users", { "subjectId": "first.last@gmail.com" }, authRequestOptions)
@@ -351,7 +345,6 @@ describe("authorization tests", function () {
         });
 
         it("should return 400 when associating user with non-custom group", function () {
-            this.timeout(1000000);
             authRequestOptions.headers.Authorization = funcTestAuthClientAccessToken;
 
             return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupNonCustom.groupName) + "/users", userBob, authRequestOptions)
@@ -361,7 +354,6 @@ describe("authorization tests", function () {
         });
 
         it("should associate user with group HC Admin", function () {
-            this.timeout(1000000);
             authRequestOptions.headers.Authorization = funcTestAuthClientAccessToken;
 
             return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupHcAdmin.groupName) + "/users", userBob, authRequestOptions)
