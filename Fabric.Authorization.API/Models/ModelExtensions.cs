@@ -53,6 +53,7 @@ namespace Fabric.Authorization.API.Models
             var userApiModel = new UserApiModel
             {
                 SubjectId = user.SubjectId,
+                IdentityProvider = user.IdentityProvider,
                 Groups = user.Groups
             };
 
@@ -193,7 +194,7 @@ namespace Fabric.Authorization.API.Models
             };
 
             return domainModel;
-        }
+        }        
 
         public static Client ToClientDomainModel(this ClientApiModel client)
         {
