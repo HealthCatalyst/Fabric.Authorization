@@ -105,7 +105,7 @@ namespace Fabric.Authorization.API.Services
             {
                 // get groups for user
                 var userGroups = user.Groups;
-                var userGroupEntities = groupEntities.Where(g => userGroups.Contains(g.Name));
+                var userGroupEntities = groupEntities.Where(g => userGroups.Contains(g.Name, StringComparer.OrdinalIgnoreCase));
 
                 // get roles for user
                 var userRoles = userGroupEntities.SelectMany(g => g.Roles).Select(r => r.Name);

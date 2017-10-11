@@ -64,13 +64,15 @@ namespace Fabric.Authorization.Domain.Stores.Services
 
         public async Task UpdateGroupList(IEnumerable<Group> groups)
         {
-            var allGroups = await _groupStore.GetAll() ?? Enumerable.Empty<Group>();
+            var allGroups = (await _groupStore.GetAll() ?? Enumerable.Empty<Group>()).ToList();
 
-            var groupNames = groups.Select(g => g.Name);
+            var groupList = groups.ToList();
+
+            var groupNames = groupList.Select(g => g.Name);
             var storedGroupNames = allGroups.Select(g => g.Name);
 
-            var toDelete = allGroups.Where(g => !groupNames.Contains(g.Name));
-            var toAdd = groups.Where(g => !storedGroupNames.Contains(g.Name));
+            var toDelete = allGroups.Where(g => !groupNames.Contains(g.Name, StringComparer.OrdinalIgnoreCase));
+            var toAdd = groupList.Where(g => !storedGroupNames.Contains(g.Name, StringComparer.OrdinalIgnoreCase));
 
             // TODO: This must be transactional or fault tolerant.
             await Task.WhenAll(toDelete.ToList().Select(DeleteGroup));
