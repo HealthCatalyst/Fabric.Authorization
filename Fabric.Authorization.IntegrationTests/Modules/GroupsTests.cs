@@ -683,15 +683,34 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(1, userList.Count);
             Assert.Equal(user1SubjectId, userList[0].SubjectId);
 
-            // set up another role->group mapping
+            // set up another user->group mapping
             const string group2Name = "Group2Name";
             const string user2SubjectId = "User2SubjectId";
 
             SetupGroup(group2Name, "Custom");
-            response = SetupGroupUserMapping(group2Name, user2SubjectId, identityProvider);
 
+            // link user 2 to group 1
+            response = SetupGroupUserMapping(group1Name, user2SubjectId, identityProvider);
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
+            // link user 2 to group 2
+            response = SetupGroupUserMapping(group2Name, user2SubjectId, identityProvider);
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+            // get users for group 1
+            response = Browser.Get($"/groups/{group1Name}/users", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            responseEntity = response.Body.DeserializeJson<GroupUserApiModel>();
+            userList = responseEntity.Users.ToList();
+            Assert.Equal(2, userList.Count);
+
+            // get users for group 2
             response = Browser.Get($"/groups/{group2Name}/users", with =>
             {
                 with.HttpRequest();
@@ -769,7 +788,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             // attempt to set up the same mapping (the API treats this as an update to the existing
             // group-user mapping)
             response = SetupGroupUserMapping(group1Name, subject1Id, identityProvider);
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
             response = Browser.Get($"/groups/{group1Name}/users", with =>
             {

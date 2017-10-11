@@ -6,6 +6,8 @@ namespace Fabric.Authorization.API.Models
     {
         public string SubjectId { get; set; }
 
+        public string IdentityProvider { get; set; }
+
         public IEnumerable<string> Groups { get; set; }
     }
 }
