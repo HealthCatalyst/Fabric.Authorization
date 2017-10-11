@@ -364,7 +364,7 @@ namespace Fabric.Authorization.API.Modules
                     new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.BadRequest,
-                        Message = "Group is not a custom group"
+                        Message = "1) Group is not a custom group or 2) User is already a member of the group"
                     }
                 },
                 new[]
