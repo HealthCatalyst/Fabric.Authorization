@@ -61,18 +61,23 @@ namespace Fabric.Authorization.API.Modules
 
         private async Task<dynamic> AddGranularPermissions(dynamic param)
         {
-            var apiModel = this.Bind<List<PermissionApiModel>>();            
+            var permissions = this.Bind<List<PermissionApiModel>>();
 
-            foreach (var perm in apiModel)
+            if (permissions.Count == 0)
+                return CreateFailureResponse(
+                    "No permissions specified to add, ensure an array of permissions is included in the request.",
+                    HttpStatusCode.BadRequest);
+
+            foreach (var perm in permissions)
                 await CheckAccess(_clientService, perm.Grain, perm.SecurableItem, AuthorizationManageClientsClaim);
 
             var granularPermission = new GranularPermission
             {
                 Id = $"{param.subjectId}:{param.identityProvider}",
-                DeniedPermissions = apiModel
+                DeniedPermissions = permissions
                     .Where(p => p.PermissionAction == PermissionAction.Deny)
                     .Select(p => p.ToPermissionDomainModel()),
-                AdditionalPermissions = apiModel
+                AdditionalPermissions = permissions
                     .Where(p => p.PermissionAction == PermissionAction.Allow)
                     .Select(p => p.ToPermissionDomainModel())
             };
@@ -83,18 +88,23 @@ namespace Fabric.Authorization.API.Modules
 
         private async Task<dynamic> DeleteGranularPermissions(dynamic param)
         {
-            var apiModel = this.Bind<List<PermissionApiModel>>();
+            var permissions = this.Bind<List<PermissionApiModel>>();
 
-            foreach (var perm in apiModel)
+            if (permissions.Count == 0)
+                return CreateFailureResponse(
+                    "No permissions specified to add, ensure an array of permissions is included in the request.",
+                    HttpStatusCode.BadRequest);
+
+            foreach (var perm in permissions)
                 await CheckAccess(_clientService, perm.Grain, perm.SecurableItem, AuthorizationManageClientsClaim);
-            
+
             var granularPermission = new GranularPermission
             {
                 Id = $"{param.subjectId}:{param.identityProvider}",
-                DeniedPermissions = apiModel
+                DeniedPermissions = permissions
                     .Where(p => p.PermissionAction == PermissionAction.Deny)
                     .Select(p => p.ToPermissionDomainModel()),
-                AdditionalPermissions = apiModel
+                AdditionalPermissions = permissions
                     .Where(p => p.PermissionAction == PermissionAction.Allow)
                     .Select(p => p.ToPermissionDomainModel())
             };
@@ -116,7 +126,7 @@ namespace Fabric.Authorization.API.Modules
                     $"{ex.Message} {invalidPermissions}", 
                     HttpStatusCode.BadRequest);
             }
-        }
+        }     
 
         private async Task<dynamic> GetCurrentUserPermissions()
         {
