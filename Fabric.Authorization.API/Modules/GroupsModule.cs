@@ -220,13 +220,14 @@ namespace Fabric.Authorization.API.Modules
                 {
                     return CreateFailureResponse("subjectId is required", HttpStatusCode.BadRequest);
                 }
-            
+
                 if (string.IsNullOrWhiteSpace(groupUserRequest.IdentityProvider))
                 {
                     return CreateFailureResponse("identityProvider is required", HttpStatusCode.BadRequest);
                 }
 
-                var group = await _groupService.AddUserToGroup(groupUserRequest.GroupName, groupUserRequest.SubjectId, groupUserRequest.IdentityProvider);
+                var group = await _groupService.AddUserToGroup(groupUserRequest.GroupName, groupUserRequest.SubjectId,
+                    groupUserRequest.IdentityProvider);
                 return CreateSuccessfulPostResponse(group.ToGroupUserApiModel());
             }
             catch (NotFoundException<Group> ex)
@@ -238,6 +239,10 @@ namespace Fabric.Authorization.API.Modules
                 return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
             }
             catch (BadRequestException<Group> ex)
+            {
+                return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
+            }
+            catch (AlreadyExistsException<Group> ex)
             {
                 return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
             }

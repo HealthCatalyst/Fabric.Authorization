@@ -94,7 +94,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
                 group.Roles.Add(role);
             }
 
-            if (role.Groups.All(g => g != groupName))
+            if (role.Groups.All(g => !string.Equals(g, groupName, StringComparison.OrdinalIgnoreCase)))
             {
                 role.Groups.Add(groupName);
             }
@@ -115,7 +115,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
                 group.Roles.Remove(groupRole);
             }
 
-            if (role.Groups.Any(g => g == groupName))
+            if (role.Groups.Any(g => string.Equals(g, groupName, StringComparison.OrdinalIgnoreCase)))
             {
                 role.Groups.Remove(groupName);
             }
@@ -145,12 +145,18 @@ namespace Fabric.Authorization.Domain.Stores.Services
                 user = await _userStore.Add(new User(subjectId, identityProvider));
             }
 
-            if (group.Users.All(u => u.SubjectId != subjectId && u.IdentityProvider != identityProvider))
+            if (!group.Users.Any(u =>
+                string.Equals(u.SubjectId, subjectId, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(u.IdentityProvider, identityProvider, StringComparison.OrdinalIgnoreCase)))
             {
                 group.Users.Add(user);
             }
+            else
+            {
+                throw new AlreadyExistsException<Group>($"The user {identityProvider}:{subjectId} has already been added to the group.");
+            }
 
-            if (user.Groups.All(g => g != groupName))
+            if (user.Groups.All(g => !string.Equals(g, groupName, StringComparison.OrdinalIgnoreCase)))
             {
                 user.Groups.Add(groupName);
             }
@@ -165,15 +171,13 @@ namespace Fabric.Authorization.Domain.Stores.Services
             var group = await _groupStore.Get(groupName);
             var user = await _userStore.Get($"{subjectId}:{identityProvider}");
 
-            var groupUser = group.Users.FirstOrDefault(u => 
-                u.Id == user.Id);
-
+            var groupUser = group.Users.FirstOrDefault(u => u.Id == user.Id);
             if (groupUser != null)
             {
                 group.Users.Remove(groupUser);
             }
 
-            if (user.Groups.Any(g => g == groupName))
+            if (user.Groups.Any(g => string.Equals(g, groupName, StringComparison.OrdinalIgnoreCase)))
             {
                 user.Groups.Remove(groupName);
             }
