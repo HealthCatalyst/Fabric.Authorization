@@ -30,15 +30,18 @@ namespace Fabric.Authorization.Domain.Stores.Services
         private readonly IGroupStore _groupStore;
         private readonly IRoleStore _roleStore;
         private readonly IUserStore _userStore;
+        private readonly RoleService _roleService;
 
         public GroupService(
             IGroupStore groupStore,
             IRoleStore roleStore,
-            IUserStore userStore)
+            IUserStore userStore,
+            RoleService roleService)
         {
             _groupStore = groupStore ?? throw new ArgumentNullException(nameof(groupStore));
             _roleStore = roleStore ?? throw new ArgumentNullException(nameof(roleStore));
             _userStore = userStore ?? throw new ArgumentNullException(nameof(userStore));
+            _roleService = roleService ?? throw new ArgumentNullException(nameof(roleService));
         }
 
         public async Task<Group> AddGroup(Group group)
@@ -46,14 +49,12 @@ namespace Fabric.Authorization.Domain.Stores.Services
             return await _groupStore.Add(group);
         }
 
-        public async Task<Group> GetGroup(string id)
+        public async Task<Group> GetGroup(string id, string clientId)
         {
-            return await _groupStore.Get(id);
-        }
-
-        public async Task<IEnumerable<Group>> GetAllGroups()
-        {
-            return await _groupStore.GetAll();
+            var group = await _groupStore.Get(id);
+            var clientRoles = await _roleService.GetRoles(clientId);
+            group.Roles = clientRoles.Intersect(group.Roles).ToList();
+            return group;
         }
 
         public async Task DeleteGroup(Group group)
@@ -127,7 +128,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
             var group = await _groupStore.Get(groupName);
 
             //only add users to a custom group
-            if (!string.Equals(group.Source, GroupConstants.CustomSource))
+            if (!string.Equals(group.Source, GroupConstants.CustomSource, StringComparison.OrdinalIgnoreCase))
             {
                 throw new BadRequestException<Group>("The group to which you are attempting to add a user is not specified as a 'Custom' group. Only 'Custom' groups allow associations with users.");
             }

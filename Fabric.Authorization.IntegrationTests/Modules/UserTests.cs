@@ -39,7 +39,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             var clientService = new ClientService(clientStore);
             var roleService = new RoleService(roleStore, permissionStore, clientService);
-            var groupService = new GroupService(groupStore, roleStore, userStore);
+            var groupService = new GroupService(groupStore, roleStore, userStore, roleService);
             var userService = new UserService(userStore);
             var permissionService = new PermissionService(permissionStore, roleService);
 

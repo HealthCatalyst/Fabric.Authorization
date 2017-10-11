@@ -73,7 +73,7 @@ namespace Fabric.Authorization.API.Services
             var groupEntities = new List<Group>();
             foreach (var groupId in groupIds)
             {
-                var group = await _groupService.GetGroup(groupId);
+                var group = await _groupService.GetGroup(groupId, request.ClientId);
                 groupEntities.Add(group);
             }
 
@@ -81,7 +81,7 @@ namespace Fabric.Authorization.API.Services
 
             var groupsMappedToClientRoles = groupEntities.Where(g => g.Roles.Any(r => clientRoleEntities.Contains(r))).ToList();
             var nonCustomGroups =
-                groupsMappedToClientRoles.Where(g => !string.Equals(g.Source, GroupConstants.CustomSource)).ToList();
+                groupsMappedToClientRoles.Where(g => !string.Equals(g.Source, GroupConstants.CustomSource, StringComparison.OrdinalIgnoreCase)).ToList();
 
             _logger.Debug($"nonCustomGroups = {nonCustomGroups.ListToString()}");
 

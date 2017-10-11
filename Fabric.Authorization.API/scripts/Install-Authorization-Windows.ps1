@@ -36,7 +36,7 @@ $zipPackage = $installSettings.zipPackage
 $webroot = $installSettings.webroot 
 $appName = $installSettings.appName
 $iisUser = $installSettings.iisUser
-$encryptionCertificateThumbprint = $installSettings.encryptionCertificateThumbprint
+$encryptionCertificateThumbprint = $installSettings.encryptionCertificateThumbprint -replace '[^a-zA-Z0-9]', ''
 $couchDbServer = $installSettings.couchDbServer
 $couchDbUsername = $installSettings.couchDbUsername
 $couchDbPassword = $installSettings.couchDbPassword
@@ -47,6 +47,43 @@ $fabricInstallerSecret = $installSettings.fabricInstallerSecret
 $hostUrl = $installSettings.hostUrl
 
 $workingDirectory = Get-CurrentScriptDirectory
+
+Write-Host ""
+Write-Host "Checking prerequisites..."
+Write-Host ""
+
+try{
+	$encryptionCert = Get-Certificate $encryptionCertificateThumbprint
+}catch{
+	Write-Host "Could not get encryption certificate with thumbprint $encryptionCertificateThumbprint. Please verify that the encryptionCertificateThumbprint setting in install.config contains a valid thumbprint for a certificate in the Local Machine Personal store. Halting installation."
+	throw $_.Exception
+}
+
+if($fabricInstallerSecret -eq $null){
+	Write-Host "fabricInstallerSecret is not present in install.config, cannot proceed with installation. Please ensure that the fabricInstallerSecret config has a value in the install.config. Halting installation."
+	exit 1
+}
+
+try{
+	$accessToken = Get-AccessToken -authUrl $identityServerUrl -clientId "fabric-installer" -scope "fabric/identity.manageresources" -secret $fabricInstallerSecret
+} catch {
+	Write-Host "There was a problem getting an access token for the Fabric Installer client, please make sure that Fabric.Identity is running and that the fabricInstallerSecret value in the install.config is correct. Halting installation."
+	throw $_.Exception
+	exit 1
+}
+
+if((Test-Path $zipPackage))
+{
+	$path = [System.IO.Path]::GetDirectoryName($zipPackage)
+	if(!$path)
+	{
+		$zipPackage = [System.IO.Path]::Combine($workingDirectory, $zipPackage)
+		Write-Host "zipPackage: $zipPackage"
+	}
+}else{
+	Write-Host "Could not find file or directory $zipPackage, please verify that the zipPackage configuration setting in install.config is the path to a valid zip file that exists. Halting installation."
+	exit 1
+}
 
 if(!(Test-Prerequisite '*.NET Core*Windows Server Hosting*' 1.1.30327.81))
 {
@@ -82,14 +119,16 @@ if(!(Test-IdentityInstalled $identityServerUrl)){
 	exit 1
 }
 
+Write-Host ""
+Write-Host "Prerequisite checks complete...installing."
+Write-Host ""
+
 $appDirectory = "$webroot\$appName"
 New-AppRoot $appDirectory $iisUser
 Write-Host "App directory is: $appDirectory"
 New-AppPool $appName
 New-App $appName $siteName $appDirectory
 Publish-WebSite $zipPackage $appDirectory $appName
-
-$accessToken = Get-AccessToken -authUrl $identityServerUrl -clientId "fabric-installer" -scope "fabric/identity.manageresources" -secret $fabricInstallerSecret
 
 #Register authorization api
 $body = @'
@@ -157,7 +196,6 @@ try{
 Write-Host ""
 Write-Host "Loading up environment variables..."
 $environmentVariables = @{"HostingOptions__UseInMemoryStores" = "false"}
-$encryptionCert = Get-Item Cert:\LocalMachine\My\$encryptionCertificateThumbprint
 
 if($clientName){
 	$environmentVariables.Add("ClientName", $clientName)

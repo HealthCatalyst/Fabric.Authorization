@@ -35,7 +35,7 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
 
         public override async Task<User> Add(User model)
         {
-            return await base.Add(FormatId(model.Id), model);
+            return await base.Add(FormatId(model.Id), model).ConfigureAwait(false);
         }
 
         protected override async Task Update(string id, User model)
@@ -46,7 +46,7 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
 
         public override async Task Delete(User model)
         {
-            await base.Delete(FormatId(model.Id), model);
+            await base.Delete(FormatId(model.Id), model).ConfigureAwait(false);
         }
     }
 }
