@@ -61,33 +61,47 @@ namespace Fabric.Authorization.API.Modules
 
         private async Task<dynamic> AddGranularPermissions(dynamic param)
         {
-            var apiModel = this.Bind<GranularPermissionApiModel>();            
+            var apiModel = this.Bind<List<PermissionApiModel>>();            
 
-            foreach (var perm in apiModel.Permissions)
+            foreach (var perm in apiModel)
                 await CheckAccess(_clientService, perm.Grain, perm.SecurableItem, AuthorizationManageClientsClaim);
 
-            apiModel.Id = $"{param.subjectId}:{param.identityProvider}";
+            var granularPermission = new GranularPermission
+            {
+                Id = $"{param.subjectId}:{param.identityProvider}",
+                DeniedPermissions = apiModel
+                    .Where(p => p.PermissionAction == PermissionAction.Deny)
+                    .Select(p => p.ToPermissionDomainModel()),
+                AdditionalPermissions = apiModel
+                    .Where(p => p.PermissionAction == PermissionAction.Allow)
+                    .Select(p => p.ToPermissionDomainModel())
+            };
 
-            var granularPermissions = apiModel.ToGranularPermissionDomainModel();                        
-
-            await _permissionService.AddUserGranularPermissions(granularPermissions);
+            await _permissionService.AddUserGranularPermissions(granularPermission);
             return HttpStatusCode.NoContent;
         }      
 
         private async Task<dynamic> DeleteGranularPermissions(dynamic param)
         {
-            var apiModel = this.Bind<GranularPermissionApiModel>();
+            var apiModel = this.Bind<List<PermissionApiModel>>();
 
-            foreach (var perm in apiModel.Permissions)
+            foreach (var perm in apiModel)
                 await CheckAccess(_clientService, perm.Grain, perm.SecurableItem, AuthorizationManageClientsClaim);
-
-            apiModel.Id = $"{param.subjectId}:{param.identityProvider}";
-
-            var granularPermissions = apiModel.ToGranularPermissionDomainModel();            
             
+            var granularPermission = new GranularPermission
+            {
+                Id = $"{param.subjectId}:{param.identityProvider}",
+                DeniedPermissions = apiModel
+                    .Where(p => p.PermissionAction == PermissionAction.Deny)
+                    .Select(p => p.ToPermissionDomainModel()),
+                AdditionalPermissions = apiModel
+                    .Where(p => p.PermissionAction == PermissionAction.Allow)
+                    .Select(p => p.ToPermissionDomainModel())
+            };
+
             try
             {
-                await _permissionService.DeleteGranularPermissions(granularPermissions);
+                await _permissionService.DeleteGranularPermissions(granularPermission);
                 return HttpStatusCode.NoContent;
             }            
             catch(InvalidPermissionException ex)

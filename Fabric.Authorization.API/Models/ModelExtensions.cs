@@ -160,40 +160,6 @@ namespace Fabric.Authorization.API.Models
 
             };
             return clientApiModel;
-        }
-
-        public static GranularPermissionApiModel ToGranularPermissionApiModel(this GranularPermission perm)
-        {
-            var apiModel = new GranularPermissionApiModel
-            {
-                Id = perm.Id,
-                CreatedDateTimeUtc = perm.CreatedDateTimeUtc,
-                ModifiedDateTimeUtc = perm.ModifiedDateTimeUtc,
-                CreatedBy = perm.CreatedBy,
-                ModifiedBy = perm.ModifiedBy,
-            };
-
-            return apiModel;
-        }
-
-        public static GranularPermission ToGranularPermissionDomainModel(this GranularPermissionApiModel perm)
-        {
-            var domainModel = new GranularPermission
-            {
-                Id = perm.Id,
-                CreatedDateTimeUtc = perm.CreatedDateTimeUtc,
-                ModifiedDateTimeUtc = perm.ModifiedDateTimeUtc,
-                CreatedBy = perm.CreatedBy,
-                ModifiedBy = perm.ModifiedBy,
-                DeniedPermissions = perm.Permissions
-                    .Where(p => p.PermissionAction == PermissionAction.Deny)
-                    .Select(p => p.ToPermissionDomainModel()),
-                AdditionalPermissions = perm.Permissions
-                    .Where(p => p.PermissionAction == PermissionAction.Allow)
-                    .Select(p => p.ToPermissionDomainModel())
-            };
-
-            return domainModel;
         }        
 
         public static Client ToClientDomainModel(this ClientApiModel client)

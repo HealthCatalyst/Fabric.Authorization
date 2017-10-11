@@ -71,7 +71,7 @@ namespace Fabric.Authorization.API.Modules
                 {
                     _identityProviderParameter,
                     _subjectIdParameter,
-                    new BodyParameter<GranularPermissionApiModel>(modelCatalog)
+                    new BodyParameter<List<PermissionApiModel>>(modelCatalog)
                     {
                         Name = "GranularPermissions",
                         Description = "The permissions to add for the user."
@@ -99,7 +99,7 @@ namespace Fabric.Authorization.API.Modules
                 {
                     _identityProviderParameter,
                     _subjectIdParameter,
-                    new BodyParameter<GranularPermissionApiModel>(modelCatalog)
+                    new BodyParameter<List<PermissionApiModel>>(modelCatalog)
                     {
                         Name = "GranularPermissions",
                         Description = "The permissions to delete from the user."
