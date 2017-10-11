@@ -18,7 +18,7 @@ namespace Fabric.Authorization.UnitTests.Mocks
                 {
                     if (groups.Any(g => g.Name == groupName))
                     {
-                        return Task.FromResult(groups.First(g => g.Name == groupName));
+                        return Task.FromResult(groups.First(g => string.Equals(g.Name, groupName, StringComparison.OrdinalIgnoreCase)));
                     }
                     throw new NotFoundException<Group>();
                 });
@@ -28,7 +28,11 @@ namespace Fabric.Authorization.UnitTests.Mocks
         public static Mock<IGroupStore> SetupGroupExists(this Mock<IGroupStore> mockGroupStore, List<Group> groups)
         {
             mockGroupStore.Setup(groupStore => groupStore.Exists(It.IsAny<string>()))
-                .Returns((string groupName) => { return Task.FromResult(groups.Any(g => g.Name == groupName)); });
+                .Returns((string groupName) =>
+                    {
+                        return Task.FromResult(groups.Any(
+                            g => string.Equals(g.Name, groupName, StringComparison.OrdinalIgnoreCase)));
+                    });
             return mockGroupStore;
         }
 
