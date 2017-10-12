@@ -1136,5 +1136,94 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
             Assert.Contains("Duplicate allow permissions: app/userprincipal.modifypatient", postResponse.Body.AsString());
         }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void Test_Add_GranularPermssion_ExistsWithOtherAction()
+        {
+            var modifyPatientPermission = new PermissionApiModel()
+            {
+                Grain = "app",
+                SecurableItem = "userprincipal",
+                Name = "modifypatient",
+                PermissionAction = PermissionAction.Allow
+            };
+
+            string subjectId = "userprincipal";
+
+            this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                var perms = new List<PermissionApiModel> { modifyPatientPermission };
+                with.JsonBody(perms);
+            }).Wait();
+
+            modifyPatientPermission.PermissionAction = PermissionAction.Deny;
+
+            var postResponse = this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                var perms = new List<PermissionApiModel> { modifyPatientPermission };
+                with.JsonBody(perms);
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
+            Assert.Contains("Exists as allow: app/userprincipal.modifypatient", postResponse.Body.AsString());
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void Test_Add_GranularPermission_ExistWithOtherAction_Duplicate()
+        {
+            var modifyPatientPermission = new PermissionApiModel()
+            {
+                Grain = "app",
+                SecurableItem = "userprincipal",
+                Name = "modifypatient",
+                PermissionAction = PermissionAction.Allow
+            };
+
+            var deletePatientPermission = new PermissionApiModel()
+            {
+                Grain = "app",
+                SecurableItem = "userprincipal",
+                Name = "deletepatient",
+                PermissionAction = PermissionAction.Allow
+            };
+
+            var readPatientPermission = new PermissionApiModel()
+            {
+                Grain = "app",
+                SecurableItem = "userprincipal",
+                Name = "readpatient",
+                PermissionAction = PermissionAction.Allow
+            };
+
+            string subjectId = "userprincipal";
+
+            this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                var perms = new List<PermissionApiModel> { modifyPatientPermission, deletePatientPermission, readPatientPermission };
+                with.JsonBody(perms);
+            }).Wait();
+
+            modifyPatientPermission.PermissionAction = PermissionAction.Deny;            
+
+            var postResponse = this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                var perms = new List<PermissionApiModel> { modifyPatientPermission, deletePatientPermission, readPatientPermission };
+                with.JsonBody(perms);
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
+            Assert.Contains("Exists as allow: app/userprincipal.modifypatient", postResponse.Body.AsString());
+            Assert.Contains("Duplicate allow permissions: app/userprincipal.deletepatient, app/userprincipal.readpatient", postResponse.Body.AsString());
+        }
     }
 }

@@ -137,7 +137,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
             }
             catch (NotFoundException<GranularPermission>)
             {
-                // Do nothing
+                //nothing to do here. if the user has never had granular permissions stored then save whatever was passed in
             }
 
             await _permissionStore.AddOrUpdateGranularPermission(granularPermission);
@@ -148,21 +148,28 @@ namespace Fabric.Authorization.Domain.Stores.Services
             IEnumerable<Permission> existingAllowPermissions,
             IEnumerable<Permission> existingDenyPermissions)
         {
-            var alreadyExistAllow = allowPermissionsToAdd.Where(p => existingAllowPermissions.Contains(p));
-            var alreadyExistDeny = denyPermissionsToAdd.Where(p => existingDenyPermissions.Contains(p));
+            var invalidPermissions = new List<KeyValuePair<string,string>>();
 
-            if (alreadyExistAllow.Any() || alreadyExistDeny.Any())
+            invalidPermissions.AddRange(allowPermissionsToAdd.Intersect(existingAllowPermissions)
+                .Select(p => new KeyValuePair<string,string>("Duplicate allow permissions", p.ToString())));
+            invalidPermissions.AddRange(denyPermissionsToAdd.Intersect(existingDenyPermissions)
+                .Select(p => new KeyValuePair<string, string>("Duplicate deny permissions", p.ToString() )));
+
+            invalidPermissions.AddRange(allowPermissionsToAdd.Intersect(existingDenyPermissions)
+                .Select(p => new KeyValuePair<string, string>("Exists as deny", p.ToString() )));
+            invalidPermissions.AddRange(denyPermissionsToAdd.Intersect(existingAllowPermissions)
+                .Select(p => new KeyValuePair<string, string>("Exists as allow", p.ToString())));
+
+            if (invalidPermissions.Any())
             {
                 var invalidPermissionException =
-                    new InvalidPermissionException("Cannot add the specified permissions, please correct the issues and attempt to add again. The following permissions are duplicates:");
+                    new InvalidPermissionException("Cannot add the specified permissions, please correct the issues and attempt to add again. The following permissions are invalid:");
 
-                if (alreadyExistAllow.Any())
+                var permissionGroups = invalidPermissions.GroupBy(i => i.Key);
+
+                foreach(var group in permissionGroups)
                 {
-                    invalidPermissionException.Data.Add("Duplicate allow permissions", string.Join(",", alreadyExistAllow));
-                }
-                if (alreadyExistDeny.Any())
-                {
-                    invalidPermissionException.Data.Add("Duplicate deny permissions", string.Join(",", alreadyExistDeny));
+                    invalidPermissionException.Data.Add(group.Key, string.Join(", ", group.Select(p => p.Value)));
                 }
 
                 throw invalidPermissionException;
