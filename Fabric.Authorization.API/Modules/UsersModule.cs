@@ -82,8 +82,24 @@ namespace Fabric.Authorization.API.Modules
                     .Select(p => p.ToPermissionDomainModel())
             };
 
-            await _permissionService.AddUserGranularPermissions(granularPermission);
-            return HttpStatusCode.NoContent;
+            try
+            {
+                await _permissionService.AddUserGranularPermissions(granularPermission);
+                return HttpStatusCode.NoContent;
+            }
+            catch(InvalidPermissionException ex)
+            {
+                var invalidPermissions = new StringBuilder();
+                foreach (DictionaryEntry item in ex.Data)
+                {
+                    invalidPermissions.Append($"{item.Key}: {item.Value}. ");
+                }
+
+                return CreateFailureResponse(
+                    $"{ex.Message} {invalidPermissions}",
+                    HttpStatusCode.BadRequest);
+            }
+            
         }      
 
         private async Task<dynamic> DeleteGranularPermissions(dynamic param)
