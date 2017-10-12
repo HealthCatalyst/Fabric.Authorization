@@ -118,10 +118,21 @@ namespace Fabric.Authorization.Domain.Stores.Services
         {
             try
             {
-                var stored = await GetUserGranularPermissions(granularPermission.Id);               
+                var stored = await GetUserGranularPermissions(granularPermission.Id);
 
-                granularPermission.AdditionalPermissions.ToList().AddRange(stored.AdditionalPermissions);
-                granularPermission.DeniedPermissions.ToList().AddRange(stored.DeniedPermissions);
+                ValidatePermissionsForAdd(granularPermission.AdditionalPermissions,
+                    granularPermission.DeniedPermissions,
+                    stored.AdditionalPermissions,
+                    stored.DeniedPermissions);
+
+                var allowPermsList = granularPermission.AdditionalPermissions.ToList();
+                var denyPermsList = granularPermission.DeniedPermissions.ToList();
+
+                allowPermsList.AddRange(stored.AdditionalPermissions);
+                denyPermsList.AddRange(stored.DeniedPermissions);
+
+                granularPermission.AdditionalPermissions = allowPermsList;
+                granularPermission.DeniedPermissions = denyPermsList;
 
             }
             catch (NotFoundException<GranularPermission>)
@@ -130,6 +141,32 @@ namespace Fabric.Authorization.Domain.Stores.Services
             }
 
             await _permissionStore.AddOrUpdateGranularPermission(granularPermission);
+        }
+
+        private void ValidatePermissionsForAdd(IEnumerable<Permission> allowPermissionsToAdd,
+            IEnumerable<Permission> denyPermissionsToAdd,
+            IEnumerable<Permission> existingAllowPermissions,
+            IEnumerable<Permission> existingDenyPermissions)
+        {
+            var alreadyExistAllow = allowPermissionsToAdd.Where(p => existingAllowPermissions.Contains(p));
+            var alreadyExistDeny = denyPermissionsToAdd.Where(p => existingDenyPermissions.Contains(p));
+
+            if (alreadyExistAllow.Any() || alreadyExistDeny.Any())
+            {
+                var invalidPermissionException =
+                    new InvalidPermissionException("Cannot add the specified permissions, please correct the issues and attempt to add again. The following permissions are duplicates:");
+
+                if (alreadyExistAllow.Any())
+                {
+                    invalidPermissionException.Data.Add("Duplicate allow permissions", string.Join(",", alreadyExistAllow));
+                }
+                if (alreadyExistDeny.Any())
+                {
+                    invalidPermissionException.Data.Add("Duplicate deny permissions", string.Join(",", alreadyExistDeny));
+                }
+
+                throw invalidPermissionException;
+            }
         }
 
         /// <summary>

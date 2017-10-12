@@ -815,16 +815,15 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             {
                 Grain = "app",
                 SecurableItem = "userprincipal",
-                Name = "modifypatient"
+                Name = "modifypatient",
+                PermissionAction = PermissionAction.Allow
             };
-
-            modifyPatientPermission.PermissionAction = PermissionAction.Allow;
-
+            
             this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
-                var perms = new List<PermissionApiModel> { editPatientPermission, modifyPatientPermission };
+                var perms = new List<PermissionApiModel> { modifyPatientPermission };
                 with.JsonBody(perms);
             }).Wait();
 
@@ -849,7 +848,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
-                var perms = new List<PermissionApiModel>() { editPatientPermission, modifyPatientPermission };
+                var perms = new List<PermissionApiModel>() { modifyPatientPermission };
                 with.JsonBody(perms);
             }).Wait();
 
@@ -1102,6 +1101,40 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Result;
 
             Assert.Equal(HttpStatusCode.BadRequest, deleteRequest.StatusCode);
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void Test_Add_DuplicatePermission()
+        {
+            var modifyPatientPermission = new PermissionApiModel()
+            {
+                Grain = "app",
+                SecurableItem = "userprincipal",
+                Name = "modifypatient",
+                PermissionAction = PermissionAction.Allow
+            };
+
+            string subjectId = "userprincipal";
+
+            this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                var perms = new List<PermissionApiModel> { modifyPatientPermission };
+                with.JsonBody(perms);
+            }).Wait();
+
+            var postResponse = this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                var perms = new List<PermissionApiModel> { modifyPatientPermission };
+                with.JsonBody(perms);
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
+            Assert.Contains("Duplicate allow permissions: app/userprincipal.modifypatient", postResponse.Body.AsString());
         }
     }
 }
