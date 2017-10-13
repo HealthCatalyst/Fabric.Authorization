@@ -154,21 +154,21 @@ namespace Fabric.Authorization.Domain.Stores.Services
             var invalidPermissions = new List<KeyValuePair<string,string>>();
 
             invalidPermissions.AddRange(allowPermissionsToAdd.Intersect(existingAllowPermissions ?? Enumerable.Empty<Permission>())
-                .Select(p => new KeyValuePair<string,string>("Duplicate allow permissions", p.ToString())));
+                .Select(p => new KeyValuePair<string,string>("The permissions cannot be added as duplicate 'allow' permissions", p.ToString())));
             invalidPermissions.AddRange(denyPermissionsToAdd.Intersect(existingDenyPermissions ?? Enumerable.Empty<Permission>())
-                .Select(p => new KeyValuePair<string, string>("Duplicate deny permissions", p.ToString() )));
+                .Select(p => new KeyValuePair<string, string>("The permissions cannot be added as duplicate 'deny' permissions", p.ToString() )));
 
             invalidPermissions.AddRange(allowPermissionsToAdd.Intersect(existingDenyPermissions ?? Enumerable.Empty<Permission>())
-                .Select(p => new KeyValuePair<string, string>("Exists as deny", p.ToString() )));
+                .Select(p => new KeyValuePair<string, string>("The permissions exist as 'deny' and cannot be added as 'allow'", p.ToString() )));
             invalidPermissions.AddRange(denyPermissionsToAdd.Intersect(existingAllowPermissions ?? Enumerable.Empty<Permission>())
-                .Select(p => new KeyValuePair<string, string>("Exists as allow", p.ToString())));
+                .Select(p => new KeyValuePair<string, string>("The permissions exist as 'allow' and cannot be added as 'deny'", p.ToString())));
             invalidPermissions.AddRange(allowPermissionsToAdd.Intersect(denyPermissionsToAdd)
-                .Select(p => new KeyValuePair<string, string>("Requested as both allow and deny", p.ToString())));
+                .Select(p => new KeyValuePair<string, string>("The permissions cannot be specified as both 'allow' and 'deny'", p.ToString())));
 
             if (invalidPermissions.Any())
             {
                 var invalidPermissionException =
-                    new InvalidPermissionException("Cannot add the specified permissions, please correct the issues and attempt to add again. The following permissions are invalid:");
+                    new InvalidPermissionException("Cannot add the specified permissions, please correct the issues and attempt to add again.");
 
                 var permissionGroups = invalidPermissions.GroupBy(i => i.Key);
 
@@ -226,29 +226,29 @@ namespace Fabric.Authorization.Domain.Stores.Services
                 .Where(p => allowPermissionsToDelete.Contains(p));
 
             invalidPermissions.AddRange(invalidPermissionActionAllowPermissions
-                .Select(p => new KeyValuePair<string, string>("Invalid allow permission actions", p.ToString())));
+                .Select(p => new KeyValuePair<string, string>("The permissions exist but have a permission action of 'deny' and 'allow' was specified", p.ToString())));
 
             invalidPermissions.AddRange(allowPermissionsToDelete
                 .Except(existingAllow)
                 .Except(invalidPermissionActionAllowPermissions)
-                .Select(p => new KeyValuePair<string, string>("Invalid allow permissions", p.ToString())));
+                .Select(p => new KeyValuePair<string, string>("The permissions do not exist as 'allow' permissions", p.ToString())));
 
             var invalidPermissionActionDenyPermissions = existingAllow
                 .Where(p => denyPermissionsToDelete.Contains(p));
 
             invalidPermissions.AddRange(invalidPermissionActionDenyPermissions
-                .Select(p => new KeyValuePair<string, string>("Invalid deny permission actions", p.ToString())));
+                .Select(p => new KeyValuePair<string, string>("The permissions exist but have a permission action of 'allow' and 'deny' was specified", p.ToString())));
 
             invalidPermissions.AddRange(denyPermissionsToDelete
                 .Except(existingDeny)
                 .Except(invalidPermissionActionDenyPermissions)
-                .Select(p => new KeyValuePair<string, string>("Invalid deny permissions", p.ToString())));
+                .Select(p => new KeyValuePair<string, string>("The permissions do not exist as 'deny' permissions", p.ToString())));
             
 
             if(invalidPermissions.Any())
             {
                 var invalidPermissionException = 
-                    new InvalidPermissionException("Cannot delete the specified permissions, please correct the issues and attempt to delete again. The following permissions are invalid:");
+                    new InvalidPermissionException("Cannot delete the specified permissions, please correct the issues and attempt to delete again.");
 
                 var permissionGroups = invalidPermissions.GroupBy(i => i.Key);
 
