@@ -205,43 +205,44 @@ namespace Fabric.Authorization.Domain.Stores.Services
             IEnumerable<Permission> existingAllowPermissions, 
             IEnumerable<Permission> existingDenyPermissions)
         {
-            var invalidPermissionActionAllowPermissions = existingDenyPermissions?
-                .Where(p => allowPermissionsToDelete.Contains(p)) ?? Enumerable.Empty<Permission>();
+            existingAllowPermissions = existingAllowPermissions ?? Enumerable.Empty<Permission>();
+            existingDenyPermissions = existingDenyPermissions ?? Enumerable.Empty<Permission>();
 
-            var invalidAllowPermissions = allowPermissionsToDelete
-                .Except(existingAllowPermissions ?? Enumerable.Empty<Permission>())
-                .Except(invalidPermissionActionAllowPermissions);            
+            var invalidPermissions = new List<KeyValuePair<string, string>>();
 
-            var invalidPermissionActionDenyPermissions = existingAllowPermissions?
-                .Where(p => denyPermissionsToDelete.Contains(p)) ?? Enumerable.Empty<Permission>();
+            var invalidPermissionActionAllowPermissions = existingDenyPermissions
+                .Where(p => allowPermissionsToDelete.Contains(p));
 
-            var invalidDenyPermissions = denyPermissionsToDelete
-                .Except(existingDenyPermissions ?? Enumerable.Empty<Permission>())
-                .Except(invalidPermissionActionDenyPermissions);            
+            invalidPermissions.AddRange(invalidPermissionActionAllowPermissions
+                .Select(p => new KeyValuePair<string, string>("Invalid allow permission actions", p.ToString())));
 
-            if(invalidAllowPermissions.Any() 
-                || invalidDenyPermissions.Any() 
-                || invalidPermissionActionAllowPermissions.Any() 
-                || invalidPermissionActionDenyPermissions.Any())
+            invalidPermissions.AddRange(allowPermissionsToDelete
+                .Except(existingAllowPermissions)
+                .Except(invalidPermissionActionAllowPermissions)
+                .Select(p => new KeyValuePair<string, string>("Invalid allow permissions", p.ToString())));
+
+            var invalidPermissionActionDenyPermissions = existingAllowPermissions
+                .Where(p => denyPermissionsToDelete.Contains(p));
+
+            invalidPermissions.AddRange(invalidPermissionActionDenyPermissions
+                .Select(p => new KeyValuePair<string, string>("Invalid deny permission actions", p.ToString())));
+
+            invalidPermissions.AddRange(denyPermissionsToDelete
+                .Except(existingDenyPermissions)
+                .Except(invalidPermissionActionDenyPermissions)
+                .Select(p => new KeyValuePair<string, string>("Invalid deny permissions", p.ToString())));
+            
+
+            if(invalidPermissions.Any())
             {
                 var invalidPermissionException = 
                     new InvalidPermissionException("Cannot delete the specified permissions, please correct the issues and attempt to delete again. The following permissions are invalid:");
 
-                if (invalidAllowPermissions.Any())
+                var permissionGroups = invalidPermissions.GroupBy(i => i.Key);
+
+                foreach (var group in permissionGroups)
                 {
-                    invalidPermissionException.Data.Add("Invalid allow permissions", string.Join(",", invalidAllowPermissions));
-                }
-                if (invalidDenyPermissions.Any())
-                {
-                    invalidPermissionException.Data.Add("Invalid deny permissions", string.Join(",", invalidDenyPermissions));
-                }
-                if(invalidPermissionActionAllowPermissions.Any())
-                {
-                    invalidPermissionException.Data.Add("Invalid allow permission actions", string.Join(",", invalidPermissionActionAllowPermissions));
-                }
-                if (invalidPermissionActionDenyPermissions.Any())
-                {
-                    invalidPermissionException.Data.Add("Invalid deny permission actions", string.Join(",", invalidPermissionActionDenyPermissions));
+                    invalidPermissionException.Data.Add(group.Key, string.Join(", ", group.Select(p => p.Value)));
                 }
 
                 throw invalidPermissionException;
