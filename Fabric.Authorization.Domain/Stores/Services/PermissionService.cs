@@ -137,7 +137,10 @@ namespace Fabric.Authorization.Domain.Stores.Services
             }
             catch (NotFoundException<GranularPermission>)
             {
-                //nothing to do here. if the user has never had granular permissions stored then save whatever was passed in
+                ValidatePermissionsForAdd(granularPermission.AdditionalPermissions,
+                    granularPermission.DeniedPermissions,
+                    null,
+                    null);
             }
 
             await _permissionStore.AddOrUpdateGranularPermission(granularPermission);
@@ -147,18 +150,20 @@ namespace Fabric.Authorization.Domain.Stores.Services
             IEnumerable<Permission> denyPermissionsToAdd,
             IEnumerable<Permission> existingAllowPermissions,
             IEnumerable<Permission> existingDenyPermissions)
-        {
+        {          
             var invalidPermissions = new List<KeyValuePair<string,string>>();
 
-            invalidPermissions.AddRange(allowPermissionsToAdd.Intersect(existingAllowPermissions)
+            invalidPermissions.AddRange(allowPermissionsToAdd.Intersect(existingAllowPermissions ?? Enumerable.Empty<Permission>())
                 .Select(p => new KeyValuePair<string,string>("Duplicate allow permissions", p.ToString())));
-            invalidPermissions.AddRange(denyPermissionsToAdd.Intersect(existingDenyPermissions)
+            invalidPermissions.AddRange(denyPermissionsToAdd.Intersect(existingDenyPermissions ?? Enumerable.Empty<Permission>())
                 .Select(p => new KeyValuePair<string, string>("Duplicate deny permissions", p.ToString() )));
 
-            invalidPermissions.AddRange(allowPermissionsToAdd.Intersect(existingDenyPermissions)
+            invalidPermissions.AddRange(allowPermissionsToAdd.Intersect(existingDenyPermissions ?? Enumerable.Empty<Permission>())
                 .Select(p => new KeyValuePair<string, string>("Exists as deny", p.ToString() )));
-            invalidPermissions.AddRange(denyPermissionsToAdd.Intersect(existingAllowPermissions)
+            invalidPermissions.AddRange(denyPermissionsToAdd.Intersect(existingAllowPermissions ?? Enumerable.Empty<Permission>())
                 .Select(p => new KeyValuePair<string, string>("Exists as allow", p.ToString())));
+            invalidPermissions.AddRange(allowPermissionsToAdd.Intersect(denyPermissionsToAdd)
+                .Select(p => new KeyValuePair<string, string>("Requested as both allow and deny", p.ToString())));
 
             if (invalidPermissions.Any())
             {
