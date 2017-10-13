@@ -632,7 +632,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
 
             // Adding roles
-            var role = new RoleApiModel()
+            var role = new RoleApiModel
             {
                 Grain = "app",
                 SecurableItem = "userprincipal",
@@ -779,7 +779,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
             Assert.Equal(0, permissions.Permissions.Count());
 
-            var modifyPatientPermission = new PermissionApiModel()
+            var modifyPatientPermission = new PermissionApiModel
             {
                 Grain = "app",
                 SecurableItem = "userprincipal",
@@ -808,7 +808,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [DisplayTestMethodName]
         public void Test_Delete_WrongPermissionAction()
         {
-            var modifyPatientPermission = new PermissionApiModel()
+            var modifyPatientPermission = new PermissionApiModel
             {
                 Grain = "app",
                 SecurableItem = "userprincipal",
@@ -857,7 +857,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [DisplayTestMethodName]
         public void Test_Delete_WrongPermissionAction_InvalidPermission()
         {
-            var modifyPatientPermission = new PermissionApiModel()
+            var modifyPatientPermission = new PermissionApiModel
             {
                 Grain = "app",
                 SecurableItem = "userprincipal",
@@ -889,7 +889,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             //attempt to delete modifyPatientPermission with permission action Deny and include an invalid permission
             modifyPatientPermission.PermissionAction = PermissionAction.Deny;
 
-            var deletePatientPermission = new PermissionApiModel()
+            var deletePatientPermission = new PermissionApiModel
             {
                 Grain = "app",
                 SecurableItem = "userprincipal",
@@ -951,7 +951,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [DisplayTestMethodName]
         public void Test_AddGranularPermission_Duplicate()
         {
-            var modifyPatientPermission = new PermissionApiModel()
+            var modifyPatientPermission = new PermissionApiModel
             {
                 Grain = "app",
                 SecurableItem = "userprincipal",
@@ -985,7 +985,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [DisplayTestMethodName]
         public void Test_AddGranularPermssion_ExistsWithOtherAction()
         {
-            var modifyPatientPermission = new PermissionApiModel()
+            var modifyPatientPermission = new PermissionApiModel
             {
                 Grain = "app",
                 SecurableItem = "userprincipal",
@@ -1021,7 +1021,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [DisplayTestMethodName]
         public void Test_AddGranularPermission_ExistWithOtherAction_Duplicate()
         {
-            var modifyPatientPermission = new PermissionApiModel()
+            var modifyPatientPermission = new PermissionApiModel
             {
                 Grain = "app",
                 SecurableItem = "userprincipal",
@@ -1029,7 +1029,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 PermissionAction = PermissionAction.Allow
             };
 
-            var deletePatientPermission = new PermissionApiModel()
+            var deletePatientPermission = new PermissionApiModel
             {
                 Grain = "app",
                 SecurableItem = "userprincipal",
@@ -1037,7 +1037,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 PermissionAction = PermissionAction.Allow
             };
 
-            var readPatientPermission = new PermissionApiModel()
+            var readPatientPermission = new PermissionApiModel
             {
                 Grain = "app",
                 SecurableItem = "userprincipal",
@@ -1074,7 +1074,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [DisplayTestMethodName]
         public void Test_AddGranularPermission_AllowDenyPermissionInSameRequest()
         {
-            var allowReadPatientPermission = new PermissionApiModel()
+            var allowReadPatientPermission = new PermissionApiModel
             {
                 Grain = "app",
                 SecurableItem = "userprincipal",
@@ -1082,7 +1082,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 PermissionAction = PermissionAction.Allow
             };
 
-            var denyReadPatientPermission = new PermissionApiModel()
+            var denyReadPatientPermission = new PermissionApiModel
             {
                 Grain = "app",
                 SecurableItem = "userprincipal",
