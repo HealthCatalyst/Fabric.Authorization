@@ -217,30 +217,30 @@ namespace Fabric.Authorization.Domain.Stores.Services
             IEnumerable<Permission> existingAllowPermissions, 
             IEnumerable<Permission> existingDenyPermissions)
         {
-            existingAllowPermissions = existingAllowPermissions ?? Enumerable.Empty<Permission>();
-            existingDenyPermissions = existingDenyPermissions ?? Enumerable.Empty<Permission>();
+            var existingAllow = existingAllowPermissions ?? Enumerable.Empty<Permission>();
+            var existingDeny = existingDenyPermissions ?? Enumerable.Empty<Permission>();
 
             var invalidPermissions = new List<KeyValuePair<string, string>>();
 
-            var invalidPermissionActionAllowPermissions = existingDenyPermissions
+            var invalidPermissionActionAllowPermissions = existingDeny
                 .Where(p => allowPermissionsToDelete.Contains(p));
 
             invalidPermissions.AddRange(invalidPermissionActionAllowPermissions
                 .Select(p => new KeyValuePair<string, string>("Invalid allow permission actions", p.ToString())));
 
             invalidPermissions.AddRange(allowPermissionsToDelete
-                .Except(existingAllowPermissions)
+                .Except(existingAllow)
                 .Except(invalidPermissionActionAllowPermissions)
                 .Select(p => new KeyValuePair<string, string>("Invalid allow permissions", p.ToString())));
 
-            var invalidPermissionActionDenyPermissions = existingAllowPermissions
+            var invalidPermissionActionDenyPermissions = existingAllow
                 .Where(p => denyPermissionsToDelete.Contains(p));
 
             invalidPermissions.AddRange(invalidPermissionActionDenyPermissions
                 .Select(p => new KeyValuePair<string, string>("Invalid deny permission actions", p.ToString())));
 
             invalidPermissions.AddRange(denyPermissionsToDelete
-                .Except(existingDenyPermissions)
+                .Except(existingDeny)
                 .Except(invalidPermissionActionDenyPermissions)
                 .Select(p => new KeyValuePair<string, string>("Invalid deny permissions", p.ToString())));
             
