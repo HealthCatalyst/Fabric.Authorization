@@ -154,16 +154,16 @@ namespace Fabric.Authorization.Domain.Stores.Services
             var invalidPermissions = new List<KeyValuePair<string,string>>();
 
             invalidPermissions.AddRange(allowPermissionsToAdd.Intersect(existingAllowPermissions ?? Enumerable.Empty<Permission>())
-                .Select(p => new KeyValuePair<string,string>("The permissions cannot be added as duplicate 'allow' permissions", p.ToString())));
+                .Select(p => new KeyValuePair<string,string>("The following permissions already exist as 'allow' permissions", p.ToString())));
             invalidPermissions.AddRange(denyPermissionsToAdd.Intersect(existingDenyPermissions ?? Enumerable.Empty<Permission>())
-                .Select(p => new KeyValuePair<string, string>("The permissions cannot be added as duplicate 'deny' permissions", p.ToString() )));
+                .Select(p => new KeyValuePair<string, string>("The following permissions already exist as 'deny' permissions", p.ToString() )));
 
             invalidPermissions.AddRange(allowPermissionsToAdd.Intersect(existingDenyPermissions ?? Enumerable.Empty<Permission>())
-                .Select(p => new KeyValuePair<string, string>("The permissions exist as 'deny' and cannot be added as 'allow'", p.ToString() )));
+                .Select(p => new KeyValuePair<string, string>("The following permissions exist as 'deny' and cannot be added as 'allow'", p.ToString() )));
             invalidPermissions.AddRange(denyPermissionsToAdd.Intersect(existingAllowPermissions ?? Enumerable.Empty<Permission>())
-                .Select(p => new KeyValuePair<string, string>("The permissions exist as 'allow' and cannot be added as 'deny'", p.ToString())));
+                .Select(p => new KeyValuePair<string, string>("The following permissions exist as 'allow' and cannot be added as 'deny'", p.ToString())));
             invalidPermissions.AddRange(allowPermissionsToAdd.Intersect(denyPermissionsToAdd)
-                .Select(p => new KeyValuePair<string, string>("The permissions cannot be specified as both 'allow' and 'deny'", p.ToString())));
+                .Select(p => new KeyValuePair<string, string>("The following permissions cannot be specified as both 'allow' and 'deny'", p.ToString())));
 
             if (invalidPermissions.Any())
             {
@@ -226,23 +226,23 @@ namespace Fabric.Authorization.Domain.Stores.Services
                 .Where(p => allowPermissionsToDelete.Contains(p));
 
             invalidPermissions.AddRange(invalidPermissionActionAllowPermissions
-                .Select(p => new KeyValuePair<string, string>("The permissions exist but have a permission action of 'deny' and 'allow' was specified", p.ToString())));
+                .Select(p => new KeyValuePair<string, string>("The following permissions exist as 'deny' for user but 'allow' was specified", p.ToString())));
 
             invalidPermissions.AddRange(allowPermissionsToDelete
                 .Except(existingAllow)
                 .Except(invalidPermissionActionAllowPermissions)
-                .Select(p => new KeyValuePair<string, string>("The permissions do not exist as 'allow' permissions", p.ToString())));
+                .Select(p => new KeyValuePair<string, string>("The following permissions do not exist as 'allow' permissions", p.ToString())));
 
             var invalidPermissionActionDenyPermissions = existingAllow
                 .Where(p => denyPermissionsToDelete.Contains(p));
 
             invalidPermissions.AddRange(invalidPermissionActionDenyPermissions
-                .Select(p => new KeyValuePair<string, string>("The permissions exist but have a permission action of 'allow' and 'deny' was specified", p.ToString())));
+                .Select(p => new KeyValuePair<string, string>("The following permissions exist as 'allow' for user but 'deny' was specified", p.ToString())));
 
             invalidPermissions.AddRange(denyPermissionsToDelete
                 .Except(existingDeny)
                 .Except(invalidPermissionActionDenyPermissions)
-                .Select(p => new KeyValuePair<string, string>("The permissions do not exist as 'deny' permissions", p.ToString())));
+                .Select(p => new KeyValuePair<string, string>("The following permissions do not exist as 'deny' permissions", p.ToString())));
             
 
             if(invalidPermissions.Any())
