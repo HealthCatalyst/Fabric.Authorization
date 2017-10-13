@@ -710,7 +710,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(1, permissions.Permissions.Count());
         }
                
-
         [Fact]
         [DisplayTestMethodName]
         public void Test_Delete_Success()
@@ -950,7 +949,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [DisplayTestMethodName]
-        public void Test_Add_DuplicatePermission()
+        public void Test_AddGranularPermission_Duplicate()
         {
             var modifyPatientPermission = new PermissionApiModel()
             {
@@ -984,7 +983,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [DisplayTestMethodName]
-        public void Test_Add_GranularPermssion_ExistsWithOtherAction()
+        public void Test_AddGranularPermssion_ExistsWithOtherAction()
         {
             var modifyPatientPermission = new PermissionApiModel()
             {
@@ -1020,7 +1019,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [DisplayTestMethodName]
-        public void Test_Add_GranularPermission_ExistWithOtherAction_Duplicate()
+        public void Test_AddGranularPermission_ExistWithOtherAction_Duplicate()
         {
             var modifyPatientPermission = new PermissionApiModel()
             {
@@ -1069,6 +1068,40 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
             Assert.Contains("Exists as allow: app/userprincipal.modifypatient", postResponse.Body.AsString());
             Assert.Contains("Duplicate allow permissions: app/userprincipal.deletepatient, app/userprincipal.readpatient", postResponse.Body.AsString());
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void Test_AddGranularPermission_AllowDenyPermissionInSameRequest()
+        {
+            var allowReadPatientPermission = new PermissionApiModel()
+            {
+                Grain = "app",
+                SecurableItem = "userprincipal",
+                Name = "readpatient",
+                PermissionAction = PermissionAction.Allow
+            };
+
+            var denyReadPatientPermission = new PermissionApiModel()
+            {
+                Grain = "app",
+                SecurableItem = "userprincipal",
+                Name = "readpatient",
+                PermissionAction = PermissionAction.Deny
+            };
+
+            string subjectId = "userprincipal";
+
+            var postResponse = this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                var perms = new List<PermissionApiModel> {  allowReadPatientPermission, denyReadPatientPermission };
+                with.JsonBody(perms);
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
+            Assert.Contains("Requested as both allow and deny: app/userprincipal.readpatient", postResponse.Body.AsString());
         }
     }
 }
