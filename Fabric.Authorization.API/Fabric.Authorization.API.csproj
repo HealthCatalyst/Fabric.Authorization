@@ -72,4 +72,5 @@
   <ItemGroup>
     <WCFMetadata Include="Connected Services" />
   </ItemGroup>
+  <ProjectExtensions><VisualStudio><UserProperties appsettings_1json__JSONSchema="integr" /></VisualStudio></ProjectExtensions>
 </Project>

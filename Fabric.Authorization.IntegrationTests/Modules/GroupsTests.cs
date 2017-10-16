@@ -40,7 +40,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             var permissionStore = useInMemoryDB
                 ? new InMemoryPermissionStore()
-                : (IPermissionStore)new CouchDbPermissionStore(DbService(), Logger, EventContextResolverService);
+                : (IPermissionStore)new CouchDbPermissionStore(DbService(), Logger, EventContextResolverService, _identifierFormatter);
 
             var clientStore = useInMemoryDB
                 ? new InMemoryClientStore()

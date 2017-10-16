@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Security.Claims;
-using Fabric.Authorization.API;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Infrastructure.PipelineHooks;
 using Fabric.Authorization.API.Modules;
@@ -9,6 +8,7 @@ using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
 using Fabric.Authorization.Domain.Stores.InMemory;
 using Fabric.Authorization.Domain.Stores.Services;
+using Fabric.Authorization.Domain.Validators;
 using Nancy;
 using Nancy.Testing;
 using Xunit;
@@ -20,25 +20,31 @@ namespace Fabric.Authorization.IntegrationTests.Modules
     {
         public PermissionsTests(bool useInMemoryDB = true)
         {
-            var permissionStore = useInMemoryDB ? new InMemoryPermissionStore() : (IPermissionStore)new CouchDbPermissionStore(this.DbService(), this.Logger, this.EventContextResolverService);
-            var clientStore = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDbClientStore(this.DbService(), this.Logger, this.EventContextResolverService);
-            var roleStore = useInMemoryDB ? new InMemoryRoleStore() : (IRoleStore)new CouchDbRoleStore(this.DbService(), this.Logger, this.EventContextResolverService);
+            var permissionStore = useInMemoryDB
+                ? new InMemoryPermissionStore()
+                : (IPermissionStore) new CouchDbPermissionStore(DbService(), Logger, EventContextResolverService, new IdpIdentifierFormatter());
+            var clientStore = useInMemoryDB
+                ? new InMemoryClientStore()
+                : (IClientStore) new CouchDbClientStore(DbService(), Logger, EventContextResolverService);
+            var roleStore = useInMemoryDB
+                ? new InMemoryRoleStore()
+                : (IRoleStore) new CouchDbRoleStore(DbService(), Logger, EventContextResolverService);
 
             var clientService = new ClientService(clientStore);
             var roleService = new RoleService(roleStore, permissionStore, clientService);
             var permissionService = new PermissionService(permissionStore, roleService);
 
-            this.Browser = new Browser(with =>
+            Browser = new Browser(with =>
             {
                 with.Module(new PermissionsModule(
-                        permissionService,
-                        clientService,
-                        new Domain.Validators.PermissionValidator(permissionService),
-                        this.Logger));
+                    permissionService,
+                    clientService,
+                    new PermissionValidator(permissionService),
+                    Logger));
                 with.Module(new ClientsModule(
-                        clientService,
-                        new Domain.Validators.ClientValidator(clientService),
-                        this.Logger));
+                    clientService,
+                    new ClientValidator(clientService),
+                    Logger));
                 with.RequestStartup((_, pipelines, context) =>
                 {
                     context.CurrentUser = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
@@ -46,13 +52,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                         new Claim(Claims.Scope, Scopes.ManageClientsScope),
                         new Claim(Claims.Scope, Scopes.ReadScope),
                         new Claim(Claims.Scope, Scopes.WriteScope),
-                        new Claim(Claims.ClientId, "permissionprincipal"),
+                        new Claim(Claims.ClientId, "permissionprincipal")
                     }, "permissionprincipal"));
-                    pipelines.BeforeRequest += (ctx) => RequestHooks.SetDefaultVersionInUrl(ctx);
+                    pipelines.BeforeRequest += ctx => RequestHooks.SetDefaultVersionInUrl(ctx);
                 });
             }, withDefaults => withDefaults.HostName("testhost"));
 
-            this.Browser.Post("/clients", with =>
+            Browser.Post("/clients", with =>
             {
                 with.HttpRequest();
                 with.FormValue("Id", "permissionprincipal");
@@ -67,7 +73,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("InexistentPermission2")]
         public void TestGetPermission_Fail(string permission)
         {
-            var get = this.Browser.Get($"/permissions/app/permissionprincipal/{permission}", with =>
+            var get = Browser.Get($"/permissions/app/permissionprincipal/{permission}", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -83,7 +89,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("Perm2")]
         public void TestAddNewPermission_Success(string permission)
         {
-            var postResponse = this.Browser.Post("/permissions", with =>
+            var postResponse = Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -93,11 +99,11 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Result;
 
             // Get by name
-            var getResponse = this.Browser.Get($"/permissions/app/permissionprincipal/{permission}", with =>
-                {
-                    with.HttpRequest();
-                    with.Header("Accept", "application/json");
-                }).Result;
+            var getResponse = Browser.Get($"/permissions/app/permissionprincipal/{permission}", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
@@ -110,7 +116,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("NewPerm2")]
         public void TestGetPermission_Success(string permission)
         {
-            var postResponse = this.Browser.Post("/permissions", with =>
+            var postResponse = Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -120,7 +126,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Result;
 
             // Get by name
-            var getResponse = this.Browser.Get($"/permissions/app/permissionprincipal/{permission}", with =>
+            var getResponse = Browser.Get($"/permissions/app/permissionprincipal/{permission}", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -131,7 +137,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.True(getResponse.Body.AsString().Contains(permission));
 
             // Get by secitem
-            getResponse = this.Browser.Get($"/permissions/app/permissionprincipal", with =>
+            getResponse = Browser.Get($"/permissions/app/permissionprincipal", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -148,7 +154,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("SecItemPerm2")]
         public void TestGetPermissionForSecItem_Success(string permission)
         {
-            var postResponse = this.Browser.Post("/permissions", with =>
+            var postResponse = Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -157,7 +163,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.FormValue("Name", permission + "_1");
             }).Result;
 
-            postResponse = this.Browser.Post("/permissions", with =>
+            postResponse = Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -167,7 +173,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Result;
 
             // Get by secitem
-            var getResponse = this.Browser.Get($"/permissions/app/permissionprincipal", with =>
+            var getResponse = Browser.Get($"/permissions/app/permissionprincipal", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -186,7 +192,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("RepeatedPermission2")]
         public void TestAddNewPermission_Fail(string permission)
         {
-            var validPostResponse = this.Browser.Post("/permissions", with =>
+            var validPostResponse = Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -198,7 +204,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.Created, validPostResponse.StatusCode);
 
             // Repeat
-            var postResponse = this.Browser.Post("/permissions", with =>
+            var postResponse = Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -218,7 +224,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         {
             var id = Guid.NewGuid();
 
-            this.Browser.Post("/permissions", with =>
+            Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -228,7 +234,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.FormValue("Name", permission);
             }).Wait();
 
-            var delete = this.Browser.Delete($"/permissions/{id.ToString()}", with =>
+            var delete = Browser.Delete($"/permissions/{id}", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -243,7 +249,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("18F06565-AA9E-4315-AF27-CEFC165B20FB")]
         public void TestDeletePermission_Fail(string permission)
         {
-            var delete = this.Browser.Delete($"/permissions/{permission}", with =>
+            var delete = Browser.Delete($"/permissions/{permission}", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");

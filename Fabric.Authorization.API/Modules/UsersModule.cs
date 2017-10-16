@@ -40,7 +40,7 @@ namespace Fabric.Authorization.API.Modules
                 "GetUserPermissions");
 
             Get("/{identityProvider}/{subjectId}/permissions",
-                async param => await this.GetUserPermissions().ConfigureAwait(false), null,
+                async param => await GetUserPermissions().ConfigureAwait(false), null,
                 "AddGranularPermissions");
 
             Post("/{identityProvider}/{subjectId}/permissions",
