@@ -12,6 +12,8 @@ namespace Fabric.Authorization.Domain.Models
 
         public string Name { get; set; }
 
+        public string Identifier => Id.ToString();
+
         public bool IsDeleted { get; set; }
 
         public DateTime CreatedDateTimeUtc { get; set; }
@@ -22,8 +24,6 @@ namespace Fabric.Authorization.Domain.Models
 
         public string ModifiedBy { get; set; }
 
-        public string Identifier => Id.ToString();
-
         public override string ToString()
         {
             return $"{Grain}/{SecurableItem}.{Name}";
@@ -31,23 +31,26 @@ namespace Fabric.Authorization.Domain.Models
 
         public override bool Equals(object obj)
         {
-            if(obj == null)
+            if (obj == null)
             {
                 return false;
+            }
+
+            if (this == obj)
+            {
+                return true;
             }
 
             var incomingPermission = obj as Permission;
-            if(incomingPermission == null)
-            {
-                return false;
-            }
 
-            return incomingPermission.ToString().Equals(this.ToString(), StringComparison.OrdinalIgnoreCase);
+            return incomingPermission == null
+                ? false
+                : incomingPermission.ToString().Equals(ToString(), StringComparison.OrdinalIgnoreCase);
         }
 
         public override int GetHashCode()
         {
-            return this.ToString().GetHashCode();
+            return ToString().GetHashCode();
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace Fabric.Authorization.Domain.Stores.CouchDB
 {
-    public interface IThirdPartyIdentifier
+    public interface IFormattableIdentifier
     {
         string FormatId(string id);
     }

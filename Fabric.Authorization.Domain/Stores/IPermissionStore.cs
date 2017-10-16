@@ -11,6 +11,6 @@ namespace Fabric.Authorization.Domain.Stores
 
         Task AddOrUpdateGranularPermission(GranularPermission granularPermission);
 
-        Task<GranularPermission> GetGranularPermission(string target);
+        Task<GranularPermission> GetGranularPermission(string userId);
     }
 }

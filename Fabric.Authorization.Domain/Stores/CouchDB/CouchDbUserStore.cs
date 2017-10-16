@@ -5,22 +5,14 @@ using Serilog;
 
 namespace Fabric.Authorization.Domain.Stores.CouchDB
 {
-    public class CouchDbUserStore : CouchDbGenericStore<string, User>, IUserStore, IThirdPartyIdentifier
+    public class CouchDbUserStore : FormattableIdentifierStore<string, User>, IUserStore
     {
-        private readonly IIdentifierFormatter _identifierFormatter;
-
         public CouchDbUserStore(
             IDocumentDbService dbService,
             ILogger logger,
             IEventContextResolverService eventContextResolverService,
-            IIdentifierFormatter identifierFormatter) : base(dbService, logger, eventContextResolverService)
+            IIdentifierFormatter identifierFormatter) : base(dbService, logger, eventContextResolverService, identifierFormatter)
         {
-            _identifierFormatter = identifierFormatter;
-        }
-
-        public string FormatId(string id)
-        {
-            return _identifierFormatter.Format(id);
         }
 
         public override async Task<User> Get(string id)

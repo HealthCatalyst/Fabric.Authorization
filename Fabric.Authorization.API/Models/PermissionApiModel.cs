@@ -23,7 +23,7 @@ namespace Fabric.Authorization.API.Models
 
         public PermissionAction PermissionAction { get; set; }
 
-        public string Identifier => Id.HasValue ? Id.ToString() : "";
+        public string Identifier => Id.HasValue ? Id.ToString() : string.Empty;
     }
   
     public enum PermissionAction

@@ -116,6 +116,7 @@ namespace Fabric.Authorization.API.Modules
         }
 
         protected string SubjectId => Context.CurrentUser.Claims.First(c => c.Type == Claims.Sub).Value;
+
         protected string IdentityProvider => Context.CurrentUser.Claims.First(c => c.Type == Claims.IdentityProvider).Value;
 
         protected Predicate<Claim> GetClientIdPredicate(string clientId)

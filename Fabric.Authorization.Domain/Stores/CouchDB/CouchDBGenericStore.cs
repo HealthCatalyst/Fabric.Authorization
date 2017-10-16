@@ -16,7 +16,9 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
         protected readonly ILogger _logger;
         protected readonly Stopwatch _stopwatch = new Stopwatch();
 
-        protected CouchDbGenericStore(IDocumentDbService dbService, ILogger logger,
+        protected CouchDbGenericStore(
+            IDocumentDbService dbService,
+            ILogger logger,
             IEventContextResolverService eventContextResolverService)
         {
             _dbService = dbService;

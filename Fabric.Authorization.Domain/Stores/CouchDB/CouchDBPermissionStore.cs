@@ -8,9 +8,13 @@ using Serilog;
 
 namespace Fabric.Authorization.Domain.Stores.CouchDB
 {
-    public class CouchDbPermissionStore : CouchDbGenericStore<Guid, Permission>, IPermissionStore
+    public class CouchDbPermissionStore : FormattableIdentifierStore<Guid, Permission>, IPermissionStore
     {
-        public CouchDbPermissionStore(IDocumentDbService dbService, ILogger logger, IEventContextResolverService eventContextResolverService) : base(dbService, logger, eventContextResolverService)
+        public CouchDbPermissionStore(
+            IDocumentDbService dbService,
+            ILogger logger,
+            IEventContextResolverService eventContextResolverService,
+            IIdentifierFormatter identifierFormatter) : base(dbService, logger, eventContextResolverService, identifierFormatter)
         {
         }
 
@@ -72,12 +76,12 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
             }
         }
 
-        public async Task<GranularPermission> GetGranularPermission(string target)
+        public async Task<GranularPermission> GetGranularPermission(string userId)
         {
-            var perm = await _dbService.GetDocument<GranularPermission>(target);
+            var perm = await _dbService.GetDocument<GranularPermission>(userId);
             if (perm == null)
             {
-                throw new NotFoundException<GranularPermission>(target);
+                throw new NotFoundException<GranularPermission>(userId);
             }
 
             return perm;

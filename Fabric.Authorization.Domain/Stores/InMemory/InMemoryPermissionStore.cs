@@ -52,13 +52,13 @@ namespace Fabric.Authorization.Domain.Stores.InMemory
             return Task.CompletedTask;
         }
 
-        public Task<GranularPermission> GetGranularPermission(string target)
+        public Task<GranularPermission> GetGranularPermission(string userId)
         {
-            granularPermissions.TryGetValue(target, out GranularPermission value);
+            granularPermissions.TryGetValue(userId, out GranularPermission value);
 
             if (value == null)
             {
-                throw new NotFoundException<GranularPermission>(target);
+                throw new NotFoundException<GranularPermission>(userId);
             }
 
             return Task.FromResult(value);
