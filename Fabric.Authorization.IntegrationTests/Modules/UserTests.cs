@@ -10,6 +10,7 @@ using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
 using Fabric.Authorization.Domain.Stores.InMemory;
 using Fabric.Authorization.Domain.Stores.Services;
+using Fabric.Authorization.Domain.Validators;
 using IdentityModel;
 using Nancy;
 using Nancy.Testing;
@@ -20,22 +21,30 @@ namespace Fabric.Authorization.IntegrationTests.Modules
     [Collection("InMemoryTests")]
     public class UserTests : IntegrationTestsFixture
     {
-        private static readonly string Group1 = Guid.Parse("A9CA0300-1006-40B1-ABF1-E0C3B396F95F").ToString();
-        private static readonly string Source1 = "Source1";
-
-        private static readonly string Group2 = Guid.Parse("ad2cea96-c020-4014-9cf6-029147454adc").ToString();
-        private static readonly string Source2 = "Source2";
-
-        private static readonly string IdentityProvider = "idP1";
-        private readonly IIdentifierFormatter _identifierFormatter = new IdpIdentifierFormatter();
-
         public UserTests(bool useInMemoryDB = true)
         {
-            var roleStore = useInMemoryDB ? new InMemoryRoleStore() : (IRoleStore)new CouchDbRoleStore(this.DbService(), this.Logger, this.EventContextResolverService);
-            var userStore = useInMemoryDB ? new InMemoryUserStore() : (IUserStore)new CouchDbUserStore(this.DbService(), this.Logger, this.EventContextResolverService, _identifierFormatter);
-            var groupStore = useInMemoryDB ? new InMemoryGroupStore() : (IGroupStore)new CouchDbGroupStore(this.DbService(), this.Logger, this.EventContextResolverService, _identifierFormatter);
-            var clientStore = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDbClientStore(this.DbService(), this.Logger, this.EventContextResolverService);
-            var permissionStore = useInMemoryDB ? new InMemoryPermissionStore() : (IPermissionStore)new CouchDbPermissionStore(this.DbService(), this.Logger, this.EventContextResolverService, _identifierFormatter);
+            var roleStore = useInMemoryDB
+                ? new InMemoryRoleStore()
+                : (IRoleStore) new CouchDbRoleStore(DbService(), Logger, EventContextResolverService);
+
+            var userStore = useInMemoryDB
+                ? new InMemoryUserStore(_identifierFormatter)
+                : (IUserStore) new CouchDbUserStore(DbService(), Logger, EventContextResolverService,
+                    _identifierFormatter);
+
+            var groupStore = useInMemoryDB
+                ? new InMemoryGroupStore(_identifierFormatter)
+                : (IGroupStore) new CouchDbGroupStore(DbService(), Logger, EventContextResolverService,
+                    _identifierFormatter);
+
+            var clientStore = useInMemoryDB
+                ? new InMemoryClientStore()
+                : (IClientStore) new CouchDbClientStore(DbService(), Logger, EventContextResolverService);
+
+            var permissionStore = useInMemoryDB
+                ? new InMemoryPermissionStore(_identifierFormatter)
+                : (IPermissionStore) new CouchDbPermissionStore(DbService(), Logger, EventContextResolverService,
+                    _identifierFormatter);
 
             var clientService = new ClientService(clientStore);
             var roleService = new RoleService(roleStore, permissionStore, clientService);
@@ -43,36 +52,36 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var userService = new UserService(userStore);
             var permissionService = new PermissionService(permissionStore, roleService);
 
-            this.Browser = new Browser(with =>
+            Browser = new Browser(with =>
             {
                 with.Module(new RolesModule(
-                        roleService,
-                        clientService,
-                        new Domain.Validators.RoleValidator(roleService),
-                        this.Logger));
+                    roleService,
+                    clientService,
+                    new RoleValidator(roleService),
+                    Logger));
 
                 with.Module(new ClientsModule(
-                        clientService,
-                        new Domain.Validators.ClientValidator(clientService),
-                        this.Logger));
+                    clientService,
+                    new ClientValidator(clientService),
+                    Logger));
 
                 with.Module(new UsersModule(
-                        clientService,
-                        permissionService,
-                        userService,
-                        new Domain.Validators.UserValidator(),
-                        this.Logger));
+                    clientService,
+                    permissionService,
+                    userService,
+                    new UserValidator(),
+                    Logger));
 
                 with.Module(new GroupsModule(
-                        groupService,
-                        new Domain.Validators.GroupValidator(groupService),
-                        this.Logger));
+                    groupService,
+                    new GroupValidator(groupService),
+                    Logger));
 
                 with.Module(new PermissionsModule(
-                        permissionService,
-                        clientService,
-                        new Domain.Validators.PermissionValidator(permissionService),
-                        this.Logger));
+                    permissionService,
+                    clientService,
+                    new PermissionValidator(permissionService),
+                    Logger));
 
                 with.RequestStartup((_, pipelines, context) =>
                 {
@@ -88,11 +97,11 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                             new Claim(JwtClaimTypes.Role, Group2),
                             new Claim(JwtClaimTypes.IdentityProvider, IdentityProvider)
                         }, "userprincipal"));
-                    pipelines.BeforeRequest += (ctx) => RequestHooks.SetDefaultVersionInUrl(ctx);
+                    pipelines.BeforeRequest += ctx => RequestHooks.SetDefaultVersionInUrl(ctx);
                 });
             }, withDefaults => withDefaults.HostName("testhost"));
 
-            this.Browser.Post("/clients", with =>
+            Browser.Post("/clients", with =>
             {
                 with.HttpRequest();
                 with.FormValue("Id", "userprincipal");
@@ -101,850 +110,49 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Wait();
         }
 
-        [Fact]
-        [DisplayTestMethodName]
-        public void TestInheritance_Success()
-        {
-            var group = Group1;
+        private static readonly string Group1 = Guid.Parse("A9CA0300-1006-40B1-ABF1-E0C3B396F95F").ToString();
+        private static readonly string Source1 = "Source1";
 
-            // Adding permissions
-            var post = this.Browser.Post("/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", "greatgrandfatherpermissions");
-            }).Result;
+        private static readonly string Group2 = Guid.Parse("ad2cea96-c020-4014-9cf6-029147454adc").ToString();
+        private static readonly string Source2 = "Source2";
 
-            var ggfperm = post.Body.DeserializeJson<PermissionApiModel>();
-
-            post = this.Browser.Post("/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", "grandfatherpermissions");
-            }).Result;
-
-            var gfperm = post.Body.DeserializeJson<PermissionApiModel>();
-
-            post = this.Browser.Post("/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", "fatherpermissions");
-            }).Result;
-
-            var fperm = post.Body.DeserializeJson<PermissionApiModel>();
-
-            post = this.Browser.Post("/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", "himselfpermissions");
-            }).Result;
-
-            var hsperm = post.Body.DeserializeJson<PermissionApiModel>();
-
-            post = this.Browser.Post("/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", "sonpermissions");
-            }).Result;
-
-            var sonperm = post.Body.DeserializeJson<PermissionApiModel>();
-
-            // Adding Roles
-            var role = new RoleApiModel()
-            {
-                Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "greatgrandfather",
-                Permissions = new List<PermissionApiModel> { ggfperm }
-            };
-
-            post = this.Browser.Post("/roles", with => // -3
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.JsonBody(role);
-            }).Result;
-
-            var ggf = post.Body.DeserializeJson<RoleApiModel>();
-
-            post = this.Browser.Post("/roles", with => // -2
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                role.Name = "grandfather";
-                role.ParentRole = ggf.Id;
-                role.Permissions = new List<PermissionApiModel> { gfperm };
-                with.JsonBody(role);
-            }).Result;
-
-            var gf = post.Body.DeserializeJson<RoleApiModel>();
-
-            post = this.Browser.Post("/roles", with => // -1
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                role.Name = "father";
-                role.ParentRole = gf.Id;
-                role.Permissions = new List<PermissionApiModel> { fperm };
-                with.JsonBody(role);
-            }).Result;
-
-            var f = post.Body.DeserializeJson<RoleApiModel>();
-
-            post = this.Browser.Post("/roles", with => // 0
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                role.Name = "himself";
-                role.ParentRole = f.Id;
-                role.Permissions = new List<PermissionApiModel> { hsperm };
-                with.JsonBody(role);
-            }).Result;
-
-            var hs = post.Body.DeserializeJson<RoleApiModel>();
-
-            post = this.Browser.Post("/roles", with => // 1
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                role.Name = "son";
-                role.ParentRole = hs.Id;
-                role.Permissions = new List<PermissionApiModel> { sonperm };
-                with.JsonBody(role);
-            }).Result;
-
-            post.Body.DeserializeJson<RoleApiModel>();
-
-            // Adding groups
-            this.Browser.Post("/groups", with =>
-            {
-                with.HttpRequest();
-                with.FormValue("Id", group);
-                with.FormValue("GroupName", group);
-                with.FormValue("GroupSource", Source1);
-                with.Header("Accept", "application/json");
-            }).Wait();
-
-            this.Browser.Post($"/groups/{group}/roles", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Id", hs.Identifier);
-                with.Header("Accept", "application/json");
-            }).Wait();
-
-            // Get the permissions
-            var get = this.Browser.Get("/user/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-            }).Result;
-
-            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
-            Assert.True(get.Body.AsString().Contains("greatgrandfatherpermissions"));
-            Assert.True(get.Body.AsString().Contains("grandfatherpermissions"));
-            Assert.True(get.Body.AsString().Contains("fatherpermissions"));
-            Assert.True(get.Body.AsString().Contains("himselfpermissions"));
-            Assert.False(get.Body.AsString().Contains("sonpermissions"));
-        }
+        private static readonly string IdentityProvider = "idP1";
+        private readonly IIdentifierFormatter _identifierFormatter = new IdpIdentifierFormatter();
 
         [Fact]
         [DisplayTestMethodName]
-        public void TestGetPermissions_Success()
+        public void Test_AddGranularPermission_AllowDenyPermissionInSameRequest()
         {
-            // Adding permissions
-            var post = this.Browser.Post("/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", "viewpatient");
-            }).Result;
-
-            var viewPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
-
-            post = this.Browser.Post("/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", "editpatient");
-            }).Result;
-
-            var editPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
-
-            var role = new RoleApiModel()
+            var allowReadPatientPermission = new PermissionApiModel
             {
                 Grain = "app",
                 SecurableItem = "userprincipal",
-                Name = "viewer",
-                Permissions = new List<PermissionApiModel> { viewPatientPermission }
-            };
-
-            post = this.Browser.Post("/roles", with => // -3
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.JsonBody(role);
-            }).Result;
-
-            var viewerRole = post.Body.DeserializeJson<RoleApiModel>();
-
-            post = this.Browser.Post("/roles", with => // -2
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                role.Name = "editor";
-                role.Permissions = new List<PermissionApiModel> { editPatientPermission };
-                with.JsonBody(role);
-            }).Result;
-
-            var editorRole = post.Body.DeserializeJson<RoleApiModel>();
-
-            this.Browser.Post("/groups", with =>
-            {
-                with.HttpRequest();
-                with.FormValue("Id", Group1);
-                with.FormValue("GroupName", Group1);
-                with.FormValue("GroupSource", Source1);
-                with.Header("Accept", "application/json");
-            }).Wait();
-
-            this.Browser.Post("/groups", with =>
-            {
-                with.HttpRequest();
-                with.FormValue("Id", Group2);
-                with.FormValue("GroupName", Group2);
-                with.FormValue("GroupSource", Source2);
-                with.Header("Accept", "application/json");
-            }).Wait();
-
-            this.Browser.Post($"/groups/{Group1}/roles", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Id", viewerRole.Identifier);
-            }).Wait();
-
-            this.Browser.Post($"/groups/{Group2}/roles", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Id", editorRole.Identifier);
-            }).Wait();
-
-            // Get the permissions
-            var get = this.Browser.Get("/user/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-            }).Result;
-
-            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
-            var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
-            Assert.Contains("app/userprincipal.editpatient", permissions.Permissions);
-            Assert.Contains("app/userprincipal.viewpatient", permissions.Permissions);
-            Assert.Equal(2, permissions.Permissions.Count());
-        }
-
-        [Fact]
-        [DisplayTestMethodName]
-        public void TestUserBlacklist_Success()
-        {
-            // Adding permissions
-            var post = this.Browser.Post("/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", "viewpatient");
-            }).Result;
-
-            var viewPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
-
-            post = this.Browser.Post("/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", "editpatient");
-            }).Result;
-
-            var editPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
-
-
-            // Adding roles
-            var role = new RoleApiModel()
-            {
-                Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "viewer",
-                Permissions = new List<PermissionApiModel> { viewPatientPermission }
-            };
-
-            post = this.Browser.Post("/roles", with => // -3
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.JsonBody(role);
-            }).Result;
-
-            var viewerRole = post.Body.DeserializeJson<RoleApiModel>();
-
-            post = this.Browser.Post("/roles", with => // -2
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                role.Name = "editor";
-                role.Permissions = new List<PermissionApiModel> { editPatientPermission };
-                with.JsonBody(role);
-            }).Result;
-
-            var editorRole = post.Body.DeserializeJson<RoleApiModel>();
-
-            // Adding groups
-            this.Browser.Post("/groups", with =>
-            {
-                with.HttpRequest();
-                with.FormValue("Id", Group1);
-                with.FormValue("GroupName", Group1);
-                with.FormValue("GroupSource", Source1);
-                with.Header("Accept", "application/json");
-            }).Wait();
-
-            this.Browser.Post("/groups", with =>
-            {
-                with.HttpRequest();
-                with.FormValue("Id", Group2);
-                with.FormValue("GroupName", Group2);
-                with.FormValue("GroupSource", Source2);
-                with.Header("Accept", "application/json");
-            }).Wait();
-
-            this.Browser.Post($"/groups/{Group1}/roles", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Id", viewerRole.Identifier);
-            }).Wait();
-
-            this.Browser.Post($"/groups/{Group2}/roles", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Id", editorRole.Identifier);
-            }).Wait();
-
-            // Adding blacklist (user cannot edit patient, even though role allows)
-            string subjectId = "userprincipal";
-
-            editPatientPermission.PermissionAction = PermissionAction.Deny;
-
-            this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                var perms = new List<PermissionApiModel> { editPatientPermission };
-                with.JsonBody(perms);
-            }).Wait();
-
-            // Get the permissions
-            var get = this.Browser.Get("/user/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-            }).Result;
-
-            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
-            var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
-            Assert.DoesNotContain("app/userprincipal.editpatient", permissions.Permissions);
-            Assert.Contains("app/userprincipal.viewpatient", permissions.Permissions);
-            Assert.Equal(1, permissions.Permissions.Count());
-        }
-
-        [Fact]
-        [DisplayTestMethodName]
-        public void TestUserWhitelist_Success()
-        {
-            // Adding permissions
-            var post = this.Browser.Post("/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", "viewpatient");
-            }).Result;
-
-            var viewPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
-
-            post = this.Browser.Post("/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", "editpatient");
-            }).Result;
-
-            var editPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
-
-            // Adding roles
-            var role = new RoleApiModel()
-            {
-                Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "viewer",
-                Permissions = new List<PermissionApiModel> { viewPatientPermission }
-            };
-
-            post = this.Browser.Post("/roles", with => // -3
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.JsonBody(role);
-            }).Result;
-
-            var viewerRole = post.Body.DeserializeJson<RoleApiModel>();
-
-            post = this.Browser.Post("/roles", with => // -2
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                role.Name = "editor";
-                role.Permissions = new List<PermissionApiModel> { editPatientPermission };
-                with.JsonBody(role);
-            }).Result;
-
-            var editorRole = post.Body.DeserializeJson<RoleApiModel>();
-
-            // Adding groups
-            this.Browser.Post("/groups", with =>
-            {
-                with.HttpRequest();
-                with.FormValue("Id", Group1);
-                with.FormValue("GroupName", Group1);
-                with.FormValue("GroupSource", Source1);
-                with.Header("Accept", "application/json");
-            }).Wait();
-
-            this.Browser.Post("/groups", with =>
-            {
-                with.HttpRequest();
-                with.FormValue("Id", Group2);
-                with.FormValue("GroupName", Group2);
-                with.FormValue("GroupSource", Source2);
-                with.Header("Accept", "application/json");
-            }).Wait();
-
-            this.Browser.Post($"/groups/{Group1}/roles", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Id", viewerRole.Identifier);
-            }).Wait();
-
-            this.Browser.Post($"/groups/{Group2}/roles", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Id", editorRole.Identifier);
-            }).Wait();
-
-            // Adding permission (user also can modify patient, even though role doesn't)
-            var modifyPatientPermission = new PermissionApiModel()
-            {
-                Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "modifypatient",
+                Name = "readpatient",
                 PermissionAction = PermissionAction.Allow
             };
 
-            string subjectId = "userprincipal";
-
-            this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                var perms = new List<PermissionApiModel> { modifyPatientPermission };
-                with.JsonBody(perms);
-            }).Wait();
-
-            // Get the permissions
-            var get = this.Browser.Get("/user/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-            }).Result;
-
-            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
-            var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
-            Assert.Contains("app/userprincipal.editpatient", permissions.Permissions);
-            Assert.Contains("app/userprincipal.viewpatient", permissions.Permissions);
-            Assert.Contains("app/userprincipal.modifypatient", permissions.Permissions);
-            Assert.Equal(3, permissions.Permissions.Count());
-        }
-
-        [Fact]
-        [DisplayTestMethodName]
-        public void TestRoleBlacklist_Success()
-        {
-            // Adding permissions
-            var post = this.Browser.Post("/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", "viewpatient");
-            }).Result;
-
-            var viewPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
-
-            post = this.Browser.Post("/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", "editpatient");
-            }).Result;
-
-            var editPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
-
-
-            // Adding roles
-            var role = new RoleApiModel
+            var denyReadPatientPermission = new PermissionApiModel
             {
                 Grain = "app",
                 SecurableItem = "userprincipal",
-                Name = "viewer",
-                Permissions = new List<PermissionApiModel> { viewPatientPermission }
+                Name = "readpatient",
+                PermissionAction = PermissionAction.Deny
             };
 
-            post = this.Browser.Post("/roles", with => // -3
+            var subjectId = "userprincipal";
+
+            var postResponse = Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
-                with.JsonBody(role);
-            }).Result;
-
-            var viewerRole = post.Body.DeserializeJson<RoleApiModel>();
-
-            post = this.Browser.Post("/roles", with => // -2
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                role.Name = "editor";
-                role.Permissions = new List<PermissionApiModel>() { editPatientPermission };
-
-                // Role denies viewPatient permission
-                role.DeniedPermissions = new List<PermissionApiModel> { viewPatientPermission };
-                with.JsonBody(role);
-            }).Result;
-
-            var editorRole = post.Body.DeserializeJson<RoleApiModel>();
-
-            // Adding groups
-            this.Browser.Post("/groups", with =>
-            {
-                with.HttpRequest();
-                with.FormValue("Id", Group1);
-                with.FormValue("GroupName", Group1);
-                with.FormValue("GroupSource", Source1);
-                with.Header("Accept", "application/json");
-            }).Wait();
-
-            this.Browser.Post("/groups", with =>
-            {
-                with.HttpRequest();
-                with.FormValue("Id", Group2);
-                with.FormValue("GroupName", Group2);
-                with.FormValue("GroupSource", Source2);
-                with.Header("Accept", "application/json");
-            }).Wait();
-
-            this.Browser.Post($"/groups/{Group1}/roles", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Id", viewerRole.Identifier);
-            }).Wait();
-
-            this.Browser.Post($"/groups/{Group2}/roles", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Id", editorRole.Identifier);
-            }).Wait();
-
-            // Get the permissions
-            var get = this.Browser.Get("/user/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-            }).Result;
-
-            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
-            var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
-            Assert.Contains("app/userprincipal.editpatient", permissions.Permissions);
-            Assert.DoesNotContain("app/userprincipal.viewpatient", permissions.Permissions); // Denied by role
-            Assert.Equal(1, permissions.Permissions.Count());
-        }
-
-        [Fact]
-        [DisplayTestMethodName]
-        public void Test_Delete_Success()
-        {
-            // Adding permission
-            var modifyPatientPermission = new PermissionApiModel()
-            {
-                Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "modifypatient",
-                PermissionAction = PermissionAction.Allow
-            };
-
-            string subjectId = "userprincipal";
-            this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                var perms = new List<PermissionApiModel> { modifyPatientPermission };
-                with.JsonBody(perms);
-            }).Wait();
-
-            // Get the permissions
-            var get = this.Browser.Get("/user/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-            }).Result;
-
-            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
-            var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
-            Assert.Contains("app/userprincipal.modifypatient", permissions.Permissions);
-
-            //delete the permission
-            this.Browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                var perms = new List<PermissionApiModel> { modifyPatientPermission };
-                with.JsonBody(perms);
-            }).Wait();
-
-            // Get the permissions
-            get = this.Browser.Get("/user/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-            }).Result;
-
-            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
-            permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
-            Assert.DoesNotContain("app/userprincipal.modifypatient", permissions.Permissions);
-        }
-
-        [Fact]
-        [DisplayTestMethodName]
-        public void Test_Delete_UserHasNoGranularPermissions()
-        {
-            // Get the permissions
-            var get = this.Browser.Get("/user/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-            }).Result;
-
-            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
-            var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
-            Assert.Equal(0, permissions.Permissions.Count());
-
-            var modifyPatientPermission = new PermissionApiModel
-            {
-                Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "modifypatient",
-                PermissionAction = PermissionAction.Allow
-            };
-
-            string subjectId = "userprincipal";
-
-            //attempt to delete a permission the user does not have 
-            var deleteRequest = this.Browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                var perms = new List<PermissionApiModel> { modifyPatientPermission };
+                var perms = new List<PermissionApiModel> {allowReadPatientPermission, denyReadPatientPermission};
                 with.JsonBody(perms);
             }).Result;
 
-            Assert.Equal(HttpStatusCode.BadRequest, deleteRequest.StatusCode);
-            Assert.Contains("The permissions do not exist as 'allow' permissions: app/userprincipal.modifypatient", deleteRequest.Body.AsString());
-            Assert.DoesNotContain("The permissions exist but have a permission action of 'deny' and 'allow' was specified", deleteRequest.Body.AsString());
-
-        }
-
-        [Fact]
-        [DisplayTestMethodName]
-        public void Test_Delete_WrongPermissionAction()
-        {
-            var modifyPatientPermission = new PermissionApiModel
-            {
-                Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "modifypatient",
-                PermissionAction = PermissionAction.Allow
-            };
-
-            string subjectId = "userprincipal";
-
-            this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                var perms = new List<PermissionApiModel> { modifyPatientPermission };
-                with.JsonBody(perms);
-            }).Wait();
-
-            // Get the permissions
-            var get = this.Browser.Get("/user/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-            }).Result;
-
-            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
-            var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
-            Assert.Contains("app/userprincipal.modifypatient", permissions.Permissions);
-
-            //attempt to delete modifyPatientPermission with permission action Deny
-            modifyPatientPermission.PermissionAction = PermissionAction.Deny;
-
-            var deleteRequest = this.Browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                var perms = new List<PermissionApiModel> { modifyPatientPermission };
-                with.JsonBody(perms);
-            }).Result;
-
-            Assert.Equal(HttpStatusCode.BadRequest, deleteRequest.StatusCode);
-            Assert.Contains("The permissions exist but have a permission action of 'allow' and 'deny' was specified: app/userprincipal.modifypatient", deleteRequest.Body.AsString());
-            Assert.DoesNotContain("The permissions do not exist as 'deny' permissions", deleteRequest.Body.AsString());
-        }
-
-        [Fact]
-        [DisplayTestMethodName]
-        public void Test_Delete_WrongPermissionAction_InvalidPermission()
-        {
-            var modifyPatientPermission = new PermissionApiModel
-            {
-                Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "modifypatient",
-                PermissionAction = PermissionAction.Allow
-            };
-
-            string subjectId = "userprincipal";
-
-            this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                var perms = new List<PermissionApiModel> { modifyPatientPermission };
-                with.JsonBody(perms);
-            }).Wait();
-
-            // Get the permissions
-            var get = this.Browser.Get("/user/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-            }).Result;
-
-            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
-            var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
-            Assert.Contains("app/userprincipal.modifypatient", permissions.Permissions);
-
-            //attempt to delete modifyPatientPermission with permission action Deny and include an invalid permission
-            modifyPatientPermission.PermissionAction = PermissionAction.Deny;
-
-            var deletePatientPermission = new PermissionApiModel
-            {
-                Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "deletepatient",
-                PermissionAction = PermissionAction.Allow
-            };
-
-            var deleteRequest = this.Browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                var perms = new List<PermissionApiModel> { modifyPatientPermission, deletePatientPermission };
-                with.JsonBody(perms);
-            }).Result;
-
-            Assert.Equal(HttpStatusCode.BadRequest, deleteRequest.StatusCode);
-            Assert.Contains("The permissions exist but have a permission action of 'allow' and 'deny' was specified: app/userprincipal.modifypatient", deleteRequest.Body.AsString());
-            Assert.DoesNotContain("The permissions do not exist as 'deny' permissions", deleteRequest.Body.AsString());
-            Assert.Contains("The permissions do not exist as 'allow' permissions: app/userprincipal.deletepatient", deleteRequest.Body.AsString());
-            Assert.DoesNotContain("The permissions exist but have a permission action of 'deny' and 'allow' was specified", deleteRequest.Body.AsString());
-
-        }
-
-        [Fact]
-        [DisplayTestMethodName]
-        public void Test_AddGranularPermissions_NoPermissionsInBody()
-        {
-            string subjectId = "userprincipal";
-
-            var postRequest = this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                var perms = new List<PermissionApiModel>();
-                with.JsonBody(perms);
-            }).Result;
-
-            Assert.Equal(HttpStatusCode.BadRequest, postRequest.StatusCode);
-        }
-
-        [Fact]
-        [DisplayTestMethodName]
-        public void Test_DeleteGranularPermissions_NoPermissionsInBody()
-        {
-            string subjectId = "userprincipal";
-
-            var deleteRequest = this.Browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                var perms = new List<PermissionApiModel>();
-                with.JsonBody(perms);
-            }).Result;
-
-            Assert.Equal(HttpStatusCode.BadRequest, deleteRequest.StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
+            Assert.Contains(
+                "The permissions cannot be specified as both 'allow' and 'deny': app/userprincipal.readpatient",
+                postResponse.Body.AsString());
         }
 
         [Fact]
@@ -959,62 +167,28 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 PermissionAction = PermissionAction.Allow
             };
 
-            string subjectId = "userprincipal";
+            var subjectId = "userprincipal";
 
-            this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
-                var perms = new List<PermissionApiModel> { modifyPatientPermission };
+                var perms = new List<PermissionApiModel> {modifyPatientPermission};
                 with.JsonBody(perms);
             }).Wait();
 
-            var postResponse = this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            var postResponse = Browser.Post($"/user/{IdentityProvider}/{subjectId.ToUpper()}/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
-                var perms = new List<PermissionApiModel> { modifyPatientPermission };
+                var perms = new List<PermissionApiModel> {modifyPatientPermission};
                 with.JsonBody(perms);
             }).Result;
 
             Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
-            Assert.Contains("The permissions cannot be added as duplicate 'allow' permissions: app/userprincipal.modifypatient", postResponse.Body.AsString());
-        }
-
-        [Fact]
-        [DisplayTestMethodName]
-        public void Test_AddGranularPermssion_ExistsWithOtherAction()
-        {
-            var modifyPatientPermission = new PermissionApiModel
-            {
-                Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "modifypatient",
-                PermissionAction = PermissionAction.Allow
-            };
-
-            string subjectId = "userprincipal";
-
-            this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                var perms = new List<PermissionApiModel> { modifyPatientPermission };
-                with.JsonBody(perms);
-            }).Wait();
-
-            modifyPatientPermission.PermissionAction = PermissionAction.Deny;
-
-            var postResponse = this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-                var perms = new List<PermissionApiModel> { modifyPatientPermission };
-                with.JsonBody(perms);
-            }).Result;
-
-            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
-            Assert.Contains("The permissions exist as 'allow' and cannot be added as 'deny': app/userprincipal.modifypatient", postResponse.Body.AsString());
+            Assert.Contains(
+                "The permissions cannot be added as duplicate 'allow' permissions: app/userprincipal.modifypatient",
+                postResponse.Body.AsString());
         }
 
         [Fact]
@@ -1045,63 +219,935 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 PermissionAction = PermissionAction.Allow
             };
 
-            string subjectId = "userprincipal";
+            var subjectId = "userprincipal";
 
-            this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
-                var perms = new List<PermissionApiModel> { modifyPatientPermission, deletePatientPermission, readPatientPermission };
+                var perms = new List<PermissionApiModel>
+                {
+                    modifyPatientPermission,
+                    deletePatientPermission,
+                    readPatientPermission
+                };
                 with.JsonBody(perms);
             }).Wait();
 
             modifyPatientPermission.PermissionAction = PermissionAction.Deny;
 
-            var postResponse = this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            var postResponse = Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
-                var perms = new List<PermissionApiModel> { modifyPatientPermission, deletePatientPermission, readPatientPermission };
+                var perms = new List<PermissionApiModel>
+                {
+                    modifyPatientPermission,
+                    deletePatientPermission,
+                    readPatientPermission
+                };
                 with.JsonBody(perms);
             }).Result;
 
             Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
-            Assert.Contains("The permissions exist as 'allow' and cannot be added as 'deny': app/userprincipal.modifypatient", postResponse.Body.AsString());
-            Assert.Contains("The permissions cannot be added as duplicate 'allow' permissions: app/userprincipal.deletepatient, app/userprincipal.readpatient", postResponse.Body.AsString());
+            Assert.Contains(
+                "The permissions exist as 'allow' and cannot be added as 'deny': app/userprincipal.modifypatient",
+                postResponse.Body.AsString());
+            Assert.Contains(
+                "The permissions cannot be added as duplicate 'allow' permissions: app/userprincipal.deletepatient, app/userprincipal.readpatient",
+                postResponse.Body.AsString());
         }
 
         [Fact]
         [DisplayTestMethodName]
-        public void Test_AddGranularPermission_AllowDenyPermissionInSameRequest()
+        public void Test_AddGranularPermissions_NoPermissionsInBody()
         {
-            var allowReadPatientPermission = new PermissionApiModel
-            {
-                Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "readpatient",
-                PermissionAction = PermissionAction.Allow
-            };
+            var subjectId = "userprincipal";
 
-            var denyReadPatientPermission = new PermissionApiModel
-            {
-                Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "readpatient",
-                PermissionAction = PermissionAction.Deny
-            };
-
-            string subjectId = "userprincipal";
-
-            var postResponse = this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            var postRequest = Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
-                var perms = new List<PermissionApiModel> { allowReadPatientPermission, denyReadPatientPermission };
+                var perms = new List<PermissionApiModel>();
+                with.JsonBody(perms);
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.BadRequest, postRequest.StatusCode);
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void Test_AddGranularPermssion_ExistsWithOtherAction()
+        {
+            var modifyPatientPermission = new PermissionApiModel
+            {
+                Grain = "app",
+                SecurableItem = "userprincipal",
+                Name = "modifypatient",
+                PermissionAction = PermissionAction.Allow
+            };
+
+            var subjectId = "userprincipal";
+
+            Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                var perms = new List<PermissionApiModel> {modifyPatientPermission};
+                with.JsonBody(perms);
+            }).Wait();
+
+            modifyPatientPermission.PermissionAction = PermissionAction.Deny;
+
+            var postResponse = Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                var perms = new List<PermissionApiModel> {modifyPatientPermission};
                 with.JsonBody(perms);
             }).Result;
 
             Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
-            Assert.Contains("The permissions cannot be specified as both 'allow' and 'deny': app/userprincipal.readpatient", postResponse.Body.AsString());
+            Assert.Contains(
+                "The permissions exist as 'allow' and cannot be added as 'deny': app/userprincipal.modifypatient",
+                postResponse.Body.AsString());
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void Test_Delete_Success()
+        {
+            // Adding permission
+            var modifyPatientPermission = new PermissionApiModel
+            {
+                Grain = "app",
+                SecurableItem = "userprincipal",
+                Name = "modifypatient",
+                PermissionAction = PermissionAction.Allow
+            };
+
+            var subjectId = "userprincipal";
+            Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                var perms = new List<PermissionApiModel> {modifyPatientPermission};
+                with.JsonBody(perms);
+            }).Wait();
+
+            // Get the permissions
+            var get = Browser.Get("/user/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
+            var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
+            Assert.Contains("app/userprincipal.modifypatient", permissions.Permissions);
+
+            //delete the permission
+            Browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                var perms = new List<PermissionApiModel> {modifyPatientPermission};
+                with.JsonBody(perms);
+            }).Wait();
+
+            // Get the permissions
+            get = Browser.Get("/user/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
+            permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
+            Assert.DoesNotContain("app/userprincipal.modifypatient", permissions.Permissions);
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void Test_Delete_UserHasNoGranularPermissions()
+        {
+            // Get the permissions
+            var get = Browser.Get("/user/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
+            var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
+            Assert.Equal(0, permissions.Permissions.Count());
+
+            var modifyPatientPermission = new PermissionApiModel
+            {
+                Grain = "app",
+                SecurableItem = "userprincipal",
+                Name = "modifypatient",
+                PermissionAction = PermissionAction.Allow
+            };
+
+            var subjectId = "userprincipal";
+
+            //attempt to delete a permission the user does not have 
+            var deleteRequest = Browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                var perms = new List<PermissionApiModel> {modifyPatientPermission};
+                with.JsonBody(perms);
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.BadRequest, deleteRequest.StatusCode);
+            Assert.Contains("The permissions do not exist as 'allow' permissions: app/userprincipal.modifypatient",
+                deleteRequest.Body.AsString());
+            Assert.DoesNotContain(
+                "The permissions exist but have a permission action of 'deny' and 'allow' was specified",
+                deleteRequest.Body.AsString());
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void Test_Delete_WrongPermissionAction()
+        {
+            var modifyPatientPermission = new PermissionApiModel
+            {
+                Grain = "app",
+                SecurableItem = "userprincipal",
+                Name = "modifypatient",
+                PermissionAction = PermissionAction.Allow
+            };
+
+            var subjectId = "userprincipal";
+
+            Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                var perms = new List<PermissionApiModel> {modifyPatientPermission};
+                with.JsonBody(perms);
+            }).Wait();
+
+            // Get the permissions
+            var get = Browser.Get("/user/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
+            var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
+            Assert.Contains("app/userprincipal.modifypatient", permissions.Permissions);
+
+            //attempt to delete modifyPatientPermission with permission action Deny
+            modifyPatientPermission.PermissionAction = PermissionAction.Deny;
+
+            var deleteRequest = Browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                var perms = new List<PermissionApiModel> {modifyPatientPermission};
+                with.JsonBody(perms);
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.BadRequest, deleteRequest.StatusCode);
+            Assert.Contains(
+                "The permissions exist but have a permission action of 'allow' and 'deny' was specified: app/userprincipal.modifypatient",
+                deleteRequest.Body.AsString());
+            Assert.DoesNotContain("The permissions do not exist as 'deny' permissions", deleteRequest.Body.AsString());
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void Test_Delete_WrongPermissionAction_InvalidPermission()
+        {
+            var modifyPatientPermission = new PermissionApiModel
+            {
+                Grain = "app",
+                SecurableItem = "userprincipal",
+                Name = "modifypatient",
+                PermissionAction = PermissionAction.Allow
+            };
+
+            var subjectId = "userprincipal";
+
+            Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                var perms = new List<PermissionApiModel> {modifyPatientPermission};
+                with.JsonBody(perms);
+            }).Wait();
+
+            // Get the permissions
+            var get = Browser.Get("/user/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
+            var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
+            Assert.Contains("app/userprincipal.modifypatient", permissions.Permissions);
+
+            //attempt to delete modifyPatientPermission with permission action Deny and include an invalid permission
+            modifyPatientPermission.PermissionAction = PermissionAction.Deny;
+
+            var deletePatientPermission = new PermissionApiModel
+            {
+                Grain = "app",
+                SecurableItem = "userprincipal",
+                Name = "deletepatient",
+                PermissionAction = PermissionAction.Allow
+            };
+
+            var deleteRequest = Browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                var perms = new List<PermissionApiModel> {modifyPatientPermission, deletePatientPermission};
+                with.JsonBody(perms);
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.BadRequest, deleteRequest.StatusCode);
+            Assert.Contains(
+                "The permissions exist but have a permission action of 'allow' and 'deny' was specified: app/userprincipal.modifypatient",
+                deleteRequest.Body.AsString());
+            Assert.DoesNotContain("The permissions do not exist as 'deny' permissions", deleteRequest.Body.AsString());
+            Assert.Contains("The permissions do not exist as 'allow' permissions: app/userprincipal.deletepatient",
+                deleteRequest.Body.AsString());
+            Assert.DoesNotContain(
+                "The permissions exist but have a permission action of 'deny' and 'allow' was specified",
+                deleteRequest.Body.AsString());
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void Test_DeleteGranularPermissions_NoPermissionsInBody()
+        {
+            var subjectId = "userprincipal";
+
+            var deleteRequest = Browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                var perms = new List<PermissionApiModel>();
+                with.JsonBody(perms);
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.BadRequest, deleteRequest.StatusCode);
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void TestGetPermissions_Success()
+        {
+            // Adding permissions
+            var post = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "userprincipal");
+                with.FormValue("Name", "viewpatient");
+            }).Result;
+
+            var viewPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
+
+            post = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "userprincipal");
+                with.FormValue("Name", "editpatient");
+            }).Result;
+
+            var editPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
+
+            var role = new RoleApiModel
+            {
+                Grain = "app",
+                SecurableItem = "userprincipal",
+                Name = "viewer",
+                Permissions = new List<PermissionApiModel> {viewPatientPermission}
+            };
+
+            post = Browser.Post("/roles", with => // -3
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.JsonBody(role);
+            }).Result;
+
+            var viewerRole = post.Body.DeserializeJson<RoleApiModel>();
+
+            post = Browser.Post("/roles", with => // -2
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                role.Name = "editor";
+                role.Permissions = new List<PermissionApiModel> {editPatientPermission};
+                with.JsonBody(role);
+            }).Result;
+
+            var editorRole = post.Body.DeserializeJson<RoleApiModel>();
+
+            Browser.Post("/groups", with =>
+            {
+                with.HttpRequest();
+                with.FormValue("Id", Group1);
+                with.FormValue("GroupName", Group1);
+                with.FormValue("GroupSource", Source1);
+                with.Header("Accept", "application/json");
+            }).Wait();
+
+            Browser.Post("/groups", with =>
+            {
+                with.HttpRequest();
+                with.FormValue("Id", Group2);
+                with.FormValue("GroupName", Group2);
+                with.FormValue("GroupSource", Source2);
+                with.Header("Accept", "application/json");
+            }).Wait();
+
+            Browser.Post($"/groups/{Group1}/roles", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Id", viewerRole.Identifier);
+            }).Wait();
+
+            Browser.Post($"/groups/{Group2}/roles", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Id", editorRole.Identifier);
+            }).Wait();
+
+            // Get the permissions
+            var get = Browser.Get("/user/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
+            var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
+            Assert.Contains("app/userprincipal.editpatient", permissions.Permissions);
+            Assert.Contains("app/userprincipal.viewpatient", permissions.Permissions);
+            Assert.Equal(2, permissions.Permissions.Count());
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void TestInheritance_Success()
+        {
+            var group = Group1;
+
+            // Adding permissions
+            var post = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "userprincipal");
+                with.FormValue("Name", "greatgrandfatherpermissions");
+            }).Result;
+
+            var ggfperm = post.Body.DeserializeJson<PermissionApiModel>();
+
+            post = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "userprincipal");
+                with.FormValue("Name", "grandfatherpermissions");
+            }).Result;
+
+            var gfperm = post.Body.DeserializeJson<PermissionApiModel>();
+
+            post = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "userprincipal");
+                with.FormValue("Name", "fatherpermissions");
+            }).Result;
+
+            var fperm = post.Body.DeserializeJson<PermissionApiModel>();
+
+            post = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "userprincipal");
+                with.FormValue("Name", "himselfpermissions");
+            }).Result;
+
+            var hsperm = post.Body.DeserializeJson<PermissionApiModel>();
+
+            post = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "userprincipal");
+                with.FormValue("Name", "sonpermissions");
+            }).Result;
+
+            var sonperm = post.Body.DeserializeJson<PermissionApiModel>();
+
+            // Adding Roles
+            var role = new RoleApiModel
+            {
+                Grain = "app",
+                SecurableItem = "userprincipal",
+                Name = "greatgrandfather",
+                Permissions = new List<PermissionApiModel> {ggfperm}
+            };
+
+            post = Browser.Post("/roles", with => // -3
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.JsonBody(role);
+            }).Result;
+
+            var ggf = post.Body.DeserializeJson<RoleApiModel>();
+
+            post = Browser.Post("/roles", with => // -2
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                role.Name = "grandfather";
+                role.ParentRole = ggf.Id;
+                role.Permissions = new List<PermissionApiModel> {gfperm};
+                with.JsonBody(role);
+            }).Result;
+
+            var gf = post.Body.DeserializeJson<RoleApiModel>();
+
+            post = Browser.Post("/roles", with => // -1
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                role.Name = "father";
+                role.ParentRole = gf.Id;
+                role.Permissions = new List<PermissionApiModel> {fperm};
+                with.JsonBody(role);
+            }).Result;
+
+            var f = post.Body.DeserializeJson<RoleApiModel>();
+
+            post = Browser.Post("/roles", with => // 0
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                role.Name = "himself";
+                role.ParentRole = f.Id;
+                role.Permissions = new List<PermissionApiModel> {hsperm};
+                with.JsonBody(role);
+            }).Result;
+
+            var hs = post.Body.DeserializeJson<RoleApiModel>();
+
+            post = Browser.Post("/roles", with => // 1
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                role.Name = "son";
+                role.ParentRole = hs.Id;
+                role.Permissions = new List<PermissionApiModel> {sonperm};
+                with.JsonBody(role);
+            }).Result;
+
+            post.Body.DeserializeJson<RoleApiModel>();
+
+            // Adding groups
+            Browser.Post("/groups", with =>
+            {
+                with.HttpRequest();
+                with.FormValue("Id", group);
+                with.FormValue("GroupName", group);
+                with.FormValue("GroupSource", Source1);
+                with.Header("Accept", "application/json");
+            }).Wait();
+
+            Browser.Post($"/groups/{group}/roles", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Id", hs.Identifier);
+                with.Header("Accept", "application/json");
+            }).Wait();
+
+            // Get the permissions
+            var get = Browser.Get("/user/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
+            Assert.True(get.Body.AsString().Contains("greatgrandfatherpermissions"));
+            Assert.True(get.Body.AsString().Contains("grandfatherpermissions"));
+            Assert.True(get.Body.AsString().Contains("fatherpermissions"));
+            Assert.True(get.Body.AsString().Contains("himselfpermissions"));
+            Assert.False(get.Body.AsString().Contains("sonpermissions"));
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void TestRoleBlacklist_Success()
+        {
+            // Adding permissions
+            var post = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "userprincipal");
+                with.FormValue("Name", "viewpatient");
+            }).Result;
+
+            var viewPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
+
+            post = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "userprincipal");
+                with.FormValue("Name", "editpatient");
+            }).Result;
+
+            var editPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
+
+
+            // Adding roles
+            var role = new RoleApiModel
+            {
+                Grain = "app",
+                SecurableItem = "userprincipal",
+                Name = "viewer",
+                Permissions = new List<PermissionApiModel> {viewPatientPermission}
+            };
+
+            post = Browser.Post("/roles", with => // -3
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.JsonBody(role);
+            }).Result;
+
+            var viewerRole = post.Body.DeserializeJson<RoleApiModel>();
+
+            post = Browser.Post("/roles", with => // -2
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                role.Name = "editor";
+                role.Permissions = new List<PermissionApiModel> {editPatientPermission};
+
+                // Role denies viewPatient permission
+                role.DeniedPermissions = new List<PermissionApiModel> {viewPatientPermission};
+                with.JsonBody(role);
+            }).Result;
+
+            var editorRole = post.Body.DeserializeJson<RoleApiModel>();
+
+            // Adding groups
+            Browser.Post("/groups", with =>
+            {
+                with.HttpRequest();
+                with.FormValue("Id", Group1);
+                with.FormValue("GroupName", Group1);
+                with.FormValue("GroupSource", Source1);
+                with.Header("Accept", "application/json");
+            }).Wait();
+
+            Browser.Post("/groups", with =>
+            {
+                with.HttpRequest();
+                with.FormValue("Id", Group2);
+                with.FormValue("GroupName", Group2);
+                with.FormValue("GroupSource", Source2);
+                with.Header("Accept", "application/json");
+            }).Wait();
+
+            Browser.Post($"/groups/{Group1}/roles", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Id", viewerRole.Identifier);
+            }).Wait();
+
+            Browser.Post($"/groups/{Group2}/roles", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Id", editorRole.Identifier);
+            }).Wait();
+
+            // Get the permissions
+            var get = Browser.Get("/user/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
+            var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
+            Assert.Contains("app/userprincipal.editpatient", permissions.Permissions);
+            Assert.DoesNotContain("app/userprincipal.viewpatient", permissions.Permissions); // Denied by role
+            Assert.Equal(1, permissions.Permissions.Count());
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void TestUserBlacklist_Success()
+        {
+            // Adding permissions
+            var post = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "userprincipal");
+                with.FormValue("Name", "viewpatient");
+            }).Result;
+
+            var viewPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
+
+            post = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "userprincipal");
+                with.FormValue("Name", "editpatient");
+            }).Result;
+
+            var editPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
+
+
+            // Adding roles
+            var role = new RoleApiModel
+            {
+                Grain = "app",
+                SecurableItem = "userprincipal",
+                Name = "viewer",
+                Permissions = new List<PermissionApiModel> {viewPatientPermission}
+            };
+
+            post = Browser.Post("/roles", with => // -3
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.JsonBody(role);
+            }).Result;
+
+            var viewerRole = post.Body.DeserializeJson<RoleApiModel>();
+
+            post = Browser.Post("/roles", with => // -2
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                role.Name = "editor";
+                role.Permissions = new List<PermissionApiModel> {editPatientPermission};
+                with.JsonBody(role);
+            }).Result;
+
+            var editorRole = post.Body.DeserializeJson<RoleApiModel>();
+
+            // Adding groups
+            Browser.Post("/groups", with =>
+            {
+                with.HttpRequest();
+                with.FormValue("Id", Group1);
+                with.FormValue("GroupName", Group1);
+                with.FormValue("GroupSource", Source1);
+                with.Header("Accept", "application/json");
+            }).Wait();
+
+            Browser.Post("/groups", with =>
+            {
+                with.HttpRequest();
+                with.FormValue("Id", Group2);
+                with.FormValue("GroupName", Group2);
+                with.FormValue("GroupSource", Source2);
+                with.Header("Accept", "application/json");
+            }).Wait();
+
+            Browser.Post($"/groups/{Group1}/roles", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Id", viewerRole.Identifier);
+            }).Wait();
+
+            Browser.Post($"/groups/{Group2}/roles", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Id", editorRole.Identifier);
+            }).Wait();
+
+            // Adding blacklist (user cannot edit patient, even though role allows)
+            var subjectId = "userprincipal";
+
+            editPatientPermission.PermissionAction = PermissionAction.Deny;
+
+            Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                var perms = new List<PermissionApiModel> {editPatientPermission};
+                with.JsonBody(perms);
+            }).Wait();
+
+            // Get the permissions
+            var get = Browser.Get("/user/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
+            var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
+            Assert.DoesNotContain("app/userprincipal.editpatient", permissions.Permissions);
+            Assert.Contains("app/userprincipal.viewpatient", permissions.Permissions);
+            Assert.Equal(1, permissions.Permissions.Count());
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void TestUserWhitelist_Success()
+        {
+            // Adding permissions
+            var post = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "userprincipal");
+                with.FormValue("Name", "viewpatient");
+            }).Result;
+
+            var viewPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
+
+            post = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "userprincipal");
+                with.FormValue("Name", "editpatient");
+            }).Result;
+
+            var editPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
+
+            // Adding roles
+            var role = new RoleApiModel
+            {
+                Grain = "app",
+                SecurableItem = "userprincipal",
+                Name = "viewer",
+                Permissions = new List<PermissionApiModel> {viewPatientPermission}
+            };
+
+            post = Browser.Post("/roles", with => // -3
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.JsonBody(role);
+            }).Result;
+
+            var viewerRole = post.Body.DeserializeJson<RoleApiModel>();
+
+            post = Browser.Post("/roles", with => // -2
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                role.Name = "editor";
+                role.Permissions = new List<PermissionApiModel> {editPatientPermission};
+                with.JsonBody(role);
+            }).Result;
+
+            var editorRole = post.Body.DeserializeJson<RoleApiModel>();
+
+            // Adding groups
+            Browser.Post("/groups", with =>
+            {
+                with.HttpRequest();
+                with.FormValue("Id", Group1);
+                with.FormValue("GroupName", Group1);
+                with.FormValue("GroupSource", Source1);
+                with.Header("Accept", "application/json");
+            }).Wait();
+
+            Browser.Post("/groups", with =>
+            {
+                with.HttpRequest();
+                with.FormValue("Id", Group2);
+                with.FormValue("GroupName", Group2);
+                with.FormValue("GroupSource", Source2);
+                with.Header("Accept", "application/json");
+            }).Wait();
+
+            Browser.Post($"/groups/{Group1}/roles", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Id", viewerRole.Identifier);
+            }).Wait();
+
+            Browser.Post($"/groups/{Group2}/roles", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Id", editorRole.Identifier);
+            }).Wait();
+
+            // Adding permission (user also can modify patient, even though role doesn't)
+            var modifyPatientPermission = new PermissionApiModel
+            {
+                Grain = "app",
+                SecurableItem = "userprincipal",
+                Name = "modifypatient",
+                PermissionAction = PermissionAction.Allow
+            };
+
+            var subjectId = "userprincipal";
+
+            Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                var perms = new List<PermissionApiModel> {modifyPatientPermission};
+                with.JsonBody(perms);
+            }).Wait();
+
+            // Get the permissions
+            var get = Browser.Get("/user/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
+            var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
+            Assert.Contains("app/userprincipal.editpatient", permissions.Permissions);
+            Assert.Contains("app/userprincipal.viewpatient", permissions.Permissions);
+            Assert.Contains("app/userprincipal.modifypatient", permissions.Permissions);
+            Assert.Equal(3, permissions.Permissions.Count());
         }
     }
 }

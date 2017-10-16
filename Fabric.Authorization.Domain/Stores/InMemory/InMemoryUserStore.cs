@@ -1,15 +1,21 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.Domain.Stores.InMemory
 {
-    public class InMemoryUserStore : InMemoryGenericStore<User>, IUserStore
+    public class InMemoryUserStore : InMemoryFormattableIdentifierStore<User>, IUserStore
     {
+        public InMemoryUserStore(IIdentifierFormatter identifierFormatter) : base(identifierFormatter)
+        {
+            
+        }
+
         public override async Task<User> Add(User model)
         {
-            model.Id = model.Identifier;
+            model.Id = FormatId(model.Identifier);
             return await base.Add(model);
         }
 
@@ -19,11 +25,11 @@ namespace Fabric.Authorization.Domain.Stores.InMemory
 
             if (!string.IsNullOrEmpty(subjectId))
             {
-                users = users.Where(u => u.SubjectId == subjectId);
+                users = users.Where(u => string.Equals(u.SubjectId, subjectId, StringComparison.OrdinalIgnoreCase));
             }
             if (!string.IsNullOrEmpty(identityProvider))
             {
-                users = users.Where(u => u.IdentityProvider == identityProvider);
+                users = users.Where(u => string.Equals(u.IdentityProvider, identityProvider, StringComparison.OrdinalIgnoreCase));
             }
 
             return Task.FromResult(users.Where(u => !u.IsDeleted));

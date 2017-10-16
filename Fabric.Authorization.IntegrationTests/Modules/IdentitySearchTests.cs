@@ -176,7 +176,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         public void Initialize(bool useInMemoryDb)
         {
             var groupStore = useInMemoryDb
-                ? new InMemoryGroupStore()
+                ? new InMemoryGroupStore(_identifierFormatter)
                 : (IGroupStore)new CouchDbGroupStore(DbService(), Logger, EventContextResolverService, _identifierFormatter);
 
             var roleStore = useInMemoryDb
@@ -184,7 +184,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 : (IRoleStore)new CouchDbRoleStore(DbService(), Logger, EventContextResolverService);
 
             var userStore = useInMemoryDb
-                ? new InMemoryUserStore()
+                ? new InMemoryUserStore(_identifierFormatter)
                 : (IUserStore)new CouchDbUserStore(DbService(), Logger, EventContextResolverService, _identifierFormatter);
 
             var clientStore = useInMemoryDb
@@ -192,7 +192,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 : (IClientStore)new CouchDbClientStore(DbService(), Logger, EventContextResolverService);
 
             _clientService = new ClientService(clientStore);
-            RoleService = new RoleService(roleStore, new InMemoryPermissionStore(), _clientService);
+            RoleService = new RoleService(roleStore, new InMemoryPermissionStore(_identifierFormatter), _clientService);
             _groupService = new GroupService(groupStore, roleStore, userStore, RoleService);
 
             AtlasClientId = $"atlas-{DateTime.Now.Ticks}";

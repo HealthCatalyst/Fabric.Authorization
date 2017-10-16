@@ -8,8 +8,15 @@ using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.Domain.Stores.InMemory
 {
-    public class InMemoryPermissionStore : InMemoryGenericStore<Permission>, IPermissionStore
+    public class InMemoryPermissionStore : InMemoryFormattableIdentifierStore<Permission>, IPermissionStore
     {
+        private readonly ConcurrentDictionary<string, GranularPermission> _granularPermissions =
+            new ConcurrentDictionary<string, GranularPermission>();
+
+        public InMemoryPermissionStore(IIdentifierFormatter identifierFormatter) : base(identifierFormatter)
+        {
+            
+        }
 
         public override async Task<Permission> Add(Permission model)
         {
@@ -17,11 +24,18 @@ namespace Fabric.Authorization.Domain.Stores.InMemory
             return await base.Add(model);
         }
 
-        public async Task<bool> Exists(Guid id) => await this.Exists(id.ToString());
+        public async Task<bool> Exists(Guid id)
+        {
+            return await Exists(id.ToString());
+        }
 
-        public async Task<Permission> Get(Guid id) => await this.Get(id.ToString());
+        public async Task<Permission> Get(Guid id)
+        {
+            return await Get(id.ToString());
+        }
 
-        public Task<IEnumerable<Permission>> GetPermissions(string grain = null, string securableItem = null, string permissionName = null)
+        public Task<IEnumerable<Permission>> GetPermissions(string grain = null, string securableItem = null,
+            string permissionName = null)
         {
             var permissions = Dictionary.Select(kvp => kvp.Value);
             if (!string.IsNullOrEmpty(grain))
@@ -39,22 +53,22 @@ namespace Fabric.Authorization.Domain.Stores.InMemory
             return Task.FromResult(permissions.Where(p => !p.IsDeleted));
         }
 
-
-        private readonly ConcurrentDictionary<string, GranularPermission> granularPermissions = new ConcurrentDictionary<string, GranularPermission>();
-
         public Task AddOrUpdateGranularPermission(GranularPermission granularPermission)
         {
-            var success = granularPermissions.TryAdd(granularPermission.Id, granularPermission);
+            var formattedId = FormatId(granularPermission.Id);
+            var success = _granularPermissions.TryAdd(formattedId, granularPermission);
             if (!success)
             {
-                granularPermissions.TryUpdate(granularPermission.Id, granularPermission, granularPermissions[granularPermission.Id]);
+                _granularPermissions.TryUpdate(formattedId, granularPermission,
+                    _granularPermissions[formattedId]);
             }
             return Task.CompletedTask;
         }
 
         public Task<GranularPermission> GetGranularPermission(string userId)
         {
-            granularPermissions.TryGetValue(userId, out GranularPermission value);
+            var formattedId = FormatId(userId);
+            _granularPermissions.TryGetValue(formattedId, out GranularPermission value);
 
             if (value == null)
             {

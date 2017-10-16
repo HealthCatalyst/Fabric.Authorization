@@ -27,7 +27,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         public GroupsTests(bool useInMemoryDB = true)
         {
             var groupStore = useInMemoryDB
-                ? new InMemoryGroupStore()
+                ? new InMemoryGroupStore(_identifierFormatter)
                 : (IGroupStore)new CouchDbGroupStore(DbService(), Logger, EventContextResolverService, _identifierFormatter);
 
             _roleStore = useInMemoryDB
@@ -35,11 +35,11 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 : (IRoleStore)new CouchDbRoleStore(DbService(), Logger, EventContextResolverService);
 
             var userStore = useInMemoryDB
-                ? new InMemoryUserStore()
+                ? new InMemoryUserStore(_identifierFormatter)
                 : (IUserStore)new CouchDbUserStore(DbService(), Logger, EventContextResolverService, _identifierFormatter);
 
             var permissionStore = useInMemoryDB
-                ? new InMemoryPermissionStore()
+                ? new InMemoryPermissionStore(_identifierFormatter)
                 : (IPermissionStore)new CouchDbPermissionStore(DbService(), Logger, EventContextResolverService, _identifierFormatter);
 
             var clientStore = useInMemoryDB

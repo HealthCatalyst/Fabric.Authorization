@@ -3,10 +3,10 @@ using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.Domain.Stores.InMemory
 {
-    public class InMemoryGroupStore : InMemoryGenericStore<Group>, IGroupStore
+    public class InMemoryGroupStore : InMemoryFormattableIdentifierStore<Group>, IGroupStore
     {
         [Obsolete]
-        public InMemoryGroupStore()
+        public InMemoryGroupStore(IIdentifierFormatter identifierFormatter) : base(identifierFormatter)
         {
             var group1 = new Group
             {

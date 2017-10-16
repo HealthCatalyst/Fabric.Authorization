@@ -39,10 +39,6 @@ namespace Fabric.Authorization.API.Modules
             Get("/permissions", async _ => await GetCurrentUserPermissions().ConfigureAwait(false), null,
                 "GetUserPermissions");
 
-            Get("/{identityProvider}/{subjectId}/permissions",
-                async param => await GetUserPermissions().ConfigureAwait(false), null,
-                "AddGranularPermissions");
-
             Post("/{identityProvider}/{subjectId}/permissions",
                 async param => await this.AddGranularPermissions(param).ConfigureAwait(false), null,
                 "AddGranularPermissions");
@@ -56,31 +52,6 @@ namespace Fabric.Authorization.API.Modules
         }
 
         private async Task<dynamic> GetCurrentUserPermissions()
-        {
-            var userPermissionRequest = this.Bind<UserInfoRequest>();
-            await SetDefaultRequest(userPermissionRequest);
-            await CheckAccess(_clientService, userPermissionRequest.Grain, userPermissionRequest.SecurableItem,
-                AuthorizationReadClaim);
-
-            var subjectId = SubjectId;
-            var identityProvider = IdentityProvider;
-            var groups = await GetGroupsForAuthenticatedUser(subjectId, identityProvider).ConfigureAwait(false);
-
-            var permissions = await _permissionService.GetPermissionsForUser(
-                $"{subjectId}:{identityProvider}",
-                groups,
-                userPermissionRequest.Grain,
-                userPermissionRequest.SecurableItem);
-
-            return new UserPermissionsApiModel
-            {
-                RequestedGrain = userPermissionRequest.Grain,
-                RequestedSecurableItem = userPermissionRequest.SecurableItem,
-                Permissions = permissions
-            };
-        }
-
-        private async Task<dynamic> GetUserPermissions()
         {
             var userPermissionRequest = this.Bind<UserInfoRequest>();
             await SetDefaultRequest(userPermissionRequest);

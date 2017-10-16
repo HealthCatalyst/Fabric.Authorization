@@ -18,14 +18,18 @@ namespace Fabric.Authorization.IntegrationTests.Modules
     [Collection("InMemoryTests")]
     public class PermissionsTests : IntegrationTestsFixture
     {
+        private readonly IIdentifierFormatter _identifierFormatter = new IdpIdentifierFormatter();
+
         public PermissionsTests(bool useInMemoryDB = true)
         {
             var permissionStore = useInMemoryDB
-                ? new InMemoryPermissionStore()
+                ? new InMemoryPermissionStore(_identifierFormatter)
                 : (IPermissionStore) new CouchDbPermissionStore(DbService(), Logger, EventContextResolverService, new IdpIdentifierFormatter());
+
             var clientStore = useInMemoryDB
                 ? new InMemoryClientStore()
                 : (IClientStore) new CouchDbClientStore(DbService(), Logger, EventContextResolverService);
+
             var roleStore = useInMemoryDB
                 ? new InMemoryRoleStore()
                 : (IRoleStore) new CouchDbRoleStore(DbService(), Logger, EventContextResolverService);

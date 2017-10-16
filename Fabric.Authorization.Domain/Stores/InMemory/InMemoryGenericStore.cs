@@ -11,7 +11,7 @@ namespace Fabric.Authorization.Domain.Stores.InMemory
     {
         protected readonly ConcurrentDictionary<string, T> Dictionary = new ConcurrentDictionary<string, T>();
 
-        public async Task<T> Get(string id)
+        public virtual async Task<T> Get(string id)
         {
             if (await Exists(id).ConfigureAwait(false) && !Dictionary[id].IsDeleted)
             {
@@ -23,7 +23,7 @@ namespace Fabric.Authorization.Domain.Stores.InMemory
 
         public virtual async Task<T> Add(T model)
         {
-            model.Track(creation: true);
+            model.Track();
 
             if (await Exists(model.Identifier).ConfigureAwait(false))
             {
@@ -40,11 +40,11 @@ namespace Fabric.Authorization.Domain.Stores.InMemory
             await Update(model).ConfigureAwait(false);
         }
 
-        public async Task Update(T model)
+        public virtual async Task Update(T model)
         {
             model.Track();
 
-            if (await this.Exists(model.Identifier).ConfigureAwait(false))
+            if (await Exists(model.Identifier).ConfigureAwait(false))
             {
                 if (!Dictionary.TryUpdate(model.Identifier, model, Dictionary[model.Identifier]))
                 {
@@ -53,12 +53,18 @@ namespace Fabric.Authorization.Domain.Stores.InMemory
             }
             else
             {
-                throw new NotFoundException<T>(model, model.Identifier.ToString());
+                throw new NotFoundException<T>(model, model.Identifier);
             }
         }
 
-        public Task<bool> Exists(string id) => Task.FromResult(Dictionary.ContainsKey(id));
+        public virtual Task<bool> Exists(string id)
+        {
+            return Task.FromResult(Dictionary.ContainsKey(id));
+        }
 
-        public Task<IEnumerable<T>> GetAll() => Task.FromResult(Dictionary.Values.Where(g => !g.IsDeleted));
+        public Task<IEnumerable<T>> GetAll()
+        {
+            return Task.FromResult(Dictionary.Values.Where(g => !g.IsDeleted));
+        }
     }
 }

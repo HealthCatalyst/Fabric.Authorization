@@ -18,17 +18,20 @@ namespace Fabric.Authorization.IntegrationTests.Modules
     [Collection("InMemoryTests")]
     public class RolesTests : IntegrationTestsFixture
     {
+        private readonly IIdentifierFormatter _identifierFormatter = new IdpIdentifierFormatter();
+
         public RolesTests(bool useInMemoryDB = true)
         {
             var store = useInMemoryDB
                 ? new InMemoryRoleStore()
                 : (IRoleStore) new CouchDbRoleStore(DbService(), Logger, EventContextResolverService);
+
             var clientStore = useInMemoryDB
                 ? new InMemoryClientStore()
                 : (IClientStore) new CouchDbClientStore(DbService(), Logger, EventContextResolverService);
 
             var clientService = new ClientService(clientStore);
-            var roleService = new RoleService(store, new InMemoryPermissionStore(), clientService);
+            var roleService = new RoleService(store, new InMemoryPermissionStore(_identifierFormatter), clientService);
 
             Browser = new Browser(with =>
             {
