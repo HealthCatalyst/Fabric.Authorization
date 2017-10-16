@@ -32,11 +32,10 @@ namespace Fabric.Authorization.API.Modules
 
         private async Task<dynamic> GetIdentities()
         {
-            this.RequiresClaims(AuthorizationReadClaim);
-            var searchRequest = this.Bind<IdentitySearchRequest>();
-
             try
             {
+                this.RequiresClaims(AuthorizationReadClaim);
+                var searchRequest = this.Bind<IdentitySearchRequest>();
                 Validate(searchRequest);
                 var authResponse = await _identitySearchService.Search(searchRequest);
                 return CreateSuccessfulGetResponse(authResponse.Results, authResponse.HttpStatusCode);
