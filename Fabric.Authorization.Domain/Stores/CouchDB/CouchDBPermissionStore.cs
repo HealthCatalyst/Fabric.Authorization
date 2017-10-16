@@ -64,21 +64,22 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
 
         public async Task AddOrUpdateGranularPermission(GranularPermission granularPermission)
         {
-            var perm = await _dbService.GetDocument<GranularPermission>(granularPermission.Id);
+            var userId = FormatId(granularPermission.Id);
+            var perm = await _dbService.GetDocument<GranularPermission>(userId);
 
             if (perm == null)
             {
-                await _dbService.AddDocument(granularPermission.Id, granularPermission);
+                await _dbService.AddDocument(userId, granularPermission);
             }
             else
             {
-                await _dbService.UpdateDocument(granularPermission.Id, granularPermission);
+                await _dbService.UpdateDocument(userId, granularPermission);
             }
         }
 
         public async Task<GranularPermission> GetGranularPermission(string userId)
         {
-            var perm = await _dbService.GetDocument<GranularPermission>(userId);
+            var perm = await _dbService.GetDocument<GranularPermission>(FormatId(userId));
             if (perm == null)
             {
                 throw new NotFoundException<GranularPermission>(userId);
