@@ -52,7 +52,7 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
             var result = await _dbService.GetDocument<T>(id.ToString()).ConfigureAwait(false);
             if (result == null || result is ISoftDelete && (result as ISoftDelete).IsDeleted)
             {
-                throw new NotFoundException<T>();
+                throw new NotFoundException<T>($"Could not find {typeof(T).Name} entity with ID {id}");
             }
 
             return result;

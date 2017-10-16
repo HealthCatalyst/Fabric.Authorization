@@ -63,7 +63,6 @@ namespace Fabric.Authorization.API.Services
 
             if (groupIds.Count == 0)
             {
-                _logger.Debug("groupIds is empty - returning empty result set.");
                 return new FabricAuthUserSearchResponse
                 {
                     HttpStatusCode = Nancy.HttpStatusCode.OK,
@@ -74,9 +73,15 @@ namespace Fabric.Authorization.API.Services
             var groupEntities = new List<Group>();
             foreach (var groupId in groupIds)
             {
-                _logger.Debug($"getting groupId {groupId}");
-                var group = await _groupService.GetGroup(groupId, request.ClientId);
-                groupEntities.Add(group);
+                try
+                {
+                    var group = await _groupService.GetGroup(groupId, request.ClientId);
+                    groupEntities.Add(group);
+                }
+                catch (NotFoundException<Group> ex)
+                {
+                    _logger.Error($"{ex.Message} (Group is mapped to at least 1 valid role)");
+                }
             }
 
             _logger.Debug($"groupEntities = {groupEntities.ListToString()}");
@@ -127,8 +132,6 @@ namespace Fabric.Authorization.API.Services
 
             if (fabricIdentityUserResponse != null && fabricIdentityUserResponse.HttpStatusCode == System.Net.HttpStatusCode.OK)
             {
-                _logger.Debug("Populating fields from Fabric.Identity");
-
                 // update user details with Fabric.Identity response
                 foreach (var user in fabricIdentityUserResponse.Results)
                 {
