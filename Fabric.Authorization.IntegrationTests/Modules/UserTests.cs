@@ -139,20 +139,18 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 PermissionAction = PermissionAction.Deny
             };
 
-            var subjectId = "userprincipal";
+            string subjectId = "userprincipal";
 
-            var postResponse = Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            var postResponse = this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
-                var perms = new List<PermissionApiModel> {allowReadPatientPermission, denyReadPatientPermission};
+                var perms = new List<PermissionApiModel> { allowReadPatientPermission, denyReadPatientPermission };
                 with.JsonBody(perms);
             }).Result;
 
             Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
-            Assert.Contains(
-                "The permissions cannot be specified as both 'allow' and 'deny': app/userprincipal.readpatient",
-                postResponse.Body.AsString());
+            Assert.Contains("The following permissions cannot be specified as both 'allow' and 'deny': app/userprincipal.readpatient", postResponse.Body.AsString());
         }
 
         [Fact]
@@ -187,7 +185,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
             Assert.Contains(
-                "The permissions cannot be added as duplicate 'allow' permissions: app/userprincipal.modifypatient",
+                "The following permissions already exist as 'allow' permissions: app/userprincipal.modifypatient",
                 postResponse.Body.AsString());
         }
 
@@ -251,10 +249,10 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
             Assert.Contains(
-                "The permissions exist as 'allow' and cannot be added as 'deny': app/userprincipal.modifypatient",
+                "The following permissions exist as 'allow' and cannot be added as 'deny': app/userprincipal.modifypatient",
                 postResponse.Body.AsString());
             Assert.Contains(
-                "The permissions cannot be added as duplicate 'allow' permissions: app/userprincipal.deletepatient, app/userprincipal.readpatient",
+                "The following permissions already exist as 'allow' permissions: app/userprincipal.deletepatient, app/userprincipal.readpatient",
                 postResponse.Body.AsString());
         }
 
@@ -309,7 +307,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
             Assert.Contains(
-                "The permissions exist as 'allow' and cannot be added as 'deny': app/userprincipal.modifypatient",
+                "The following permissions exist as 'allow' and cannot be added as 'deny': app/userprincipal.modifypatient",
                 postResponse.Body.AsString());
         }
 
@@ -402,10 +400,10 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Result;
 
             Assert.Equal(HttpStatusCode.BadRequest, deleteRequest.StatusCode);
-            Assert.Contains("The permissions do not exist as 'allow' permissions: app/userprincipal.modifypatient",
+            Assert.Contains(
+                "The following permissions do not exist as 'allow' permissions: app/userprincipal.modifypatient",
                 deleteRequest.Body.AsString());
-            Assert.DoesNotContain(
-                "The permissions exist but have a permission action of 'deny' and 'allow' was specified",
+            Assert.DoesNotContain("The following permissions exist as 'deny' for user but 'allow' was specified",
                 deleteRequest.Body.AsString());
         }
 
@@ -455,7 +453,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.BadRequest, deleteRequest.StatusCode);
             Assert.Contains(
-                "The permissions exist but have a permission action of 'allow' and 'deny' was specified: app/userprincipal.modifypatient",
+                "The following permissions exist as 'allow' for user but 'deny' was specified: app/userprincipal.modifypatient",
                 deleteRequest.Body.AsString());
             Assert.DoesNotContain("The permissions do not exist as 'deny' permissions", deleteRequest.Body.AsString());
         }
@@ -514,13 +512,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.BadRequest, deleteRequest.StatusCode);
             Assert.Contains(
-                "The permissions exist but have a permission action of 'allow' and 'deny' was specified: app/userprincipal.modifypatient",
+                "The following permissions exist as 'allow' for user but 'deny' was specified: app/userprincipal.modifypatient",
                 deleteRequest.Body.AsString());
             Assert.DoesNotContain("The permissions do not exist as 'deny' permissions", deleteRequest.Body.AsString());
-            Assert.Contains("The permissions do not exist as 'allow' permissions: app/userprincipal.deletepatient",
+            Assert.Contains(
+                "The following permissions do not exist as 'allow' permissions: app/userprincipal.deletepatient",
                 deleteRequest.Body.AsString());
-            Assert.DoesNotContain(
-                "The permissions exist but have a permission action of 'deny' and 'allow' was specified",
+            Assert.DoesNotContain("The following permissions exist as 'deny' for user but 'allow' was specified",
                 deleteRequest.Body.AsString());
         }
 

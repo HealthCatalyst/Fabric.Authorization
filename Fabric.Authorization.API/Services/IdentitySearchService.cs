@@ -73,8 +73,15 @@ namespace Fabric.Authorization.API.Services
             var groupEntities = new List<Group>();
             foreach (var groupId in groupIds)
             {
-                var group = await _groupService.GetGroup(groupId, request.ClientId);
-                groupEntities.Add(group);
+                try
+                {
+                    var group = await _groupService.GetGroup(groupId, request.ClientId);
+                    groupEntities.Add(group);
+                }
+                catch (NotFoundException<Group> ex)
+                {
+                    _logger.Error($"{ex.Message} (Group is mapped to at least 1 valid role)");
+                }
             }
 
             _logger.Debug($"groupEntities = {groupEntities.ListToString()}");

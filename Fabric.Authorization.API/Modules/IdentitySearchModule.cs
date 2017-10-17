@@ -44,13 +44,13 @@ namespace Fabric.Authorization.API.Modules
             {
                 return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
             }
-            catch (NotFoundException<Group>)
+            catch (NotFoundException<Group> ex)
             {
-                return new List<IdentitySearchResponse>();
+                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
             }
-            catch (NotFoundException<Role>)
+            catch (NotFoundException<Role> ex)
             {
-                return new List<IdentitySearchResponse>();
+                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
             }
             catch (Exception ex)
             {

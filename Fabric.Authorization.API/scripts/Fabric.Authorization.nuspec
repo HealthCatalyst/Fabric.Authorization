@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>Fabric.Authorization.InstallPackage</id>
+    <version>$version$</version>
+    <authors>Health Catalyst</authors>
+    <owners>Health Catalyst</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Install package for Fabric.Authorization</description>
+  </metadata>
+  <files>
+    <file src="Fabric.Authorization.zip" target="build" />
+    <file src="Fabric.Authorization.targets" target="build" />
+  </files>
+</package>
