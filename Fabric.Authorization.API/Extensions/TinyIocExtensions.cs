@@ -30,6 +30,7 @@ namespace Fabric.Authorization.API.Extensions
 
         public static TinyIoCContainer RegisterInMemoryStores(this TinyIoCContainer container)
         {
+            container.Register<IIdentifierFormatter, IdpIdentifierFormatter>();
             container.Register<IRoleStore, InMemoryRoleStore>();
             container.Register<IUserStore, InMemoryUserStore>();
             container.Register<IPermissionStore, InMemoryPermissionStore>();
