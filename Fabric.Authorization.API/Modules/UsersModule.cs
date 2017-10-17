@@ -37,6 +37,10 @@ namespace Fabric.Authorization.API.Modules
 
             // Get all the permissions for a user
             Get("/permissions", async _ => await GetCurrentUserPermissions().ConfigureAwait(false), null,
+                "GetCurrentUserPermissions");
+
+            Get("/{identityProvider}/{subjectId}/permissions",
+                async param => await this.GetUserPermissions().ConfigureAwait(false), null,
                 "GetUserPermissions");
 
             Post("/{identityProvider}/{subjectId}/permissions",
@@ -51,6 +55,17 @@ namespace Fabric.Authorization.API.Modules
                 "GetUserGroups");
         }
 
+        private async Task<dynamic> GetUserPermissions(dynamic param)
+        {
+            var userPermissionRequest = this.Bind<UserInfoRequest>();
+            await SetDefaultRequest(userPermissionRequest);
+            await CheckAccess(_clientService, userPermissionRequest.Grain, userPermissionRequest.SecurableItem,
+                AuthorizationReadClaim);
+
+            return GetPermissions(param.subjectId, param.identityProvider, userPermissionRequest.Grain,
+                userPermissionRequest.SecurableItem);
+        }
+
         private async Task<dynamic> GetCurrentUserPermissions()
         {
             var userPermissionRequest = this.Bind<UserInfoRequest>();
@@ -58,20 +73,26 @@ namespace Fabric.Authorization.API.Modules
             await CheckAccess(_clientService, userPermissionRequest.Grain, userPermissionRequest.SecurableItem,
                 AuthorizationReadClaim);
 
-            var subjectId = SubjectId;
-            var identityProvider = IdentityProvider;
+            return GetPermissions(SubjectId, IdentityProvider, userPermissionRequest.Grain,
+                userPermissionRequest.SecurableItem);
+
+        }
+
+        private async Task<dynamic> GetPermissions(string subjectId, string identityProvider, string grain, string securableItem, bool includeDetails = false)
+        {
             var groups = await GetGroupsForAuthenticatedUser(subjectId, identityProvider).ConfigureAwait(false);
 
             var permissions = await _permissionService.GetPermissionsForUser(
                 $"{subjectId}:{identityProvider}",
                 groups,
-                userPermissionRequest.Grain,
-                userPermissionRequest.SecurableItem);
+                grain,
+                securableItem,
+                includeDetails);
 
             return new UserPermissionsApiModel
             {
-                RequestedGrain = userPermissionRequest.Grain,
-                RequestedSecurableItem = userPermissionRequest.SecurableItem,
+                RequestedGrain = grain,
+                RequestedSecurableItem = securableItem,
                 Permissions = permissions
             };
         }
