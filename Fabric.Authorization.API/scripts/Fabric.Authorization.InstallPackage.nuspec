@@ -9,7 +9,7 @@
     <description>Install package for Fabric.Authorization</description>
   </metadata>
   <files>
-    <file src="Fabric.Authorization.zip" target="build" />
-    <file src="Fabric.Authorization.targets" target="build" />
+    <file src="Fabric.Authorization.InstallPackage.zip" target="build" />
+    <file src="Fabric.Authorization.InstallPackage.targets" target="build" />
   </files>
 </package>
