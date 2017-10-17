@@ -25,7 +25,7 @@ namespace Fabric.Authorization.API.Models.Search
         public string EntityType { get; set; }
 
         [JsonIgnore]
-        public string Name => string.IsNullOrWhiteSpace(GroupName) ? $"{FirstName} {MiddleName} {LastName}" : GroupName;
+        public string Name => string.IsNullOrWhiteSpace(GroupName) ? $"{FirstName} {MiddleName} {LastName}".Trim() : GroupName?.Trim();
 
         public override string ToString()
         {
