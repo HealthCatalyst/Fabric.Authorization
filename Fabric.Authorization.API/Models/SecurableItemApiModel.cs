@@ -4,7 +4,7 @@ using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.API.Models
 {
-    public class SecurableItemApiModel : IIdentifiable
+    public class SecurableItemApiModel : IIdentifiable, ITrackable
     {
         public Guid? Id { get; set; }
         public string Name { get; set; }

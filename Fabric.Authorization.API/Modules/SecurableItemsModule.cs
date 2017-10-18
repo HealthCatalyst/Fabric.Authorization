@@ -20,11 +20,27 @@ namespace Fabric.Authorization.API.Modules
             SecurableItemValidator validator,
             ILogger logger) : base("/v1/SecurableItems", logger, validator)
         {
-            _securableItemService = securableItemService ?? throw new ArgumentNullException(nameof(securableItemService));
-            Get("/", async _ => await this.GetSecurableItem().ConfigureAwait(false), null, "GetSecurableItem");
-            Get("/{securableItemId}", async parameters => await this.GetSecurableItem(parameters).ConfigureAwait(false), null, "GetSecurableItemById");
-            Post("/", async _ => await this.AddSecurableItem().ConfigureAwait(false), null, "AddSecurableItem");
-            Post("/{securableItemId}", async parameters => await this.AddSecurableItem(parameters).ConfigureAwait(false), null, "AddSecurableItemById");
+            _securableItemService = securableItemService ??
+                                    throw new ArgumentNullException(nameof(securableItemService));
+            Get("/",
+                async _ => await GetSecurableItem().ConfigureAwait(false),
+                null,
+                "GetSecurableItem");
+
+            Get("/{securableItemId}",
+                async parameters => await this.GetSecurableItem(parameters).ConfigureAwait(false),
+                null,
+                "GetSecurableItemById");
+
+            Post("/",
+                async _ => await AddSecurableItem().ConfigureAwait(false),
+                null,
+                "AddSecurableItem");
+
+            Post("/{securableItemId}",
+                async parameters => await this.AddSecurableItem(parameters).ConfigureAwait(false),
+                null,
+                "AddSecurableItemById");
         }
 
         private async Task<dynamic> GetSecurableItem()
@@ -51,7 +67,7 @@ namespace Fabric.Authorization.API.Modules
                 {
                     return CreateFailureResponse("securableItemId must be a guid.", HttpStatusCode.BadRequest);
                 }
-                SecurableItem securableItem = await _securableItemService.GetSecurableItem(ClientId, securableItemId);
+                var securableItem = await _securableItemService.GetSecurableItem(ClientId, securableItemId);
                 return securableItem.ToSecurableItemApiModel();
             }
             catch (NotFoundException<Client> ex)
@@ -63,7 +79,8 @@ namespace Fabric.Authorization.API.Modules
             catch (NotFoundException<SecurableItem> ex)
             {
                 Logger.Error(ex, ex.Message, parameters.securableItemId);
-                return CreateFailureResponse($"The specified securableItem with id: {parameters.securableItemId} was not found",
+                return CreateFailureResponse(
+                    $"The specified securableItem with id: {parameters.securableItemId} was not found",
                     HttpStatusCode.NotFound);
             }
         }
@@ -77,7 +94,7 @@ namespace Fabric.Authorization.API.Modules
 
             try
             {
-                SecurableItem securableItem = await _securableItemService.AddSecurableItem(ClientId, incomingSecurableItem);
+                var securableItem = await _securableItemService.AddSecurableItem(ClientId, incomingSecurableItem);
                 return CreateSuccessfulPostResponse(securableItem.ToSecurableItemApiModel());
             }
             catch (NotFoundException<Client> ex)
@@ -88,12 +105,12 @@ namespace Fabric.Authorization.API.Modules
             }
             catch (AlreadyExistsException<SecurableItem> ex)
             {
-                Logger.Error(ex, "The posted securable item {@securableItemApiModel} already exists.", securableItemApiModel);
+                Logger.Error(ex, "The posted securable item {@securableItemApiModel} already exists.",
+                    securableItemApiModel);
                 return CreateFailureResponse(
                     ex.Message,
                     HttpStatusCode.BadRequest);
             }
-
         }
 
         private async Task<dynamic> AddSecurableItem(dynamic parameters)
@@ -110,7 +127,7 @@ namespace Fabric.Authorization.API.Modules
 
             try
             {
-                SecurableItem securableItem =
+                var securableItem =
                     await _securableItemService.AddSecurableItem(ClientId, securableItemId, incomingSecurableItem);
                 return CreateSuccessfulPostResponse(securableItem.ToSecurableItemApiModel());
             }
@@ -122,7 +139,8 @@ namespace Fabric.Authorization.API.Modules
             }
             catch (AlreadyExistsException<SecurableItem> ex)
             {
-                Logger.Error(ex, "The posted securable item {@securableItemApiModel} already exists.", securableItemApiModel);
+                Logger.Error(ex, "The posted securable item {@securableItemApiModel} already exists.",
+                    securableItemApiModel);
                 return CreateFailureResponse(
                     ex.Message,
                     HttpStatusCode.BadRequest);
@@ -130,7 +148,8 @@ namespace Fabric.Authorization.API.Modules
             catch (NotFoundException<SecurableItem> ex)
             {
                 Logger.Error(ex, ex.Message, parameters.securableItemId);
-                return CreateFailureResponse($"The specified securableItem with id: {parameters.securableItemId} was not found",
+                return CreateFailureResponse(
+                    $"The specified securableItem with id: {parameters.securableItemId} was not found",
                     HttpStatusCode.NotFound);
             }
         }
