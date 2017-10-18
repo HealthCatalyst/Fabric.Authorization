@@ -4,7 +4,7 @@ using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.API.Models
 {
-    public class RoleApiModel : IIdentifiable
+    public class RoleApiModel : IIdentifiable, ITrackable
     {
         public Guid? Id { get; set; }
 

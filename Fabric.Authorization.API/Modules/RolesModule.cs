@@ -18,30 +18,43 @@ namespace Fabric.Authorization.API.Modules
         private readonly ClientService _clientService;
         private readonly RoleService _roleService;
 
-        public RolesModule(RoleService roleService, ClientService clientService, RoleValidator validator,
+        public RolesModule(
+            RoleService roleService,
+            ClientService clientService,
+            RoleValidator validator,
             ILogger logger) : base("/v1/roles", logger, validator)
         {
             _roleService = roleService ?? throw new ArgumentNullException(nameof(roleService));
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
 
+            Post("/",
+                async parameters => await AddRole().ConfigureAwait(false),
+                null,
+                "AddRole");
+
+            Delete("/{roleId}",
+                async parameters => await this.DeleteRole(parameters).ConfigureAwait(false),
+                null,
+                "DeleteRole");
+
             Get("/{grain}/{securableItem}",
-                async parameters => await this.GetRolesForSecurableItem(parameters).ConfigureAwait(false), null,
+                async parameters => await this.GetRolesForSecurableItem(parameters).ConfigureAwait(false),
+                null,
                 "GetRolesBySecurableItem");
 
             Get("/{grain}/{securableItem}/{roleName}",
-                async parameters => await this.GetRoleByName(parameters).ConfigureAwait(false), null, "GetRoleByName");
-
-            Post("/", async parameters => await AddRole().ConfigureAwait(false), null, "AddRole");
-
-            Delete("/{roleId}", async parameters => await this.DeleteRole(parameters).ConfigureAwait(false), null,
-                "DeleteRole");
+                async parameters => await this.GetRoleByName(parameters).ConfigureAwait(false),
+                null,
+                "GetRoleByName");
 
             Post("/{roleId}/permissions",
-                async parameters => await this.AddPermissionsToRole(parameters).ConfigureAwait(false), null,
+                async parameters => await this.AddPermissionsToRole(parameters).ConfigureAwait(false),
+                null,
                 "AddPermissionsToRole");
 
             Delete("/{roleId}/permissions",
-                async parameters => await this.DeletePermissionsFromRole(parameters).ConfigureAwait(false), null,
+                async parameters => await this.DeletePermissionsFromRole(parameters).ConfigureAwait(false),
+                null,
                 "DeletePermissionsFromRole");
         }
 
@@ -80,7 +93,9 @@ namespace Fabric.Authorization.API.Modules
             try
             {
                 if (!Guid.TryParse(parameters.roleId, out Guid roleId))
+                {
                     return CreateFailureResponse("roleId must be a guid.", HttpStatusCode.BadRequest);
+                }
 
                 var roleToDelete = await _roleService.GetRole(roleId);
                 await CheckAccess(_clientService, roleToDelete.Grain, roleToDelete.SecurableItem,
@@ -102,12 +117,16 @@ namespace Fabric.Authorization.API.Modules
                 var permissionApiModels = this.Bind<List<PermissionApiModel>>(new BindingConfig {BodyOnly = true});
 
                 if (!Guid.TryParse(parameters.roleId, out Guid roleId))
+                {
                     return CreateFailureResponse("roleId must be a guid.", HttpStatusCode.BadRequest);
+                }
 
                 if (permissionApiModels.Count == 0)
+                {
                     return CreateFailureResponse(
                         "No permissions specified to add, ensure an array of permissions is included in the request.",
                         HttpStatusCode.BadRequest);
+                }
 
                 var roleToUpdate = await _roleService.GetRole(roleId);
                 await CheckAccess(_clientService, roleToUpdate.Grain, roleToUpdate.SecurableItem,
@@ -137,12 +156,16 @@ namespace Fabric.Authorization.API.Modules
                 var permissionApiModels = this.Bind<List<PermissionApiModel>>(new BindingConfig {BodyOnly = true});
 
                 if (!Guid.TryParse(parameters.roleId, out Guid roleId))
+                {
                     return CreateFailureResponse("roleId must be a guid.", HttpStatusCode.BadRequest);
+                }
 
                 if (permissionApiModels.Count == 0)
+                {
                     return CreateFailureResponse(
                         "No permissions specified to add, ensure an array of permissions is included in the request.",
                         HttpStatusCode.BadRequest);
+                }
 
                 var roleToUpdate = await _roleService.GetRole(roleId);
                 await CheckAccess(_clientService, roleToUpdate.Grain, roleToUpdate.SecurableItem,
