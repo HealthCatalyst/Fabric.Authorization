@@ -27,32 +27,56 @@ namespace Fabric.Authorization.API.Modules
         {
             _groupService = groupService;
 
-            Post("/", async _ => await AddGroup(), null, "AddGroup");
+            base.Get("/{groupName}",
+                async p => await this.GetGroup(p).ConfigureAwait(false),
+                null,
+                "GetGroup");
 
-            Post("/UpdateGroups", async _ => await UpdateGroupList().ConfigureAwait(false), null, "UpdateGroups");
+            Post("/", 
+                async _ => await AddGroup(),
+                null,
+                "AddGroup");
 
-            base.Get("/{groupName}", async p => await this.GetGroup(p).ConfigureAwait(false), null, "GetGroup");
+            Post("/UpdateGroups", 
+                async _ => await UpdateGroupList().ConfigureAwait(false),
+                null,
+                "UpdateGroups");
 
-            base.Delete("/{groupName}", async p => await this.DeleteGroup(p).ConfigureAwait(false), null,
+            base.Delete("/{groupName}",
+                async p => await this.DeleteGroup(p).ConfigureAwait(false),
+                null,
                 "DeleteGroup");
 
             // group->role mappings
-            Get("/{groupName}/roles", async _ => await GetRolesFromGroup().ConfigureAwait(false), null,
+            Get("/{groupName}/roles",
+                async _ => await GetRolesFromGroup().ConfigureAwait(false),
+                null,
                 "GetRolesFromGroup");
 
-            Post("/{groupName}/roles", async _ => await AddRoleToGroup().ConfigureAwait(false), null,
+            Post("/{groupName}/roles",
+                async _ => await AddRoleToGroup().ConfigureAwait(false),
+                null,
                 "AddRoleToGroup");
 
-            Delete("/{groupName}/roles", async _ => await DeleteRoleFromGroup().ConfigureAwait(false), null,
+            Delete("/{groupName}/roles",
+                async _ => await DeleteRoleFromGroup().ConfigureAwait(false),
+                null,
                 "DeleteRoleFromGroup");
 
             // (custom) group->user mappings
-            Get("/{groupName}/users", async _ => await GetUsersFromGroup().ConfigureAwait(false), null,
+            Get("/{groupName}/users",
+                async _ => await GetUsersFromGroup().ConfigureAwait(false),
+                null,
                 "GetUsersFromGroup");
 
-            Post("/{groupName}/users", async _ => await AddUserToGroup().ConfigureAwait(false), null, "AddUserToGroup");
+            Post("/{groupName}/users",
+                async _ => await AddUserToGroup().ConfigureAwait(false),
+                null,
+                "AddUserToGroup");
 
-            Delete("/{groupName}/users", async _ => await DeleteUserFromGroup().ConfigureAwait(false), null,
+            Delete("/{groupName}/users",
+                async _ => await DeleteUserFromGroup().ConfigureAwait(false),
+                null,
                 "DeleteUserFromGroup");
         }
 
@@ -260,7 +284,8 @@ namespace Fabric.Authorization.API.Modules
                     return validationResult;
                 }
 
-                var group = await _groupService.DeleteUserFromGroup(groupUserRequest.GroupName, groupUserRequest.SubjectId, groupUserRequest.IdentityProvider);
+                var group = await _groupService.DeleteUserFromGroup(groupUserRequest.GroupName,
+                    groupUserRequest.SubjectId, groupUserRequest.IdentityProvider);
                 return CreateSuccessfulPostResponse(group.ToGroupUserApiModel(), HttpStatusCode.OK);
             }
             catch (NotFoundException<Group> ex)

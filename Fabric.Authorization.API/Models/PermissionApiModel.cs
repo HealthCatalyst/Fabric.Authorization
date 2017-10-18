@@ -3,7 +3,7 @@ using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.API.Models
 {
-    public class PermissionApiModel : IIdentifiable
+    public class PermissionApiModel : IIdentifiable, ITrackable
     {
         public Guid? Id { get; set; }
 

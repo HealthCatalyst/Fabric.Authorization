@@ -25,8 +25,11 @@ namespace Fabric.Authorization.Domain.Stores.Services
         /// <summary>
         ///     Gets all permissions for a given grain/secitem.
         /// </summary>
-        public async Task<IEnumerable<Permission>> GetPermissions(string grain = null, string securableItem = null,
-            string permissionName = null, bool includeDeleted = false)
+        public async Task<IEnumerable<Permission>> GetPermissions(
+            string grain = null,
+            string securableItem = null,
+            string permissionName = null,
+            bool includeDeleted = false)
         {
             var permissions = await _permissionStore.GetPermissions(grain, securableItem, permissionName);
             return permissions.Where(p => !p.IsDeleted || includeDeleted);
@@ -35,7 +38,9 @@ namespace Fabric.Authorization.Domain.Stores.Services
         /// <summary>
         ///     Gets all the permissions associated to the groups through roles.
         /// </summary>
-        public async Task<IEnumerable<string>> GetPermissionsForGroups(string[] groupNames, string grain = null,
+        public async Task<IEnumerable<string>> GetPermissionsForGroups(
+            string[] groupNames,
+            string grain = null,
             string securableItem = null)
         {
             var effectivePermissions = new List<string>();
@@ -78,8 +83,12 @@ namespace Fabric.Authorization.Domain.Stores.Services
         /// <summary>
         ///     Gets all the permissions for a given user.
         /// </summary>
-        public async Task<IEnumerable<string>> GetPermissionsForUser(string userId, string[] groupNames,
-            string grain = null, string securableItem = null)
+        public async Task<IEnumerable<string>> GetPermissionsForUser(
+            string userId,
+            string[] groupNames,
+            string grain = null,
+            string securableItem = null,
+            bool includeDetails = false)
         {
             var effectivePermissions = await GetPermissionsForGroups(groupNames, grain, securableItem);
 
@@ -133,7 +142,6 @@ namespace Fabric.Authorization.Domain.Stores.Services
 
                 granularPermission.AdditionalPermissions = allowPermsList;
                 granularPermission.DeniedPermissions = denyPermsList;
-
             }
             catch (NotFoundException<GranularPermission>)
             {
@@ -150,29 +158,39 @@ namespace Fabric.Authorization.Domain.Stores.Services
             IEnumerable<Permission> denyPermissionsToAdd,
             IEnumerable<Permission> existingAllowPermissions,
             IEnumerable<Permission> existingDenyPermissions)
-        {          
-            var invalidPermissions = new List<KeyValuePair<string,string>>();
+        {
+            var invalidPermissions = new List<KeyValuePair<string, string>>();
 
-            invalidPermissions.AddRange(allowPermissionsToAdd.Intersect(existingAllowPermissions ?? Enumerable.Empty<Permission>())
-                .Select(p => new KeyValuePair<string,string>("The following permissions already exist as 'allow' permissions", p.ToString())));
-            invalidPermissions.AddRange(denyPermissionsToAdd.Intersect(existingDenyPermissions ?? Enumerable.Empty<Permission>())
-                .Select(p => new KeyValuePair<string, string>("The following permissions already exist as 'deny' permissions", p.ToString() )));
+            invalidPermissions.AddRange(allowPermissionsToAdd
+                .Intersect(existingAllowPermissions ?? Enumerable.Empty<Permission>())
+                .Select(p => new KeyValuePair<string, string>(
+                    "The following permissions already exist as 'allow' permissions", p.ToString())));
+            invalidPermissions.AddRange(denyPermissionsToAdd
+                .Intersect(existingDenyPermissions ?? Enumerable.Empty<Permission>())
+                .Select(p => new KeyValuePair<string, string>(
+                    "The following permissions already exist as 'deny' permissions", p.ToString())));
 
-            invalidPermissions.AddRange(allowPermissionsToAdd.Intersect(existingDenyPermissions ?? Enumerable.Empty<Permission>())
-                .Select(p => new KeyValuePair<string, string>("The following permissions exist as 'deny' and cannot be added as 'allow'", p.ToString() )));
-            invalidPermissions.AddRange(denyPermissionsToAdd.Intersect(existingAllowPermissions ?? Enumerable.Empty<Permission>())
-                .Select(p => new KeyValuePair<string, string>("The following permissions exist as 'allow' and cannot be added as 'deny'", p.ToString())));
+            invalidPermissions.AddRange(allowPermissionsToAdd
+                .Intersect(existingDenyPermissions ?? Enumerable.Empty<Permission>())
+                .Select(p => new KeyValuePair<string, string>(
+                    "The following permissions exist as 'deny' and cannot be added as 'allow'", p.ToString())));
+            invalidPermissions.AddRange(denyPermissionsToAdd
+                .Intersect(existingAllowPermissions ?? Enumerable.Empty<Permission>())
+                .Select(p => new KeyValuePair<string, string>(
+                    "The following permissions exist as 'allow' and cannot be added as 'deny'", p.ToString())));
             invalidPermissions.AddRange(allowPermissionsToAdd.Intersect(denyPermissionsToAdd)
-                .Select(p => new KeyValuePair<string, string>("The following permissions cannot be specified as both 'allow' and 'deny'", p.ToString())));
+                .Select(p => new KeyValuePair<string, string>(
+                    "The following permissions cannot be specified as both 'allow' and 'deny'", p.ToString())));
 
             if (invalidPermissions.Any())
             {
                 var invalidPermissionException =
-                    new InvalidPermissionException("Cannot add the specified permissions, please correct the issues and attempt to add again.");
+                    new InvalidPermissionException(
+                        "Cannot add the specified permissions, please correct the issues and attempt to add again.");
 
                 var permissionGroups = invalidPermissions.GroupBy(i => i.Key);
 
-                foreach(var group in permissionGroups)
+                foreach (var group in permissionGroups)
                 {
                     invalidPermissionException.Data.Add(group.Key, string.Join(", ", group.Select(p => p.Value)));
                 }
@@ -182,7 +200,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
         }
 
         /// <summary>
-        /// removes granular permissions from a user
+        ///     removes granular permissions from a user
         /// </summary>
         /// <param name="granularPermission"></param>
         /// <returns></returns>
@@ -193,13 +211,15 @@ namespace Fabric.Authorization.Domain.Stores.Services
                 var stored = await GetUserGranularPermissions(granularPermission.Id);
 
                 //ensure every permission passed in belongs to the user or dont update anything - get a list of invalid permissions
-                ValidatePermissionsForDelete(granularPermission.AdditionalPermissions, 
-                    granularPermission.DeniedPermissions, 
-                    stored.AdditionalPermissions, 
+                ValidatePermissionsForDelete(granularPermission.AdditionalPermissions,
+                    granularPermission.DeniedPermissions,
+                    stored.AdditionalPermissions,
                     stored.DeniedPermissions);
 
-                stored.AdditionalPermissions = stored.AdditionalPermissions.Where(p => !granularPermission.AdditionalPermissions.Contains(p));
-                stored.DeniedPermissions = stored.DeniedPermissions.Where(p => !granularPermission.DeniedPermissions.Contains(p));
+                stored.AdditionalPermissions =
+                    stored.AdditionalPermissions.Where(p => !granularPermission.AdditionalPermissions.Contains(p));
+                stored.DeniedPermissions =
+                    stored.DeniedPermissions.Where(p => !granularPermission.DeniedPermissions.Contains(p));
 
                 await _permissionStore.AddOrUpdateGranularPermission(stored);
             }
@@ -209,12 +229,12 @@ namespace Fabric.Authorization.Domain.Stores.Services
                     granularPermission.DeniedPermissions,
                     null,
                     null);
-            }                             
+            }
         }
 
-        private void ValidatePermissionsForDelete(IEnumerable<Permission> allowPermissionsToDelete, 
-            IEnumerable<Permission> denyPermissionsToDelete, 
-            IEnumerable<Permission> existingAllowPermissions, 
+        private void ValidatePermissionsForDelete(IEnumerable<Permission> allowPermissionsToDelete,
+            IEnumerable<Permission> denyPermissionsToDelete,
+            IEnumerable<Permission> existingAllowPermissions,
             IEnumerable<Permission> existingDenyPermissions)
         {
             var existingAllow = existingAllowPermissions ?? Enumerable.Empty<Permission>();
@@ -226,29 +246,34 @@ namespace Fabric.Authorization.Domain.Stores.Services
                 .Where(p => allowPermissionsToDelete.Contains(p));
 
             invalidPermissions.AddRange(invalidPermissionActionAllowPermissions
-                .Select(p => new KeyValuePair<string, string>("The following permissions exist as 'deny' for user but 'allow' was specified", p.ToString())));
+                .Select(p => new KeyValuePair<string, string>(
+                    "The following permissions exist as 'deny' for user but 'allow' was specified", p.ToString())));
 
             invalidPermissions.AddRange(allowPermissionsToDelete
                 .Except(existingAllow)
                 .Except(invalidPermissionActionAllowPermissions)
-                .Select(p => new KeyValuePair<string, string>("The following permissions do not exist as 'allow' permissions", p.ToString())));
+                .Select(p => new KeyValuePair<string, string>(
+                    "The following permissions do not exist as 'allow' permissions", p.ToString())));
 
             var invalidPermissionActionDenyPermissions = existingAllow
                 .Where(p => denyPermissionsToDelete.Contains(p));
 
             invalidPermissions.AddRange(invalidPermissionActionDenyPermissions
-                .Select(p => new KeyValuePair<string, string>("The following permissions exist as 'allow' for user but 'deny' was specified", p.ToString())));
+                .Select(p => new KeyValuePair<string, string>(
+                    "The following permissions exist as 'allow' for user but 'deny' was specified", p.ToString())));
 
             invalidPermissions.AddRange(denyPermissionsToDelete
                 .Except(existingDeny)
                 .Except(invalidPermissionActionDenyPermissions)
-                .Select(p => new KeyValuePair<string, string>("The following permissions do not exist as 'deny' permissions", p.ToString())));
-            
+                .Select(p => new KeyValuePair<string, string>(
+                    "The following permissions do not exist as 'deny' permissions", p.ToString())));
 
-            if(invalidPermissions.Any())
+
+            if (invalidPermissions.Any())
             {
-                var invalidPermissionException = 
-                    new InvalidPermissionException("Cannot delete the specified permissions, please correct the issues and attempt to delete again.");
+                var invalidPermissionException =
+                    new InvalidPermissionException(
+                        "Cannot delete the specified permissions, please correct the issues and attempt to delete again.");
 
                 var permissionGroups = invalidPermissions.GroupBy(i => i.Key);
 

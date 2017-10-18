@@ -36,11 +36,12 @@ namespace Fabric.Authorization.API.Modules
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
 
             // Get all the permissions for a user
-            Get("/permissions", async _ => await GetCurrentUserPermissions().ConfigureAwait(false), null,
+            Get("/permissions",
+                async _ => await GetCurrentUserPermissions().ConfigureAwait(false), null,
                 "GetCurrentUserPermissions");
 
             Get("/{identityProvider}/{subjectId}/permissions",
-                async param => await this.GetUserPermissions().ConfigureAwait(false), null,
+                async param => await this.GetUserPermissions(param).ConfigureAwait(false), null,
                 "GetUserPermissions");
 
             Post("/{identityProvider}/{subjectId}/permissions",
@@ -51,7 +52,8 @@ namespace Fabric.Authorization.API.Modules
                 async param => await this.DeleteGranularPermissions(param).ConfigureAwait(false), null,
                 "DeleteGranularPermissions");
 
-            Get("/{identityProvider}/{subjectId}/groups", async _ => await GetUserGroups().ConfigureAwait(false), null,
+            Get("/{identityProvider}/{subjectId}/groups",
+                async _ => await GetUserGroups().ConfigureAwait(false), null,
                 "GetUserGroups");
         }
 
