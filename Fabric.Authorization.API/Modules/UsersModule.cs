@@ -64,7 +64,7 @@ namespace Fabric.Authorization.API.Modules
             await CheckAccess(_clientService, userPermissionRequest.Grain, userPermissionRequest.SecurableItem,
                 AuthorizationReadClaim);
 
-            return GetPermissions(param.subjectId, param.identityProvider, userPermissionRequest.Grain,
+            return GetDetailedPermissions(param.subjectId, param.identityProvider, userPermissionRequest.Grain,
                 userPermissionRequest.SecurableItem);
         }
 
@@ -75,12 +75,12 @@ namespace Fabric.Authorization.API.Modules
             await CheckAccess(_clientService, userPermissionRequest.Grain, userPermissionRequest.SecurableItem,
                 AuthorizationReadClaim);
 
-            return GetPermissions(SubjectId, IdentityProvider, userPermissionRequest.Grain,
+            return GetDetailedPermissions(SubjectId, IdentityProvider, userPermissionRequest.Grain,
                 userPermissionRequest.SecurableItem);
 
         }
 
-        private async Task<dynamic> GetPermissions(string subjectId, string identityProvider, string grain, string securableItem, bool includeDetails = false)
+        private async Task<dynamic> GetDetailedPermissions(string subjectId, string identityProvider, string grain, string securableItem, bool includeDetails = false)
         {
             var groups = await GetGroupsForAuthenticatedUser(subjectId, identityProvider).ConfigureAwait(false);
 
@@ -222,7 +222,7 @@ namespace Fabric.Authorization.API.Modules
                 .Distinct()
                 .ToList();
 
-            Logger.Information($"found claims for user: {string.Join(",", allClaims)}");
+            Logger.Information($"found claims for user: {allClaims.ToString(",")}");
 
             return allClaims == null
                 ? new string[] { }
