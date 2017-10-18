@@ -28,21 +28,9 @@ namespace Fabric.Authorization.Domain.Models
             }
         }
 
-        public static string ListToString(this IEnumerable list)
+        public static string ToString(this IEnumerable list, string separator)
         {
-            return list.ListToString(Environment.NewLine);
-        }
-
-        public static string ListToString(this IEnumerable list, string lineBreak)
-        {
-            var sb = new StringBuilder();
-            foreach (var item in list)
-            {
-                sb.Append(item);
-                sb.Append(lineBreak);
-            }
-
-            return sb.ToString();
+            return string.Join(separator, list);
         }
     }
 }

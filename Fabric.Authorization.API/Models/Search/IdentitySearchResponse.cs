@@ -29,7 +29,7 @@ namespace Fabric.Authorization.API.Models.Search
 
         public override string ToString()
         {
-            return $"SubjectId={SubjectId}, IdentityProvider={IdentityProvider}, Roles={Roles.ListToString()}, GroupName={GroupName}, FirstName={FirstName}, MiddleName={MiddleName}, LastName={LastName}, LastLoginDateTimeUtc={LastLoginDateTimeUtc}";
+            return $"SubjectId={SubjectId}, IdentityProvider={IdentityProvider}, Roles={Roles.ToString(Environment.NewLine)}, GroupName={GroupName}, FirstName={FirstName}, MiddleName={MiddleName}, LastName={LastName}, LastLoginDateTimeUtc={LastLoginDateTimeUtc}";
         }
     }
 

@@ -47,7 +47,7 @@ namespace Fabric.Authorization.API.Services
             var clientRoles = await _roleService.GetRoles(client);
 
             var clientRoleEntities = clientRoles.ToList();
-            _logger.Debug($"clientRoles = {clientRoleEntities.ListToString()}");
+            _logger.Debug($"clientRoles = {clientRoleEntities.ToString(Environment.NewLine)}");
             if (clientRoleEntities.Count == 0)
             {
                 return new FabricAuthUserSearchResponse
@@ -59,7 +59,7 @@ namespace Fabric.Authorization.API.Services
 
             // get all groups tied to clientRoles
             var groupIds = clientRoleEntities.SelectMany(r => r.Groups).Distinct().ToList();
-            _logger.Debug($"groupIds = {groupIds.ListToString()}");
+            _logger.Debug($"groupIds = {groupIds.ToString(Environment.NewLine)}");
 
             if (groupIds.Count == 0)
             {
@@ -84,13 +84,13 @@ namespace Fabric.Authorization.API.Services
                 }
             }
 
-            _logger.Debug($"groupEntities = {groupEntities.ListToString()}");
+            _logger.Debug($"groupEntities = {groupEntities.ToString(Environment.NewLine)}");
 
             var groupsMappedToClientRoles = groupEntities.Where(g => g.Roles.Any(r => clientRoleEntities.Contains(r))).ToList();
             var nonCustomGroups =
                 groupsMappedToClientRoles.Where(g => !string.Equals(g.Source, GroupConstants.CustomSource, StringComparison.OrdinalIgnoreCase)).ToList();
 
-            _logger.Debug($"nonCustomGroups = {nonCustomGroups.ListToString()}");
+            _logger.Debug($"nonCustomGroups = {nonCustomGroups.ToString(Environment.NewLine)}");
 
             // add all non-custom groups to the response
             searchResults.AddRange(nonCustomGroups.Select(g => new IdentitySearchResponse
@@ -150,7 +150,7 @@ namespace Fabric.Authorization.API.Services
 
             searchResults.AddRange(userList);
 
-            _logger.Debug($"searchResults = {searchResults.ListToString()}");
+            _logger.Debug($"searchResults = {searchResults.ToString(Environment.NewLine)}");
 
             var pageSize = request.PageSize ?? 100;
             var pageNumber = request.PageNumber ?? 1;
