@@ -119,7 +119,7 @@ namespace Fabric.Authorization.UnitTests.Permissions
             Assert.NotNull(newPermission);
             Assert.NotNull(newPermission.Id);
             Assert.Equal(permissionToPost.Name, newPermission.Name);
-            Assert.Equal($"http://testhost:80/v1/Permissions/{newPermission.Id}", locationHeaderValue);
+            Assert.Equal($"http://testhost:80/v1/permissions/{newPermission.Id}", locationHeaderValue);
         }
 
         [Fact]

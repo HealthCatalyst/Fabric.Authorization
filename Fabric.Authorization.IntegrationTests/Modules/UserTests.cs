@@ -69,6 +69,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     clientService,
                     permissionService,
                     userService,
+                    roleService,
                     new UserValidator(),
                     Logger));
 

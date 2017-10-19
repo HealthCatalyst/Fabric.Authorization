@@ -30,7 +30,7 @@ namespace Fabric.Authorization.Domain.Resolvers.Permissions
 
             foreach (var role in roles)
             {
-                if (!role.Groups.Any(groupNames.Contains) || role.IsDeleted || role.Permissions == null)
+                if (!role.Groups.Any(g => groupNames.Contains(g, StringComparer.OrdinalIgnoreCase)) || role.IsDeleted || role.Permissions == null)
                 {
                     continue;
                 }
@@ -42,7 +42,6 @@ namespace Fabric.Authorization.Domain.Resolvers.Permissions
                     .ToList();
 
                 AddResolvedPermissions(allowedPermissions, resolvedPermissions, role);
-
 
                 resolvedPermissions = role.DeniedPermissions
                     .Select(p =>
