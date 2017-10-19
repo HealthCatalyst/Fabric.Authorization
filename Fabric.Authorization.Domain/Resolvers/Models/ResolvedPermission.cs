@@ -37,7 +37,7 @@ namespace Fabric.Authorization.Domain.Resolvers.Models
                 return true;
             }
 
-            var incomingPermission = obj as Permission;
+            var incomingPermission = obj as ResolvedPermission;
 
             return incomingPermission?.ToString().Equals(ToString(), StringComparison.OrdinalIgnoreCase) ?? false;
         }

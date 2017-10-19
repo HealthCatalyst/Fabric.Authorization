@@ -75,15 +75,12 @@ namespace Fabric.Authorization.API.Modules
                 IdentityProvider = param.identityProvider,
                 Grain = userPermissionRequest.Grain,
                 SecurableItem = userPermissionRequest.SecurableItem,
-                UserGroups = await GetGroupsForAuthenticatedUser(SubjectId, IdentityProvider)
+                UserGroups = await _userService.GetGroupsForUser(SubjectId, IdentityProvider)
             });
 
-            return new UserPermissionsApiModel
-            {
-                RequestedGrain = userPermissionRequest.Grain,
-                RequestedSecurableItem = userPermissionRequest.SecurableItem,
-                Permissions = permissionResolutionResult.AllowedPermissions.Except(permissionResolutionResult.DeniedPermissions).Select(p => p.Name)
-            };
+            return permissionResolutionResult.AllowedPermissions
+                .Concat(permissionResolutionResult.DeniedPermissions)
+                .Select(p => p.ToPermissionApiModel());
         }
 
         private async Task<dynamic> GetCurrentUserPermissions()
@@ -99,12 +96,17 @@ namespace Fabric.Authorization.API.Modules
                 IdentityProvider = IdentityProvider,
                 Grain = userPermissionRequest.Grain,
                 SecurableItem = userPermissionRequest.SecurableItem,
-                UserGroups = await _userService.GetGroupsForUser(SubjectId, IdentityProvider)
+                UserGroups = await GetGroupsForAuthenticatedUser(SubjectId, IdentityProvider)
             });
 
-            return permissionResolutionResult.AllowedPermissions
-                .Concat(permissionResolutionResult.DeniedPermissions)
-                .Select(p => p.ToPermissionApiModel());
+            return new UserPermissionsApiModel
+            {
+                RequestedGrain = userPermissionRequest.Grain,
+                RequestedSecurableItem = userPermissionRequest.SecurableItem,
+                Permissions = permissionResolutionResult.AllowedPermissions
+                    .Except(permissionResolutionResult.DeniedPermissions)
+                    .Select(p => p.ToString())
+            };
         }
 
         private async Task<dynamic> AddGranularPermissions(dynamic param)
