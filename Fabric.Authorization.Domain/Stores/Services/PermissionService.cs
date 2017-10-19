@@ -12,10 +12,6 @@ namespace Fabric.Authorization.Domain.Stores.Services
         private readonly IPermissionStore _permissionStore;
         private readonly RoleService _roleService;
 
-
-        /// <summary>
-        ///     Constructor.
-        /// </summary>
         public PermissionService(IPermissionStore permissionStore, RoleService roleService)
         {
             _permissionStore = permissionStore ?? throw new ArgumentNullException(nameof(permissionStore));
@@ -34,90 +30,6 @@ namespace Fabric.Authorization.Domain.Stores.Services
             var permissions = await _permissionStore.GetPermissions(grain, securableItem, permissionName);
             return permissions.Where(p => !p.IsDeleted || includeDeleted);
         }
-
-        /// <summary>
-        ///     Gets all the permissions associated to the groups through roles.
-        /// </summary>
-        public async Task<IEnumerable<string>> GetPermissionsForGroups(
-            string[] groupNames,
-            string grain = null,
-            string securableItem = null)
-        {
-            var effectivePermissions = new List<string>();
-            var deniedPermissions = new List<string>();
-
-            var roles = (await _roleService.GetRoles(grain, securableItem)).ToList();
-
-            foreach (var role in roles)
-            {
-                if (role.Groups.Any(groupNames.Contains) && !role.IsDeleted && role.Permissions != null)
-                {
-                    // Add permissions in current role
-                    effectivePermissions.AddRange(role.Permissions.Where(p =>
-                            !p.IsDeleted &&
-                            (p.Grain == grain || grain == null) &&
-                            (p.SecurableItem == securableItem || securableItem == null))
-                        .Select(p => p.ToString()));
-
-                    deniedPermissions.AddRange(role.DeniedPermissions.Select(p => p.ToString()));
-
-                    // Add permissions from parent roles
-                    var ancestorRoles = _roleService.GetRoleHierarchy(role, roles);
-                    foreach (var ancestorRole in ancestorRoles)
-                    {
-                        effectivePermissions.AddRange(ancestorRole.Permissions.Where(p =>
-                                !p.IsDeleted &&
-                                (p.Grain == grain || grain == null) &&
-                                (p.SecurableItem == securableItem || securableItem == null))
-                            .Select(p => p.ToString()));
-
-                        deniedPermissions.AddRange(ancestorRole.DeniedPermissions.Select(p => p.ToString()));
-                    }
-                }
-            }
-
-            // Remove blacklisted permissions and return
-            return effectivePermissions.Except(deniedPermissions).Distinct();
-        }
-
-        /// <summary>
-        ///     Gets all the permissions for a given user.
-        /// </summary>
-        public async Task<IEnumerable<string>> GetPermissionsForUser(
-            string userId,
-            string[] groupNames,
-            string grain = null,
-            string securableItem = null)
-        {
-            var effectivePermissions = await GetPermissionsForGroups(groupNames, grain, securableItem);
-
-            var additionalPermissions = Enumerable.Empty<string>();
-            var deniedPermissions = Enumerable.Empty<string>();
-
-            try
-            {
-                var granularPermissions = await GetUserGranularPermissions(userId);
-
-                if (granularPermissions.AdditionalPermissions != null)
-                {
-                    additionalPermissions = granularPermissions.AdditionalPermissions.Select(p => p.ToString());
-                }
-
-                if (granularPermissions.DeniedPermissions != null)
-                {
-                    deniedPermissions = granularPermissions.DeniedPermissions.Select(p => p.ToString());
-                }
-            }
-            catch (NotFoundException<GranularPermission>)
-            {
-                // No granular permissions.
-            }
-
-            return effectivePermissions
-                .Union(additionalPermissions)
-                .Except(deniedPermissions);
-        }
-
 
         /// <summary>
         ///     Adds granular permissions to a user.
@@ -231,7 +143,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
             }
         }
 
-        private void ValidatePermissionsForDelete(IEnumerable<Permission> allowPermissionsToDelete,
+        private static void ValidatePermissionsForDelete(IEnumerable<Permission> allowPermissionsToDelete,
             IEnumerable<Permission> denyPermissionsToDelete,
             IEnumerable<Permission> existingAllowPermissions,
             IEnumerable<Permission> existingDenyPermissions)

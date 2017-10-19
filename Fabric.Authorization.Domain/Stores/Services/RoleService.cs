@@ -173,15 +173,16 @@ namespace Fabric.Authorization.Domain.Stores.Services
         /// <summary>
         /// Gets the topological sort of a role graph.
         /// </summary>
-        public IEnumerable<Role> GetRoleHierarchy(Role role, IEnumerable<Role> roles)
+        public IEnumerable<Role> GetRoleHierarchy(Role role, ICollection<Role> roles)
         {
             var ancestorRoles = new List<Role>();
-            if (role.ParentRole.HasValue && roles.Any(r => r.Id == role.ParentRole && !r.IsDeleted))
+            if (!role.ParentRole.HasValue || !roles.Any(r => r.Id == role.ParentRole && !r.IsDeleted))
             {
-                var ancestorRole = roles.First(r => r.Id == role.ParentRole && !r.IsDeleted);
-                ancestorRoles.Add(ancestorRole);
-                ancestorRoles.AddRange(GetRoleHierarchy(ancestorRole, roles));
+                return ancestorRoles;
             }
+            var ancestorRole = roles.First(r => r.Id == role.ParentRole && !r.IsDeleted);
+            ancestorRoles.Add(ancestorRole);
+            ancestorRoles.AddRange(GetRoleHierarchy(ancestorRole, roles));
             return ancestorRoles;
         }
     }
