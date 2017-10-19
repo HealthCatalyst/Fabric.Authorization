@@ -156,7 +156,7 @@ $body = @'
     "clientName":"Fabric Authorization Client", 
     "requireConsent":"false", 
     "allowedGrantTypes": ["client_credentials"], 
-    "allowedScopes": ["fabric/identity.read"]
+    "allowedScopes": ["fabric/identity.read", "fabric/identity.searchusers"]
 }
 '@
 
