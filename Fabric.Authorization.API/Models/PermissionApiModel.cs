@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.API.Models
@@ -22,6 +23,8 @@ namespace Fabric.Authorization.API.Models
         public string ModifiedBy { get; set; }
 
         public PermissionAction PermissionAction { get; set; }
+
+        public IEnumerable<PermissionRoleApiModel> Roles { get; set; }
 
         public string Identifier => Id.HasValue ? Id.ToString() : string.Empty;
     }

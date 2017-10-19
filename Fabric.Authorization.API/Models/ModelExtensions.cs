@@ -18,14 +18,25 @@ namespace Fabric.Authorization.API.Models
                 Name = role.Name,
                 ParentRole = role.ParentRole,
                 ChildRoles = role.ChildRoles.ToList(),
-                Permissions = role.Permissions?.Select(p => p.ToPermissionApiModel()),
-                DeniedPermissions = role.DeniedPermissions?.Select(p => p.ToPermissionApiModel()),
+                Permissions = role.Permissions?.Select(p => p.ToPermissionApiModel(PermissionAction.Allow)),
+                DeniedPermissions = role.DeniedPermissions?.Select(p => p.ToPermissionApiModel(PermissionAction.Deny)),
                 CreatedDateTimeUtc = role.CreatedDateTimeUtc,
                 ModifiedDateTimeUtc = role.ModifiedDateTimeUtc,
                 CreatedBy = role.CreatedBy,
                 ModifiedBy = role.ModifiedBy
             };
             return roleApiModel;
+        }
+
+        public static PermissionRoleApiModel ToPermissionRoleApiModel(this Role role)
+        {
+            var permissionRoleApiModel = new PermissionRoleApiModel
+            {
+                Id = role.Id,
+                Name = role.Name
+            };
+
+            return permissionRoleApiModel;
         }
 
         public static Role ToRoleDomainModel(this RoleApiModel role)
@@ -37,9 +48,9 @@ namespace Fabric.Authorization.API.Models
                 SecurableItem = role.SecurableItem,
                 Name = role.Name,
                 ParentRole = role.ParentRole,
-                ChildRoles = role.ChildRoles == null ? new List<Guid>() : role.ChildRoles.ToList(),
-                Permissions = role.Permissions == null ? new List<Permission>() : role.Permissions.Select(p => p.ToPermissionDomainModel()).ToList(),
-                DeniedPermissions = role.DeniedPermissions == null ? new List<Permission>() : role.DeniedPermissions.Select(p => p.ToPermissionDomainModel()).ToList(),
+                ChildRoles = role.ChildRoles?.ToList() ?? new List<Guid>(),
+                Permissions = role.Permissions?.Select(p => p.ToPermissionDomainModel()).ToList() ?? new List<Permission>(),
+                DeniedPermissions = role.DeniedPermissions?.Select(p => p.ToPermissionDomainModel()).ToList() ?? new List<Permission>(),
                 CreatedDateTimeUtc = role.CreatedDateTimeUtc,
                 ModifiedDateTimeUtc = role.ModifiedDateTimeUtc,
                 CreatedBy = role.CreatedBy,
@@ -122,6 +133,24 @@ namespace Fabric.Authorization.API.Models
                 Grain = permission.Grain,
                 Name = permission.Name,
                 SecurableItem = permission.SecurableItem,
+                CreatedDateTimeUtc = permission.CreatedDateTimeUtc,
+                ModifiedDateTimeUtc = permission.ModifiedDateTimeUtc,
+                CreatedBy = permission.CreatedBy,
+                ModifiedBy = permission.ModifiedBy
+            };
+            return permissionApiModel;
+        }
+
+        public static PermissionApiModel ToPermissionApiModel(this Permission permission, PermissionAction permissionAction, IEnumerable<Role> roles = null)
+        {
+            var permissionApiModel = new PermissionApiModel
+            {
+                Id = permission.Id,
+                Grain = permission.Grain,
+                Name = permission.Name,
+                SecurableItem = permission.SecurableItem,
+                PermissionAction = permissionAction,
+                Roles = roles?.Select(r => r.ToPermissionRoleApiModel()),
                 CreatedDateTimeUtc = permission.CreatedDateTimeUtc,
                 ModifiedDateTimeUtc = permission.ModifiedDateTimeUtc,
                 CreatedBy = permission.CreatedBy,

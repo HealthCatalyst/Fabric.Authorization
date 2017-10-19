@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores.Services;
 
@@ -10,12 +11,14 @@ namespace Fabric.Authorization.Domain.Resolvers.Permissions
         public EffectivePermissionResolver(
             UserService userService,
             GroupService groupService,
-            RoleService roleService) : base(userService, groupService, roleService)
+            RoleService roleService,
+            PermissionService permissionService) : base(userService, groupService, roleService, permissionService)
         {
         }
 
-        public override IEnumerable<Permission> Resolve(PermissionResolutionRequest resolutionRequest)
+        public override async Task<IEnumerable<Permission>> Resolve(PermissionResolutionRequest resolutionRequest)
         {
+            var permissions = await base.Resolve(resolutionRequest);
             return AllowedPermissions.Except(DeniedPermissions).Distinct();
         }
     }
