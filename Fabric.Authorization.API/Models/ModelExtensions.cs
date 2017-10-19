@@ -3,6 +3,7 @@ using System.Linq;
 using Fabric.Authorization.Domain.Models;
 using FluentValidation.Results;
 using System.Collections.Generic;
+using Fabric.Authorization.Domain.Resolvers.Models;
 
 namespace Fabric.Authorization.API.Models
 {
@@ -18,25 +19,14 @@ namespace Fabric.Authorization.API.Models
                 Name = role.Name,
                 ParentRole = role.ParentRole,
                 ChildRoles = role.ChildRoles.ToList(),
-                Permissions = role.Permissions?.Select(p => p.ToPermissionApiModel(PermissionAction.Allow)),
-                DeniedPermissions = role.DeniedPermissions?.Select(p => p.ToPermissionApiModel(PermissionAction.Deny)),
+                Permissions = role.Permissions?.Select(p => p.ToPermissionApiModel()),
+                DeniedPermissions = role.DeniedPermissions?.Select(p => p.ToPermissionApiModel()),
                 CreatedDateTimeUtc = role.CreatedDateTimeUtc,
                 ModifiedDateTimeUtc = role.ModifiedDateTimeUtc,
                 CreatedBy = role.CreatedBy,
                 ModifiedBy = role.ModifiedBy
             };
             return roleApiModel;
-        }
-
-        public static PermissionRoleApiModel ToPermissionRoleApiModel(this Role role)
-        {
-            var permissionRoleApiModel = new PermissionRoleApiModel
-            {
-                Id = role.Id,
-                Name = role.Name
-            };
-
-            return permissionRoleApiModel;
         }
 
         public static Role ToRoleDomainModel(this RoleApiModel role)
@@ -141,22 +131,32 @@ namespace Fabric.Authorization.API.Models
             return permissionApiModel;
         }
 
-        public static PermissionApiModel ToPermissionApiModel(this Permission permission, PermissionAction permissionAction, IEnumerable<Role> roles = null)
+        public static PermissionApiModel ToPermissionApiModel(this ResolvedPermission resolvedPermission)
         {
-            var permissionApiModel = new PermissionApiModel
+            return new PermissionApiModel
             {
-                Id = permission.Id,
-                Grain = permission.Grain,
-                Name = permission.Name,
-                SecurableItem = permission.SecurableItem,
-                PermissionAction = permissionAction,
-                Roles = roles?.Select(r => r.ToPermissionRoleApiModel()),
-                CreatedDateTimeUtc = permission.CreatedDateTimeUtc,
-                ModifiedDateTimeUtc = permission.ModifiedDateTimeUtc,
-                CreatedBy = permission.CreatedBy,
-                ModifiedBy = permission.ModifiedBy
+                Id = resolvedPermission.Id,
+                Grain = resolvedPermission.Grain,
+                Name = resolvedPermission.Name,
+                SecurableItem = resolvedPermission.SecurableItem,
+                PermissionAction = (PermissionAction) Enum.Parse(typeof(PermissionAction), resolvedPermission.Action, false),
+                Roles = resolvedPermission.Roles.Select(r => r.ToPermissionRoleApiModel()),
+                CreatedDateTimeUtc = resolvedPermission.CreatedDateTimeUtc,
+                ModifiedDateTimeUtc = resolvedPermission.ModifiedDateTimeUtc,
+                CreatedBy = resolvedPermission.CreatedBy,
+                ModifiedBy = resolvedPermission.ModifiedBy
             };
-            return permissionApiModel;
+        }
+
+        public static PermissionRoleApiModel ToPermissionRoleApiModel(this ResolvedPermissionRole role)
+        {
+            var permissionRoleApiModel = new PermissionRoleApiModel
+            {
+                Id = role.Id,
+                Name = role.Name
+            };
+
+            return permissionRoleApiModel;
         }
 
         public static Permission ToPermissionDomainModel(this PermissionApiModel permission)

@@ -30,6 +30,6 @@ namespace Fabric.Authorization.API.Models
 
         public string ModifiedBy { get; set; }
 
-        public string Identifier => Id.HasValue ? Id.ToString() : "";
+        public string Identifier => Id.HasValue ? Id.ToString() : string.Empty;
     }
 }

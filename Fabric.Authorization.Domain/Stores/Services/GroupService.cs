@@ -186,11 +186,5 @@ namespace Fabric.Authorization.Domain.Stores.Services
             await _groupStore.Update(group);
             return group;
         }
-
-        public async Task<IEnumerable<Permission>> GetPermissions(string groupName, string clientId, string grain = null, string securableItem = null)
-        {
-            var group = await GetGroup(groupName, clientId);
-            return group.Roles.SelectMany(r => r.Permissions);
-        }
     }
 }

@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Fabric.Authorization.Domain.Models;
+﻿using System.Threading.Tasks;
+using Fabric.Authorization.Domain.Resolvers.Models;
 
 namespace Fabric.Authorization.Domain.Resolvers.Permissions
 {
     public interface IPermissionResolver
     {
-        Task<IEnumerable<Permission>> Resolve(PermissionResolutionRequest resolutionRequest);
+        Task<PermissionResolutionResult> Resolve(PermissionResolutionRequest resolutionRequest);
     }
 }

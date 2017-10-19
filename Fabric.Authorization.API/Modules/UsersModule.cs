@@ -8,6 +8,7 @@ using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
+using Fabric.Authorization.Domain.Resolvers.Models;
 using Fabric.Authorization.Domain.Resolvers.Permissions;
 using Fabric.Authorization.Domain.Stores.Services;
 using Fabric.Authorization.Domain.Validators;
@@ -24,17 +25,20 @@ namespace Fabric.Authorization.API.Modules
         private readonly ClientService _clientService;
         private readonly PermissionService _permissionService;
         private readonly UserService _userService;
+        private readonly RoleService _roleService;
 
         public UsersModule(
             ClientService clientService,
             PermissionService permissionService,
             UserService userService,
+            RoleService roleService,
             UserValidator validator,
             ILogger logger) : base("/v1/user", logger, validator)
         {
             _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _roleService = roleService ?? throw new ArgumentNullException(nameof(roleService));
 
             // Get all the permissions for a user
             Get("/permissions",
@@ -65,8 +69,7 @@ namespace Fabric.Authorization.API.Modules
             await CheckAccess(_clientService, userPermissionRequest.Grain, userPermissionRequest.SecurableItem,
                 AuthorizationReadClaim);
 
-            var resolver = new EffectivePermissionResolver(_userService, null, null, _permissionService);
-            var permissions = await resolver.Resolve(new PermissionResolutionRequest
+            var permissionResolutionResult = await new PermissionResolver(_roleService, _permissionService, Logger).Resolve(new PermissionResolutionRequest
             {
                 SubjectId = param.subjectId,
                 IdentityProvider = param.identityProvider,
@@ -79,7 +82,7 @@ namespace Fabric.Authorization.API.Modules
             {
                 RequestedGrain = userPermissionRequest.Grain,
                 RequestedSecurableItem = userPermissionRequest.SecurableItem,
-                Permissions = permissions.Select(p => p.Name)
+                Permissions = permissionResolutionResult.AllowedPermissions.Except(permissionResolutionResult.DeniedPermissions).Select(p => p.Name)
             };
         }
 
@@ -90,8 +93,7 @@ namespace Fabric.Authorization.API.Modules
             await CheckAccess(_clientService, userPermissionRequest.Grain, userPermissionRequest.SecurableItem,
                 AuthorizationReadClaim);
 
-            var resolver = new DetailedPermissionResolver(_userService, null, null, _permissionService);
-            var permissions = await resolver.Resolve(new PermissionResolutionRequest
+            var permissionResolutionResult = await new PermissionResolver(_roleService, _permissionService, Logger).Resolve(new PermissionResolutionRequest
             {
                 SubjectId = SubjectId,
                 IdentityProvider = IdentityProvider,
@@ -100,12 +102,9 @@ namespace Fabric.Authorization.API.Modules
                 UserGroups = await _userService.GetGroupsForUser(SubjectId, IdentityProvider)
             });
 
-            return new UserPermissionsApiModel
-            {
-                RequestedGrain = userPermissionRequest.Grain,
-                RequestedSecurableItem = userPermissionRequest.SecurableItem,
-                Permissions = permissions.Select(p => p.Name)
-            };
+            return permissionResolutionResult.AllowedPermissions
+                .Concat(permissionResolutionResult.DeniedPermissions)
+                .Select(p => p.ToPermissionApiModel());
         }
 
         private async Task<dynamic> AddGranularPermissions(dynamic param)

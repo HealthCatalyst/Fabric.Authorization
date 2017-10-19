@@ -43,9 +43,7 @@ namespace Fabric.Authorization.Domain.Models
 
             var incomingPermission = obj as Permission;
 
-            return incomingPermission == null
-                ? false
-                : incomingPermission.ToString().Equals(ToString(), StringComparison.OrdinalIgnoreCase);
+            return incomingPermission?.ToString().Equals(ToString(), StringComparison.OrdinalIgnoreCase) ?? false;
         }
 
         public override int GetHashCode()
