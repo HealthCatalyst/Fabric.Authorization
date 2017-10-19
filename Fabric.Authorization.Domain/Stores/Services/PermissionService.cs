@@ -46,7 +46,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
             var effectivePermissions = new List<string>();
             var deniedPermissions = new List<string>();
 
-            var roles = await _roleService.GetRoles(grain, securableItem);
+            var roles = (await _roleService.GetRoles(grain, securableItem)).ToList();
 
             foreach (var role in roles)
             {
@@ -87,8 +87,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
             string userId,
             string[] groupNames,
             string grain = null,
-            string securableItem = null,
-            bool includeDetails = false)
+            string securableItem = null)
         {
             var effectivePermissions = await GetPermissionsForGroups(groupNames, grain, securableItem);
 

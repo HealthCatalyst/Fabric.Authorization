@@ -8,6 +8,7 @@ using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
+using Fabric.Authorization.Domain.Resolvers.Permissions;
 using Fabric.Authorization.Domain.Stores.Services;
 using Fabric.Authorization.Domain.Validators;
 using IdentityModel;
@@ -64,8 +65,22 @@ namespace Fabric.Authorization.API.Modules
             await CheckAccess(_clientService, userPermissionRequest.Grain, userPermissionRequest.SecurableItem,
                 AuthorizationReadClaim);
 
-            return GetDetailedPermissions(param.subjectId, param.identityProvider, userPermissionRequest.Grain,
-                userPermissionRequest.SecurableItem);
+            var resolver = new EffectivePermissionResolver(_userService, null, null, _permissionService);
+            var permissions = await resolver.Resolve(new PermissionResolutionRequest
+            {
+                SubjectId = param.subjectId,
+                IdentityProvider = param.identityProvider,
+                Grain = userPermissionRequest.Grain,
+                SecurableItem = userPermissionRequest.SecurableItem,
+                UserGroups = await GetGroupsForAuthenticatedUser(SubjectId, IdentityProvider)
+            });
+
+            return new UserPermissionsApiModel
+            {
+                RequestedGrain = userPermissionRequest.Grain,
+                RequestedSecurableItem = userPermissionRequest.SecurableItem,
+                Permissions = permissions.Select(p => p.Name)
+            };
         }
 
         private async Task<dynamic> GetCurrentUserPermissions()
@@ -75,27 +90,21 @@ namespace Fabric.Authorization.API.Modules
             await CheckAccess(_clientService, userPermissionRequest.Grain, userPermissionRequest.SecurableItem,
                 AuthorizationReadClaim);
 
-            return GetDetailedPermissions(SubjectId, IdentityProvider, userPermissionRequest.Grain,
-                userPermissionRequest.SecurableItem);
-
-        }
-
-        private async Task<dynamic> GetDetailedPermissions(string subjectId, string identityProvider, string grain, string securableItem, bool includeDetails = false)
-        {
-            var groups = await GetGroupsForAuthenticatedUser(subjectId, identityProvider).ConfigureAwait(false);
-
-            var permissions = await _permissionService.GetPermissionsForUser(
-                $"{subjectId}:{identityProvider}",
-                groups,
-                grain,
-                securableItem,
-                includeDetails);
+            var resolver = new DetailedPermissionResolver(_userService, null, null, _permissionService);
+            var permissions = await resolver.Resolve(new PermissionResolutionRequest
+            {
+                SubjectId = SubjectId,
+                IdentityProvider = IdentityProvider,
+                Grain = userPermissionRequest.Grain,
+                SecurableItem = userPermissionRequest.SecurableItem,
+                UserGroups = await _userService.GetGroupsForUser(SubjectId, IdentityProvider)
+            });
 
             return new UserPermissionsApiModel
             {
-                RequestedGrain = grain,
-                RequestedSecurableItem = securableItem,
-                Permissions = permissions
+                RequestedGrain = userPermissionRequest.Grain,
+                RequestedSecurableItem = userPermissionRequest.SecurableItem,
+                Permissions = permissions.Select(p => p.Name)
             };
         }
 
@@ -200,7 +209,7 @@ namespace Fabric.Authorization.API.Modules
             return groups;
         }
 
-        private async Task<string[]> GetGroupsForAuthenticatedUser(string subjectId, string providerId)
+        private async Task<IEnumerable<string>> GetGroupsForAuthenticatedUser(string subjectId, string providerId)
         {
             var userClaims = Context.CurrentUser?.Claims
                 .Where(c => c.Type == "role" || c.Type == "groups")
@@ -219,14 +228,11 @@ namespace Fabric.Authorization.API.Modules
 
             var allClaims = userClaims?
                 .Concat(groups)
-                .Distinct()
-                .ToList();
+                .Distinct();
 
             Logger.Information($"found claims for user: {allClaims.ToString(",")}");
 
-            return allClaims == null
-                ? new string[] { }
-                : allClaims.ToArray();
+            return allClaims ?? new string[] { };
         }
 
         private async Task SetDefaultRequest(UserInfoRequest request)
