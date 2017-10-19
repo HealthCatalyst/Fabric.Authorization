@@ -45,7 +45,7 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
 
             var tokenUriAddress = $"{settings.Authority}connect/token";
             var tokenClient = new TokenClient(tokenUriAddress, "fabric-authorization-client", settings.ClientSecret);
-            var accessTokenResponse = await tokenClient.RequestClientCredentialsAsync(IdentityScopes.ReadScope).ConfigureAwait(false);
+            var accessTokenResponse = await tokenClient.RequestClientCredentialsAsync(IdentityScopes.SearchUsersScope).ConfigureAwait(false);
 
             var httpClient = new HttpClientFactory(
                 tokenUriAddress,
