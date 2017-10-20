@@ -141,7 +141,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.True(getResponse.Body.AsString().Contains(permission));
 
             // Get by secitem
-            getResponse = Browser.Get($"/permissions/app/permissionprincipal", with =>
+            getResponse = Browser.Get("/permissions/app/permissionprincipal", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");

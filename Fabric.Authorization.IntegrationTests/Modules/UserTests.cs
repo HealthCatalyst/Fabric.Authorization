@@ -14,6 +14,7 @@ using Fabric.Authorization.Domain.Validators;
 using IdentityModel;
 using Nancy;
 using Nancy.Testing;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace Fabric.Authorization.IntegrationTests.Modules
@@ -119,6 +120,204 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         private static readonly string IdentityProvider = "idP1";
         private readonly IIdentifierFormatter _identifierFormatter = new IdpIdentifierFormatter();
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void GetUserPermissions_NonAuthenticatedUserWithPermissions_Success()
+        {
+            const string groupName = "Admin";
+            const string roleName = "Administrator";
+            var permissionNames = new[] {"viewpatients", "editpatients", "adminpatients", "deletepatients"};
+            const string subjectId = "first.last";
+            const string identityProvider = "Windows";
+
+            // add custom group
+            var response = Browser.Post("/groups", with =>
+            {
+                with.HttpRequest();
+                with.FormValue("GroupName", groupName);
+                with.FormValue("GroupSource", "Custom");
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+            // add role
+            response = Browser.Post("/roles", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "userprincipal");
+                with.FormValue("Name", roleName);
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+            var roleId = response.Body.DeserializeJson<RoleApiModel>().Id;
+
+            // add role to group
+            response = Browser.Post($"/groups/{groupName}/roles", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Id", roleId.ToString());
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+            // add 4 permissions
+            response = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "userprincipal");
+                with.FormValue("Name", permissionNames[0]);
+            }).Result;
+
+            var permission1Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
+
+            response = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "userprincipal");
+                with.FormValue("Name", permissionNames[1]);
+            }).Result;
+
+            var permission2Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
+
+            response = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "userprincipal");
+                with.FormValue("Name", permissionNames[2]);
+            }).Result;
+
+            var permission3Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
+
+            response = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "userprincipal");
+                with.FormValue("Name", permissionNames[3]);
+            }).Result;
+
+            var permission4Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
+
+            // add user to group
+            response = Browser.Post($"/groups/{groupName}/users", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("SubjectId", subjectId);
+                with.FormValue("IdentityProvider", identityProvider);
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+            var permissionApiModels = new List<PermissionApiModel>
+            {
+                new PermissionApiModel
+                {
+                    Id = permission1Id,
+                    Grain = "app",
+                    SecurableItem = "userprincipal",
+                    Name = permissionNames[0],
+                    PermissionAction = PermissionAction.Allow
+                },
+                new PermissionApiModel
+                {
+                    Id = permission2Id,
+                    Grain = "app",
+                    SecurableItem = "userprincipal",
+                    Name = permissionNames[1],
+                    PermissionAction = PermissionAction.Deny
+                },
+                new PermissionApiModel
+                {
+                    Id = permission3Id,
+                    Grain = "app",
+                    SecurableItem = "userprincipal",
+                    Name = permissionNames[2],
+                    PermissionAction = PermissionAction.Allow
+                },
+                new PermissionApiModel
+                {
+                    Id = permission4Id,
+                    Grain = "app",
+                    SecurableItem = "userprincipal",
+                    Name = permissionNames[3],
+                    PermissionAction = PermissionAction.Deny
+                }
+            };
+
+            // create 2 role-based permissions
+            response = Browser.Post($"/roles/{roleId}/permissions", with =>
+            {
+                with.HttpRequest();
+
+                with.Body(JsonConvert.SerializeObject(
+                    new List<PermissionApiModel> {permissionApiModels[0], permissionApiModels[1]}));
+
+                with.Header("Accept", "application/json");
+                with.Header("Content-Type", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+            // create 2 granular (user-based) permissions
+            response = Browser.Post($"/user/{identityProvider}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+
+                with.Body(JsonConvert.SerializeObject(
+                    new List<PermissionApiModel> {permissionApiModels[2], permissionApiModels[3]}));
+
+                with.Header("Accept", "application/json");
+                with.Header("Content-Type", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+            // retrieve permissions for user
+            response = Browser.Get($"/user/{identityProvider}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            var permissions = response.Body.DeserializeJson<List<PermissionApiModel>>();
+
+            Assert.NotNull(permissions);
+            Assert.Equal(4, permissions.Count);
+
+            var permission1 = permissions.FirstOrDefault(p => p.Name == permissionNames[0]);
+            Assert.NotNull(permission1);
+            Assert.Equal(PermissionAction.Allow, permission1.PermissionAction);
+            Assert.Equal(1, permission1.Roles.Count());
+
+            /*var permission2 = permissions.FirstOrDefault(p => p.Name == permissionNames[1]);
+            Assert.NotNull(permission2);
+            Assert.Equal(PermissionAction.Deny, permission2.PermissionAction);
+            Assert.Equal(1, permission2.Roles.Count());*/
+
+            var permission3 = permissions.FirstOrDefault(p => p.Name == permissionNames[2]);
+            Assert.NotNull(permission3);
+            Assert.Equal(PermissionAction.Allow, permission3.PermissionAction);
+            Assert.Equal(0, permission3.Roles.Count());
+
+            var permission4 = permissions.FirstOrDefault(p => p.Name == permissionNames[3]);
+            Assert.NotNull(permission4);
+            Assert.Equal(PermissionAction.Deny, permission4.PermissionAction);
+            Assert.Equal(0, permission4.Roles.Count());
+        }
 
         [Fact]
         [DisplayTestMethodName]
