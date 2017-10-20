@@ -139,7 +139,7 @@ namespace Fabric.Authorization.API.Models
                 Grain = resolvedPermission.Grain,
                 Name = resolvedPermission.Name,
                 SecurableItem = resolvedPermission.SecurableItem,
-                PermissionAction = (PermissionAction) Enum.Parse(typeof(PermissionAction), resolvedPermission.Action, false),
+                PermissionAction = (PermissionAction) Enum.Parse(typeof(PermissionAction), resolvedPermission.Action, true),
                 Roles = resolvedPermission.Roles.Select(r => r.ToPermissionRoleApiModel()),
                 CreatedDateTimeUtc = resolvedPermission.CreatedDateTimeUtc,
                 ModifiedDateTimeUtc = resolvedPermission.ModifiedDateTimeUtc,

@@ -84,7 +84,10 @@ namespace Fabric.Authorization.API.Modules
             return Negotiate.WithModel(error).WithStatusCode(statusCode);
         }
 
-        protected async Task CheckAccess(ClientService clientService, dynamic grain, dynamic securableItem,
+        protected async Task CheckAccess(
+            ClientService clientService,
+            dynamic grain,
+            dynamic securableItem,
             params Predicate<Claim>[] requiredClaims)
         {
             string grainAsString = grain.ToString();

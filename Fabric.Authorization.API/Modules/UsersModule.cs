@@ -75,7 +75,7 @@ namespace Fabric.Authorization.API.Modules
                 IdentityProvider = param.identityProvider,
                 Grain = userPermissionRequest.Grain,
                 SecurableItem = userPermissionRequest.SecurableItem,
-                UserGroups = await _userService.GetGroupsForUser(SubjectId, IdentityProvider)
+                UserGroups = await _userService.GetGroupsForUser(param.subjectId, param.identityProvider)
             });
 
             return permissionResolutionResult.AllowedPermissions
