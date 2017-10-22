@@ -37,9 +37,9 @@ namespace Fabric.Authorization.API.Modules
             ModelCatalog.AddModels(typeof(PermissionAction));
 
             RouteDescriber.DescribeRoute(
-                "GetUserPermissions",
+                "GetCurrentUserPermissions",
                 "",
-                "Gets permissions for a user",
+                "Gets permissions for currently authenticated user",
                 new[]
                 {
                     new HttpResponseMetadata<UserPermissionsApiModel> {Code = (int) HttpStatusCode.OK, Message = "OK"},
@@ -48,6 +48,29 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
                     }
+                },
+                new[]
+                {
+                    _usersTag
+                }).SecurityRequirement(OAuth2ReadScopeBuilder);
+
+            RouteDescriber.DescribeRouteWithParams(
+                "GetUserPermissions",
+                "",
+                "Gets permissions for specified user. Note this will only retrieve 1) granular permissions and 2) permissions under roles mapped to Custom groups.",
+                new[]
+                {
+                    new HttpResponseMetadata<List<PermissionApiModel>> {Code = (int) HttpStatusCode.OK, Message = "OK"},
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.Forbidden,
+                        Message = "Client does not have access"
+                    }
+                },
+                new[]
+                {
+                    _identityProviderParameter,
+                    _subjectIdParameter
                 },
                 new[]
                 {
