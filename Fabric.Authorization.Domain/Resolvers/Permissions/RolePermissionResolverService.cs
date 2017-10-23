@@ -8,11 +8,11 @@ using Fabric.Authorization.Domain.Stores.Services;
 
 namespace Fabric.Authorization.Domain.Resolvers.Permissions
 {
-    public class RolePermissionResolver : IPermissionResolver
+    public class RolePermissionResolverService : IPermissionResolverService
     {
         private readonly RoleService _roleService;
 
-        public RolePermissionResolver(RoleService roleService)
+        public RolePermissionResolverService(RoleService roleService)
         {
             _roleService = roleService;
         }

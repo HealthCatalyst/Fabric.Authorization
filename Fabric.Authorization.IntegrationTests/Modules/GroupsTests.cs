@@ -6,6 +6,7 @@ using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Infrastructure.PipelineHooks;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
+using Fabric.Authorization.Domain.Resolvers.Permissions;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
 using Fabric.Authorization.Domain.Stores.InMemory;
@@ -51,6 +52,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var roleService = new RoleService(_roleStore, permissionStore, clientService);
             var groupService = new GroupService(groupStore, _roleStore, userStore, roleService);
             var permissionService = new PermissionService(permissionStore, roleService);
+            var permissionResolverService = new PermissionResolverService(roleService, permissionService,
+                new List<IPermissionResolverService>
+                {
+                    new GranularPermissionResolverService(permissionService, Logger),
+                    new RolePermissionResolverService(roleService)
+                },
+                Logger);
 
             Browser = new Browser(with =>
             {
@@ -76,6 +84,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     permissionService,
                     userService,
                     roleService,
+                    permissionResolverService,
                     new UserValidator(),
                     Logger));
 

@@ -26,12 +26,14 @@ namespace Fabric.Authorization.API.Modules
         private readonly PermissionService _permissionService;
         private readonly UserService _userService;
         private readonly RoleService _roleService;
+        private readonly IPermissionResolverService _permissionResolverService;
 
         public UsersModule(
             ClientService clientService,
             PermissionService permissionService,
             UserService userService,
             RoleService roleService,
+            IPermissionResolverService permissionResolverService,
             UserValidator validator,
             ILogger logger) : base("/v1/user", logger, validator)
         {
@@ -39,6 +41,7 @@ namespace Fabric.Authorization.API.Modules
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _roleService = roleService ?? throw new ArgumentNullException(nameof(roleService));
+            _permissionResolverService = permissionResolverService ?? throw new ArgumentNullException(nameof(permissionResolverService));
 
             // Get all the permissions for a user
             Get("/permissions",
@@ -69,7 +72,7 @@ namespace Fabric.Authorization.API.Modules
             await CheckAccess(_clientService, userPermissionRequest.Grain, userPermissionRequest.SecurableItem,
                 AuthorizationReadClaim);
 
-            var permissionResolutionResult = await new PermissionResolver(_roleService, _permissionService, Logger).Resolve(new PermissionResolutionRequest
+            var permissionResolutionResult = await _permissionResolverService.Resolve(new PermissionResolutionRequest
             {
                 SubjectId = param.subjectId,
                 IdentityProvider = param.identityProvider,
@@ -90,7 +93,7 @@ namespace Fabric.Authorization.API.Modules
             await CheckAccess(_clientService, userPermissionRequest.Grain, userPermissionRequest.SecurableItem,
                 AuthorizationReadClaim);
 
-            var permissionResolutionResult = await new PermissionResolver(_roleService, _permissionService, Logger).Resolve(new PermissionResolutionRequest
+            var permissionResolutionResult = await _permissionResolverService.Resolve(new PermissionResolutionRequest
             {
                 SubjectId = SubjectId,
                 IdentityProvider = IdentityProvider,
