@@ -2,18 +2,18 @@
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
-using Fabric.Authorization.Domain.Resolvers.Permissions;
+using Fabric.Authorization.Domain.Resolvers.Models;
 using Fabric.Authorization.Domain.Stores.Services;
 using Serilog;
 
-namespace Fabric.Authorization.Domain.Resolvers.Models
+namespace Fabric.Authorization.Domain.Resolvers.Permissions
 {
-    public class GranularPermissionResolver : IPermissionResolver
+    public class GranularPermissionResolverService : IPermissionResolverService
     {
         private readonly PermissionService _permissionService;
         private readonly ILogger _logger;
 
-        public GranularPermissionResolver(PermissionService permissionService, ILogger logger)
+        public GranularPermissionResolverService(PermissionService permissionService, ILogger logger)
         {
             _permissionService = permissionService;
             _logger = logger;

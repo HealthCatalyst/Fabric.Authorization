@@ -1,7 +1,11 @@
-﻿using Fabric.Authorization.API.Configuration;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.RemoteServices.Identity.Providers;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Events;
+using Fabric.Authorization.Domain.Resolvers.Permissions;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
@@ -24,6 +28,12 @@ namespace Fabric.Authorization.API.Extensions
             container.Register<SecurableItemService, SecurableItemService>();
             container.Register<IdentitySearchService, IdentitySearchService>();
             container.Register<IIdentityServiceProvider, IdentityServiceProvider>();
+            container.Register<IPermissionResolverService, PermissionResolverService>();
+            container.RegisterMultiple<IPermissionResolverService>(new List<Type>
+            {
+                typeof(GranularPermissionResolverService),
+                typeof(RolePermissionResolverService)
+            });
 
             return container;
         }
