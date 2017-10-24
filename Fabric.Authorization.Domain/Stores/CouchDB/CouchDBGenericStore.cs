@@ -15,6 +15,7 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
         private readonly IEventContextResolverService _eventContextResolverService;
         protected readonly ILogger Logger;
         protected readonly Stopwatch Stopwatch = new Stopwatch();
+        protected readonly string DocumentKeyPrefix = $"{typeof(T).Name.ToLowerInvariant()}:";
 
         protected CouchDbGenericStore(
             IDocumentDbService dbService,
@@ -62,8 +63,7 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
 
         public virtual async Task<IEnumerable<T>> GetAll()
         {
-            var documentType = $"{typeof(T).Name.ToLowerInvariant()}:";
-            return await DocumentDbService.GetDocuments<T>(documentType);
+            return await DocumentDbService.GetDocuments<T>(DocumentKeyPrefix);
         }
 
         public virtual async Task<T> Add(string id, T model)
