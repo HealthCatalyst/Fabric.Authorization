@@ -30,8 +30,8 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
         {
             var customParams = grain + securableItem + permissionName;
             return permissionName != null ?
-                  await _dbService.GetDocuments<Permission>("permissions", "byname", customParams) :
-                  await _dbService.GetDocuments<Permission>("permissions", "bysecitem", customParams);
+                  await DocumentDbService.GetDocuments<Permission>("permissions", "byname", customParams) :
+                  await DocumentDbService.GetDocuments<Permission>("permissions", "bysecitem", customParams);
         }
 
         public static CouchDbViews GetViews()
@@ -65,21 +65,21 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
         public async Task AddOrUpdateGranularPermission(GranularPermission granularPermission)
         {
             var userId = FormatId(granularPermission.Id);
-            var perm = await _dbService.GetDocument<GranularPermission>(userId);
+            var perm = await DocumentDbService.GetDocument<GranularPermission>(userId);
 
             if (perm == null)
             {
-                await _dbService.AddDocument(userId, granularPermission);
+                await DocumentDbService.AddDocument(userId, granularPermission);
             }
             else
             {
-                await _dbService.UpdateDocument(userId, granularPermission);
+                await DocumentDbService.UpdateDocument(userId, granularPermission);
             }
         }
 
         public async Task<GranularPermission> GetGranularPermission(string userId)
         {
-            var perm = await _dbService.GetDocument<GranularPermission>(FormatId(userId));
+            var perm = await DocumentDbService.GetDocument<GranularPermission>(FormatId(userId));
             if (perm == null)
             {
                 throw new NotFoundException<GranularPermission>(userId);
