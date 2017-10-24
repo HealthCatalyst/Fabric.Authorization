@@ -25,8 +25,8 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
         {
             var customParams = grain + securableItem + roleName;
             return roleName != null ?
-                await _dbService.GetDocuments<Role>("roles", "byname", customParams) :
-                await _dbService.GetDocuments<Role>("roles", "bysecitem", customParams);
+                await DocumentDbService.GetDocuments<Role>("roles", "byname", customParams) :
+                await DocumentDbService.GetDocuments<Role>("roles", "bysecitem", customParams);
         }
 
         public static CouchDbViews GetViews()
