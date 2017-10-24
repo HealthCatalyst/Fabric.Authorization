@@ -22,8 +22,6 @@ namespace Fabric.Authorization.API.Services
         private readonly ICouchDbSettings _couchDbSettings;
         private const string HighestUnicodeChar = "\ufff0";
 
-        private bool initialized = false;
-
         private string GetFullDocumentId<T>(string documentId)
         {
             return DocumentDbHelpers.GetFullDocumentId<T>(documentId);
@@ -80,7 +78,7 @@ namespace Fabric.Authorization.API.Services
 
                 if (!documentResponse.IsSuccess)
                 {
-                    _logger.Debug($"unable to find document: {GetFullDocumentId<T>(documentId)} - message: {documentResponse.Reason}");
+                    _logger.Debug($"unable to find {typeof(T).Name} entity: {GetFullDocumentId<T>(documentId)} - message: {documentResponse.Reason}");
                     return default(T);
                 }
 
@@ -101,7 +99,7 @@ namespace Fabric.Authorization.API.Services
                         .StartKey(documentType)
                         .EndKey($"{documentType}{HighestUnicodeChar}"));
 
-                ViewQueryResponse result = await client.Views.QueryAsync(viewQuery);
+                var result = await client.Views.QueryAsync(viewQuery);
 
                 if (!result.IsSuccess)
                 {
@@ -147,14 +145,14 @@ namespace Fabric.Authorization.API.Services
 
                 if (!string.IsNullOrEmpty(existingDoc.Id))
                 {
-                    throw new AlreadyExistsException<T>($"Document with id {documentId} already exists.");
+                    throw new AlreadyExistsException<T>($"{typeof(T).Name} entity with id {documentId} already exists.");
                 }
 
                 var response = await client.Documents.PutAsync(fullDocumentId, docJson);
 
                 if (!response.IsSuccess)
                 {
-                    _logger.Error($"unable to add or update document: {documentId} - error: {response.Reason}");
+                    _logger.Error($"unable to add or update {typeof(T).Name} entity: {documentId} - error: {response.Reason}");
                 }
             }
         }
@@ -170,7 +168,7 @@ namespace Fabric.Authorization.API.Services
 
                 if (existingDoc.IsEmpty)
                 {
-                    throw new ArgumentException($"Document with id {documentId} does not exist.");
+                    throw new ArgumentException($"{typeof(T).Name} entity with id {documentId} does not exist.");
                 }
 
                 var response = await client.Documents.PutAsync(fullDocumentId, existingDoc.Rev, docJson);
@@ -187,7 +185,6 @@ namespace Fabric.Authorization.API.Services
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
                 var documentResponse = await client.Documents.GetAsync(GetFullDocumentId<T>(documentId));
-
                 await Delete(documentResponse.Id, documentResponse.Rev);
             }
         }
