@@ -94,7 +94,7 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
 
         private string GetGroupIdPrefix(string id)
         {
-            return $"{DocumentPrefix}{FormatId(id)}-";
+            return $"{DocumentKeyPrefix}{FormatId(id)}-";
         }
     }
 }
