@@ -30,24 +30,11 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
 
         public abstract Task<T> Add(T model);
 
-        public virtual async Task Update(T model)
+        protected virtual async Task<T> Add(string id, T model)
         {
-            await Update(model.Identifier, model).ConfigureAwait(false);
-        }
-
-        protected virtual async Task Update(string id, T model)
-        {
-            model.Track(false, GetActor());
-            await ExponentialBackoff(DocumentDbService.UpdateDocument(id, model)).ConfigureAwait(false);
-        }
-
-        public abstract Task Delete(T model);
-
-        public virtual async Task<bool> Exists(K id)
-        {
-            var result = await DocumentDbService.GetDocument<T>(id.ToString()).ConfigureAwait(false);
-            return result != null &&
-                   (!(result is ISoftDelete) || !(result as ISoftDelete).IsDeleted);
+            model.Track(true, GetActor());
+            await ExponentialBackoff(DocumentDbService.AddDocument(id, model)).ConfigureAwait(false);
+            return model;
         }
 
         public virtual async Task<T> Get(K id)
@@ -66,20 +53,14 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
             return await DocumentDbService.GetDocuments<T>(DocumentKeyPrefix);
         }
 
-        public virtual async Task<T> Add(string id, T model)
-        {
-            model.Track(true, GetActor());
-            await ExponentialBackoff(DocumentDbService.AddDocument(id, model)).ConfigureAwait(false);
+        public abstract Task Delete(T model);
 
-            return model;
-        }
-
-        public virtual async Task Delete(string id, T model)
+        protected virtual async Task Delete(string id, T model)
         {
             model.Track(false, GetActor());
-            if (model is ISoftDelete)
+            if (model is ISoftDelete iSoftDelete)
             {
-                (model as ISoftDelete).IsDeleted = true;
+                iSoftDelete.IsDeleted = true;
                 await Update(model).ConfigureAwait(false);
             }
             else
@@ -87,6 +68,24 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
                 Logger.Information($"Hard deleting {model.GetType()} {model.Identifier}");
                 await DocumentDbService.DeleteDocument<T>(id).ConfigureAwait(false);
             }
+        }
+
+        public virtual async Task Update(T model)
+        {
+            await Update(model.Identifier, model).ConfigureAwait(false);
+        }
+
+        protected virtual async Task Update(string id, T model)
+        {
+            model.Track(false, GetActor());
+            await ExponentialBackoff(DocumentDbService.UpdateDocument(id, model)).ConfigureAwait(false);
+        }
+
+        public virtual async Task<bool> Exists(K id)
+        {
+            var result = await DocumentDbService.GetDocument<T>(id.ToString()).ConfigureAwait(false);
+            return result != null &&
+                   (!(result is ISoftDelete) || !(result as ISoftDelete).IsDeleted);
         }
 
         protected string GetActor()
