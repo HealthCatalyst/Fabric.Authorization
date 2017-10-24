@@ -11,6 +11,8 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
 {
     public class CouchDbGroupStore : FormattableIdentifierStore<string, Group>, IGroupStore
     {
+        private const string IdDelimiter = "-:-:";
+
         public CouchDbGroupStore(
             IDocumentDbService dbService,
             ILogger logger,
@@ -21,7 +23,7 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
 
         public override async Task<Group> Add(Group group)
         {
-            // this will also catch older active records that do not have the unique identifier appended to the ID
+            // this will catch older active records that do not have the unique identifier appended to the ID
             var exists = await Exists(group.Id).ConfigureAwait(false);
             if (exists)
             {
@@ -29,7 +31,7 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
             }
 
             // append unique identifier to document ID
-            group.Id = $"{group.Id}-{DateTime.UtcNow.Ticks}";
+            group.Id = $"{group.Id}{IdDelimiter}{DateTime.UtcNow.Ticks}";
             return await Add(FormatId(group.Id), group);
         }
 
@@ -41,7 +43,7 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
             }
             catch (NotFoundException<Group>)
             {
-                Logger.Information($"Exact match for Group {id} not found.");
+                Logger.Debug($"Exact match for Group {id} not found.");
 
                 // now attempt to find a group that starts with the supplied ID
                 var groups = await DocumentDbService.GetDocuments<Group>(GetGroupIdPrefix(id));
@@ -62,13 +64,20 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
 
         public override async Task Delete(Group group)
         {
-            var activeGroup = await Get(group.Id).ConfigureAwait(false);
-            await Delete(FormatId(activeGroup.Id), activeGroup);
+            await Delete(group.Id, group);
         }
 
         public override async Task Update(Group group)
         {
+            group.Track(false, GetActor());
             var activeGroup = await Get(group.Id).ConfigureAwait(false);
+            await ExponentialBackoff(DocumentDbService.UpdateDocument(FormatId(activeGroup.Id), group));
+        }
+
+        protected override async Task Update(string id, Group group)
+        {
+            group.Track(false, GetActor());
+            var activeGroup = await Get(id).ConfigureAwait(false);
             await ExponentialBackoff(DocumentDbService.UpdateDocument(FormatId(activeGroup.Id), group));
         }
 
@@ -81,20 +90,14 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
             }
             catch (NotFoundException<Group>)
             {
+                Logger.Debug("Exists check failed for Group {id}");
                 return false;
             }
         }
 
-        protected override async Task Update(string id, Group group)
-        {
-            group.Track(false, GetActor());
-            var activeGroup = await Get(id).ConfigureAwait(false);
-            await ExponentialBackoff(DocumentDbService.UpdateDocument(FormatId(activeGroup.Id), group));
-        }
-
         private string GetGroupIdPrefix(string id)
         {
-            return $"{DocumentKeyPrefix}{FormatId(id)}-";
+            return $"{DocumentKeyPrefix}{FormatId(id)}{IdDelimiter}";
         }
     }
 }
