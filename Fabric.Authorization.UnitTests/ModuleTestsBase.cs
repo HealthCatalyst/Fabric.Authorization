@@ -149,8 +149,9 @@ namespace Fabric.Authorization.UnitTests
         {
             return new Browser(CreateBootstrapper(claims), withDefaults =>
             {
-                withDefaults.Accept("application/json");
+                withDefaults.Accept("application/json");                
                 withDefaults.HostName("testhost");
+                withDefaults.Header("Content-Type", "application/json");
             });
         }
 
@@ -170,6 +171,7 @@ namespace Fabric.Authorization.UnitTests
             configurableBootstrapperConfigurator.RequestStartup((container, pipeline, context) =>
             {
                 context.CurrentUser = new TestPrincipal(claims);
+                pipeline.BeforeRequest += ctx => RequestHooks.RemoveContentTypeHeaderForGet(ctx);
                 pipeline.BeforeRequest += ctx => RequestHooks.SetDefaultVersionInUrl(ctx);
             });
             return configurableBootstrapperConfigurator;
