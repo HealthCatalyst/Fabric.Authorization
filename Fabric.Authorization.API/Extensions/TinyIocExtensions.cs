@@ -55,14 +55,6 @@ namespace Fabric.Authorization.API.Extensions
         {
             container.Register<IEventService, EventService>();
             container.Register<IEventContextResolverService, EventContextResolverService>();
-            container.Register<IEventWriter>(
-                (c, p) => c.Resolve<CouchDbEventWriter>(new NamedParameterOverloads
-                    {
-                        {"documentDbService", c.Resolve<IDocumentDbService>("inner")},
-                        {"innerEventWriter", c.Resolve<IEventWriter>("innerEventWriter")}
-                    }
-                )
-            );
             container.Register<IDocumentDbService>(
                 (c, p) => c.Resolve<AuditingDocumentDbService>(new NamedParameterOverloads
                 {
