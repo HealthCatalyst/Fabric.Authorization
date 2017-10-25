@@ -34,7 +34,7 @@ namespace Fabric.Authorization.Domain.Stores.InMemory
 
             if (Dictionary.ContainsKey(formattedId))
             {
-                var existingGroup = await Get(formattedId);
+                var existingGroup = Dictionary[formattedId];
                 if (existingGroup == null)
                 {
                     throw new CouldNotCompleteOperationException();
@@ -51,6 +51,32 @@ namespace Fabric.Authorization.Domain.Stores.InMemory
 
             Dictionary.TryAdd(formattedId, group);
             return group;
+        }
+
+        public override async Task Delete(Group group)
+        {
+            group.IsDeleted = true;
+
+            var formattedId = FormatId(group.Id);
+
+            // use base class Exists so IsDeleted is ignored since it's already been updated at this point
+            if (await base.Exists(formattedId).ConfigureAwait(false))
+            {
+                if (!Dictionary.TryUpdate(formattedId, group, Dictionary[formattedId]))
+                {
+                    throw new CouldNotCompleteOperationException();
+                }
+            }
+            else
+            {
+                throw new NotFoundException<Group>(group, group.Identifier);
+            }
+        }
+
+        public override async Task<bool> Exists(string id)
+        {
+            var formattedId = FormatId(id);
+            return await base.Exists(formattedId) && !Dictionary[formattedId].IsDeleted;
         }
     }
 }

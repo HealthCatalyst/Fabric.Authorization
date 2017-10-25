@@ -216,6 +216,38 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.True(getResponse2.Body.AsString().Contains(groupSource + "_2"));
         }
 
+        [Fact]
+        [DisplayTestMethodName]
+        public void AddGroup_DuplicateGroupExistsAndDeleted_Success()
+        {
+            const string groupName = "Group1";
+            var response = Browser.Post("/groups", with =>
+            {
+                with.HttpRequest();
+                with.FormValue("GroupName", groupName);
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+            response = Browser.Delete($"/groups/{groupName}", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+            response = Browser.Post("/groups", with =>
+            {
+                with.HttpRequest();
+                with.FormValue("GroupName", groupName);
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        }
+
         [Theory]
         [DisplayTestMethodName]
         [InlineData("", "Source1")]

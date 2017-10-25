@@ -34,7 +34,7 @@ namespace Fabric.Authorization.Domain.Stores.InMemory
             return model;
         }
 
-        public async Task Delete(T model)
+        public virtual async Task Delete(T model)
         {
             model.IsDeleted = true;
             await Update(model).ConfigureAwait(false);
