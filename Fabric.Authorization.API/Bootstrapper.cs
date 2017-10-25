@@ -82,6 +82,7 @@ namespace Fabric.Authorization.API
                         container.Resolve<IResponseNegotiator>(),
                         _env));
 
+            pipelines.BeforeRequest += ctx => RequestHooks.RemoveContentTypeHeaderForGet(ctx);
             pipelines.BeforeRequest += ctx => RequestHooks.SetDefaultVersionInUrl(ctx);
 
             pipelines.AfterRequest += ctx =>
