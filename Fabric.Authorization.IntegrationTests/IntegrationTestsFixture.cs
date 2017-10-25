@@ -22,7 +22,7 @@ namespace Fabric.Authorization.IntegrationTests
         public IEventContextResolverService EventContextResolverService { get; set; } =
             new Mock<IEventContextResolverService>().Object;
 
-        private IDocumentDbService dbService;
+        private IDocumentDbService _dbService;
 
         private readonly string CouchDbServerEnvironmentVariable = "COUCHDBSETTINGS__SERVER";
 
@@ -33,31 +33,34 @@ namespace Fabric.Authorization.IntegrationTests
 
         protected IDocumentDbService DbService()
         {
-            if (dbService == null)
+            if (_dbService != null)
             {
-                ICouchDbSettings config = new CouchDbSettings()
-                {
-                    DatabaseName = "integration-" + DateTime.UtcNow.Ticks,
-                    Username = "",
-                    Password = "",
-                    Server = "http://127.0.0.1:5984"
-                };
-
-                var couchDbServer = Environment.GetEnvironmentVariable(CouchDbServerEnvironmentVariable);
-                if (!string.IsNullOrEmpty(couchDbServer))
-                {
-                    config.Server = couchDbServer;
-                }
-
-                var innerDbService = new CouchDbAccessService(config, new Mock<ILogger>().Object);
-                innerDbService.Initialize().Wait();
-                innerDbService.AddViews("roles", CouchDbRoleStore.GetViews()).Wait();
-                innerDbService.AddViews("permissions", CouchDbPermissionStore.GetViews()).Wait();
-                var auditingDbService = new AuditingDocumentDbService(new Mock<IEventService>().Object, innerDbService);
-                var cachingDbService = new CachingDocumentDbService(auditingDbService, new MemoryCache(new MemoryCacheOptions()));
-                dbService = cachingDbService;
+                return _dbService;
             }
-            return dbService;
+
+            ICouchDbSettings config = new CouchDbSettings()
+            {
+                DatabaseName = "integration-" + DateTime.UtcNow.Ticks,
+                Username = "",
+                Password = "",
+                Server = "http://127.0.0.1:5984"
+            };
+
+            var couchDbServer = Environment.GetEnvironmentVariable(CouchDbServerEnvironmentVariable);
+            if (!string.IsNullOrEmpty(couchDbServer))
+            {
+                config.Server = couchDbServer;
+            }
+
+            var innerDbService = new CouchDbAccessService(config, new Mock<ILogger>().Object);
+            innerDbService.Initialize().Wait();
+            innerDbService.AddViews("roles", CouchDbRoleStore.GetViews()).Wait();
+            innerDbService.AddViews("permissions", CouchDbPermissionStore.GetViews()).Wait();
+            var auditingDbService = new AuditingDocumentDbService(new Mock<IEventService>().Object, innerDbService);
+            var cachingDbService =
+                new CachingDocumentDbService(auditingDbService, new MemoryCache(new MemoryCacheOptions()));
+            _dbService = cachingDbService;
+            return _dbService;
         }
 
         #region IDisposable implementation
