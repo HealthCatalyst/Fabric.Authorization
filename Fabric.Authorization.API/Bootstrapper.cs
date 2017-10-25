@@ -117,7 +117,7 @@ namespace Fabric.Authorization.API
             var options = new MemoryCacheOptions();
             var eventLogger = LogFactory.CreateEventLogger(_loggingLevelSwitch, _appConfig.ApplicationInsights);
             var serilogEventWriter = new SerilogEventWriter(eventLogger);
-            container.Register<IEventWriter>(serilogEventWriter, "innerEventWriter");
+            container.Register<IEventWriter>(serilogEventWriter);
             container.Register(options);
             container.Register<ICouchDbSettings>(_appConfig.CouchDbSettings);
             container.Register<IPropertySettings>(_appConfig.DefaultPropertySettings);
