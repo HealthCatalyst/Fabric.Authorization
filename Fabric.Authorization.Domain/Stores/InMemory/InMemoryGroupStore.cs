@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading.Tasks;
+using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.Domain.Stores.InMemory
@@ -22,6 +24,33 @@ namespace Fabric.Authorization.Domain.Stores.InMemory
 
             this.Add(group1).Wait();
             this.Add(group2).Wait();
+        }
+
+        public override async Task<Group> Add(Group group)
+        {
+            group.Track();
+
+            var formattedId = FormatId(group.Identifier);
+
+            if (Dictionary.ContainsKey(formattedId))
+            {
+                var existingGroup = await Get(formattedId);
+                if (existingGroup == null)
+                {
+                    throw new CouldNotCompleteOperationException();
+                }
+                if (!existingGroup.IsDeleted)
+                {
+                    throw new AlreadyExistsException<Group>(group, formattedId);
+                }
+
+                existingGroup.IsDeleted = false;
+                await Update(existingGroup).ConfigureAwait(false);
+                return existingGroup;
+            }
+
+            Dictionary.TryAdd(formattedId, group);
+            return group;
         }
     }
 }
