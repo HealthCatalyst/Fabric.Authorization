@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
-using Fabric.Authorization.API;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Infrastructure.PipelineHooks;
 using Fabric.Authorization.API.Models;
@@ -40,7 +38,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                         new Claim(Claims.Scope, Scopes.ReadScope),
                         new Claim(Claims.Scope, Scopes.WriteScope),
                     }, "testprincipal"));
-                    pipelines.BeforeRequest += (ctx) => RequestHooks.SetDefaultVersionInUrl(ctx);
+                    pipelines.BeforeRequest += ctx => RequestHooks.RemoveContentTypeHeaderForGet(ctx);
+                    pipelines.BeforeRequest += ctx => RequestHooks.SetDefaultVersionInUrl(ctx);
                 });
             }, withDefaults => withDefaults.HostName("testhost"));
         }
@@ -206,5 +205,20 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.NotFound, delete.StatusCode);
         }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void TestGetClient_ContentTypeHeaderSet_Success()
+        {
+            var get = this.Browser.Get($"/clients/Client1", with =>
+                {
+                    with.HttpRequest();
+                    with.Header("Accept", "application/json");
+                    with.Header("Content-Type", "application/json");
+                }).Result;
+
+            Assert.Equal(HttpStatusCode.NotFound, get.StatusCode);
+        }
+                
     }
 }
