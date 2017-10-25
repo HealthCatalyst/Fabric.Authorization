@@ -2,7 +2,12 @@
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
+
+using Fabric.Authorization.API.Models;
+
 using Nancy;
+
+using HttpStatusCode = Nancy.HttpStatusCode;
 
 namespace Fabric.Authorization.API.Infrastructure.PipelineHooks
 {
@@ -43,6 +48,42 @@ namespace Fabric.Authorization.API.Infrastructure.PipelineHooks
             context.Request = updatedRequest;
 
             return null;
+        };
+
+        public static readonly Func<NancyContext, Response> RemoveContentTypeHeaderForGet = context =>
+        {
+            //only check GET requests
+            if (!context.Request.Method.Equals("GET", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            var contentType = context.Request.Headers.ContentType;
+            if (contentType == null)
+            {
+                return null;
+            }
+
+            //remove content-type header from the request
+            var originalRequest = context.Request;
+            var headers = originalRequest.Headers.ToDictionary(originalRequestHeader => originalRequestHeader.Key,
+                originalRequestHeader => originalRequestHeader.Value);
+            
+            headers.Remove("Content-Type");
+
+            var updatedRequest = new Request(
+                originalRequest.Method,
+                originalRequest.Url,
+                originalRequest.Body,
+                headers,
+                originalRequest.UserHostAddress,
+                originalRequest.ClientCertificate,
+                originalRequest.ProtocolVersion);
+
+            context.Request = updatedRequest;
+
+            return null;
+            
         };
     }
 }
