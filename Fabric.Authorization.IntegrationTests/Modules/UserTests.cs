@@ -1356,5 +1356,19 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Contains("app/userprincipal.modifypatient", permissions.Permissions);
             Assert.Equal(3, permissions.Permissions.Count());
         }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void Test_GetPermissions_UserNotFound()
+        {            
+            var get = Browser.Get("/user/foo/bar/groups", with =>
+                {
+                    with.HttpRequest();
+                    with.Header("Accept", "application/json");
+                }).Result;
+
+            Assert.Equal(HttpStatusCode.NotFound, get.StatusCode);
+            Assert.Contains("User with SubjectId: bar and Identity Provider: foo was not found", get.Body.AsString());
+        }
     }
 }
