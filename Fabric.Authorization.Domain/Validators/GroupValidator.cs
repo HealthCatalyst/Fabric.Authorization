@@ -27,7 +27,8 @@ namespace Fabric.Authorization.Domain.Validators
                 .WithMessage("Please specify a Source for this Group.");
 
             RuleFor(group => group)
-                .Must(BeUnique);
+                .Must(BeUnique)
+                .WithMessage("An active group with this groupName already exists. Please specify a different groupName.");
         }
 
         /// <summary>
