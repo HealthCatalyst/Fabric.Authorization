@@ -39,12 +39,6 @@ namespace Fabric.Authorization.Domain.Stores.InMemory
             return model;
         }
 
-        public override async Task Delete(T model)
-        {
-            model.IsDeleted = true;
-            await Update(model).ConfigureAwait(false);
-        }
-
         public override async Task Update(T model)
         {
             model.Track();
