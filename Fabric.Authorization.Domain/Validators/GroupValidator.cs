@@ -25,11 +25,21 @@ namespace Fabric.Authorization.Domain.Validators
             RuleFor(group => group.Source)
                 .NotEmpty()
                 .WithMessage("Please specify a Source for this Group.");
+
+            RuleFor(group => group)
+                .Must(BeUnique);
         }
 
-        private async Task<bool> BeUnique(string groupId)
+        /// <summary>
+        /// This ensures an active group with the same name does not already exist. It checks the Id, which is
+        /// derived from the Name (Name + unique identifier). The check first attempts an exact match. If an
+        /// exact match is not found, it checks if any groups exist that have an ID that starts with the 
+        /// </summary>
+        /// <param name="group">Incoming group to be validated</param>
+        /// <returns>true if supplied group name does not exist on an active group document; otherwise false</returns>
+        private bool BeUnique(Group group)
         {
-            return !await _groupService.Exists(groupId);
+            return !string.IsNullOrWhiteSpace(group?.Id) && !_groupService.Exists(group?.Id).Result;
         }
     }
 }
