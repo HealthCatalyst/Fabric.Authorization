@@ -112,7 +112,7 @@ namespace Fabric.Authorization.API.Modules
         private async Task<dynamic> AddGroup()
         {
             this.RequiresClaims(AuthorizationWriteClaim);
-            var group = this.Bind<GroupRoleApiModel>();
+            var group = this.Bind<GroupRoleApiModel>(binderIgnore => binderIgnore.Id);
             var incomingGroup = group.ToGroupDomainModel();
 
             if (string.IsNullOrWhiteSpace(incomingGroup.Source))
