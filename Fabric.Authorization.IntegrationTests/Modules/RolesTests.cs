@@ -275,6 +275,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                                                      Name = "fakePermission",
                                                      SecurableItem = "fakeApiEndpoint",
                                                      Grain = "app"
+                                                 },
+                                             new PermissionApiModel
+                                                 {
+                                                     Id = Guid.NewGuid(),
+                                                     Name = "fakePermission2",
+                                                     SecurableItem = "fakeApiEndpoint",
+                                                     Grain = "app"
                                                  }
                                          };
 
@@ -282,6 +289,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 {
                     with.HttpRequest();
                     with.Header("Accept", "application/json");
+                    with.Header("Content-Type", "application/json");
                     with.JsonBody(permissionToDelete);
                 }).Result;
 
@@ -323,6 +331,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                                                      Name = "fakePermission",
                                                      SecurableItem = "fakeApiEndpoint",
                                                      Grain = "app"
+                                                 },
+                                             new PermissionApiModel
+                                                 {
+                                                     Id = Guid.NewGuid(),
+                                                     Name = "fakePermission2",
+                                                     SecurableItem = "fakeApiEndpoint",
+                                                     Grain = "app"
                                                  }
                                          };
 
@@ -330,10 +345,102 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 {
                     with.HttpRequest();
                     with.Header("Accept", "application/json");
+                    with.Header("Content-Type", "application/json");
                     with.JsonBody(permissionToDelete);
                 }).Result;
 
             Assert.Equal(HttpStatusCode.NotFound, delete.StatusCode);
+        }
+
+        [Fact]
+        public void Test_AddPermissionToRole_NoPermissionInBody_BadRequestException()
+        {
+            var roleName = "Role1";
+
+            var postResponse = Browser.Post("/roles", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "rolesprincipal");
+                with.FormValue("Name", roleName);
+            }).Result;
+
+            var getResponse = Browser.Get($"/roles/app/rolesprincipal/{roleName}", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+            var roleApiModelResponse = JsonConvert.DeserializeObject<List<RoleApiModel>>(getResponse.Body.AsString()).First();
+
+            Assert.Equal(roleName, roleApiModelResponse.Name);
+
+            var emptyPermissionArray = new List<PermissionApiModel>();
+
+            var delete = Browser.Post($"/roles/{roleApiModelResponse.Id}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.Header("Content-Type", "application/json");
+                with.JsonBody(emptyPermissionArray);
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.BadRequest, delete.StatusCode);
+        }
+
+        [Fact]
+        public void Test_AddPermissionToRole_NoIdOnPermission_BadRequestException()
+        {
+            var roleName = "Role1";
+
+            var postResponse = Browser.Post("/roles", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.FormValue("Grain", "app");
+                with.FormValue("SecurableItem", "rolesprincipal");
+                with.FormValue("Name", roleName);
+            }).Result;
+
+            var getResponse = Browser.Get($"/roles/app/rolesprincipal/{roleName}", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+            var roleApiModelResponse = JsonConvert.DeserializeObject<List<RoleApiModel>>(getResponse.Body.AsString()).First();
+
+            Assert.Equal(roleName, roleApiModelResponse.Name);
+
+            var permissionToDelete = new List<PermissionApiModel>
+                                         {
+                                             new PermissionApiModel
+                                                 {                                                     
+                                                     Name = "fakePermission",
+                                                     SecurableItem = "fakeApiEndpoint",
+                                                     Grain = "app"
+                                                 }
+                                         };
+
+            postResponse = Browser.Post($"/roles/{roleApiModelResponse.Id}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.Header("Content-Type", "application/json");
+                with.JsonBody(permissionToDelete);
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
+            Assert.Contains(
+                "Permission id is required but missing in the request, ensure each permission has an id",
+                postResponse.Body.AsString());
         }
     }
 }
