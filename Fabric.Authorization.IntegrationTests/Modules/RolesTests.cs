@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Infrastructure.PipelineHooks;
@@ -240,7 +241,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
-        public void Test_DeletePermissionFromRole_PermissionDoesntExists_NotFoundException()
+        public void Test_DeletePermissionFromRole_PermissionDoesntExist_NotFoundException()
         {
             var roleName = "Role1";
 
@@ -262,9 +263,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
-            var roleApiModelResponse = JsonConvert.DeserializeObject<List<RoleApiModel>>(getResponse.Body.AsString());
+            var roleApiModelResponse = JsonConvert.DeserializeObject<List<RoleApiModel>>(getResponse.Body.AsString()).First();
 
-            Assert.Equal(roleName, roleApiModelResponse[0].Name);
+            Assert.Equal(roleName, roleApiModelResponse.Name);
 
             var permissionToDelete = new List<PermissionApiModel>
                                          {
@@ -277,7 +278,55 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                                                  }
                                          };
 
-            var delete = Browser.Delete($"/roles/{roleApiModelResponse[0].Id}/permissions", with =>
+            var delete = Browser.Delete($"/roles/{roleApiModelResponse.Id}/permissions", with =>
+                {
+                    with.HttpRequest();
+                    with.Header("Accept", "application/json");
+                    with.JsonBody(permissionToDelete);
+                }).Result;
+
+            Assert.Equal(HttpStatusCode.NotFound, delete.StatusCode);
+        }
+
+        [Fact]
+        public void Test_AddPermissionToRole_PermissionDoesntExist_NotFoundException()
+        {
+            var roleName = "Role1";
+
+            var postResponse = Browser.Post("/roles", with =>
+                {
+                    with.HttpRequest();
+                    with.Header("Accept", "application/json");
+                    with.FormValue("Grain", "app");
+                    with.FormValue("SecurableItem", "rolesprincipal");
+                    with.FormValue("Name", roleName);
+                }).Result;
+
+            var getResponse = Browser.Get($"/roles/app/rolesprincipal/{roleName}", with =>
+                {
+                    with.HttpRequest();
+                    with.Header("Accept", "application/json");
+                }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+            var roleApiModelResponse = JsonConvert.DeserializeObject<List<RoleApiModel>>(getResponse.Body.AsString()).First();
+
+            Assert.Equal(roleName, roleApiModelResponse.Name);
+
+            var permissionToDelete = new List<PermissionApiModel>
+                                         {
+                                             new PermissionApiModel
+                                                 {
+                                                     Id = Guid.NewGuid(),
+                                                     Name = "fakePermission",
+                                                     SecurableItem = "fakeApiEndpoint",
+                                                     Grain = "app"
+                                                 }
+                                         };
+
+            var delete = Browser.Post($"/roles/{roleApiModelResponse.Id}/permissions", with =>
                 {
                     with.HttpRequest();
                     with.Header("Accept", "application/json");

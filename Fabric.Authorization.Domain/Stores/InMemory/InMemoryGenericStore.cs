@@ -18,7 +18,7 @@ namespace Fabric.Authorization.Domain.Stores.InMemory
                 return Dictionary[id];
             }
 
-            throw new NotFoundException<T>(id);
+            throw new NotFoundException<T>($"Could not find {typeof(T).Name} entity with ID {id}");
         }
 
         public virtual async Task<T> Add(T model)
