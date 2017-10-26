@@ -134,6 +134,7 @@ namespace Fabric.Authorization.API
                 container.Register<IDocumentDbService, CouchDbAccessService>("inner");
                 var dbAccessService = container.Resolve<CouchDbAccessService>();
                 dbAccessService.Initialize().Wait();
+                dbAccessService.SetupDefaultUser().Wait();
                 dbAccessService.AddViews("roles", CouchDbRoleStore.GetViews()).Wait();
                 dbAccessService.AddViews("permissions", CouchDbPermissionStore.GetViews()).Wait();
             }
