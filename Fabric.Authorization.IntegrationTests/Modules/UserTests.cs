@@ -1359,7 +1359,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [DisplayTestMethodName]
-        public void Test_GetPermissions_UserNotFound()
+        public void Test_GetGroups_UserNotFound()
         {            
             var get = Browser.Get("/user/foo/bar/groups", with =>
                 {
