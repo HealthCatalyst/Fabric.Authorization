@@ -186,6 +186,10 @@ namespace Fabric.Authorization.API.Modules
             {
                 return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
             }
+            catch (AlreadyExistsException<Role> ex)
+            {
+                return CreateFailureResponse(ex.Message, HttpStatusCode.Conflict);
+            }
         }
 
         private async Task<dynamic> DeleteRoleFromGroup()
