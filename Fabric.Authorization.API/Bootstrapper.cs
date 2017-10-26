@@ -83,6 +83,7 @@ namespace Fabric.Authorization.API
                         _env));
 
             pipelines.BeforeRequest += ctx => RequestHooks.RemoveContentTypeHeaderForGet(ctx);
+            pipelines.BeforeRequest += ctx => RequestHooks.ErrorResponseIfContentTypeMissingForPostAndPut(ctx);
             pipelines.BeforeRequest += ctx => RequestHooks.SetDefaultVersionInUrl(ctx);
 
             pipelines.AfterRequest += ctx =>
