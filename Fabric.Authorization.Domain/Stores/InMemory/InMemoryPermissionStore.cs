@@ -56,11 +56,22 @@ namespace Fabric.Authorization.Domain.Stores.InMemory
         public Task AddOrUpdateGranularPermission(GranularPermission granularPermission)
         {
             var formattedId = FormatId(granularPermission.Id);
+
             var success = _granularPermissions.TryAdd(formattedId, granularPermission);
             if (!success)
             {
+                granularPermission.Track(false);
+                granularPermission.AdditionalPermissions = granularPermission.AdditionalPermissions.Track(false);
+                granularPermission.DeniedPermissions = granularPermission.DeniedPermissions.Track(false);
+
                 _granularPermissions.TryUpdate(formattedId, granularPermission,
                     _granularPermissions[formattedId]);
+            }
+            else
+            {
+                granularPermission.Track();
+                granularPermission.AdditionalPermissions = granularPermission.AdditionalPermissions.Track();
+                granularPermission.DeniedPermissions = granularPermission.DeniedPermissions.Track();
             }
             return Task.CompletedTask;
         }

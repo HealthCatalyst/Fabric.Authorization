@@ -321,11 +321,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.NotNull(permission3);
             Assert.Equal(PermissionAction.Allow, permission3.PermissionAction);
             Assert.Equal(0, permission3.Roles.Count());
+            Assert.NotEqual(DateTime.MinValue, permission3.CreatedDateTimeUtc);
 
             var permission4 = permissions.FirstOrDefault(p => p.Name == permissionNames[3]);
             Assert.NotNull(permission4);
             Assert.Equal(PermissionAction.Deny, permission4.PermissionAction);
             Assert.Equal(0, permission4.Roles.Count());
+            Assert.NotEqual(DateTime.MinValue, permission4.CreatedDateTimeUtc);
         }
 
         [Fact]

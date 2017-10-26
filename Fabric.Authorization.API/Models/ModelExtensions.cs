@@ -193,7 +193,7 @@ namespace Fabric.Authorization.API.Models
 
         public static Client ToClientDomainModel(this ClientApiModel client)
         {
-            var clientApiModel = new Client()
+            var clientApiModel = new Client
             {
                 Id = client.Id,
                 Name = client.Name,
