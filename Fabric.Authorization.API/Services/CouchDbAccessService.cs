@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
@@ -66,6 +68,23 @@ namespace Fabric.Authorization.API.Services
                     {
                         throw new ArgumentException(creation.Error);
                     }
+                }
+            }
+        }
+
+        public async Task SetupDefaultUser()
+        {
+            using (var httpClient = new HttpClient())
+            {
+                httpClient.BaseAddress = new Uri(_couchDbSettings.Server);
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(HttpContentTypes.Json));
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", DbConnectionInfo.BasicAuth.Value);
+                var response = await httpClient.PutAsync($"{_couchDbSettings.DatabaseName}/_security",
+                    GetCouchDbUserPayload());
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new CouldNotCompleteOperationException($"unable to create the {_couchDbSettings.DatabaseName}_user in {_couchDbSettings.DatabaseName}, response: {response.Content.ReadAsStringAsync().Result}, responseStatusCode: {response.StatusCode}.");
                 }
             }
         }
@@ -281,6 +300,11 @@ namespace Fabric.Authorization.API.Services
 
                 return results;
             }
+        }
+        private JsonContent GetCouchDbUserPayload()
+        {
+            return new JsonContent(
+                $"{{\"admins\": {{ \"names\": [], \"roles\": [] }}, \"members\": {{ \"names\": [\"{_couchDbSettings.DatabaseName}_user\"], \"roles\": [] }} }}");
         }
     }
 }
