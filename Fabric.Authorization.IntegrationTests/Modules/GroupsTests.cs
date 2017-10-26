@@ -572,7 +572,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [DisplayTestMethodName]
-        public void AddRoleToGroup_GroupRoleMappingAlreadyExists_Success()
+        public void AddRoleToGroup_GroupRoleMappingAlreadyExists_AlreadyExistsException()
         {
             const string group1Name = "Group1Name";
             SetupGroup(group1Name, "Custom");
@@ -584,20 +584,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             // attempt to set up the same mapping (the API treats this as an update to the existing
             // group-role mapping)
             response = SetupGroupRoleMapping(group1Name, roleId.ToString());
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-
-            response = Browser.Get($"/groups/{group1Name}/roles", with =>
-            {
-                with.HttpRequest();
-                with.Header("Accept", "application/json");
-            }).Result;
-
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            var responseEntity = response.Body.DeserializeJson<GroupRoleApiModel>();
-            var roleList = responseEntity.Roles.ToList();
-            Assert.Equal(1, roleList.Count);
-            Assert.Equal("Role1Name", roleList[0].Name);
+            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+            Assert.Contains("Role Role1Name already exists for group Group1Name", response.Body.AsString());
         }
 
         [Fact]

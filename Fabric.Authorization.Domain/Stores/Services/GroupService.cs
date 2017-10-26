@@ -89,15 +89,14 @@ namespace Fabric.Authorization.Domain.Stores.Services
             var group = await _groupStore.Get(groupName);
             var role = await _roleStore.Get(roleId);
 
-            if (group.Roles.All(r => r.Id != roleId))
+            if (group.Roles.Any(r => r.Id == roleId)
+                || role.Groups.Any(g => string.Equals(g, groupName, StringComparison.OrdinalIgnoreCase)))
             {
-                group.Roles.Add(role);
+                throw new AlreadyExistsException<Role>($"Role {role.Name} already exists for group {group.Name}");
             }
-
-            if (role.Groups.All(g => !string.Equals(g, groupName, StringComparison.OrdinalIgnoreCase)))
-            {
-                role.Groups.Add(groupName);
-            }
+            
+            group.Roles.Add(role);
+            role.Groups.Add(groupName);
 
             await _roleStore.Update(role);
             await _groupStore.Update(group);
