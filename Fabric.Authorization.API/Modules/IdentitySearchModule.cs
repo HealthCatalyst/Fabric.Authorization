@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Models.Search;
@@ -7,7 +9,9 @@ using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Nancy;
+using Nancy.ErrorHandling;
 using Nancy.ModelBinding;
+using Nancy.Responses;
 using Nancy.Security;
 using Serilog;
 
@@ -50,11 +54,7 @@ namespace Fabric.Authorization.API.Modules
             catch (NotFoundException<Role> ex)
             {
                 return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
-            }
-            catch (Exception ex)
-            {
-                return CreateFailureResponse(ex.Message, HttpStatusCode.InternalServerError);
-            }
+            }                 
         }
     }
 }
