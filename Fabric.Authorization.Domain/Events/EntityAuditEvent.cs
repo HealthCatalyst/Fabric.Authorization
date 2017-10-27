@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Fabric.Authorization.Domain.Events
+﻿namespace Fabric.Authorization.Domain.Events
 {
     public class EntityAuditEvent<T> : Event
     {

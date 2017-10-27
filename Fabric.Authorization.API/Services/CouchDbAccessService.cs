@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.Domain.Exceptions;
+using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
 using MyCouch;
@@ -24,7 +25,7 @@ namespace Fabric.Authorization.API.Services
         private readonly ICouchDbSettings _couchDbSettings;
         private const string HighestUnicodeChar = "\ufff0";
 
-        private string GetFullDocumentId<T>(string documentId)
+        private static string GetFullDocumentId<T>(string documentId) where T : IIdentifiable
         {
             return DocumentDbHelpers.GetFullDocumentId<T>(documentId);
         }
@@ -52,7 +53,7 @@ namespace Fabric.Authorization.API.Services
             _logger = logger;
 
             _logger.Debug(
-                $"couchDb configuration properties: Server: {config.Server} -- DatabaseName: {config.DatabaseName}");            
+                $"couchDb configuration properties: Server: {config.Server} -- DatabaseName: {config.DatabaseName}");
         }
 
         public async Task Initialize()
@@ -61,9 +62,11 @@ namespace Fabric.Authorization.API.Services
             {
                 if (!(await client.Database.GetAsync()).IsSuccess)
                 {
-                    _logger.Information($"could not retrieve database information. attempting to create. Current Thread Id: {Thread.CurrentThread.ManagedThreadId}");
+                    _logger.Information(
+                        $"could not retrieve database information. attempting to create. Current Thread Id: {Thread.CurrentThread.ManagedThreadId}");
                     var creation = await client.Database.PutAsync();
-                    _logger.Information($"database created if it did not exist. Current Thread Id: {Thread.CurrentThread.ManagedThreadId}");
+                    _logger.Information(
+                        $"database created if it did not exist. Current Thread Id: {Thread.CurrentThread.ManagedThreadId}");
                     if (!creation.IsSuccess)
                     {
                         throw new ArgumentException(creation.Error);
@@ -88,8 +91,7 @@ namespace Fabric.Authorization.API.Services
                 }
             }
         }
-
-        public async Task<T> GetDocument<T>(string documentId)
+        public async Task<T> GetDocument<T>(string documentId) where T : IIdentifiable
         {
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
@@ -97,7 +99,8 @@ namespace Fabric.Authorization.API.Services
 
                 if (!documentResponse.IsSuccess)
                 {
-                    _logger.Debug($"unable to find {typeof(T).Name} entity: {GetFullDocumentId<T>(documentId)} - message: {documentResponse.Reason}");
+                    _logger.Debug(
+                        $"unable to find {typeof(T).Name} entity: {GetFullDocumentId<T>(documentId)} - message: {documentResponse.Reason}");
                     return default(T);
                 }
 
@@ -108,7 +111,7 @@ namespace Fabric.Authorization.API.Services
             }
         }
 
-        public async Task<IEnumerable<T>> GetDocuments<T>(string documentType)
+        public async Task<IEnumerable<T>> GetDocuments<T>(string documentType) where T : IIdentifiable
         {
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
@@ -153,7 +156,7 @@ namespace Fabric.Authorization.API.Services
             }
         }
 
-        public async Task AddDocument<T>(string documentId, T documentObject)
+        public async Task AddDocument<T>(string documentId, T documentObject) where T : IIdentifiable
         {
             var fullDocumentId = GetFullDocumentId<T>(documentId);
 
@@ -164,19 +167,21 @@ namespace Fabric.Authorization.API.Services
 
                 if (!string.IsNullOrEmpty(existingDoc.Id))
                 {
-                    throw new AlreadyExistsException<T>($"{typeof(T).Name} entity with id {documentId} already exists.");
+                    throw new AlreadyExistsException<T>(
+                        $"{typeof(T).Name} entity with id {documentId} already exists.");
                 }
 
                 var response = await client.Documents.PutAsync(fullDocumentId, docJson);
 
                 if (!response.IsSuccess)
                 {
-                    _logger.Error($"unable to add or update {typeof(T).Name} entity: {documentId} - error: {response.Reason}");
+                    _logger.Error(
+                        $"unable to add or update {typeof(T).Name} entity: {documentId} - error: {response.Reason}");
                 }
             }
         }
 
-        public async Task UpdateDocument<T>(string documentId, T documentObject)
+        public async Task UpdateDocument<T>(string documentId, T documentObject) where T : IIdentifiable
         {
             var fullDocumentId = GetFullDocumentId<T>(documentId);
 
@@ -195,11 +200,36 @@ namespace Fabric.Authorization.API.Services
                 if (!response.IsSuccess)
                 {
                     _logger.Error($"unable to add or update document: {documentId} - error: {response.Reason}");
+                    throw new CouldNotCompleteOperationException($"{response.Reason}");
                 }
             }
         }
 
-        public async Task DeleteDocument<T>(string documentId)
+        public async Task BulkUpdateDocuments<T>(IEnumerable<string> documentIds, IEnumerable<T> documents)
+            where T : IIdentifiable
+        {
+            using (var client = new MyCouchClient(DbConnectionInfo))
+            {
+                var bulkResponse = await client.Documents.BulkAsync(new BulkRequest
+                {
+                    AllOrNothing = true,
+                    NewEdits = false
+                }.Include(documents.Select(doc => JsonConvert.SerializeObject(doc)).ToArray()));
+
+                if (!bulkResponse.IsSuccess)
+                {
+                    var errorMessages = bulkResponse.Rows.Where(r => !r.Succeeded)
+                        .Select(r => $"Id: {r.Id}, Error: {r.Error}, Reason: {r.Reason}")
+                        .ToString(Environment.NewLine);
+
+                    var errorMsg = $"Unable to bulk update documents - {errorMessages}";
+                    _logger.Error(errorMsg);
+                    throw new CouldNotCompleteOperationException(errorMsg);
+                }
+            }
+        }
+
+        public async Task DeleteDocument<T>(string documentId) where T : IIdentifiable
         {
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
@@ -243,19 +273,23 @@ namespace Fabric.Authorization.API.Services
                 if (!response.IsSuccess)
                 {
                     _logger.Error($"unable to add or update document: {documentId} - error: {response.Reason}");
-                    throw new CouldNotCompleteOperationException($"unable to add view: {documentId} - error: {response.Reason}");
+                    throw new CouldNotCompleteOperationException(
+                        $"unable to add view: {documentId} - error: {response.Reason}");
                 }
             }
         }
 
-        public async Task<IEnumerable<T>> GetDocuments<T>(string designdoc, string viewName, Dictionary<string, object> customParams)
+        public async Task<IEnumerable<T>> GetDocuments<T>(string designdoc, string viewName,
+            Dictionary<string, object> customParams) where T : IIdentifiable
         {
             using (var client = new MyCouchClient(DbConnectionInfo))
             {
-                var viewQuery = new QueryViewRequest(designdoc, viewName);
-                viewQuery.CustomQueryParameters = customParams;
-                ViewQueryResponse result = await client.Views.QueryAsync(viewQuery);
+                var viewQuery = new QueryViewRequest(designdoc, viewName)
+                {
+                    CustomQueryParameters = customParams
+                };
 
+                var result = await client.Views.QueryAsync(viewQuery);
                 if (!result.IsSuccess)
                 {
                     _logger.Error($"unable to execute view: {viewName} - error: {result.Reason}");
@@ -275,6 +309,7 @@ namespace Fabric.Authorization.API.Services
         }
 
         public async Task<IEnumerable<T>> GetDocuments<T>(string designdoc, string viewName, string key)
+            where T : IIdentifiable
         {
             using (var client = new MyCouchClient(DbConnectionInfo))
             {

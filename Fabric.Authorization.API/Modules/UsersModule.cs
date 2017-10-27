@@ -25,7 +25,6 @@ namespace Fabric.Authorization.API.Modules
         private readonly ClientService _clientService;
         private readonly PermissionService _permissionService;
         private readonly UserService _userService;
-        private readonly RoleService _roleService;
         private readonly IPermissionResolverService _permissionResolverService;
 
         public UsersModule(
@@ -40,7 +39,6 @@ namespace Fabric.Authorization.API.Modules
             _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
-            _roleService = roleService ?? throw new ArgumentNullException(nameof(roleService));
             _permissionResolverService = permissionResolverService ?? throw new ArgumentNullException(nameof(permissionResolverService));
 
             // Get all the permissions for a user
