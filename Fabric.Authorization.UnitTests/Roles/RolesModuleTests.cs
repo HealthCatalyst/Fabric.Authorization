@@ -210,7 +210,7 @@ namespace Fabric.Authorization.UnitTests.Roles
                 ExistingPermissions.First(p => p.Grain == existingRole.Grain &&
                                                 p.SecurableItem == existingRole.SecurableItem);
             existingRole.Permissions.Add(existingPermission);
-            PostPermissionAndAssert(existingRole, existingPermission, existingClient.Id, HttpStatusCode.BadRequest);
+            PostPermissionAndAssert(existingRole, existingPermission, existingClient.Id, HttpStatusCode.Conflict);
         }
 
         [Fact]
