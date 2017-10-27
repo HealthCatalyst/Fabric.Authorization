@@ -153,10 +153,9 @@ namespace Fabric.Authorization.UnitTests.SecurableItems
             var requestUrl = "/securableitems";
             if (itemLevel)
             {
-                requestUrl = requestUrl + $"/{innerSecurable1.Id}";
+                requestUrl = $"{requestUrl}/{innerSecurable1.Id}";
             }
-            var result = securableItemsModule.Post(requestUrl, with => with.JsonBody(securableItemToPost))
-                .Result;
+            var result = securableItemsModule.Post(requestUrl, with => with.JsonBody(securableItemToPost)).Result;
             Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
             var error = result.Body.DeserializeJson<Error>();
             Assert.NotNull(error);
@@ -187,6 +186,22 @@ namespace Fabric.Authorization.UnitTests.SecurableItems
             var result = securableItemsModule.Post(requestUrl, with => with.JsonBody(securableItemToPost))
                 .Result;
             Assert.Equal(HttpStatusCode.Forbidden, result.StatusCode);
+        }
+
+        [Theory, MemberData(nameof(ConflictData))]
+        public void AddSecurableItem_Conflict(SecurableItemApiModel securableItemToPost, bool itemLevel)
+        {
+            var existingClient = _existingClients.First();
+            var innerSecurable1 = existingClient.TopLevelSecurableItem.SecurableItems.First(s => s.Name == "inner-securable-1");
+            var securableItemsModule = CreateBrowser(new Claim(Claims.ClientId, existingClient.Id),
+                new Claim(Claims.Scope, Scopes.WriteScope));
+            var requestUrl = "/securableitems";
+            if (itemLevel)
+            {
+                requestUrl = $"{requestUrl}/{innerSecurable1.Id}";
+            }
+            var result = securableItemsModule.Post(requestUrl, with => with.JsonBody(securableItemToPost)).Result;
+            Assert.Equal(HttpStatusCode.Conflict, result.StatusCode);
         }
 
         [Fact]
@@ -222,15 +237,18 @@ namespace Fabric.Authorization.UnitTests.SecurableItems
             Assert.NotNull(newSecurableItem);
         }
 
+        public static IEnumerable<object[]> ConflictData => new[]
+        {
+            new object[] { new SecurableItemApiModel { Name = "inner-securable-1" }, false},
+            new object[] { new SecurableItemApiModel { Name = "inner-securable-1" }, true }
+        };
         
         public static IEnumerable<object[]> BadRequestData => new[]
         {
             new object[] { new SecurableItemApiModel{ Name = null}, 1, false},
             new object[] { new SecurableItemApiModel{ Name = string.Empty}, 1, false},
-            new object[] { new SecurableItemApiModel{ Name = "inner-securable-1" }, 0, false},
             new object[] { new SecurableItemApiModel{ Name = null}, 1, true},
-            new object[] { new SecurableItemApiModel{ Name = string.Empty}, 1, true},
-            new object[] { new SecurableItemApiModel{ Name = "inner-securable-1" }, 0, true}
+            new object[] { new SecurableItemApiModel{ Name = string.Empty}, 1, true}
         };
 
         public static IEnumerable<object[]> BadScopes => new[]
