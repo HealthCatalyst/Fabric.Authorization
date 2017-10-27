@@ -83,11 +83,25 @@ namespace Fabric.Authorization.API.Modules
                 "Adds granular permissions for a user, either to allow or deny",
                 new[]
                 {
-                    new HttpResponseMetadata {Code = (int) HttpStatusCode.NoContent},                  
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.NoContent,
+                        Message = "Granular permissions were added"
+                    },                  
                     new HttpResponseMetadata
                     {
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.BadRequest,
+                        Message = "No permissions to add included in request."
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.Conflict,
+                        Message = "The permissions specified already exist either as duplicates or with a different permission action than the one specified or a permission is in the request as both allow and deny"
                     }
                 },
                 new[]
@@ -111,11 +125,20 @@ namespace Fabric.Authorization.API.Modules
                 "Deletes granular permissions for a user",
                 new[]
                 {
-                    new HttpResponseMetadata {Code = (int) HttpStatusCode.NoContent},                    
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.NoContent,
+                        Message = "The permissions were deleted"
+                    },                    
                     new HttpResponseMetadata
                     {
                         Code = (int) HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.BadRequest,
+                        Message = "No permissions were specified or the permissions specified do not exist or already exist with a different permission action."
                     }
                 },
                 new[]

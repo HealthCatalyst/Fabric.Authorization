@@ -116,6 +116,12 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int) HttpStatusCode.BadRequest,
                         Message = "Role with specified id already exists or Role object in body failed validation"
                     }
+                    ,
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.Conflict,
+                        Message = "Role with specified id already exists"
+                    }
                 },
                 new[]
                 {
@@ -186,12 +192,17 @@ namespace Fabric.Authorization.API.Modules
                     {
                         Code = (int) HttpStatusCode.BadRequest,
                         Message =
-                            "Invalid role id, no permissions specified to add, or incompatible permission provided"
+                            "Invalid role id, no permissions specified to add, incompatible permission provided, or permission id was not provided"
                     },
                     new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.NotFound,
                         Message = "Role not found or permission not found"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.Conflict,
+                        Message = "Permission with the specified id already exists for the role"
                     }
                 },
                 new[]

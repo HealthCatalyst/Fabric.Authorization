@@ -145,6 +145,11 @@ namespace Fabric.Authorization.API.Modules
                     {
                         Code = (int)HttpStatusCode.Forbidden,
                         Message = "Client does not have access"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int)HttpStatusCode.Conflict,
+                        Message = "Permission with the specified id already exists"
                     }
                 },
                 new[]

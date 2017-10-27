@@ -98,7 +98,12 @@ namespace Fabric.Authorization.API.Modules
                     new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.BadRequest,
-                        Message = "Client with specified id already exists or Client object in body failed validation"
+                        Message = "Client object in body failed validation"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.Conflict,
+                        Message = "Client with specified id already exists"
                     }
                 },
                 new[]

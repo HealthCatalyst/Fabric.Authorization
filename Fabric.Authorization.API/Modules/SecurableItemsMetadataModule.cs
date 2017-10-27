@@ -110,12 +110,17 @@ namespace Fabric.Authorization.API.Modules
                     {
                         Code = (int) HttpStatusCode.BadRequest,
                         Message =
-                            "The securable item id is not a guid, the securable item failed validation, or it already exists"
+                            "The securable item id is not a guid or the securable item failed validation"
                     },
                     new HttpResponseMetadata
                     {
                         Code = (int) HttpStatusCode.NotFound,
                         Message = "The client was not found by client id"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.Conflict,
+                        Message = "The securable item with the specified id already exists"
                     }
                 },
                 new[]
@@ -151,14 +156,19 @@ namespace Fabric.Authorization.API.Modules
                     {
                         Code = (int) HttpStatusCode.BadRequest,
                         Message =
-                            "The securable item id is not a guid, the securable item failed validation, or it already exists"
+                            "The securable item id is not a guid or the securable item failed validation"
                     },
                     new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.NotFound,
                         Message =
                             "The client was not found by client id or the specified securable item by id was not found"
-                    }
+                    },
+                    new HttpResponseMetadata
+                        {
+                            Code = (int) HttpStatusCode.Conflict,
+                            Message = "The securable item with the specified id already exists"
+                        }
                 },
                 new[]
                 {

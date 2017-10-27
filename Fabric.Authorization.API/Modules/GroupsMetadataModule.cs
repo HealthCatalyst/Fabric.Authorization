@@ -92,7 +92,7 @@ namespace Fabric.Authorization.API.Modules
                     },
                     new HttpResponseMetadata<Error>
                     {
-                        Code = (int) HttpStatusCode.BadRequest,
+                        Code = (int) HttpStatusCode.Conflict,
                         Message = "Group already exists"
                     }
                 },
@@ -127,7 +127,7 @@ namespace Fabric.Authorization.API.Modules
                     },
                     new HttpResponseMetadata<Error>
                     {
-                        Code = (int) HttpStatusCode.BadRequest,
+                        Code = (int) HttpStatusCode.Conflict,
                         Message = "Group already exists"
                     }
                 },
@@ -261,6 +261,16 @@ namespace Fabric.Authorization.API.Modules
                     {
                         Code = (int) HttpStatusCode.NotFound,
                         Message = "Group with specified name was not found or the role was not found"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.Conflict,
+                        Message = "Role with specified name already exists for the group"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.BadRequest,
+                        Message = "Role Id was missing."
                     }
                 },
                 new[]
@@ -364,8 +374,14 @@ namespace Fabric.Authorization.API.Modules
                     new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.BadRequest,
-                        Message = "1) Group is not a custom group or 2) User is already a member of the group"
+                        Message = "Subject Id or Identity Provider were missing or group is not a custom group"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.Conflict,
+                        Message = "User is already a member of the group"
                     }
+
                 },
                 new[]
                 {
