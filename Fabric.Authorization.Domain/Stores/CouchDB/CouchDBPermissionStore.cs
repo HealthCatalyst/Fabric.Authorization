@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
@@ -72,15 +71,11 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
             if (perm == null)
             {
                 granularPermission.Track(true, currentUser);
-                granularPermission.AdditionalPermissions = granularPermission.AdditionalPermissions.Track(true, currentUser);
-                granularPermission.DeniedPermissions = granularPermission.DeniedPermissions.Track(true, currentUser);
                 await DocumentDbService.AddDocument(userId, granularPermission);
             }
             else
             {
                 granularPermission.Track(false, currentUser);
-                granularPermission.AdditionalPermissions = granularPermission.AdditionalPermissions.Track(false, currentUser);
-                granularPermission.DeniedPermissions = granularPermission.DeniedPermissions.Track(false, currentUser);
                 await DocumentDbService.UpdateDocument(userId, granularPermission);
             }
         }

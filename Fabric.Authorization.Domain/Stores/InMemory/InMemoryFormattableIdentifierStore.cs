@@ -41,7 +41,7 @@ namespace Fabric.Authorization.Domain.Stores.InMemory
 
         public override async Task Update(T model)
         {
-            model.Track();
+            model.Track(false);
 
             var formattedId = FormatId(model.Identifier);
 

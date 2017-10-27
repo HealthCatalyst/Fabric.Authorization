@@ -350,9 +350,19 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 PermissionAction = PermissionAction.Deny
             };
 
+            var response = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.JsonBody(allowReadPatientPermission);
+            }).Result;
+
+            allowReadPatientPermission.Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
+            denyReadPatientPermission.Id = allowReadPatientPermission.Id;
+
             string subjectId = "userprincipal";
 
-            var postResponse = this.Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            var postResponse = Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -375,6 +385,15 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 Name = "modifypatient",
                 PermissionAction = PermissionAction.Allow
             };
+
+            var response = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.JsonBody(modifyPatientPermission);
+            }).Result;
+
+            modifyPatientPermission.Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
 
             var subjectId = "userprincipal";
 
@@ -427,6 +446,33 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 Name = "readpatient",
                 PermissionAction = PermissionAction.Allow
             };
+
+            var response = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.JsonBody(modifyPatientPermission);
+            }).Result;
+
+            modifyPatientPermission.Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
+
+            response = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.JsonBody(deletePatientPermission);
+            }).Result;
+
+            deletePatientPermission.Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
+
+            response = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.JsonBody(readPatientPermission);
+            }).Result;
+
+            readPatientPermission.Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
 
             var subjectId = "userprincipal";
 
@@ -496,6 +542,15 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 PermissionAction = PermissionAction.Allow
             };
 
+            var response = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.JsonBody(modifyPatientPermission);
+            }).Result;
+
+            modifyPatientPermission.Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
+
             var subjectId = "userprincipal";
 
             Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
@@ -534,6 +589,15 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 Name = "modifypatient",
                 PermissionAction = PermissionAction.Allow
             };
+
+            var response = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.JsonBody(modifyPatientPermission);
+            }).Result;
+
+            modifyPatientPermission.Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
 
             var subjectId = "userprincipal";
             Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
@@ -630,6 +694,15 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 PermissionAction = PermissionAction.Allow
             };
 
+            var response = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.JsonBody(modifyPatientPermission);
+            }).Result;
+
+            modifyPatientPermission.Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
+
             var subjectId = "userprincipal";
 
             Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
@@ -680,6 +753,15 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 Name = "modifypatient",
                 PermissionAction = PermissionAction.Allow
             };
+
+            var response = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.JsonBody(modifyPatientPermission);
+            }).Result;
+
+            modifyPatientPermission.Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
 
             var subjectId = "userprincipal";
 
@@ -1039,7 +1121,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             var editPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
 
-
             // Adding roles
             var role = new RoleApiModel
             {
@@ -1145,7 +1226,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Result;
 
             var editPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
-
 
             // Adding roles
             var role = new RoleApiModel
@@ -1333,6 +1413,15 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 Name = "modifypatient",
                 PermissionAction = PermissionAction.Allow
             };
+
+            var response = Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.JsonBody(modifyPatientPermission);
+            }).Result;
+
+            modifyPatientPermission.Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
 
             var subjectId = "userprincipal";
 

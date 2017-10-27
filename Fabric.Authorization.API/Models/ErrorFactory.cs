@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using FluentValidation.Results;
 using Nancy;
 
@@ -24,6 +25,11 @@ namespace Fabric.Authorization.API.Models
                 Message = message
             };
             return error;
+        }
+
+        public static Error CreateError<T>(IEnumerable<string> messages, HttpStatusCode statusCode)
+        {
+            return messages.ToError(typeof(T).Name, statusCode);
         }
     }
 }

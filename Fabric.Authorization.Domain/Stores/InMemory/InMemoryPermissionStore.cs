@@ -61,17 +61,12 @@ namespace Fabric.Authorization.Domain.Stores.InMemory
             if (!success)
             {
                 granularPermission.Track(false);
-                granularPermission.AdditionalPermissions = granularPermission.AdditionalPermissions.Track(false);
-                granularPermission.DeniedPermissions = granularPermission.DeniedPermissions.Track(false);
-
                 _granularPermissions.TryUpdate(formattedId, granularPermission,
                     _granularPermissions[formattedId]);
             }
             else
             {
                 granularPermission.Track();
-                granularPermission.AdditionalPermissions = granularPermission.AdditionalPermissions.Track();
-                granularPermission.DeniedPermissions = granularPermission.DeniedPermissions.Track();
             }
             return Task.CompletedTask;
         }
