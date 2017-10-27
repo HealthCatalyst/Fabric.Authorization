@@ -358,7 +358,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(perms);
             }).Result;
 
-            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.Conflict, postResponse.StatusCode);
             Assert.Contains("The following permissions cannot be specified as both 'allow' and 'deny': app/userprincipal.readpatient", postResponse.Body.AsString());
         }
 
@@ -392,7 +392,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(perms);
             }).Result;
 
-            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.Conflict, postResponse.StatusCode);
             Assert.Contains(
                 "The following permissions already exist as 'allow' permissions: app/userprincipal.modifypatient",
                 postResponse.Body.AsString());
@@ -456,7 +456,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(perms);
             }).Result;
 
-            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.Conflict, postResponse.StatusCode);
             Assert.Contains(
                 "The following permissions exist as 'allow' and cannot be added as 'deny': app/userprincipal.modifypatient",
                 postResponse.Body.AsString());
@@ -514,7 +514,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(perms);
             }).Result;
 
-            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.Conflict, postResponse.StatusCode);
             Assert.Contains(
                 "The following permissions exist as 'allow' and cannot be added as 'deny': app/userprincipal.modifypatient",
                 postResponse.Body.AsString());
