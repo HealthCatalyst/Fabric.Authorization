@@ -27,7 +27,7 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
             var exists = await Exists(group.Id).ConfigureAwait(false);
             if (exists)
             {
-                throw new AlreadyExistsException<Group>($"Group ID {group.Id} already exists.");
+                throw new AlreadyExistsException<Group>($"Group id {group.Id} already exists. Please provide a new id.");
             }
 
             // append unique identifier to document ID

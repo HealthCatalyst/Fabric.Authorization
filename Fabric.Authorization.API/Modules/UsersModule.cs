@@ -154,7 +154,7 @@ namespace Fabric.Authorization.API.Modules
 
                 return CreateFailureResponse(
                     $"{ex.Message} {invalidPermissions}",
-                    HttpStatusCode.BadRequest);
+                    HttpStatusCode.Conflict);
             }
         }
 
