@@ -158,6 +158,10 @@ namespace Fabric.Authorization.API.Modules
             {
                 return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
             }
+            catch (AlreadyExistsException<Permission> ex)
+            {
+                return CreateFailureResponse(ex.Message, HttpStatusCode.Conflict);
+            }
         }
 
         private async Task<dynamic> DeletePermissionsFromRole(dynamic parameters)

@@ -109,7 +109,7 @@ namespace Fabric.Authorization.API.Modules
                     securableItemApiModel);
                 return CreateFailureResponse(
                     ex.Message,
-                    HttpStatusCode.BadRequest);
+                    HttpStatusCode.Conflict);
             }
         }
 
@@ -143,7 +143,7 @@ namespace Fabric.Authorization.API.Modules
                     securableItemApiModel);
                 return CreateFailureResponse(
                     ex.Message,
-                    HttpStatusCode.BadRequest);
+                    HttpStatusCode.Conflict);
             }
             catch (NotFoundException<SecurableItem> ex)
             {

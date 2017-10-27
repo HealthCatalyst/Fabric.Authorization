@@ -74,8 +74,8 @@ namespace Fabric.Authorization.API.Modules
             catch (AlreadyExistsException<Client> ex)
             {
                 Logger.Error(ex, ex.Message, incomingClient.Id);
-                return CreateFailureResponse($"The specified client with id: {incomingClient.Id} already exists.",
-                    HttpStatusCode.BadRequest);
+                return CreateFailureResponse($"The specified client with id: {incomingClient.Id} already exists. Please provide a new id.",
+                    HttpStatusCode.Conflict);
             }
         }
 
