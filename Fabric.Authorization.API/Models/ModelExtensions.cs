@@ -249,7 +249,7 @@ namespace Fabric.Authorization.API.Models
 
             var error = new Error
             {
-                Message = details.Count > 1 ? "Multiple Errors" : details.FirstOrDefault().Message,
+                Message = details.Count > 1 ? "Multiple Errors" : details.FirstOrDefault()?.Message,
                 Details = details.ToArray()
             };
 

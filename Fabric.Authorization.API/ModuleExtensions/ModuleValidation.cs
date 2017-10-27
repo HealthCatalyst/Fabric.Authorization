@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Linq;
+
 using Fabric.Authorization.API.Models;
+using Fabric.Authorization.Domain.Validators;
+
 using FluentValidation.Results;
 using Nancy;
 using Nancy.Extensions;
@@ -19,8 +23,14 @@ namespace Fabric.Authorization.API.ModuleExtensions
         {
             return (context) =>
             {
-                var error = ErrorFactory.CreateError<T>(validationResult, HttpStatusCode.BadRequest);
-                return new JsonResponse(error, new DefaultJsonSerializer(context.Environment), context.Environment){ StatusCode = HttpStatusCode.BadRequest};
+                var statusCode = HttpStatusCode.BadRequest;
+                if (validationResult.Errors.Any(e => e.CustomState.Equals(ValidationEnums.ValidationState.Duplicate)))
+                {
+                    statusCode = HttpStatusCode.Conflict;
+                }
+
+                var error = ErrorFactory.CreateError<T>(validationResult, statusCode);
+                return new JsonResponse(error, new DefaultJsonSerializer(context.Environment), context.Environment){ StatusCode = statusCode };
             };
         }
     }

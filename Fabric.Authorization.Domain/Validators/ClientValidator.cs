@@ -24,7 +24,8 @@ namespace Fabric.Authorization.Domain.Validators
             RuleFor(client => client.Id)
                 .Must(BeUnique)
                 .When(client => !string.IsNullOrEmpty(client.Id))
-                .WithMessage("The client Id already exists.");
+                .WithMessage(c => $"Client {c.Id} already exists. Please provide a new client id.")
+                .WithState(c=> ValidationEnums.ValidationState.Duplicate);
 
             RuleFor(client => client.Name)
                 .NotEmpty()
