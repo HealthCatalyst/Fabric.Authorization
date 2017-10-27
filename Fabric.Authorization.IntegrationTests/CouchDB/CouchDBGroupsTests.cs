@@ -32,7 +32,7 @@ namespace Fabric.Authorization.IntegrationTests.CouchDB
                 with.Header("Accept", "application/json");
             }).Result;
 
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         }
 
         [Fact]

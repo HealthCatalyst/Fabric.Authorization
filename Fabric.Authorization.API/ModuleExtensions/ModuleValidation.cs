@@ -24,7 +24,7 @@ namespace Fabric.Authorization.API.ModuleExtensions
             return (context) =>
             {
                 var statusCode = HttpStatusCode.BadRequest;
-                if (validationResult.Errors.Any(e => e.CustomState.Equals(ValidationEnums.ValidationState.Duplicate)))
+                if (validationResult.Errors.Any(e => e.CustomState != null && e.CustomState.Equals(ValidationEnums.ValidationState.Duplicate)))
                 {
                     statusCode = HttpStatusCode.Conflict;
                 }

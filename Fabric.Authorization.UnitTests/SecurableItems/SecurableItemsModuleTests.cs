@@ -246,9 +246,9 @@ namespace Fabric.Authorization.UnitTests.SecurableItems
         public static IEnumerable<object[]> BadRequestData => new[]
         {
             new object[] { new SecurableItemApiModel{ Name = null}, 1, false},
-            new object[] { new SecurableItemApiModel{ Name = string.Empty}, 1, false},
+            new object[] { new SecurableItemApiModel{ Name = string.Empty}, 1, false},            
             new object[] { new SecurableItemApiModel{ Name = null}, 1, true},
-            new object[] { new SecurableItemApiModel{ Name = string.Empty}, 1, true}
+            new object[] { new SecurableItemApiModel{ Name = string.Empty}, 1, true}            
         };
 
         public static IEnumerable<object[]> BadScopes => new[]

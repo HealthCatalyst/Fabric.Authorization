@@ -217,7 +217,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.FormValue("Name", permission);
             }).Result;
 
-            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.Conflict, postResponse.StatusCode);
         }
 
         [Theory]

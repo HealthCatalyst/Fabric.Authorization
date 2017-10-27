@@ -142,6 +142,17 @@ namespace Fabric.Authorization.UnitTests.Clients
         }
 
         [Fact]
+        public void AddClient_DuplicateReturnsConflict()
+        {
+            var clientsModule = CreateBrowser(new Claim(Claims.Scope, Scopes.ManageClientsScope),
+                new Claim(Claims.Scope, Scopes.WriteScope));
+            var clientToPost =
+                new ClientApiModel { Id = "sample-fabric-app", Name = "Sample Fabric Client Application" };
+            var result = clientsModule.Post("/clients", with => with.JsonBody(clientToPost)).Result;
+            Assert.Equal(HttpStatusCode.Conflict, result.StatusCode);
+        }
+
+        [Fact]
         public void AddClient_PreventsOverposting()
         {
             var clientsModule = CreateBrowser(new Claim(Claims.Scope, Scopes.ManageClientsScope),
@@ -171,6 +182,7 @@ namespace Fabric.Authorization.UnitTests.Clients
             Assert.True(string.IsNullOrEmpty(newClient.CreatedBy));
             Assert.True(string.IsNullOrEmpty(newClient.ModifiedBy));
         }
+
 
         [Fact]
         public void DeleteClient_Successful()
@@ -207,6 +219,7 @@ namespace Fabric.Authorization.UnitTests.Clients
             Assert.Contains(nonexistentId, error.Message);
         }
 
+      
         protected override ConfigurableBootstrapper.ConfigurableBootstrapperConfigurator ConfigureBootstrapper(ConfigurableBootstrapper configurableBootstrapper, params Claim[] claims)
         {
             return base.ConfigureBootstrapper(configurableBootstrapper, claims)
@@ -219,8 +232,7 @@ namespace Fabric.Authorization.UnitTests.Clients
         {
             new object[] { new Client{ Id = null, Name = null}, 2},
             new object[] { new Client{ Id = string.Empty, Name = string.Empty}, 2},
-            new object[] { new Client{ Id = "newapp", Name = string.Empty}, 1},
-            new object[] { new Client{ Id = "sample-fabric-app", Name = "sample-fabric-app" }, 1}
+            new object[] { new Client{ Id = "newapp", Name = string.Empty}, 1},            
         };
     }
 }

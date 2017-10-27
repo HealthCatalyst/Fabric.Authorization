@@ -19,7 +19,8 @@ namespace Fabric.Authorization.Domain.Validators
         {
             RuleFor(client => client.Id)
                 .NotEmpty()
-                .WithMessage("Please specify an Id for this client");
+                .WithMessage("Please specify an Id for this client")
+                .WithState(c => ValidationEnums.ValidationState.MissingRequiredField);
 
             RuleFor(client => client.Id)
                 .Must(BeUnique)
@@ -29,7 +30,8 @@ namespace Fabric.Authorization.Domain.Validators
 
             RuleFor(client => client.Name)
                 .NotEmpty()
-                .WithMessage("Please specify a Name for this client");
+                .WithMessage("Please specify a Name for this client")
+                .WithState(c => ValidationEnums.ValidationState.MissingRequiredField);
         }
 
         private bool BeUnique(string clientId)

@@ -9,7 +9,8 @@ namespace Fabric.Authorization.Domain.Validators
         public enum ValidationState
         {
             Duplicate,
-            MissingRequiredField
+            MissingRequiredField,
+            InvalidFieldValue
         }
     }
 }

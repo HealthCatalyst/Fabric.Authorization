@@ -334,7 +334,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [DisplayTestMethodName]
         [InlineData("RepeatedGroup1")]
         [InlineData("RepeatedGroup2")]
-        public void AddGroup_AlreadyExists_BadRequest(string groupName)
+        public void AddGroup_AlreadyExists_Conflict(string groupName)
         {
             Browser.Post("/groups", with =>
             {
@@ -351,7 +351,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.Header("Accept", "application/json");
             }).Result;
 
-            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.Conflict, postResponse.StatusCode);
         }
 
         [Theory]

@@ -20,22 +20,26 @@ namespace Fabric.Authorization.Domain.Validators
         {
             RuleFor(permission => permission.Grain)
                 .NotEmpty()
-                .WithMessage("Please specify a Grain for this permission");
+                .WithMessage("Please specify a Grain for this permission")
+                .WithState(p => ValidationEnums.ValidationState.MissingRequiredField);
 
             RuleFor(permission => permission.SecurableItem)
                 .NotEmpty()
-                .WithMessage("Please specify a SecurableItem for this permission");
+                .WithMessage("Please specify a SecurableItem for this permission")
+                .WithState(p => ValidationEnums.ValidationState.MissingRequiredField);
 
             RuleFor(permission => permission.Name)
                 .NotEmpty()
-                .WithMessage("Please specify a Name for this permission");
+                .WithMessage("Please specify a Name for this permission")
+                .WithState(p => ValidationEnums.ValidationState.MissingRequiredField);
 
             RuleFor(permission => permission)
                 .Must(BeUnique)
                 .When(permission => !string.IsNullOrEmpty(permission.Grain)
                                     && !string.IsNullOrEmpty(permission.SecurableItem)
                                     && !string.IsNullOrEmpty(permission.Name))
-                .WithMessage("The permission already exists");
+                .WithMessage(p => $"Permission {p.Name} already exists. Please provide a new name")
+                .WithState(p => ValidationEnums.ValidationState.Duplicate);
         }
 
         private bool BeUnique(Permission permission)
