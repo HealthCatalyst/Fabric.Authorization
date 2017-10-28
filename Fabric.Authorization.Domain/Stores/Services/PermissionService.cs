@@ -239,6 +239,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
         /// </summary>
         public async Task DeletePermission(Permission permission)
         {
+            // TODO: remove permissions from granular permissions
             await _roleService.RemovePermissionsFromRoles(permission.Id, permission.Grain, permission.SecurableItem);
             await _permissionStore.Delete(permission);
         }

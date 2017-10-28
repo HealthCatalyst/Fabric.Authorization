@@ -69,7 +69,10 @@ namespace Fabric.Authorization.API.Modules
         {
             var userPermissionRequest = this.Bind<UserInfoRequest>();
             await SetDefaultRequest(userPermissionRequest);
-            await CheckAccess(_clientService, userPermissionRequest.Grain, userPermissionRequest.SecurableItem,
+            await CheckAccess(
+                _clientService,
+                userPermissionRequest.Grain,
+                userPermissionRequest.SecurableItem,
                 AuthorizationReadClaim);
 
             var permissionResolutionResult = await _permissionResolverService.Resolve(new PermissionResolutionRequest
@@ -145,42 +148,38 @@ namespace Fabric.Authorization.API.Modules
                 return CreateFailureResponse(requestErrors, HttpStatusCode.BadRequest);
             }
 
-            var allowedPermissions = new List<Permission>();
-            var deniedPermissions = new List<Permission>();
-
             foreach (var perm in permissions)
             {
                 await CheckAccess(_clientService, perm.Grain, perm.SecurableItem, AuthorizationManageClientsClaim);
-
-                // should never hit this with validation above, but the GetPermission call below
-                // complains with a possible InvalidOperationException
-                if (!perm.Id.HasValue)
-                {
-                    continue;
-                }
-
-                var permission = await _permissionService.GetPermission(perm.Id.Value);
-
-                switch (perm.PermissionAction)
-                {
-                    case PermissionAction.Allow:
-                        allowedPermissions.Add(permission);
-                        break;
-
-                    case PermissionAction.Deny:
-                        deniedPermissions.Add(permission);
-                        break;
-
-                    default:
-                        break;
-                }
             }
+
+            var allowedPermissions = permissions
+                .Where(p => p.PermissionAction == PermissionAction.Allow)
+                .Select(
+                    p => new Permission
+                    {
+                        Id = p.Id.Value,
+                        Name = p.Name,
+                        Grain = p.Grain,
+                        SecurableItem = p.SecurableItem
+                    });
+
+            var deniedPermissions = permissions
+                .Where(p => p.PermissionAction == PermissionAction.Deny)
+                .Select(
+                    p => new Permission
+                    {
+                        Id = p.Id.Value,
+                        Name = p.Name,
+                        Grain = p.Grain,
+                        SecurableItem = p.SecurableItem
+                    });
 
             var granularPermission = new GranularPermission
             {
                 Id = $"{param.subjectId}:{param.identityProvider}",
-                DeniedPermissions = deniedPermissions,
-                AdditionalPermissions = allowedPermissions
+                AdditionalPermissions = allowedPermissions,
+                DeniedPermissions = deniedPermissions
             };
 
             try
