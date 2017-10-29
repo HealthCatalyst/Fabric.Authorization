@@ -82,6 +82,8 @@ namespace Fabric.Authorization.API
                         container.Resolve<IResponseNegotiator>(),
                         _env));
 
+            pipelines.BeforeRequest += ctx => RequestHooks.RemoveContentTypeHeaderForGet(ctx);
+            pipelines.BeforeRequest += ctx => RequestHooks.ErrorResponseIfContentTypeMissingForPostAndPut(ctx);
             pipelines.BeforeRequest += ctx => RequestHooks.SetDefaultVersionInUrl(ctx);
 
             pipelines.AfterRequest += ctx =>
@@ -133,6 +135,7 @@ namespace Fabric.Authorization.API
                 container.Register<IDocumentDbService, CouchDbAccessService>("inner");
                 var dbAccessService = container.Resolve<CouchDbAccessService>();
                 dbAccessService.Initialize().Wait();
+                dbAccessService.SetupDefaultUser().Wait();
                 dbAccessService.AddViews("roles", CouchDbRoleStore.GetViews()).Wait();
                 dbAccessService.AddViews("permissions", CouchDbPermissionStore.GetViews()).Wait();
             }

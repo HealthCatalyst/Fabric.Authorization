@@ -114,7 +114,7 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
-                var permissionApiModels = this.Bind<List<PermissionApiModel>>(new BindingConfig {BodyOnly = true});
+                var permissionApiModels = this.Bind<List<PermissionApiModel>>(new BindingConfig { BodyOnly = true });
 
                 if (!Guid.TryParse(parameters.roleId, out Guid roleId))
                 {
@@ -128,11 +128,22 @@ namespace Fabric.Authorization.API.Modules
                         HttpStatusCode.BadRequest);
                 }
 
+                if (permissionApiModels.Any(p => p.Id == null))
+                {
+                    return CreateFailureResponse(
+                        "Permission id is required but missing in the request, ensure each permission has an id.",
+                        HttpStatusCode.BadRequest);
+                }
+
                 var roleToUpdate = await _roleService.GetRole(roleId);
-                await CheckAccess(_clientService, roleToUpdate.Grain, roleToUpdate.SecurableItem,
+                await CheckAccess(
+                    _clientService,
+                    roleToUpdate.Grain,
+                    roleToUpdate.SecurableItem,
                     AuthorizationWriteClaim);
-                var updatedRole = await _roleService.AddPermissionsToRole(roleToUpdate,
-                    permissionApiModels.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToArray());
+                var updatedRole = await _roleService.AddPermissionsToRole(
+                                      roleToUpdate,
+                                      permissionApiModels.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToArray());
                 return CreateSuccessfulPostResponse(updatedRole.ToRoleApiModel());
             }
             catch (NotFoundException<Role> ex)
@@ -146,6 +157,10 @@ namespace Fabric.Authorization.API.Modules
             catch (IncompatiblePermissionException ex)
             {
                 return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
+            }
+            catch (AlreadyExistsException<Permission> ex)
+            {
+                return CreateFailureResponse(ex.Message, HttpStatusCode.Conflict);
             }
         }
 

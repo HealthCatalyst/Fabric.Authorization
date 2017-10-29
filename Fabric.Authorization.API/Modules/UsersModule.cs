@@ -197,7 +197,7 @@ namespace Fabric.Authorization.API.Modules
 
                 return CreateFailureResponse(
                     $"{ex.Message} {invalidPermissions}",
-                    HttpStatusCode.BadRequest);
+                    HttpStatusCode.Conflict);
             }
         }
 
@@ -251,9 +251,19 @@ namespace Fabric.Authorization.API.Modules
         {
             this.RequiresClaims(AuthorizationReadClaim);
             var groupUserRequest = this.Bind<GroupUserRequest>();
-            var groups =
-                await _userService.GetGroupsForUser(groupUserRequest.SubjectId, groupUserRequest.IdentityProvider);
-            return groups;
+            try
+            {
+               
+                var groups =
+                    await _userService.GetGroupsForUser(groupUserRequest.SubjectId, groupUserRequest.IdentityProvider);
+                return groups;
+            }
+            catch (NotFoundException<User>)
+            {
+                return CreateFailureResponse(
+                    $"User with SubjectId: {groupUserRequest.SubjectId} and Identity Provider: {groupUserRequest.IdentityProvider} was not found",
+                    HttpStatusCode.NotFound);
+            }
         }
 
         private async Task<IEnumerable<string>> GetGroupsForAuthenticatedUser(string subjectId, string providerId)

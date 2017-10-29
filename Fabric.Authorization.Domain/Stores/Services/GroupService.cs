@@ -89,15 +89,14 @@ namespace Fabric.Authorization.Domain.Stores.Services
             var group = await _groupStore.Get(groupName);
             var role = await _roleStore.Get(roleId);
 
-            if (group.Roles.All(r => r.Id != roleId))
+            if (group.Roles.Any(r => r.Id == roleId)
+                || role.Groups.Any(g => string.Equals(g, groupName, StringComparison.OrdinalIgnoreCase)))
             {
-                group.Roles.Add(role);
+                throw new AlreadyExistsException<Role>($"Role {role.Name} already exists for group {group.Name}. Please provide a new role id.");
             }
-
-            if (role.Groups.All(g => !string.Equals(g, groupName, StringComparison.OrdinalIgnoreCase)))
-            {
-                role.Groups.Add(groupName);
-            }
+            
+            group.Roles.Add(role);
+            role.Groups.Add(groupName);
 
             await _roleStore.Update(role);
             await _groupStore.Update(group);
@@ -153,7 +152,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
             }
             else
             {
-                throw new AlreadyExistsException<Group>($"The user {identityProvider}:{subjectId} has already been added to the group.");
+                throw new AlreadyExistsException<Group>($"The user {identityProvider}:{subjectId} has already been added to the group {groupName}.");
             }
 
             if (user.Groups.All(g => !string.Equals(g, groupName, StringComparison.OrdinalIgnoreCase)))

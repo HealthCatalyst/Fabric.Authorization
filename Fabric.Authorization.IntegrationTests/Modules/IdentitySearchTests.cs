@@ -41,17 +41,18 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Fixture.InitializeBrowser(new Mock<IIdentityServiceProvider>().Object);
 
             var result = Fixture.Browser.Get(
-                "/identities", with =>
-                {
-                    with.HttpRequest();
-                    with.Header("Accept", "application/json");
-                    with.Query("client_id", "blah");
-                    with.Query("sort_key", "name");
-                    with.Query("sort_dir", "desc");
-                    with.Query("filter", "brian");
-                    with.Query("page_number", "1");
-                    with.Query("page_size", "1");
-                }).Result;
+                "/identities",
+                with =>
+                    {
+                        with.HttpRequest();
+                        with.Header("Accept", "application/json");
+                        with.Query("client_id", "blah");
+                        with.Query("sort_key", "name");
+                        with.Query("sort_dir", "desc");
+                        with.Query("filter", "brian");
+                        with.Query("page_number", "1");
+                        with.Query("page_size", "1");
+                    }).Result;
 
             Assert.Equal(HttpStatusCode.NotFound, result.StatusCode);
         }
@@ -63,17 +64,18 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Fixture.InitializeClientWithoutRoles(mockIdentityServiceProvider.Object);
 
             var response = Fixture.Browser.Get(
-                "/identities", with =>
-                {
-                    with.HttpRequest();
-                    with.Header("Accept", "application/json");
-                    with.Query("client_id", Fixture.AtlasClientId);
-                    with.Query("sort_key", "name");
-                    with.Query("sort_dir", "desc");
-                    with.Query("filter", "brian");
-                    with.Query("page_number", "1");
-                    with.Query("page_size", "1");
-                }).Result;
+                "/identities",
+                with =>
+                    {
+                        with.HttpRequest();
+                        with.Header("Accept", "application/json");
+                        with.Query("client_id", Fixture.AtlasClientId);
+                        with.Query("sort_key", "name");
+                        with.Query("sort_dir", "desc");
+                        with.Query("filter", "brian");
+                        with.Query("page_number", "1");
+                        with.Query("page_size", "1");
+                    }).Result;
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var results = response.Body.DeserializeJson<List<IdentitySearchResponse>>();
@@ -87,17 +89,18 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Fixture.InitializeClientWithRolesAndNoGroups(mockIdentityServiceProvider.Object);
 
             var response = Fixture.Browser.Get(
-                "/identities", with =>
-                {
-                    with.HttpRequest();
-                    with.Header("Accept", "application/json");
-                    with.Query("client_id", Fixture.AtlasClientId);
-                    with.Query("sort_key", "name");
-                    with.Query("sort_dir", "desc");
-                    with.Query("filter", "brian");
-                    with.Query("page_number", "1");
-                    with.Query("page_size", "1");
-                }).Result;
+                "/identities",
+                with =>
+                    {
+                        with.HttpRequest();
+                        with.Header("Accept", "application/json");
+                        with.Query("client_id", Fixture.AtlasClientId);
+                        with.Query("sort_key", "name");
+                        with.Query("sort_dir", "desc");
+                        with.Query("filter", "brian");
+                        with.Query("page_number", "1");
+                        with.Query("page_size", "1");
+                    }).Result;
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var results = response.Body.DeserializeJson<List<IdentitySearchResponse>>();
@@ -111,37 +114,45 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
             mockIdentityServiceProvider
-                .Setup(m => m.Search(Fixture.AtlasClientId, new List<string> { "atlas_user:Windows" }))
-                .ReturnsAsync(() => new FabricIdentityUserResponse
-                {
-                    HttpStatusCode = System.Net.HttpStatusCode.OK,
-                    Results = new List<UserSearchResponse>
-                    {
-                        new UserSearchResponse
-                        {
-                            SubjectId = "atlas_user",
-                            FirstName = "Robert",
-                            MiddleName = "Brian",
-                            LastName = "Smith",
-                            LastLoginDate = lastLoginDate
-                        }
-                    }
-                });
+                .Setup(m => m.Search(Fixture.AtlasClientId, new List<string> { "atlas_user:Windows" })).ReturnsAsync(
+                    () => new FabricIdentityUserResponse
+                              {
+                                  HttpStatusCode = System.Net.HttpStatusCode.OK,
+                                  Results = new List<UserSearchResponse>
+                                                {
+                                                    new
+                                                        UserSearchResponse
+                                                            {
+                                                                SubjectId
+                                                                    =
+                                                                    "atlas_user",
+                                                                FirstName
+                                                                    = "Robert",
+                                                                MiddleName
+                                                                    = "Brian",
+                                                                LastName
+                                                                    = "Smith",
+                                                                LastLoginDate
+                                                                    = lastLoginDate
+                                                            }
+                                                }
+                              });
 
             Fixture.InitializeSuccessData(mockIdentityServiceProvider.Object);
 
             var response = Fixture.Browser.Get(
-                "/identities", with =>
-                {
-                    with.HttpRequest();
-                    with.Header("Accept", "application/json");
-                    with.Query("client_id", Fixture.AtlasClientId);
-                    with.Query("sort_key", "name");
-                    with.Query("sort_dir", "desc");
-                    with.Query("filter", "brian");
-                    with.Query("page_number", "1");
-                    with.Query("page_size", "1");
-                }).Result;
+                "/identities",
+                with =>
+                    {
+                        with.HttpRequest();
+                        with.Header("Accept", "application/json");
+                        with.Query("client_id", Fixture.AtlasClientId);
+                        with.Query("sort_key", "name");
+                        with.Query("sort_dir", "desc");
+                        with.Query("filter", "brian");
+                        with.Query("page_number", "1");
+                        with.Query("page_size", "1");
+                    }).Result;
 
             var results = response.Body.DeserializeJson<List<IdentitySearchResponse>>();
 
@@ -155,6 +166,21 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.NotNull(result1.LastLoginDateTimeUtc);
             Assert.Equal(lastLoginDate, result1.LastLoginDateTimeUtc.Value.ToUniversalTime());
             Assert.Equal(Fixture.UserAtlasRoleName, result1.Roles.FirstOrDefault());
+        }
+
+        [Fact]
+        public void IdentitySearch_NoParams_BadRequestException()
+        {
+            Fixture.InitializeBrowser(new Mock<IIdentityServiceProvider>().Object);
+            var result = Fixture.Browser.Get(
+                "/identities",
+                with =>
+                    {
+                        with.HttpRequest();
+                        with.Header("Accept", "application/json");
+                    }).Result;
+
+            Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
         }
     }
 

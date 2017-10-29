@@ -109,14 +109,21 @@ namespace Fabric.Authorization.Domain.Stores.Services
             var permissionsToAdd = new List<Permission>();
             foreach (var permissionId in permissionIds)
             {
+                if (role.Permissions.Any(p => p.Id == permissionId))
+                {
+                    throw new AlreadyExistsException<Permission>(
+                        $"Permission {permissionId} already exists for role {role.Name}. Please provide a new permission id.");
+                }
+
                 var permission = await _permissionStore.Get(permissionId);
-                if (permission.Grain == role.Grain && permission.SecurableItem == role.SecurableItem && role.Permissions.All(p => p.Id != permission.Id))
+
+                if (permission.Grain == role.Grain && permission.SecurableItem == role.SecurableItem)
                 {
                     permissionsToAdd.Add(permission);
                 }
                 else
                 {
-                    throw new IncompatiblePermissionException($"Permission with id {permission.Id} has the wrong grain, securableItem, or is already present on the role");
+                    throw new IncompatiblePermissionException($"Permission with id {permission.Id} has the wrong grain, securableItem.");
                 }
             }
 

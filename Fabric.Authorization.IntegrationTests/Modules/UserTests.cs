@@ -370,7 +370,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(perms);
             }).Result;
 
-            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.Conflict, postResponse.StatusCode);
             Assert.Contains("The following permissions cannot be specified as both 'allow' and 'deny': app/userprincipal.readpatient", postResponse.Body.AsString());
         }
 
@@ -413,7 +413,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(perms);
             }).Result;
 
-            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.Conflict, postResponse.StatusCode);
             Assert.Contains(
                 "The following permissions already exist as 'allow' permissions: app/userprincipal.modifypatient",
                 postResponse.Body.AsString());
@@ -504,7 +504,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(perms);
             }).Result;
 
-            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.Conflict, postResponse.StatusCode);
             Assert.Contains(
                 "The following permissions exist as 'allow' and cannot be added as 'deny': app/userprincipal.modifypatient",
                 postResponse.Body.AsString());
@@ -571,7 +571,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(perms);
             }).Result;
 
-            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.Conflict, postResponse.StatusCode);
             Assert.Contains(
                 "The following permissions exist as 'allow' and cannot be added as 'deny': app/userprincipal.modifypatient",
                 postResponse.Body.AsString());
@@ -1446,6 +1446,20 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Contains("app/userprincipal.viewpatient", permissions.Permissions);
             Assert.Contains("app/userprincipal.modifypatient", permissions.Permissions);
             Assert.Equal(3, permissions.Permissions.Count());
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public void Test_GetGroups_UserNotFound()
+        {            
+            var get = Browser.Get("/user/foo/bar/groups", with =>
+                {
+                    with.HttpRequest();
+                    with.Header("Accept", "application/json");
+                }).Result;
+
+            Assert.Equal(HttpStatusCode.NotFound, get.StatusCode);
+            Assert.Contains("User with SubjectId: bar and Identity Provider: foo was not found", get.Body.AsString());
         }
     }
 }
