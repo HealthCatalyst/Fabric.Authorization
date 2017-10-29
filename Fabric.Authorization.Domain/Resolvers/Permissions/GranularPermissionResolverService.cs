@@ -34,7 +34,7 @@ namespace Fabric.Authorization.Domain.Resolvers.Permissions
                 var granularPermissions =
                     await _permissionService.GetUserGranularPermissions($"{subjectId}:{identityProvider}");
 
-                HydrateGranularPermissionDocuments(granularPermissions, resolutionRequest);
+                granularPermissions = await HydrateGranularPermissionDocuments(granularPermissions, resolutionRequest);
 
                 return new PermissionResolutionResult
                 {
@@ -50,7 +50,7 @@ namespace Fabric.Authorization.Domain.Resolvers.Permissions
             return new PermissionResolutionResult();
         }
 
-        private async void HydrateGranularPermissionDocuments(GranularPermission granularPermissions, PermissionResolutionRequest resolutionRequest)
+        private async Task<GranularPermission> HydrateGranularPermissionDocuments(GranularPermission granularPermissions, PermissionResolutionRequest resolutionRequest)
         {
             // retrieve all Permission documents that match the request's grain + securable item
             var sourcePermissionDocuments =
@@ -61,6 +61,8 @@ namespace Fabric.Authorization.Domain.Resolvers.Permissions
 
             granularPermissions.DeniedPermissions =
                 sourcePermissionDocuments.Intersect(granularPermissions.DeniedPermissions);
+
+            return granularPermissions;
         }
     }
 }

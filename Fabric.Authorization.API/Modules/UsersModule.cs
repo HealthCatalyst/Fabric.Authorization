@@ -155,25 +155,11 @@ namespace Fabric.Authorization.API.Modules
 
             var allowedPermissions = permissions
                 .Where(p => p.PermissionAction == PermissionAction.Allow)
-                .Select(
-                    p => new Permission
-                    {
-                        Id = p.Id.Value,
-                        Name = p.Name,
-                        Grain = p.Grain,
-                        SecurableItem = p.SecurableItem
-                    });
+                .Select(p => p.ToPermissionDomainModel());
 
             var deniedPermissions = permissions
                 .Where(p => p.PermissionAction == PermissionAction.Deny)
-                .Select(
-                    p => new Permission
-                    {
-                        Id = p.Id.Value,
-                        Name = p.Name,
-                        Grain = p.Grain,
-                        SecurableItem = p.SecurableItem
-                    });
+                .Select(p => p.ToPermissionDomainModel());
 
             var granularPermission = new GranularPermission
             {
