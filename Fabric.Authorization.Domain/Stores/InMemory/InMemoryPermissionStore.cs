@@ -56,11 +56,17 @@ namespace Fabric.Authorization.Domain.Stores.InMemory
         public Task AddOrUpdateGranularPermission(GranularPermission granularPermission)
         {
             var formattedId = FormatId(granularPermission.Id);
+
             var success = _granularPermissions.TryAdd(formattedId, granularPermission);
             if (!success)
             {
+                granularPermission.Track(false);
                 _granularPermissions.TryUpdate(formattedId, granularPermission,
                     _granularPermissions[formattedId]);
+            }
+            else
+            {
+                granularPermission.Track();
             }
             return Task.CompletedTask;
         }

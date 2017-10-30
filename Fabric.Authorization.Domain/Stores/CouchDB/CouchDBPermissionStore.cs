@@ -66,13 +66,16 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
         {
             var userId = FormatId(granularPermission.Id);
             var perm = await DocumentDbService.GetDocument<GranularPermission>(userId);
+            var currentUser = GetActor();
 
             if (perm == null)
             {
+                granularPermission.Track(true, currentUser);
                 await DocumentDbService.AddDocument(userId, granularPermission);
             }
             else
             {
+                granularPermission.Track(false, currentUser);
                 await DocumentDbService.UpdateDocument(userId, granularPermission);
             }
         }

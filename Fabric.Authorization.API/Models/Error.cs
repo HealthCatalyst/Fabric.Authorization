@@ -6,12 +6,12 @@
         public string Message { get; set; }
         public string Target { get; set; }
         public Error[] Details { get; set; }
-        public InnerError Innererror { get; set; }
+        public InnerError InnerError { get; set; }
     }
 
     public class InnerError
     {
-        public string code { get; set; }
-        public InnerError Innererror { get; set; }
+        public string Code { get; set; }
+        public InnerError innerError { get; set; }
     }
 }

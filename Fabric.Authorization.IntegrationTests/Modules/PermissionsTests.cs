@@ -177,7 +177,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Result;
 
             // Get by secitem
-            var getResponse = Browser.Get($"/permissions/app/permissionprincipal", with =>
+            var getResponse = Browser.Get("/permissions/app/permissionprincipal", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");

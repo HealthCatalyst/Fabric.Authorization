@@ -44,7 +44,7 @@ namespace Fabric.Authorization.API.Modules
 
         protected readonly Parameter SortDirectionParameter = new Parameter
         {
-            Name = "sort_dir",
+            Name = "sort_direction",
             Description = "Sort direction",
             Required = false,
             Type = "string",

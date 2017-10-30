@@ -40,7 +40,8 @@ namespace Fabric.Authorization.Domain.Stores.Services
             {
                 var stored = await GetUserGranularPermissions(granularPermission.Id);
 
-                ValidatePermissionsForAdd(granularPermission.AdditionalPermissions,
+                ValidatePermissionsForAdd(
+                    granularPermission.AdditionalPermissions,
                     granularPermission.DeniedPermissions,
                     stored.AdditionalPermissions,
                     stored.DeniedPermissions);
@@ -56,7 +57,8 @@ namespace Fabric.Authorization.Domain.Stores.Services
             }
             catch (NotFoundException<GranularPermission>)
             {
-                ValidatePermissionsForAdd(granularPermission.AdditionalPermissions,
+                ValidatePermissionsForAdd(
+                    granularPermission.AdditionalPermissions,
                     granularPermission.DeniedPermissions,
                     null,
                     null);
@@ -65,7 +67,8 @@ namespace Fabric.Authorization.Domain.Stores.Services
             await _permissionStore.AddOrUpdateGranularPermission(granularPermission);
         }
 
-        private void ValidatePermissionsForAdd(IEnumerable<Permission> allowPermissionsToAdd,
+        private static void ValidatePermissionsForAdd(
+            IEnumerable<Permission> allowPermissionsToAdd,
             IEnumerable<Permission> denyPermissionsToAdd,
             IEnumerable<Permission> existingAllowPermissions,
             IEnumerable<Permission> existingDenyPermissions)
@@ -76,6 +79,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
                 .Intersect(existingAllowPermissions ?? Enumerable.Empty<Permission>())
                 .Select(p => new KeyValuePair<string, string>(
                     "The following permissions already exist as 'allow' permissions", p.ToString())));
+
             invalidPermissions.AddRange(denyPermissionsToAdd
                 .Intersect(existingDenyPermissions ?? Enumerable.Empty<Permission>())
                 .Select(p => new KeyValuePair<string, string>(
@@ -85,29 +89,33 @@ namespace Fabric.Authorization.Domain.Stores.Services
                 .Intersect(existingDenyPermissions ?? Enumerable.Empty<Permission>())
                 .Select(p => new KeyValuePair<string, string>(
                     "The following permissions exist as 'deny' and cannot be added as 'allow'", p.ToString())));
+
             invalidPermissions.AddRange(denyPermissionsToAdd
                 .Intersect(existingAllowPermissions ?? Enumerable.Empty<Permission>())
                 .Select(p => new KeyValuePair<string, string>(
                     "The following permissions exist as 'allow' and cannot be added as 'deny'", p.ToString())));
+
             invalidPermissions.AddRange(allowPermissionsToAdd.Intersect(denyPermissionsToAdd)
                 .Select(p => new KeyValuePair<string, string>(
                     "The following permissions cannot be specified as both 'allow' and 'deny'", p.ToString())));
 
-            if (invalidPermissions.Any())
+            if (!invalidPermissions.Any())
             {
-                var invalidPermissionException =
-                    new InvalidPermissionException(
-                        "Cannot add the specified permissions, please correct the issues and attempt to add again.");
-
-                var permissionGroups = invalidPermissions.GroupBy(i => i.Key);
-
-                foreach (var group in permissionGroups)
-                {
-                    invalidPermissionException.Data.Add(group.Key, string.Join(", ", group.Select(p => p.Value)));
-                }
-
-                throw invalidPermissionException;
+                return;
             }
+
+            var invalidPermissionException =
+                new InvalidPermissionException(
+                    "Cannot add the specified permissions, please correct the issues and attempt to add again.");
+
+            var permissionGroups = invalidPermissions.GroupBy(i => i.Key);
+
+            foreach (var group in permissionGroups)
+            {
+                invalidPermissionException.Data.Add(group.Key, string.Join(", ", group.Select(p => p.Value)));
+            }
+
+            throw invalidPermissionException;
         }
 
         /// <summary>
@@ -143,7 +151,8 @@ namespace Fabric.Authorization.Domain.Stores.Services
             }
         }
 
-        private static void ValidatePermissionsForDelete(IEnumerable<Permission> allowPermissionsToDelete,
+        private static void ValidatePermissionsForDelete(
+            IEnumerable<Permission> allowPermissionsToDelete,
             IEnumerable<Permission> denyPermissionsToDelete,
             IEnumerable<Permission> existingAllowPermissions,
             IEnumerable<Permission> existingDenyPermissions)
@@ -180,21 +189,23 @@ namespace Fabric.Authorization.Domain.Stores.Services
                     "The following permissions do not exist as 'deny' permissions", p.ToString())));
 
 
-            if (invalidPermissions.Any())
+            if (!invalidPermissions.Any())
             {
-                var invalidPermissionException =
-                    new InvalidPermissionException(
-                        "Cannot delete the specified permissions, please correct the issues and attempt to delete again.");
-
-                var permissionGroups = invalidPermissions.GroupBy(i => i.Key);
-
-                foreach (var group in permissionGroups)
-                {
-                    invalidPermissionException.Data.Add(group.Key, string.Join(", ", group.Select(p => p.Value)));
-                }
-
-                throw invalidPermissionException;
+                return;
             }
+
+            var invalidPermissionException =
+                new InvalidPermissionException(
+                    "Cannot delete the specified permissions, please correct the issues and attempt to delete again.");
+
+            var permissionGroups = invalidPermissions.GroupBy(i => i.Key);
+
+            foreach (var group in permissionGroups)
+            {
+                invalidPermissionException.Data.Add(group.Key, string.Join(", ", group.Select(p => p.Value)));
+            }
+
+            throw invalidPermissionException;
         }
 
         /// <summary>
@@ -228,6 +239,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
         /// </summary>
         public async Task DeletePermission(Permission permission)
         {
+            // TODO: remove permissions from granular permissions
             await _roleService.RemovePermissionsFromRoles(permission.Id, permission.Grain, permission.SecurableItem);
             await _permissionStore.Delete(permission);
         }
