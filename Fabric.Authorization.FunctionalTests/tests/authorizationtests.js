@@ -189,12 +189,12 @@ describe("authorization tests", function () {
     describe("register groups", function () {
         it("should return 400 for group HC Editor (already exists)", function () {
             var registerGroupHcEditorResponse = chakram.post(baseAuthUrl + "/groups", groupHcEditor, authRequestOptions);
-            return expect(registerGroupHcEditorResponse).to.have.status(400);
+            return expect(registerGroupHcEditorResponse).to.have.status(409);
         });
 
         it("should return 400 for group HC Viewer (already exists)", function () {
             var registerGroupHcViewerResponse = chakram.post(baseAuthUrl + "/groups", groupHcViewer, authRequestOptions);
-            return expect(registerGroupHcViewerResponse).to.have.status(400);
+            return expect(registerGroupHcViewerResponse).to.have.status(409);
         });
 
         it("should register group HC Admin", function () {
