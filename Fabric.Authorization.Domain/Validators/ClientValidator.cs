@@ -19,16 +19,19 @@ namespace Fabric.Authorization.Domain.Validators
         {
             RuleFor(client => client.Id)
                 .NotEmpty()
-                .WithMessage("Please specify an Id for this client");
+                .WithMessage("Please specify an Id for this client")
+                .WithState(c => ValidationEnums.ValidationState.MissingRequiredField);
 
             RuleFor(client => client.Id)
                 .Must(BeUnique)
                 .When(client => !string.IsNullOrEmpty(client.Id))
-                .WithMessage("The client Id already exists.");
+                .WithMessage(c => $"Client {c.Id} already exists. Please provide a new client id.")
+                .WithState(c=> ValidationEnums.ValidationState.Duplicate);
 
             RuleFor(client => client.Name)
                 .NotEmpty()
-                .WithMessage("Please specify a Name for this client");
+                .WithMessage("Please specify a Name for this client")
+                .WithState(c => ValidationEnums.ValidationState.MissingRequiredField);
         }
 
         private bool BeUnique(string clientId)

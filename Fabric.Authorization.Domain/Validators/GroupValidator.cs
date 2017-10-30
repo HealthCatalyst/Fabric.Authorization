@@ -20,15 +20,18 @@ namespace Fabric.Authorization.Domain.Validators
         {
             RuleFor(group => group.Name)
                 .NotEmpty()
-                .WithMessage("Please specify a Name for this Group.");
+                .WithMessage("Please specify a Name for this Group.")
+                .WithState(g => ValidationEnums.ValidationState.MissingRequiredField);
 
             RuleFor(group => group.Source)
                 .NotEmpty()
-                .WithMessage("Please specify a Source for this Group.");
+                .WithMessage("Please specify a Source for this Group.")
+                .WithState(g => ValidationEnums.ValidationState.MissingRequiredField);
 
             RuleFor(group => group)
                 .Must(BeUnique)
-                .WithMessage("An active group with this groupName already exists. Please specify a different groupName.");
+                .WithMessage(g => $"An active group with groupName {g.Name} already exists. Please provide a new groupName.")
+                .WithState(g => ValidationEnums.ValidationState.Duplicate);
         }
 
         /// <summary>
@@ -40,7 +43,13 @@ namespace Fabric.Authorization.Domain.Validators
         /// <returns>true if supplied group name does not exist on an active group document; otherwise false</returns>
         private bool BeUnique(Group group)
         {
-            return !string.IsNullOrWhiteSpace(group?.Id) && !_groupService.Exists(group?.Id).Result;
+            //if id is null then Name is not set which will be caught in a different validator
+            if (group.Id == null)
+            {
+                return true;
+            }
+
+            return !_groupService.Exists(group?.Id).Result;
         }
     }
 }

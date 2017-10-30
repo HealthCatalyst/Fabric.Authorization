@@ -20,22 +20,26 @@ namespace Fabric.Authorization.Domain.Validators
         {
             RuleFor(role => role.Grain)
                 .NotEmpty()
-                .WithMessage("Please specify a Grain for this role");
+                .WithMessage("Please specify a Grain for this role")
+                .WithState(r => ValidationEnums.ValidationState.MissingRequiredField);
 
             RuleFor(role => role.SecurableItem)
                 .NotEmpty()
-                .WithMessage("Please specify a SecurableItem for this role");
+                .WithMessage("Please specify a SecurableItem for this role")
+                .WithState(r => ValidationEnums.ValidationState.MissingRequiredField);
 
             RuleFor(role => role.Name)
                 .NotEmpty()
-                .WithMessage("Please specify a Name for this role");
+                .WithMessage("Please specify a Name for this role")
+                .WithState(r => ValidationEnums.ValidationState.MissingRequiredField);
 
             RuleFor(role => role)
                 .Must(BeUnique)
                 .When(role => !string.IsNullOrEmpty(role.Grain)
                               && !string.IsNullOrEmpty(role.SecurableItem)
                               && !string.IsNullOrEmpty(role.Name))
-                .WithMessage("The role already exists");
+                .WithMessage(r => $"Role {r.Name} already exists. Please provide a new name.")
+                .WithState(r => ValidationEnums.ValidationState.Duplicate);
         }
 
         private bool BeUnique(Role role)

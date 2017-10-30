@@ -17,7 +17,10 @@ namespace Fabric.Authorization.Domain.Validators
         {
             RuleFor(item => item.Name)
                 .NotEmpty()
-                .WithMessage("Please specifiy a Name for the SecurableItem");
+                .WithMessage("Please specifiy a Name for the SecurableItem")
+                .WithState(s => ValidationEnums.ValidationState.MissingRequiredField);
+
+
         }
     }
 }

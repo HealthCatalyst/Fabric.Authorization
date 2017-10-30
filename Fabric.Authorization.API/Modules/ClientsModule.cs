@@ -66,17 +66,9 @@ namespace Fabric.Authorization.API.Modules
                 model => model.TopLevelSecurableItem);
             var incomingClient = clientApiModel.ToClientDomainModel();
             Validate(incomingClient);
-            try
-            {
-                Client client = await _clientService.AddClient(incomingClient);
-                return CreateSuccessfulPostResponse(client.ToClientApiModel());
-            }
-            catch (AlreadyExistsException<Client> ex)
-            {
-                Logger.Error(ex, ex.Message, incomingClient.Id);
-                return CreateFailureResponse($"The specified client with id: {incomingClient.Id} already exists. Please provide a new id.",
-                    HttpStatusCode.Conflict);
-            }
+            
+            Client client = await _clientService.AddClient(incomingClient);
+            return CreateSuccessfulPostResponse(client.ToClientApiModel());
         }
 
         private async Task<dynamic> DeleteClient(dynamic parameters)

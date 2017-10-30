@@ -175,7 +175,10 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(clientToAdd);
             }).Result;
 
-            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.Conflict, postResponse.StatusCode);
+            Assert.Contains(
+                $"Client {Id} already exists. Please provide a new client id",
+                postResponse.Body.AsString());
         }
 
         [Theory]

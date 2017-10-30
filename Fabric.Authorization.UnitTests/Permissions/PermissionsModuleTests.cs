@@ -137,7 +137,7 @@ namespace Fabric.Authorization.UnitTests.Permissions
                     SecurableItem = existingPermission.SecurableItem,
                     Name = existingPermission.Name
                 })).Result;
-            Assert.Equal(HttpStatusCode.BadRequest, actual.StatusCode);
+            Assert.Equal(HttpStatusCode.Conflict, actual.StatusCode);
         }
 
         [Fact]

@@ -105,7 +105,7 @@ namespace Fabric.Authorization.API.Modules
             }
             catch (AlreadyExistsException<SecurableItem> ex)
             {
-                Logger.Error(ex, "The posted securable item {@securableItemApiModel} already exists.",
+                Logger.Error(ex, $"Securable item {securableItemApiModel.Name} already exists. Please provide a new name",
                     securableItemApiModel);
                 return CreateFailureResponse(
                     ex.Message,
@@ -139,7 +139,7 @@ namespace Fabric.Authorization.API.Modules
             }
             catch (AlreadyExistsException<SecurableItem> ex)
             {
-                Logger.Error(ex, "The posted securable item {@securableItemApiModel} already exists.",
+                Logger.Error(ex, $"Securable item {securableItemApiModel.Name} already exists. Please provide a new name",
                     securableItemApiModel);
                 return CreateFailureResponse(
                     ex.Message,
