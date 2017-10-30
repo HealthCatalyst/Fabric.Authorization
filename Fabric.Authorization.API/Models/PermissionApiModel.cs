@@ -27,6 +27,11 @@ namespace Fabric.Authorization.API.Models
         public IEnumerable<PermissionRoleApiModel> Roles { get; set; }
 
         public string Identifier => Id.HasValue ? Id.ToString() : string.Empty;
+
+        public override string ToString()
+        {
+            return $"{Grain}/{SecurableItem}.{Name}";
+        }
     }
   
     public enum PermissionAction

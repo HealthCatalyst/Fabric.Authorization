@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -81,6 +82,12 @@ namespace Fabric.Authorization.API.Modules
         protected Negotiator CreateFailureResponse(string message, HttpStatusCode statusCode)
         {
             var error = ErrorFactory.CreateError<T>(message, statusCode);
+            return Negotiate.WithModel(error).WithStatusCode(statusCode);
+        }
+
+        protected Negotiator CreateFailureResponse(IEnumerable<string> messages, HttpStatusCode statusCode)
+        {
+            var error = ErrorFactory.CreateError<T>(messages, statusCode);
             return Negotiate.WithModel(error).WithStatusCode(statusCode);
         }
 

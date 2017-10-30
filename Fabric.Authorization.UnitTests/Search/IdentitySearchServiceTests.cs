@@ -453,7 +453,6 @@ namespace Fabric.Authorization.UnitTests.Search
             Assert.Equal(lastLoginDate, result1.LastLoginDateTimeUtc.Value.ToUniversalTime());
             Assert.Equal(IdentitySearchServiceFixture.UserAtlasRoleName, result1.Roles.FirstOrDefault());
 
-
             // search + sort + filter
             results = _fixture.IdentitySearchService(mockIdentityServiceProvider.Object).Search(
                 new IdentitySearchRequest

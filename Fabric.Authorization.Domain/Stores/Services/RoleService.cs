@@ -166,6 +166,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
         {
             var roles = await _roleStore.GetRoles(grain, securableItem);
 
+            // TODO: candidate for batch update
             foreach (var role in roles)
             {
                 if (role.Permissions != null && role.Permissions.Any(p => p.Id == permissionId))

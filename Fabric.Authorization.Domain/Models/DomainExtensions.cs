@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
-using System.Text;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Fabric.Authorization.Domain.Models
 {
@@ -26,6 +27,16 @@ namespace Fabric.Authorization.Domain.Models
 
                 model.ModifiedDateTimeUtc = DateTime.UtcNow;
             }
+        }
+
+        public static IEnumerable<T> Track<T>(this IEnumerable<T> models, bool creation = true, string user = null)
+            where T : ITrackable
+        {
+            return models.Select(m =>
+            {
+                Track(m, creation, user);
+                return m;
+            });
         }
 
         public static string ToString(this IEnumerable list, string separator)
