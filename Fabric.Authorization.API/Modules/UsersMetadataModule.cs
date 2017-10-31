@@ -102,6 +102,11 @@ namespace Fabric.Authorization.API.Modules
                     {
                         Code = (int) HttpStatusCode.Conflict,
                         Message = "The permissions specified already exist either as duplicates or with a different permission action than the one specified or a permission is in the request as both allow and deny"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.UnsupportedMediaType,
+                        Message = "Content-Type header was not included in request"
                     }
                 },
                 new[]

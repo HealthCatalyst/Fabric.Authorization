@@ -94,6 +94,11 @@ namespace Fabric.Authorization.API.Modules
                     {
                         Code = (int) HttpStatusCode.Conflict,
                         Message = "Group already exists"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.UnsupportedMediaType,
+                        Message = "Content-Type header was not included in request"
                     }
                 },
                 new[]
@@ -129,6 +134,11 @@ namespace Fabric.Authorization.API.Modules
                     {
                         Code = (int) HttpStatusCode.Conflict,
                         Message = "Group already exists"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.UnsupportedMediaType,
+                        Message = "Content-Type header was not included in request"
                     }
                 },
                 new[]
@@ -271,6 +281,11 @@ namespace Fabric.Authorization.API.Modules
                     {
                         Code = (int) HttpStatusCode.BadRequest,
                         Message = "Role Id was missing."
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.UnsupportedMediaType,
+                        Message = "Content-Type header was not included in request"
                     }
                 },
                 new[]
@@ -380,6 +395,11 @@ namespace Fabric.Authorization.API.Modules
                     {
                         Code = (int) HttpStatusCode.Conflict,
                         Message = "User is already a member of the group"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.UnsupportedMediaType,
+                        Message = "Content-Type header was not included in request"
                     }
 
                 },

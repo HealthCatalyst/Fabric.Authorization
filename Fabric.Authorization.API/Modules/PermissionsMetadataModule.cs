@@ -150,6 +150,11 @@ namespace Fabric.Authorization.API.Modules
                     {
                         Code = (int)HttpStatusCode.Conflict,
                         Message = "Permission with the specified id already exists"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.UnsupportedMediaType,
+                        Message = "Content-Type header was not included in request"
                     }
                 },
                 new[]

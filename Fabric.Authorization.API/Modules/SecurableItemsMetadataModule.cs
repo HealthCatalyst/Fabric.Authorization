@@ -121,6 +121,11 @@ namespace Fabric.Authorization.API.Modules
                     {
                         Code = (int) HttpStatusCode.Conflict,
                         Message = "The securable item with the specified id already exists"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.UnsupportedMediaType,
+                        Message = "Content-Type header was not included in request"
                     }
                 },
                 new[]
@@ -165,10 +170,15 @@ namespace Fabric.Authorization.API.Modules
                             "The client was not found by client id or the specified securable item by id was not found"
                     },
                     new HttpResponseMetadata
-                        {
-                            Code = (int) HttpStatusCode.Conflict,
-                            Message = "The securable item with the specified id already exists"
-                        }
+                    {
+                        Code = (int) HttpStatusCode.Conflict,
+                        Message = "The securable item with the specified id already exists"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.UnsupportedMediaType,
+                        Message = "Content-Type header was not included in request"
+                    }
                 },
                 new[]
                 {
