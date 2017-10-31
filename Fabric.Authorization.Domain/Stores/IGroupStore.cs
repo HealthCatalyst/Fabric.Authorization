@@ -1,5 +1,4 @@
-﻿using System;
-using Fabric.Authorization.Domain.Models;
+﻿using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.Domain.Stores
 {

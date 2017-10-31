@@ -22,6 +22,7 @@ namespace Fabric.Authorization.API.Models
                 ChildRoles = role.ChildRoles.ToList(),
                 Permissions = role.Permissions?.Select(p => p.ToPermissionApiModel()),
                 DeniedPermissions = role.DeniedPermissions?.Select(p => p.ToPermissionApiModel()),
+                Groups = role.Groups,
                 CreatedDateTimeUtc = role.CreatedDateTimeUtc,
                 ModifiedDateTimeUtc = role.ModifiedDateTimeUtc,
                 CreatedBy = role.CreatedBy,

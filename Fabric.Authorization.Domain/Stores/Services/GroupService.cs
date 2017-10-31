@@ -59,7 +59,20 @@ namespace Fabric.Authorization.Domain.Stores.Services
 
         public async Task DeleteGroup(Group group)
         {
+            foreach (var role in group.Roles)
+            {
+                role.Groups.Remove(group.Name);
+            }
+
+            foreach (var user in group.Users)
+            {
+                user.Groups.Remove(group.Name);
+            }
+
             await _groupStore.Delete(group);
+
+            /*await _roleStore.BulkUpdate(group.Roles, false);
+            await _userStore.BulkUpdate(group.Users, false);*/
         }
 
         public async Task UpdateGroupList(IEnumerable<Group> groups)

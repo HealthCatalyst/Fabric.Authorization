@@ -214,6 +214,7 @@ namespace Fabric.Authorization.API.Services
                 {
                     AllOrNothing = true,
                     NewEdits = false
+                    
                 }.Include(documents.Select(doc => JsonConvert.SerializeObject(doc)).ToArray()));
 
                 if (!bulkResponse.IsSuccess)

@@ -16,6 +16,8 @@ namespace Fabric.Authorization.Domain.Stores
 
         Task Update(T model);
 
+        Task BulkUpdate(IEnumerable<T> models, bool creation);
+
         Task<bool> Exists(K id);
     }
 }
