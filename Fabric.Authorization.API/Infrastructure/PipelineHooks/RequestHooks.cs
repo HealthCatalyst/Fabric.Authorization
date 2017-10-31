@@ -109,7 +109,7 @@ namespace Fabric.Authorization.API.Infrastructure.PipelineHooks
                 //invalid content type header specified so return a response to the client letting them know
                 var error = new Error
                                 {
-                                    Code = Enum.GetName(typeof(HttpStatusCode), HttpStatusCode.BadRequest),
+                                    Code = Enum.GetName(typeof(HttpStatusCode), HttpStatusCode.UnsupportedMediaType),
                                     Message = "Content-Type header must be application/json or application/xml when attempting a POST or PUT."
                                 };
                 return new JsonResponse(error, new DefaultJsonSerializer(context.Environment), context.Environment) { StatusCode = HttpStatusCode.BadRequest };
