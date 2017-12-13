@@ -33,10 +33,10 @@
     <ExcludeTables>False</ExcludeTables>
   </PropertyGroup>
   <ItemGroup>
-    <SqlCmdVariable Include="FabricIdentityDataMountPoint">
+    <SqlCmdVariable Include="FabricAuthorizationDataMountPoint">
       <Value>C:\SQLData</Value>
     </SqlCmdVariable>
-    <SqlCmdVariable Include="FabricIdentityLogFileMountPoint">
+    <SqlCmdVariable Include="FabricAuthorizationLogFileMountPoint">
       <Value>C:\SQLData</Value>
     </SqlCmdVariable>
   </ItemGroup>
