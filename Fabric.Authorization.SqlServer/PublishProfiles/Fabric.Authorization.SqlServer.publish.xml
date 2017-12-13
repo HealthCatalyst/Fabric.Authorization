@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <IncludeCompositeObjects>True</IncludeCompositeObjects>
+    <TargetDatabaseName>Authorization</TargetDatabaseName>
+    <DeployScriptFileName>Fabric.Authorization.SqlServer.sql</DeployScriptFileName>
+    <TargetConnectionString>Data Source=localhost;Integrated Security=True;Persist Security Info=False;Pooling=False;MultipleActiveResultSets=False;Connect Timeout=60;Encrypt=False;TrustServerCertificate=True</TargetConnectionString>
+    <ScriptDatabaseOptions>True</ScriptDatabaseOptions>
+    <BlockOnPossibleDataLoss>True</BlockOnPossibleDataLoss>
+    <DeployDatabaseInSingleUserMode>True</DeployDatabaseInSingleUserMode>
+    <ProfileVersionNumber>1</ProfileVersionNumber>
+    <AllowIncompatiblePlatform>True</AllowIncompatiblePlatform>
+    <DropConstraintsNotInSource>True</DropConstraintsNotInSource>
+    <DropDmlTriggersNotInSource>False</DropDmlTriggersNotInSource>
+    <DropExtendedPropertiesNotInSource>False</DropExtendedPropertiesNotInSource>
+    <DropIndexesNotInSource>True</DropIndexesNotInSource>
+    <IgnoreComments>True</IgnoreComments>
+    <IgnoreDefaultSchema>True</IgnoreDefaultSchema>
+    <IgnoreExtendedProperties>True</IgnoreExtendedProperties>
+    <IgnoreIdentitySeed>True</IgnoreIdentitySeed>
+    <IgnoreIncrement>True</IgnoreIncrement>
+    <IgnorePermissions>False</IgnorePermissions>
+    <IgnoreRoleMembership>False</IgnoreRoleMembership>
+    <DropObjectsNotInSource>False</DropObjectsNotInSource>
+    <BlockWhenDriftDetected>False</BlockWhenDriftDetected>
+    <RegisterDataTierApplication>True</RegisterDataTierApplication>
+    <ScriptFileSize>True</ScriptFileSize>
+    <IgnoreFilegroupPlacement>False</IgnoreFilegroupPlacement>
+    <IgnoreFileAndLogFilePath>False</IgnoreFileAndLogFilePath>
+    <IgnoreFileSize>False</IgnoreFileSize>
+    <GenerateSmartDefaults>True</GenerateSmartDefaults>
+    <VerifyDeployment>False</VerifyDeployment>
+    <ExcludeTables>False</ExcludeTables>
+  </PropertyGroup>
+  <ItemGroup>
+    <SqlCmdVariable Include="FabricIdentityDataMountPoint">
+      <Value>C:\SQLData</Value>
+    </SqlCmdVariable>
+    <SqlCmdVariable Include="FabricIdentityLogFileMountPoint">
+      <Value>C:\SQLData</Value>
+    </SqlCmdVariable>
+  </ItemGroup>
+</Project>
