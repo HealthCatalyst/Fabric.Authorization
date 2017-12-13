@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
@@ -79,6 +80,12 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
         {
             model.Track(false, GetActor());
             await ExponentialBackoff(DocumentDbService.UpdateDocument(id, model)).ConfigureAwait(false);
+        }
+
+        public virtual async Task BulkUpdate(IEnumerable<T> models, bool creation = true)
+        {
+            models = models.Track(creation, GetActor()).ToList();
+            await ExponentialBackoff(DocumentDbService.BulkUpdateDocuments(models.Select(m => m.Identifier), models));
         }
 
         public virtual async Task<bool> Exists(K id)

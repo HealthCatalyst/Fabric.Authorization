@@ -22,6 +22,8 @@ namespace Fabric.Authorization.API.Models
 
         public IEnumerable<Guid> ChildRoles { get; set; }
 
+        public IEnumerable<string> Groups { get; set; }
+
         public DateTime CreatedDateTimeUtc { get; set; }
 
         public DateTime? ModifiedDateTimeUtc { get; set; }

@@ -57,6 +57,14 @@ namespace Fabric.Authorization.Domain.Stores.InMemory
             }
         }
 
+        public virtual async Task BulkUpdate(IEnumerable<T> models, bool creation)
+        {
+            foreach (var model in models)
+            {
+                await Update(model);
+            }
+        }
+
         public virtual Task<bool> Exists(string id)
         {
             return Task.FromResult(Dictionary.ContainsKey(id));

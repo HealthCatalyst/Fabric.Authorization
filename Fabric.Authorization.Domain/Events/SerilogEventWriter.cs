@@ -15,7 +15,7 @@ namespace Fabric.Authorization.Domain.Events
 
         public Task WriteEvent(Event evt)
         {
-            _logger.Information("{Name}, Details: {@details}", evt.Name, evt);
+            _logger.Information("{Id} - {Name}, Details: {@details}", evt.Identifier, evt.Name, evt);
             return Task.CompletedTask;
         }
     }

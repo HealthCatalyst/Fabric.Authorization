@@ -431,17 +431,38 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Theory]
         [DisplayTestMethodName]
-        [InlineData("GroupToBeDeleted", "Source1")]
-        [InlineData("GroupToBeDeleted2", "Source2")]
+        [InlineData("GroupToBeDeleted", "Custom")]
+        [InlineData("GroupToBeDeleted2", "Custom")]
         public void DeleteGroup_SingleGroup_Success(string groupName, string groupSource)
         {
-            Browser.Post("/groups", with =>
+            const string roleName = "role1";
+            const string identityProvider = "Windows";
+            const string subjectId = "first:last";
+
+            SetupGroup(groupName, groupSource);
+            var roleId = SetupRole(roleName);
+            SetupGroupRoleMapping(groupName, roleId.ToString());
+            SetupGroupUserMapping(groupName, subjectId, identityProvider);
+
+            // ensure role contains group
+            var response = Browser.Get($"/roles/app/rolesprincipal/{roleName}", with =>
             {
                 with.HttpRequest();
-                with.FormValue("GroupName", groupName);
-                with.FormValue("GroupSource", groupSource);
                 with.Header("Accept", "application/json");
-            }).Wait();
+            }).Result;
+
+            var role = response.Body.DeserializeJson<List<RoleApiModel>>().First();
+            Assert.Contains(groupName, role.Groups);
+
+            // ensure user contains group
+            response = Browser.Get($"/user/{identityProvider}/{subjectId}/groups", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            var groups = response.Body.DeserializeJson<string[]>();
+            Assert.Contains(groupName, groups);
 
             var delete = Browser.Delete($"/groups/{groupName}", with =>
             {
@@ -450,6 +471,26 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Result;
 
             Assert.Equal(HttpStatusCode.NoContent, delete.StatusCode);
+
+           /* // ensure role does not contain group
+            response = Browser.Get($"/roles/app/rolesprincipal/{roleName}", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            role = response.Body.DeserializeJson<List<RoleApiModel>>().First();
+            Assert.DoesNotContain(groupName, role.Groups);
+
+            // ensure user does not contain group
+            response = Browser.Get($"/user/{identityProvider}/{subjectId}/groups", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            }).Result;
+
+            groups = response.Body.DeserializeJson<string[]>();
+            Assert.DoesNotContain(groupName, groups);*/
         }
 
         [Theory]

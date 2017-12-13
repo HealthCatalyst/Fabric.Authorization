@@ -22,8 +22,8 @@ namespace Fabric.Authorization.UnitTests.Caching
             var cachingDocumentDbService = new CachingDocumentDbService(mockDbAccessService.Object,
                 new MemoryCache(new MemoryCacheOptions()));
             //Act
-            this.AssertPermissionRetrievedAsync(permission, cachingDocumentDbService).Wait();
-            this.AssertPermissionRetrievedAsync(permission, cachingDocumentDbService).Wait();
+            AssertPermissionRetrievedAsync(permission, cachingDocumentDbService).Wait();
+            AssertPermissionRetrievedAsync(permission, cachingDocumentDbService).Wait();
 
             //Assert
             mockDbAccessService.Verify(dbAccessService => dbAccessService.GetDocument<Permission>(It.IsAny<string>()), Times.Once);
@@ -40,11 +40,32 @@ namespace Fabric.Authorization.UnitTests.Caching
                 new MemoryCache(new MemoryCacheOptions()));
 
             //Act
-            this.AssertPermissionRetrievedAsync(permission, cachingDocumentDbService).Wait();
+            AssertPermissionRetrievedAsync(permission, cachingDocumentDbService).Wait();
             cachingDocumentDbService.UpdateDocument(permission.Identifier, permission).Wait();
-            this.AssertPermissionRetrievedAsync(permission, cachingDocumentDbService).Wait();
+            AssertPermissionRetrievedAsync(permission, cachingDocumentDbService).Wait();
 
             //Assert
+            mockDbAccessService.Verify(dbAccessService => dbAccessService.GetDocument<Permission>(It.IsAny<string>()), Times.Exactly(2));
+        }
+
+        [Fact]
+        public void BulkUpdate_UpdateDocument_InvalidatesCache()
+        {
+            var permissions = SetupPermissions();
+            var permissionObjects = permissions.Values.ToList();
+            var permission1 = permissionObjects[0];
+            var permission2 = permissionObjects[1];
+
+            var mockDbAccessService = SetupMockDocumentDbService(permissions);
+            var cachingDocumentDbService = new CachingDocumentDbService(mockDbAccessService.Object,
+                new MemoryCache(new MemoryCacheOptions()));
+
+            AssertPermissionRetrievedAsync(permission1, cachingDocumentDbService).Wait();
+            AssertPermissionRetrievedAsync(permission2, cachingDocumentDbService).Wait();
+
+            cachingDocumentDbService.BulkUpdateDocuments(new List<string> {permission1.Id.ToString(), permission2.Id.ToString()},
+                permissionObjects).Wait();
+
             mockDbAccessService.Verify(dbAccessService => dbAccessService.GetDocument<Permission>(It.IsAny<string>()), Times.Exactly(2));
         }
 
@@ -66,10 +87,10 @@ namespace Fabric.Authorization.UnitTests.Caching
             mockDbAccessService.Verify(dbAccessService => dbAccessService.GetDocument<Permission>(It.IsAny<string>()), Times.Exactly(2));
         }
 
-        private Dictionary<string, Permission> SetupPermissions()
+        private static Dictionary<string, Permission> SetupPermissions()
         {
             var permissions = new Dictionary<string, Permission>();
-            var permission = new Permission()
+            var permission = new Permission
             {
                 Name = "test",
                 Grain = "app",
@@ -77,10 +98,19 @@ namespace Fabric.Authorization.UnitTests.Caching
                 Id = Guid.NewGuid()
             };
             permissions.Add(permission.Identifier, permission);
+
+            permission = new Permission
+            {
+                Name = "test",
+                Grain = "app",
+                SecurableItem = "test2",
+                Id = Guid.NewGuid()
+            };
+            permissions.Add(permission.Identifier, permission);
             return permissions;
         }
 
-        private Mock<IDocumentDbService> SetupMockDocumentDbService(Dictionary<string, Permission> permissions)
+        private static Mock<IDocumentDbService> SetupMockDocumentDbService(IReadOnlyDictionary<string, Permission> permissions)
         {
             var mockDbAccessService = new Mock<IDocumentDbService>();
             mockDbAccessService.Setup(dbAccessService => dbAccessService.GetDocument<Permission>(It.IsAny<string>()))
@@ -88,7 +118,7 @@ namespace Fabric.Authorization.UnitTests.Caching
             return mockDbAccessService;
         }
 
-        private async Task AssertPermissionRetrievedAsync(Permission permission, CachingDocumentDbService cachingDocumentDbService)
+        private static async Task AssertPermissionRetrievedAsync(Permission permission, IDocumentDbService cachingDocumentDbService)
         {
             var retrievedPermission = await cachingDocumentDbService.GetDocument<Permission>(permission.Identifier);
             Assert.Equal(permission.Id, retrievedPermission.Id);

@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.RemoteServices.Identity.Providers;
 using Fabric.Authorization.API.Services;
-using Fabric.Authorization.Domain.Events;
 using Fabric.Authorization.Domain.Resolvers.Permissions;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
