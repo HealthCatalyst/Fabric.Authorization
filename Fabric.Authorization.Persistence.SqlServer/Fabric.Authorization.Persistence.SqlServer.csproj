@@ -12,4 +12,16 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="1.1.5" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Fabric.Authorization.Domain\Fabric.Authorization.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="EntityModels\" />
+    <Folder Include="DependencyInjection\" />
+    <Folder Include="Configuration\" />
+    <Folder Include="Mappers\" />
+    <Folder Include="Stores\" />
+  </ItemGroup>
+
 </Project>
