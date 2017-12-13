@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2003
+VisualStudioVersion = 15.0.27004.2010
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fabric.Authorization.API", "Fabric.Authorization.API\Fabric.Authorization.API.csproj", "{BE529580-6E92-47BE-B66F-DAAB486B7AC3}"
 EndProject
@@ -12,6 +12,8 @@ EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{2112EDDE-E830-4E0A-AF00-4A211772FD32}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fabric.Authorization.IntegrationTests", "Fabric.Authorization.IntegrationTests\Fabric.Authorization.IntegrationTests.csproj", "{3F90AE6E-7202-4BC7-923B-D5342F391997}"
+EndProject
+Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "Fabric.Authorization.SqlServer", "Fabric.Authorization.SqlServer\Fabric.Authorization.SqlServer.sqlproj", "{5D55F78B-6965-4093-9048-6F9AD0883A7C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fabric.Authorization.Persistence.SqlServer", "Fabric.Authorization.Persistence.SqlServer\Fabric.Authorization.Persistence.SqlServer.csproj", "{0F06934A-01C8-4959-8A00-6F23052691B2}"
 EndProject
@@ -41,6 +43,12 @@ Global
 		{3F90AE6E-7202-4BC7-923B-D5342F391997}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3F90AE6E-7202-4BC7-923B-D5342F391997}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3F90AE6E-7202-4BC7-923B-D5342F391997}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5D55F78B-6965-4093-9048-6F9AD0883A7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5D55F78B-6965-4093-9048-6F9AD0883A7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5D55F78B-6965-4093-9048-6F9AD0883A7C}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{5D55F78B-6965-4093-9048-6F9AD0883A7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5D55F78B-6965-4093-9048-6F9AD0883A7C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5D55F78B-6965-4093-9048-6F9AD0883A7C}.Release|Any CPU.Deploy.0 = Release|Any CPU
 		{0F06934A-01C8-4959-8A00-6F23052691B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0F06934A-01C8-4959-8A00-6F23052691B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0F06934A-01C8-4959-8A00-6F23052691B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -50,6 +58,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {1F4754F5-5FB2-4062-BC7D-6CAC1E6A6E20}
+		SolutionGuid = {DE9476A5-DFBC-438A-8017-CE1FB765AFC0}
 	EndGlobalSection
 EndGlobal
