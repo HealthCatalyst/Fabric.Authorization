@@ -23,6 +23,7 @@
     <SqlServerVerification>False</SqlServerVerification>
     <IncludeCompositeObjects>True</IncludeCompositeObjects>
     <TargetDatabaseSet>True</TargetDatabaseSet>
+    <GenerateCreateScript>True</GenerateCreateScript>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <OutputPath>bin\Release\</OutputPath>
@@ -63,6 +64,14 @@
     <Folder Include="Tables" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="PublishProfiles\Fabric.Authorization.SqlServer.publish.xml" />
+    <None Include="PublishProfiles\Fabric.Authorization.SqlServer.publish.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Storage\HCFabricAuthorizationData1.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="Storage\HCFabricAuthorizationPrimary.sql" />
+    <Build Include="Storage\HCFabricAuthorizationLogFile1.sql" />
+    <Build Include="Storage\HCFabricAuthorizationIndex1.sql" />
   </ItemGroup>
 </Project>
