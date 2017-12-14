@@ -7,6 +7,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
     public interface IAuthorizationDbContext
     {
         DbSet<Client> Clients { get; set; }
+        DbSet<SecurableItem> SecurableItems { get; set; }
 
         Task<int> SaveChangesAsync();
         int SaveChanges();
