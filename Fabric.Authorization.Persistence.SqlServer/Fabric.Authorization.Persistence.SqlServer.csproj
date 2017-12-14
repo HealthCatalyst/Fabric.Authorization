@@ -19,7 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="EntityModels\" />
     <Folder Include="DependencyInjection\" />
     <Folder Include="Configuration\" />
     <Folder Include="Mappers\" />
