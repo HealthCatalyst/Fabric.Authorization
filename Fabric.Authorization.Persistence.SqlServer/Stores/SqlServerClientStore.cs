@@ -89,6 +89,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             await _authorizationDbContext.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id">This is the unique client id of the client</param>
+        /// <returns></returns>
         public async Task<bool> Exists(string id)
         {
             var client = await _authorizationDbContext.Clients
