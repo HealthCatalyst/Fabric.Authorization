@@ -17,9 +17,9 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
 
         public int Id { get; set; }
         public int? ParentRoleId { get; set; }
+        public int SecurableItemId { get; set; }
         public Guid ExternalIdentifier { get; set; }
         public string Grain { get; set; }
-        public string SecurableItem { get; set; }
         public string Name { get; set; }
 
         public DateTime CreatedDateTimeUtc { get; set; }
@@ -28,6 +28,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
         public string ModifiedBy { get; set; }
         public bool IsDeleted { get; set; }
 
+        public SecurableItem SecurableItem { get; set; }
         public ICollection<GroupRole> GroupRoles { get; set; }
         public ICollection<Role> ChildRoles { get; set; }
         public ICollection<RolePermission> RolePermissions { get; set; }
