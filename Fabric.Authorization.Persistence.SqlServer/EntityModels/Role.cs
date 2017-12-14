@@ -8,7 +8,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
     {
         public Role()
         {
-            Groups = new List<Group>();
+            GroupRoles = new List<GroupRole>();
             ChildRoles = new List<Role>();
             /*Permissions = new List<Permission>();
             DeniedPermissions = new List<Permission>();*/
@@ -26,7 +26,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
         public string ModifiedBy { get; set; }
         public bool IsDeleted { get; set; }
 
-        public ICollection<Group> Groups { get; set; }
+        public ICollection<GroupRole> GroupRoles { get; set; }
         public ICollection<Role> ChildRoles { get; set; }
 
         /*public ICollection<Permission> Permissions { get; set; }
