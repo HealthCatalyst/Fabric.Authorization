@@ -4,6 +4,7 @@
     <TargetFramework>netstandard1.3</TargetFramework>
   </PropertyGroup>
 
+
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="6.2.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="1.1.5" />
@@ -21,6 +22,7 @@
     <Folder Include="EntityModels\" />
     <Folder Include="DependencyInjection\" />
     <Folder Include="Configuration\" />
+    <Folder Include="Mappers\" />
     <Folder Include="Stores\" />
   </ItemGroup>
 
