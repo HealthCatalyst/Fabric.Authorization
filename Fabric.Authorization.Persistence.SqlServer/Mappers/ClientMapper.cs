@@ -25,7 +25,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Mappers
 
         public static void ToEntity(this Domain.Models.Client model, EntityModels.Client entity)
         {
-            Mapper.Map(model, entity);
+            Mapper.Map(model, entity);                      
         }
     }
 }
