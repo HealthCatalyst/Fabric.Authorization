@@ -8,11 +8,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
     {
         public Group()
         {
-            Roles = new List<Role>();
+            GroupRoles = new List<GroupRole>();
             //Users = new List<User>();
         }
         public int Id { get; set; }
-        public Guid ExternalIdentifier { get; set; }
+        public string ExternalIdentifier { get; set; }
         public string Name { get; set; }
         public string Source { get; set; }
 
@@ -22,7 +22,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
         public string ModifiedBy { get; set; }
         public bool IsDeleted { get; set; }
 
-        public ICollection<Role> Roles { get; set; }
+        public ICollection<GroupRole> GroupRoles{ get; set; }
         //public ICollection<User> Users { get; set; }
     }
 }
