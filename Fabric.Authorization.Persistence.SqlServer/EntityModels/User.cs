@@ -6,6 +6,12 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
 {
     public class User : ITrackable, ISoftDelete
     {
+        public User()
+        {
+            UserGroups = new List<UserGroup>();
+            UserPermissions = new List<UserPermission>();
+        }
+
         public int Id { get; set; }
         public string SubjectId { get; set; }
         public string IdentityProvider { get; set; }

@@ -9,6 +9,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
         public Permission()
         {
             RolePermissions = new List<RolePermission>();
+            UserPermissions = new List<UserPermission>();
         }
 
         public int Id { get; set; }
@@ -25,5 +26,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
 
         public SecurableItem SecurableItem { get; set; }
         public ICollection<RolePermission> RolePermissions { get; set; }
+        public ICollection<UserPermission> UserPermissions { get; set; }
     }
 }
