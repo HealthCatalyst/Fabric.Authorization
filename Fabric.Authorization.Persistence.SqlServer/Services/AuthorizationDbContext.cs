@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
+using Fabric.Authorization.Domain.Services;
 using Microsoft.EntityFrameworkCore;
 using Client = Fabric.Authorization.Persistence.SqlServer.EntityModels.Client;
 using SecurableItem = Fabric.Authorization.Persistence.SqlServer.EntityModels.SecurableItem;
@@ -10,9 +11,12 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
 {
     public class AuthorizationDbContext : DbContext, IAuthorizationDbContext
     {
-        public AuthorizationDbContext(DbContextOptions options) : base(options)
-        {
+        private readonly IEventContextResolverService _eventContextResolverService;
 
+        public AuthorizationDbContext(DbContextOptions options, IEventContextResolverService eventContextResolverService) 
+            : base(options)
+        {
+            _eventContextResolverService = eventContextResolverService;
         }
 
         public DbSet<Client> Clients { get; set; }
@@ -34,7 +38,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
 
         private void OnSaveChanges()
         {
-            var entities = base.ChangeTracker.Entries()
+            var entities = ChangeTracker.Entries()
                 .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified);
 
             foreach (var entityEntry in entities)
@@ -48,14 +52,19 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
                 if (entityEntry.State == EntityState.Added)
                 {
                     trackableEntity.CreatedDateTimeUtc = DateTime.UtcNow;
-                    trackableEntity.CreatedBy = "placeholder"; 
+                    trackableEntity.CreatedBy = GetActor();
                 }
                 else if (entityEntry.State == EntityState.Modified)
                 {
                     trackableEntity.ModifiedDateTimeUtc = DateTime.UtcNow;
-                    trackableEntity.ModifiedBy = "placeholder"; 
+                    trackableEntity.ModifiedBy = GetActor();
                 }
             }
+        }
+
+        private string GetActor()
+        {
+            return (_eventContextResolverService.Subject ?? _eventContextResolverService.ClientId) ?? "anonymous";
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
