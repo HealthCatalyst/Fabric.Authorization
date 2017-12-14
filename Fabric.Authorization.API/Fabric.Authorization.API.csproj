@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp1.1</TargetFramework>
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
+    <DebugType>Full</DebugType>
   </PropertyGroup>
   <ItemGroup>
     <Content Remove="wwwroot/swagger\favicon-16x16.png" />
