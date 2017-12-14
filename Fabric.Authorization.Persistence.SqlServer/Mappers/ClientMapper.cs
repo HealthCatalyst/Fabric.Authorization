@@ -26,26 +26,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Mappers
         public static void ToEntity(this Domain.Models.Client model, EntityModels.Client entity)
         {
             Mapper.Map(model, entity);
-            
-            foreach (var securableItem in model.TopLevelSecurableItem.SecurableItems)
-            {
-                var existingItem = entity.TopLevelSecurableItem.SecurableItems
-                    .FirstOrDefault(s => s.SecurableItemId.Equals(securableItem.Id));
-
-                if (existingItem != null)
-                {
-                    existingItem.Name = securableItem.Name;
-                }
-                else
-                {
-                    entity.TopLevelSecurableItem.SecurableItems.Add(new EntityModels.SecurableItem
-                    {
-                        SecurableItemId = securableItem.Id,
-                        Name = securableItem.Name
-                    });
-                }
-
-            }
         }
     }
 }

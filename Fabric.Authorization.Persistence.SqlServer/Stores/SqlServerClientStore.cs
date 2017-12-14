@@ -66,14 +66,18 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                                            && !c.IsDeleted);
 
             client.IsDeleted = true;
-            client.TopLevelSecurableItem.IsDeleted = true;
-
-            foreach (var securableItem in client.TopLevelSecurableItem.SecurableItems)
-            {
-                securableItem.IsDeleted = true;
-            }
+            MarkSecurableItemsDeleted(client.TopLevelSecurableItem);
 
             await _authorizationDbContext.SaveChangesAsync();
+        }
+
+        private void MarkSecurableItemsDeleted(EntityModels.SecurableItem topLevelSecurableItem)
+        {
+            topLevelSecurableItem.IsDeleted = true;
+            foreach (var securableItem in topLevelSecurableItem.SecurableItems)
+            {
+                MarkSecurableItemsDeleted(securableItem);                               
+            }
         }
 
         public async Task Update(Client model)
