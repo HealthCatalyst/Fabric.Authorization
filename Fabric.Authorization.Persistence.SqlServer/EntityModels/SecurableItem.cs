@@ -17,5 +17,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
         public bool IsDeleted { get; set; }
 
         public ICollection<SecurableItem> SecurableItems { get; set; }
+        public ICollection<Client> Clients { get; set; }
     }
 }
