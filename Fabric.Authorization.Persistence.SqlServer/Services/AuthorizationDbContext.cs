@@ -32,6 +32,9 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<UserGroup> UserGroups { get; set; }
+        public DbSet<UserPermission> UserPermissions { get; set; }
+
 
         public async Task<int> SaveChangesAsync()
         {

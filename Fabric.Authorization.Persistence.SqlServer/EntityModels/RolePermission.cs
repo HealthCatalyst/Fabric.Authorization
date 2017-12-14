@@ -3,12 +3,6 @@ using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
 {
-    public enum PermissionAction
-    {
-        Allow,
-        Deny
-    }
-
     public class RolePermission : ITrackable, ISoftDelete
     {
         public int Id { get; set; }
