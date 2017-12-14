@@ -3,9 +3,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
+using Fabric.Authorization.Persistence.SqlServer.EntityModels;
 using Microsoft.EntityFrameworkCore;
 using Client = Fabric.Authorization.Persistence.SqlServer.EntityModels.Client;
+using Group = Fabric.Authorization.Persistence.SqlServer.EntityModels.Group;
+using Permission = Fabric.Authorization.Persistence.SqlServer.EntityModels.Permission;
+using Role = Fabric.Authorization.Persistence.SqlServer.EntityModels.Role;
 using SecurableItem = Fabric.Authorization.Persistence.SqlServer.EntityModels.SecurableItem;
+using User = Fabric.Authorization.Persistence.SqlServer.EntityModels.User;
 
 namespace Fabric.Authorization.Persistence.SqlServer.Services
 {
@@ -21,6 +26,12 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
 
         public DbSet<Client> Clients { get; set; }
         public DbSet<SecurableItem> SecurableItems { get; set; }
+        public DbSet<Group> Groups { get; set; }
+        public DbSet<Role> Roles { get; set; }
+        public DbSet<GroupRole> GroupRoles { get; set; }
+        public DbSet<Permission> Permissions { get; set; }
+        public DbSet<RolePermission> RolePermissions { get; set; }
+        public DbSet<User> Users { get; set; }
 
         public async Task<int> SaveChangesAsync()
         {
