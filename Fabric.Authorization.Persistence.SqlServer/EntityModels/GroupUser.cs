@@ -3,7 +3,7 @@ using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
 {
-    public class UserGroup : ITrackable, ISoftDelete
+    public class GroupUser : ITrackable, ISoftDelete
     {
         public int Id { get; set; }
         public int UserId { get; set; }
