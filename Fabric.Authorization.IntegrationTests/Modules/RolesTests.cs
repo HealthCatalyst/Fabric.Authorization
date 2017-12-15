@@ -27,49 +27,24 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         public RolesTests(bool useInMemoryDB = true)
         {
-            var store = useInMemoryDB
-                ? new InMemoryRoleStore()
-                : (IRoleStore) new CouchDbRoleStore(DbService(), Logger, EventContextResolverService);
-
-            var clientStore = useInMemoryDB
-                ? new InMemoryClientStore()
-                : (IClientStore) new CouchDbClientStore(DbService(), Logger, EventContextResolverService);
-
-            var clientService = new ClientService(clientStore);
-            var roleService = new RoleService(store, new InMemoryPermissionStore(_identifierFormatter), clientService);
-
-            Browser = new Browser(with =>
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
             {
-                with.Module(new RolesModule(
-                    roleService,
-                    clientService,
-                    new RoleValidator(roleService),
-                    Logger));
+                new Claim(Claims.Scope, Scopes.ManageClientsScope),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.ClientId, "rolesprincipal")
+            }, "rolesprincipal"));
 
-                with.Module(new ClientsModule(
-                    clientService,
-                    new ClientValidator(clientService),
-                    Logger));
-
-                with.RequestStartup((_, pipelines, context) =>
-                {
-                    context.CurrentUser = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
-                    {
-                        new Claim(Claims.Scope, Scopes.ManageClientsScope),
-                        new Claim(Claims.Scope, Scopes.ReadScope),
-                        new Claim(Claims.Scope, Scopes.WriteScope),
-                        new Claim(Claims.ClientId, "rolesprincipal")
-                    }, "rolesprincipal"));
-                    pipelines.BeforeRequest += ctx => RequestHooks.SetDefaultVersionInUrl(ctx);
-                });
-            }, withDefaults => withDefaults.HostName("testhost"));
+            Browser = GetBrowser(principal, useInMemoryDB);
 
             Browser.Post("/clients", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", "rolesprincipal");
-                with.FormValue("Name", "rolesprincipal");
-                with.Header("Accept", "application/json");
+                with.JsonBody(new
+                {
+                    Id = "rolesprincipal",
+                    Name = "rolesprincipal"
+                });
             }).Wait();
         }
 
@@ -82,7 +57,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var get = Browser.Get($"/roles/app/rolesprincipal/{name}", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
             }).Result;
 
             Assert.Equal(HttpStatusCode.OK, get.StatusCode); //TODO: Should it be NotFound?
@@ -99,21 +73,22 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var postResponse = Browser.Post("/roles", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "rolesprincipal");
-                with.FormValue("Name", name);
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = "rolesprincipal",
+                    Name = name
+                });
             }).Result;
 
             var getResponse = Browser.Get($"/roles/app/rolesprincipal/{name}", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
             }).Result;
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
-            Assert.True(getResponse.Body.AsString().Contains(name));
+            Assert.Contains(name, getResponse.Body.AsString());
         }
 
         [Theory]
@@ -125,33 +100,33 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var postResponse = Browser.Post("/roles", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "rolesprincipal");
-                with.FormValue("Name", name);
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = "rolesprincipal",
+                    Name = name
+                });
             }).Result;
 
             // Get by name
             var getResponse = Browser.Get($"/roles/app/rolesprincipal/{name}", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
             }).Result;
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
-            Assert.True(getResponse.Body.AsString().Contains(name));
+            Assert.Contains(name, getResponse.Body.AsString());
 
             // Get by secitem
             getResponse = Browser.Get($"/roles/app/rolesprincipal", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
             }).Result;
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
-            Assert.True(getResponse.Body.AsString().Contains(name));
+            Assert.Contains(name, getResponse.Body.AsString());
         }
 
         [Theory]
@@ -163,10 +138,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var postResponse = Browser.Post("/roles", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "rolesprincipal");
-                with.FormValue("Name", name + "_1");
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = "rolesprincipal",
+                    Name = name + "_1"
+                });
             }).Result;
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
@@ -174,10 +151,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             postResponse = Browser.Post("/roles", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "rolesprincipal");
-                with.FormValue("Name", name + "_2");
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = "rolesprincipal",
+                    Name = name + "_2"
+                });
             }).Result;
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
@@ -185,14 +164,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var getResponse = Browser.Get($"/roles/app/rolesprincipal", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
             }).Result;
 
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
             // Both roles must be found.
-            Assert.True(getResponse.Body.AsString().Contains(name + "_1"));
-            Assert.True(getResponse.Body.AsString().Contains(name + "_2"));
+            Assert.Contains(name + "_1", getResponse.Body.AsString());
+            Assert.Contains(name + "_2", getResponse.Body.AsString());
         }
 
         [Theory]
@@ -204,22 +182,26 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Browser.Post("/roles", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "rolesprincipal");
-                with.FormValue("Name", id);
-                with.FormValue("Id", id);
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = "rolesprincipal",
+                    Name = id,
+                    Id = id
+                });
             }).Wait();
 
             // Repeat
             var postResponse = Browser.Post("/roles", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "rolesprincipal");
-                with.FormValue("Name", id);
-                with.FormValue("Id", id);
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = "rolesprincipal",
+                    Name = id,
+                    Id = id
+                });
             }).Result;
 
             Assert.Equal(HttpStatusCode.Conflict, postResponse.StatusCode);
@@ -234,7 +216,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var delete = Browser.Delete($"/roles/{id}", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
             }).Result;
 
             Assert.Equal(HttpStatusCode.NotFound, delete.StatusCode);
@@ -248,16 +229,17 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var postResponse = Browser.Post("/roles", with =>
                 {
                     with.HttpRequest();
-                    with.Header("Accept", "application/json");
-                    with.FormValue("Grain", "app");
-                    with.FormValue("SecurableItem", "rolesprincipal");
-                    with.FormValue("Name", roleName);
+                    with.JsonBody(new
+                    {
+                        Grain = "app",
+                        SecurableItem = "rolesprincipal",
+                        Name = roleName
+                    });
                 }).Result;
 
             var getResponse = Browser.Get($"/roles/app/rolesprincipal/{roleName}", with =>
                 {
                     with.HttpRequest();
-                    with.Header("Accept", "application/json");
                 }).Result;
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
@@ -288,8 +270,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var delete = Browser.Delete($"/roles/{roleApiModelResponse.Id}/permissions", with =>
                 {
                     with.HttpRequest();
-                    with.Header("Accept", "application/json");
-                    with.Header("Content-Type", "application/json");
                     with.JsonBody(permissionToDelete);
                 }).Result;
 
@@ -304,16 +284,17 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var postResponse = Browser.Post("/roles", with =>
                 {
                     with.HttpRequest();
-                    with.Header("Accept", "application/json");
-                    with.FormValue("Grain", "app");
-                    with.FormValue("SecurableItem", "rolesprincipal");
-                    with.FormValue("Name", roleName);
+                    with.JsonBody(new
+                    {
+                        Grain = "app",
+                        SecurableItem = "rolesprincipal",
+                        Name = roleName
+                    });
                 }).Result;
 
             var getResponse = Browser.Get($"/roles/app/rolesprincipal/{roleName}", with =>
                 {
                     with.HttpRequest();
-                    with.Header("Accept", "application/json");
                 }).Result;
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
@@ -344,8 +325,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var delete = Browser.Post($"/roles/{roleApiModelResponse.Id}/permissions", with =>
                 {
                     with.HttpRequest();
-                    with.Header("Accept", "application/json");
-                    with.Header("Content-Type", "application/json");
                     with.JsonBody(permissionToDelete);
                 }).Result;
 
@@ -360,16 +339,17 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var postResponse = Browser.Post("/roles", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "rolesprincipal");
-                with.FormValue("Name", roleName);
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = "rolesprincipal",
+                    Name = roleName
+                });
             }).Result;
 
             var getResponse = Browser.Get($"/roles/app/rolesprincipal/{roleName}", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
             }).Result;
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
@@ -384,8 +364,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var delete = Browser.Post($"/roles/{roleApiModelResponse.Id}/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.Header("Content-Type", "application/json");
                 with.JsonBody(emptyPermissionArray);
             }).Result;
 
@@ -400,16 +378,17 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var postResponse = Browser.Post("/roles", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "rolesprincipal");
-                with.FormValue("Name", roleName);
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = "rolesprincipal",
+                    Name = roleName
+                });
             }).Result;
 
             var getResponse = Browser.Get($"/roles/app/rolesprincipal/{roleName}", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
             }).Result;
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
@@ -432,8 +411,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             postResponse = Browser.Post($"/roles/{roleApiModelResponse.Id}/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.Header("Content-Type", "application/json");
                 with.JsonBody(permissionToDelete);
             }).Result;
 
