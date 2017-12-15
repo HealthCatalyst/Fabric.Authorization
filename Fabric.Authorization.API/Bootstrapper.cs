@@ -6,7 +6,6 @@ using Fabric.Authorization.API.Extensions;
 using Fabric.Authorization.API.Infrastructure;
 using Fabric.Authorization.API.Infrastructure.PipelineHooks;
 using Fabric.Authorization.API.Logging;
-using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Events;
 using Fabric.Authorization.Domain.Stores;
@@ -53,8 +52,11 @@ namespace Fabric.Authorization.API
         {
             base.RequestStartup(container, pipelines, context);
             var owinEnvironment = context.GetOwinEnvironment();
-            var principal = owinEnvironment[OwinConstants.RequestUser] as ClaimsPrincipal;
-            context.CurrentUser = principal;
+            if (owinEnvironment != null)
+            {
+                var principal = owinEnvironment[OwinConstants.RequestUser] as ClaimsPrincipal;
+                context.CurrentUser = principal;
+            }
         }
 
         protected override void ConfigureRequestContainer(TinyIoCContainer container, NancyContext context)
@@ -97,7 +99,7 @@ namespace Fabric.Authorization.API
             ConfigureRegistrations(container);
         }
 
-        private static void InitializeSwaggerMetadata()
+        private void InitializeSwaggerMetadata()
         {
             SwaggerMetadataProvider.SetInfo("Fabric Authorization API", "v1",
                 "Fabric.Authorization contains a set of APIs that allow client applications to manage roles and permissions for users.");
@@ -109,7 +111,14 @@ namespace Fabric.Authorization.API
             securitySchemeBuilder.Scope("fabric/authorization.read", "Grants read access to fabric.authorization resources.");
             securitySchemeBuilder.Scope("fabric/authorization.write", "Grants write access to fabric.authorization resources.");
             securitySchemeBuilder.Scope("fabric/authorization.manageclients", "Grants 'manage clients' access to fabric.authorization resources.");
-            SwaggerMetadataProvider.SetSecuritySchemeBuilder(securitySchemeBuilder, "fabric.identity");
+            try
+            {
+                SwaggerMetadataProvider.SetSecuritySchemeBuilder(securitySchemeBuilder, "fabric.identity");
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.Warning("Error configuring Swagger Security Scheme. {exceptionMessage}", ex.Message);
+            }
         }
 
         private void ConfigureRegistrations(TinyIoCContainer container)

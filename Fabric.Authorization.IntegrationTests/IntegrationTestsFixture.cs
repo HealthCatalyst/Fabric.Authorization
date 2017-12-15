@@ -1,14 +1,18 @@
 ﻿using System;
 using System.Reflection;
+using System.Security.Claims;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
+using Fabric.Platform.Shared.Configuration;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using Nancy.Testing;
 using Serilog;
+using Serilog.Core;
 using Xunit.Sdk;
 
 namespace Fabric.Authorization.IntegrationTests
@@ -16,6 +20,36 @@ namespace Fabric.Authorization.IntegrationTests
     public class IntegrationTestsFixture : IDisposable
     {
         public Browser Browser { get; set; }
+
+        public Browser GetBrowser(ClaimsPrincipal principal, bool useInMemoryStores)
+        {
+            var appConfiguration = new AppConfiguration
+            {
+                CouchDbSettings = GetCouchDbSettings(),
+                UseInMemoryStores = useInMemoryStores,
+                IdentityServerConfidentialClientSettings = new IdentityServerConfidentialClientSettings
+                {
+                    Authority = "http://localhost",
+                    ClientId = "test",
+                    ClientSecret = "test",
+                    Scopes = new[]
+                    {
+                        "fabric/authorization.read",
+                        "fabric/authorization.write",
+                        "fabric/authorization.manageclients"
+                    }
+                }
+            };
+            var hostingEnvironment = new Mock<IHostingEnvironment>();
+            var bootstrapper = new TestBootstrapper(new Mock<ILogger>().Object, appConfiguration,
+                new LoggingLevelSwitch(), hostingEnvironment.Object, principal);
+            return new Browser(bootstrapper, context =>
+            {
+                context.HostName("testhost");
+                context.Header("Content-Type", "application/json");
+                context.Header("Accept", "application/json");
+            });
+        }
 
         public ILogger Logger { get; set; } = new Mock<ILogger>().Object;
 
@@ -38,7 +72,22 @@ namespace Fabric.Authorization.IntegrationTests
                 return _dbService;
             }
 
-            ICouchDbSettings config = new CouchDbSettings()
+            ICouchDbSettings config = GetCouchDbSettings();
+
+            var innerDbService = new CouchDbAccessService(config, new Mock<ILogger>().Object);
+            innerDbService.Initialize().Wait();
+            innerDbService.AddViews("roles", CouchDbRoleStore.GetViews()).Wait();
+            innerDbService.AddViews("permissions", CouchDbPermissionStore.GetViews()).Wait();
+            var auditingDbService = new AuditingDocumentDbService(new Mock<IEventService>().Object, innerDbService);
+            var cachingDbService =
+                new CachingDocumentDbService(auditingDbService, new MemoryCache(new MemoryCacheOptions()));
+            _dbService = cachingDbService;
+            return _dbService;
+        }
+
+        private CouchDbSettings GetCouchDbSettings()
+        {
+            CouchDbSettings config = new CouchDbSettings()
             {
                 DatabaseName = "integration-" + DateTime.UtcNow.Ticks,
                 Username = "",
@@ -51,16 +100,7 @@ namespace Fabric.Authorization.IntegrationTests
             {
                 config.Server = couchDbServer;
             }
-
-            var innerDbService = new CouchDbAccessService(config, new Mock<ILogger>().Object);
-            innerDbService.Initialize().Wait();
-            innerDbService.AddViews("roles", CouchDbRoleStore.GetViews()).Wait();
-            innerDbService.AddViews("permissions", CouchDbPermissionStore.GetViews()).Wait();
-            var auditingDbService = new AuditingDocumentDbService(new Mock<IEventService>().Object, innerDbService);
-            var cachingDbService =
-                new CachingDocumentDbService(auditingDbService, new MemoryCache(new MemoryCacheOptions()));
-            _dbService = cachingDbService;
-            return _dbService;
+            return config;
         }
 
         #region IDisposable implementation

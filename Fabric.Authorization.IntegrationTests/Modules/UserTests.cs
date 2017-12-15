@@ -3,15 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using Fabric.Authorization.API.Constants;
-using Fabric.Authorization.API.Infrastructure.PipelineHooks;
 using Fabric.Authorization.API.Models;
-using Fabric.Authorization.API.Modules;
-using Fabric.Authorization.Domain.Resolvers.Permissions;
 using Fabric.Authorization.Domain.Stores;
-using Fabric.Authorization.Domain.Stores.CouchDB;
-using Fabric.Authorization.Domain.Stores.InMemory;
-using Fabric.Authorization.Domain.Stores.Services;
-using Fabric.Authorization.Domain.Validators;
 using IdentityModel;
 using Nancy;
 using Nancy.Testing;
@@ -23,101 +16,26 @@ namespace Fabric.Authorization.IntegrationTests.Modules
     [Collection("InMemoryTests")]
     public class UserTests : IntegrationTestsFixture
     {
-        public UserTests(bool useInMemoryDB = true)
+        public UserTests(bool useInMemoryDB = true) : base()
         {
-            var roleStore = useInMemoryDB
-                ? new InMemoryRoleStore()
-                : (IRoleStore) new CouchDbRoleStore(DbService(), Logger, EventContextResolverService);
-
-            var userStore = useInMemoryDB
-                ? new InMemoryUserStore(_identifierFormatter)
-                : (IUserStore) new CouchDbUserStore(DbService(), Logger, EventContextResolverService,
-                    _identifierFormatter);
-
-            var groupStore = useInMemoryDB
-                ? new InMemoryGroupStore(_identifierFormatter)
-                : (IGroupStore) new CouchDbGroupStore(DbService(), Logger, EventContextResolverService,
-                    _identifierFormatter);
-
-            var clientStore = useInMemoryDB
-                ? new InMemoryClientStore()
-                : (IClientStore) new CouchDbClientStore(DbService(), Logger, EventContextResolverService);
-
-            var permissionStore = useInMemoryDB
-                ? new InMemoryPermissionStore(_identifierFormatter)
-                : (IPermissionStore) new CouchDbPermissionStore(DbService(), Logger, EventContextResolverService,
-                    _identifierFormatter);
-
-            var clientService = new ClientService(clientStore);
-            var roleService = new RoleService(roleStore, permissionStore, clientService);
-            var groupService = new GroupService(groupStore, roleStore, userStore, roleService);
-            var userService = new UserService(userStore);
-            var permissionService = new PermissionService(permissionStore, roleService);
-            var permissionResolverService = new PermissionResolverService(roleService, permissionService,
-                new List<IPermissionResolverService>
+            var principal = new ClaimsPrincipal(
+                new ClaimsIdentity(new List<Claim>
                 {
-                    new GranularPermissionResolverService(permissionService, Logger),
-                    new RolePermissionResolverService(roleService)
-                },
-                Logger);
-
-            Browser = new Browser(with =>
-            {
-                with.Module(new RolesModule(
-                    roleService,
-                    clientService,
-                    new RoleValidator(roleService),
-                    Logger));
-
-                with.Module(new ClientsModule(
-                    clientService,
-                    new ClientValidator(clientService),
-                    Logger));
-
-                with.Module(new UsersModule(
-                    clientService,
-                    permissionService,
-                    userService,
-                    roleService,
-                    permissionResolverService,
-                    new UserValidator(),
-                    Logger));
-
-                with.Module(new GroupsModule(
-                    groupService,
-                    new GroupValidator(groupService),
-                    Logger));
-
-                with.Module(new PermissionsModule(
-                    permissionService,
-                    clientService,
-                    new PermissionValidator(permissionService),
-                    Logger));
-
-                with.RequestStartup((_, pipelines, context) =>
-                {
-                    context.CurrentUser = new ClaimsPrincipal(
-                        new ClaimsIdentity(new List<Claim>
-                        {
-                            new Claim(Claims.Scope, Scopes.ManageClientsScope),
-                            new Claim(Claims.Scope, Scopes.ReadScope),
-                            new Claim(Claims.Scope, Scopes.WriteScope),
-                            new Claim(Claims.ClientId, "userprincipal"),
-                            new Claim(Claims.Sub, "userprincipal"),
-                            new Claim(JwtClaimTypes.Role, Group1),
-                            new Claim(JwtClaimTypes.Role, Group2),
-                            new Claim(JwtClaimTypes.IdentityProvider, IdentityProvider)
-                        }, "userprincipal"));
-                    pipelines.BeforeRequest += ctx => RequestHooks.SetDefaultVersionInUrl(ctx);
-                });
-            }, withDefaults => withDefaults.HostName("testhost"));
+                    new Claim(Claims.Scope, Scopes.ManageClientsScope),
+                    new Claim(Claims.Scope, Scopes.ReadScope),
+                    new Claim(Claims.Scope, Scopes.WriteScope),
+                    new Claim(Claims.ClientId, "userprincipal"),
+                    new Claim(Claims.Sub, "userprincipal"),
+                    new Claim(JwtClaimTypes.Role, Group1),
+                    new Claim(JwtClaimTypes.Role, Group2),
+                    new Claim(JwtClaimTypes.IdentityProvider, IdentityProvider)
+                }, "userprincipal"));
+            Browser = GetBrowser(principal, useInMemoryDB);
 
             Browser.Post("/clients", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", "userprincipal");
-                with.FormValue("Name", "userprincipal");
-                with.Header("Accept", "application/json");
+                with.JsonBody(new ClientApiModel{Id = "userprincipal", Name = "userprincipal"});
             }).Wait();
         }
 
@@ -144,9 +62,11 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var response = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("GroupName", groupName);
-                with.FormValue("GroupSource", "Custom");
-                with.Header("Accept", "application/json");
+                with.JsonBody(new GroupRoleApiModel
+                {
+                    GroupName = groupName,
+                    GroupSource = "Custom"
+                });
             }).Result;
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -155,10 +75,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             response = Browser.Post("/roles", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", roleName);
+                with.JsonBody(new RoleApiModel
+                {
+                    Grain = "app",
+                    SecurableItem = "userprincipal",
+                    Name = roleName
+                });
             }).Result;
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -169,8 +91,10 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             response = Browser.Post($"/groups/{groupName}/roles", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Id", roleId.ToString());
+                with.JsonBody(new
+                {
+                    Id = roleId.ToString()
+                });
             }).Result;
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -179,10 +103,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             response = Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", permissionNames[0]);
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = "userprincipal",
+                    Name = permissionNames[0]
+                });
             }).Result;
 
             var permission1Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
@@ -190,10 +116,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             response = Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", permissionNames[1]);
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = "userprincipal",
+                    Name = permissionNames[1]
+                });
             }).Result;
 
             var permission2Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
@@ -201,10 +129,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             response = Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", permissionNames[2]);
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = "userprincipal",
+                    Name = permissionNames[2]
+                });
             }).Result;
 
             var permission3Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
@@ -212,10 +142,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             response = Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", permissionNames[3]);
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = "userprincipal",
+                    Name = permissionNames[3]
+                });
             }).Result;
 
             var permission4Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
@@ -224,9 +156,11 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             response = Browser.Post($"/groups/{groupName}/users", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("SubjectId", subjectId);
-                with.FormValue("IdentityProvider", identityProvider);
+                with.JsonBody(new
+                {
+                    SubjectId = subjectId,
+                    IdentityProvider = identityProvider
+                });
             }).Result;
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -274,9 +208,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
                 with.Body(JsonConvert.SerializeObject(
                     new List<PermissionApiModel> {permissionApiModels[0], permissionApiModels[1]}));
-
-                with.Header("Accept", "application/json");
-                with.Header("Content-Type", "application/json");
+                
             }).Result;
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -288,9 +220,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
                 with.Body(JsonConvert.SerializeObject(
                     new List<PermissionApiModel> {permissionApiModels[2], permissionApiModels[3]}));
-
-                with.Header("Accept", "application/json");
-                with.Header("Content-Type", "application/json");
+                
             }).Result;
 
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
@@ -299,7 +229,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             response = Browser.Get($"/user/{identityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
             }).Result;
 
             var permissions = response.Body.DeserializeJson<List<PermissionApiModel>>();
@@ -353,7 +282,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var response = Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 with.JsonBody(allowReadPatientPermission);
             }).Result;
 
@@ -365,7 +293,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var postResponse = Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 var perms = new List<PermissionApiModel> { allowReadPatientPermission, denyReadPatientPermission };
                 with.JsonBody(perms);
             }).Result;
@@ -840,10 +767,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var post = Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", "viewpatient");
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = "userprincipal",
+                    Name = "viewpatient"
+                });
             }).Result;
 
             var viewPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
@@ -851,10 +780,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             post = Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", "editpatient");
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = "userprincipal",
+                    Name = "editpatient"
+                });
             }).Result;
 
             var editPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
@@ -870,7 +801,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             post = Browser.Post("/roles", with => // -3
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 with.JsonBody(role);
             }).Result;
 
@@ -879,7 +809,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             post = Browser.Post("/roles", with => // -2
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 role.Name = "editor";
                 role.Permissions = new List<PermissionApiModel> {editPatientPermission};
                 with.JsonBody(role);
@@ -890,33 +819,41 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", Group1);
-                with.FormValue("GroupName", Group1);
-                with.FormValue("GroupSource", Source1);
-                with.Header("Accept", "application/json");
+                with.JsonBody(new
+                {
+                    Id = Group1,
+                    GroupName = Group1,
+                    GroupSource = Source1
+                });
             }).Wait();
 
             Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", Group2);
-                with.FormValue("GroupName", Group2);
-                with.FormValue("GroupSource", Source2);
-                with.Header("Accept", "application/json");
+                with.JsonBody(new
+                {
+                    Id = Group2,
+                    GroupName = Group2,
+                    GroupSource = Source2
+                });
             }).Wait();
 
             Browser.Post($"/groups/{Group1}/roles", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Id", viewerRole.Identifier);
+                with.JsonBody(new
+                {
+                    Id = viewerRole.Identifier
+                });
             }).Wait();
 
             Browser.Post($"/groups/{Group2}/roles", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Id", editorRole.Identifier);
+                with.JsonBody(new
+                {
+                    Id = editorRole.Identifier
+                });
             }).Wait();
 
             // Get the permissions
@@ -943,10 +880,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var post = Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", "greatgrandfatherpermissions");
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = "userprincipal",
+                    Name = "greatgrandfatherpermissions"
+                });
             }).Result;
 
             var ggfperm = post.Body.DeserializeJson<PermissionApiModel>();
@@ -954,10 +893,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             post = Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", "grandfatherpermissions");
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = "userprincipal",
+                    Name = "grandfatherpermissions"
+                });
             }).Result;
 
             var gfperm = post.Body.DeserializeJson<PermissionApiModel>();
@@ -965,10 +906,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             post = Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", "fatherpermissions");
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = "userprincipal",
+                    Name = "fatherpermissions"
+                });
             }).Result;
 
             var fperm = post.Body.DeserializeJson<PermissionApiModel>();
@@ -976,10 +919,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             post = Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", "himselfpermissions");
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = "userprincipal",
+                    Name = "himselfpermissions"
+                });
             }).Result;
 
             var hsperm = post.Body.DeserializeJson<PermissionApiModel>();
@@ -987,10 +932,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             post = Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", "sonpermissions");
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = "userprincipal",
+                    Name = "sonpermissions"
+                });
             }).Result;
 
             var sonperm = post.Body.DeserializeJson<PermissionApiModel>();
@@ -1065,18 +1012,21 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", group);
-                with.FormValue("GroupName", group);
-                with.FormValue("GroupSource", Source1);
-                with.Header("Accept", "application/json");
+                with.JsonBody(new 
+                {
+                    Id = group,
+                    GroupName = group,
+                    GroupSource = Source1
+                });
             }).Wait();
 
             Browser.Post($"/groups/{group}/roles", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Id", hs.Identifier);
-                with.Header("Accept", "application/json");
+                with.JsonBody(new
+                {
+                    Id = hs.Identifier
+                });
             }).Wait();
 
             // Get the permissions
@@ -1087,11 +1037,11 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Result;
 
             Assert.Equal(HttpStatusCode.OK, get.StatusCode);
-            Assert.True(get.Body.AsString().Contains("greatgrandfatherpermissions"));
-            Assert.True(get.Body.AsString().Contains("grandfatherpermissions"));
-            Assert.True(get.Body.AsString().Contains("fatherpermissions"));
-            Assert.True(get.Body.AsString().Contains("himselfpermissions"));
-            Assert.False(get.Body.AsString().Contains("sonpermissions"));
+            Assert.Contains("greatgrandfatherpermissions", get.Body.AsString());
+            Assert.Contains("grandfatherpermissions", get.Body.AsString());
+            Assert.Contains("fatherpermissions", get.Body.AsString());
+            Assert.Contains("himselfpermissions", get.Body.AsString());
+            Assert.DoesNotContain("sonpermissions", get.Body.AsString());
         }
 
         [Fact]
@@ -1102,10 +1052,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var post = Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", "viewpatient");
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = "userprincipal",
+                    Name = "viewpatient"
+                });
             }).Result;
 
             var viewPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
@@ -1113,10 +1065,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             post = Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", "editpatient");
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = "userprincipal",
+                    Name = "editpatient"
+                });
             }).Result;
 
             var editPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
@@ -1157,47 +1111,54 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", Group1);
-                with.FormValue("GroupName", Group1);
-                with.FormValue("GroupSource", Source1);
-                with.Header("Accept", "application/json");
+                with.JsonBody(new
+                {
+                    Id = Group1,
+                    GroupName = Group1,
+                    GroupSource = Source1
+                });
             }).Wait();
 
             Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", Group2);
-                with.FormValue("GroupName", Group2);
-                with.FormValue("GroupSource", Source2);
-                with.Header("Accept", "application/json");
+                with.JsonBody(new
+                {
+                    Id = Group2,
+                    GroupName = Group2,
+                    GroupSource = Source2
+                });
             }).Wait();
 
             Browser.Post($"/groups/{Group1}/roles", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Id", viewerRole.Identifier);
+                with.JsonBody(new
+                {
+                    Id = viewerRole.Identifier
+                });
             }).Wait();
 
             Browser.Post($"/groups/{Group2}/roles", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Id", editorRole.Identifier);
+                with.JsonBody(new
+                {
+                    Id = editorRole.Identifier
+                });
             }).Wait();
 
             // Get the permissions
             var get = Browser.Get("/user/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
             }).Result;
 
             Assert.Equal(HttpStatusCode.OK, get.StatusCode);
             var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
             Assert.Contains("app/userprincipal.editpatient", permissions.Permissions);
             Assert.DoesNotContain("app/userprincipal.viewpatient", permissions.Permissions); // Denied by role
-            Assert.Equal(1, permissions.Permissions.Count());
+            Assert.Single(permissions.Permissions);
         }
 
         [Fact]
@@ -1208,10 +1169,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var post = Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", "viewpatient");
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = "userprincipal",
+                    Name = "viewpatient"
+                });
             }).Result;
 
             var viewPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
@@ -1219,10 +1182,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             post = Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", "editpatient");
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = "userprincipal",
+                    Name = "editpatient"
+                });
             }).Result;
 
             var editPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
@@ -1239,7 +1204,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             post = Browser.Post("/roles", with => // -3
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 with.JsonBody(role);
             }).Result;
 
@@ -1248,7 +1212,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             post = Browser.Post("/roles", with => // -2
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 role.Name = "editor";
                 role.Permissions = new List<PermissionApiModel> {editPatientPermission};
                 with.JsonBody(role);
@@ -1260,33 +1223,41 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", Group1);
-                with.FormValue("GroupName", Group1);
-                with.FormValue("GroupSource", Source1);
-                with.Header("Accept", "application/json");
+                with.JsonBody(new
+                {
+                    Id = Group1,
+                    GroupName = Group1,
+                    GroupSource = Source1
+                });
             }).Wait();
 
             Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", Group2);
-                with.FormValue("GroupName", Group2);
-                with.FormValue("GroupSource", Source2);
-                with.Header("Accept", "application/json");
+                with.JsonBody(new
+                {
+                    Id = Group2,
+                    GroupName = Group2,
+                    GroupSource = Source2
+                });
             }).Wait();
 
             Browser.Post($"/groups/{Group1}/roles", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Id", viewerRole.Identifier);
+                with.JsonBody(new
+                {
+                    Id = viewerRole.Identifier
+                });
             }).Wait();
 
             Browser.Post($"/groups/{Group2}/roles", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Id", editorRole.Identifier);
+                with.JsonBody(new
+                {
+                    Id = editorRole.Identifier
+                });
             }).Wait();
 
             // Adding blacklist (user cannot edit patient, even though role allows)
@@ -1297,7 +1268,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 var perms = new List<PermissionApiModel> {editPatientPermission};
                 with.JsonBody(perms);
             }).Wait();
@@ -1306,7 +1276,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var get = Browser.Get("/user/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
             }).Result;
 
             Assert.Equal(HttpStatusCode.OK, get.StatusCode);
@@ -1324,10 +1293,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var post = Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", "viewpatient");
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = "userprincipal",
+                    Name = "viewpatient"
+                });
             }).Result;
 
             var viewPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
@@ -1335,10 +1306,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             post = Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Grain", "app");
-                with.FormValue("SecurableItem", "userprincipal");
-                with.FormValue("Name", "editpatient");
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = "userprincipal",
+                    Name = "editpatient"
+                });
             }).Result;
 
             var editPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
@@ -1355,7 +1328,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             post = Browser.Post("/roles", with => // -3
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 with.JsonBody(role);
             }).Result;
 
@@ -1364,7 +1336,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             post = Browser.Post("/roles", with => // -2
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 role.Name = "editor";
                 role.Permissions = new List<PermissionApiModel> {editPatientPermission};
                 with.JsonBody(role);
@@ -1376,33 +1347,41 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", Group1);
-                with.FormValue("GroupName", Group1);
-                with.FormValue("GroupSource", Source1);
-                with.Header("Accept", "application/json");
+                with.JsonBody(new
+                {
+                    Id = Group1,
+                    GroupName = Group1,
+                    GroupSource = Source1
+                });
             }).Wait();
 
             Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("Id", Group2);
-                with.FormValue("GroupName", Group2);
-                with.FormValue("GroupSource", Source2);
-                with.Header("Accept", "application/json");
+                with.JsonBody(new
+                {
+                    Id = Group2,
+                    GroupName = Group2,
+                    GroupSource = Source2
+                });
             }).Wait();
 
             Browser.Post($"/groups/{Group1}/roles", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Id", viewerRole.Identifier);
+                with.JsonBody(new
+                {
+                    Id = viewerRole.Identifier
+                });
             }).Wait();
 
             Browser.Post($"/groups/{Group2}/roles", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.FormValue("Id", editorRole.Identifier);
+                with.JsonBody(new
+                {
+                    Id = editorRole.Identifier
+                });
             }).Wait();
 
             // Adding permission (user also can modify patient, even though role doesn't)
@@ -1417,7 +1396,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var response = Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 with.JsonBody(modifyPatientPermission);
             }).Result;
 
@@ -1428,7 +1406,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 var perms = new List<PermissionApiModel> {modifyPatientPermission};
                 with.JsonBody(perms);
             }).Wait();
@@ -1437,7 +1414,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var get = Browser.Get("/user/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
             }).Result;
 
             Assert.Equal(HttpStatusCode.OK, get.StatusCode);
@@ -1455,7 +1431,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var get = Browser.Get("/user/foo/bar/groups", with =>
                 {
                     with.HttpRequest();
-                    with.Header("Accept", "application/json");
                 }).Result;
 
             Assert.Equal(HttpStatusCode.NotFound, get.StatusCode);
