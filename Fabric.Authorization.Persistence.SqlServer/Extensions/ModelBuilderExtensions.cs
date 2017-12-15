@@ -243,6 +243,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             {
                 entity.ToTable("GroupRoles");
 
+                entity.HasAlternateKey(e => new { e.GroupId, e.RoleId });
+
                 entity.HasOne(e => e.Group)
                     .WithMany(e => e.GroupRoles)
                     .HasForeignKey(e => e.GroupId);
@@ -258,6 +260,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             modelBuilder.Entity<RolePermission>(entity =>
             {
                 entity.ToTable("RolePermissions");
+
+                entity.HasAlternateKey(e => new {e.RoleId, e.PermissionId});
 
                 entity.HasOne(e => e.Role)
                     .WithMany(e => e.RolePermissions)
@@ -279,6 +283,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             {
                 entity.ToTable("UserGroups");
 
+                entity.HasAlternateKey(e => new { e.UserId, e.GroupId });
+
                 entity.HasOne(e => e.User)
                     .WithMany(e => e.UserGroups)
                     .HasForeignKey(e => e.UserId);
@@ -294,6 +300,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             modelBuilder.Entity<UserPermission>(entity =>
             {
                 entity.ToTable("UserPermissions");
+
+                entity.HasAlternateKey(e => new { e.UserId, e.PermissionId });
 
                 entity.HasOne(e => e.User)
                     .WithMany(e => e.UserPermissions)
