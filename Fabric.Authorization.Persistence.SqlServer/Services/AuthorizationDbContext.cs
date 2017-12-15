@@ -19,6 +19,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
     {
         private readonly IEventContextResolverService _eventContextResolverService;
 
+        public AuthorizationDbContext()
+        {
+            
+        }
+
         public AuthorizationDbContext(DbContextOptions options, IEventContextResolverService eventContextResolverService) 
             : base(options)
         {
@@ -94,6 +99,12 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
             modelBuilder.ConfigureGroupUser();
             modelBuilder.ConfigureRolePermission();
             modelBuilder.ConfigureUserPermission();
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            base.OnConfiguring(optionsBuilder);
+            optionsBuilder.UseSqlServer("Server=localhost;Database=Authorization;Trusted_Connection=True;");
         }
     }
 }

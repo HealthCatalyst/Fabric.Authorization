@@ -1,5 +1,6 @@
 ﻿using Fabric.Authorization.Persistence.SqlServer.EntityModels;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace Fabric.Authorization.Persistence.SqlServer.Extensions
 {
@@ -60,6 +61,14 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                 entity.Property(p => p.CreatedDateTimeUtc)
                     .HasColumnType("datetime")
                     .IsRequired();
+
+                entity.HasMany(e => e.Permissions)
+                    .WithOne(e => e.SecurableItem)
+                    .HasForeignKey(e => e.PermissionId);
+
+                entity.HasMany(e => e.Roles)
+                    .WithOne(e => e.SecurableItem)
+                    .HasForeignKey(e => e.RoleId);
 
                 entity.Property(e => e.IsDeleted).HasDefaultValueSql("0");
             });
@@ -144,6 +153,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .HasColumnType("datetime");
 
                 entity.Property(e => e.IsDeleted).HasDefaultValueSql("0");
+
+                entity.HasOne(e => e.ParentRole).WithMany(e => e.ChildRoles).HasForeignKey(e => e.ParentRoleId);
 
                 entity.HasOne(e => e.SecurableItem)
                     .WithMany(e => e.Roles)
@@ -265,7 +276,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
 
                 entity.HasOne(e => e.Role)
                     .WithMany(e => e.RolePermissions)
-                    .HasForeignKey(e => e.RoleId);
+                    .HasForeignKey(e => e.RoleId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(e => e.Permission)
                     .WithMany(e => e.RolePermissions)
