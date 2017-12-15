@@ -48,40 +48,7 @@ namespace Fabric.Authorization.UnitTests.Configuration
                                                   } 
                                                 }";
 
-        private const string EncryptedAppSettings = @"{
-                                                  ""ClientName"": ""hc"",
-                                                  ""UseInMemoryStores"": false,
-                                                  ""ElasticSearchSettings"": {
-                                                    ""Scheme"": ""http"",
-                                                    ""Server"": ""localhost"",
-                                                    ""Port"": ""9200"",
-                                                    ""Username"": ""test"",
-                                                    ""Password"": ""test""
-                                                  },
-                                                  ""IdentityServerConfidentialClientSettings"": {
-                                                    ""Authority"": ""http://localhost:5001/"",
-                                                    ""ClientId"": ""authorization-api"",
-                                                    ""ClientSecret"": ""secret"",
-                                                    ""Scopes"": [
-                                                      ""fabric/authorization.read"",
-                                                      ""fabric/authorization.write"",
-                                                      ""fabric/authorization.manageclients""
-                                                    ]
-                                                  },
-                                                  ""CouchDbSettings"": {
-                                                    ""Server"": ""http://localhost:5984/"",
-                                                    ""DatabaseName"": ""authorization"",
-                                                    ""Username"": ""test"",
-                                                    ""Password"": ""!!enc!!:gczwrq53rqqMwA6y+4z0ThqU7DQLP9J2Lu+Yy0OpayMZrh73aOZLwS4WAqZ00HUcPsrNQWGxFel1UEuPYx4c8hztddYI6XRpbDgCYvDvJiIxMVnrsekpHwFv2vmVWbxXRw306Rv13oA9xdTbFMvavy2LYT5GgkOpJLAcAxX9b4F1svmiNDeroL6+tNIxN3lX8i2o9GzR94HJltQi+c1pgN3WRDy0Jrgk4dA174xkJuo47CiS0N3ePZMaHz98ok9sUio7lQ8OzL25xp+1mLLVXoywUcKzpJJ+PFTltMXamEzkeH4hNIu5HCngiNqDB09bQ22WElzESIA6dw3iVVjH6g==""
-                                                  },
-                                                  ""ApplicationInsights"": {
-                                                    ""InstrumentationKey"": ""123456"",
-                                                    ""Enabled"": false
-                                                  },
-                                                  ""EncryptionCertificateSettings"": {
-                                                    ""EncryptionCertificateThumbprint"": ""test""
-                                                  } 
-                                                }";
+        private const string DockerSecretDirectory = @"/run/secrets";
 
         [Fact]
         public void GetConfiguration_GetsUnencryptedConfigurationFromAppSettings()
@@ -89,13 +56,12 @@ namespace Fabric.Authorization.UnitTests.Configuration
             //create the provider
             var certificateService = new Mock<ICertificateService>().Object;
             var configProvider = new AuthorizationConfigurationProvider(certificateService);
-            
+
             WriteAppSettingsToFile(UnencryptedAppSettings);
 
             var config = configProvider.GetAppConfiguration(Directory.GetCurrentDirectory());
             Assert.Equal("hc", config.ClientName);
-            Assert.Equal(false, config.ApplicationInsights.Enabled);
-            Assert.Equal("test", config.CouchDbSettings.Password);
+            Assert.False(config.ApplicationInsights.Enabled);
             Assert.Equal("test", config.EncryptionCertificateSettings.EncryptionCertificateThumbprint);
         }
 
@@ -106,18 +72,19 @@ namespace Fabric.Authorization.UnitTests.Configuration
             var configProvider = new AuthorizationConfigurationProvider(certificateService);
 
             WriteAppSettingsToFile(UnencryptedAppSettings);
-            CreateDockerSecret("CouchDbSettings__Username", "admin");
+            CreateDockerSecret("ApplicationInsights__InstrumentationKey", "56789");
 
             var config = configProvider.GetAppConfiguration(Directory.GetCurrentDirectory());
+            DeleteDockerSecret("ApplicationInsights__InstrumentationKey");
+
             Assert.Equal("hc", config.ClientName);
-            Assert.Equal(false, config.ApplicationInsights.Enabled);
-            Assert.Equal("test", config.CouchDbSettings.Password);
-            Assert.Equal("admin", config.CouchDbSettings.Username);
+            Assert.False(config.ApplicationInsights.Enabled);
+            Assert.Equal("56789", config.ApplicationInsights.InstrumentationKey);
             Assert.Equal("test", config.EncryptionCertificateSettings.EncryptionCertificateThumbprint);
         }
 
         [Fact]
-        public void GetConfiguration_GetsEncryptedConfigurationFromAppSettings()
+        public void GetConfiguration_GetsEncryptedConfiguration()
         {
             var certificateService = new Mock<ICertificateService>();
             certificateService
@@ -125,9 +92,11 @@ namespace Fabric.Authorization.UnitTests.Configuration
                 .Returns((EncryptionCertificateSettings settings) => GetCertificate());
             var configProvider = new AuthorizationConfigurationProvider(certificateService.Object);
 
-            WriteAppSettingsToFile(EncryptedAppSettings);
+            CreateDockerSecret("CouchDbSettings__Password", "!!enc!!:gczwrq53rqqMwA6y+4z0ThqU7DQLP9J2Lu+Yy0OpayMZrh73aOZLwS4WAqZ00HUcPsrNQWGxFel1UEuPYx4c8hztddYI6XRpbDgCYvDvJiIxMVnrsekpHwFv2vmVWbxXRw306Rv13oA9xdTbFMvavy2LYT5GgkOpJLAcAxX9b4F1svmiNDeroL6+tNIxN3lX8i2o9GzR94HJltQi+c1pgN3WRDy0Jrgk4dA174xkJuo47CiS0N3ePZMaHz98ok9sUio7lQ8OzL25xp+1mLLVXoywUcKzpJJ+PFTltMXamEzkeH4hNIu5HCngiNqDB09bQ22WElzESIA6dw3iVVjH6g==");
 
             var config = configProvider.GetAppConfiguration(Directory.GetCurrentDirectory());
+            DeleteDockerSecret("CouchDbSettings__Password");
+
             Assert.Equal("password", config.CouchDbSettings.Password);
 
         }
@@ -143,17 +112,26 @@ namespace Fabric.Authorization.UnitTests.Configuration
 
         private void CreateDockerSecret(string name, string value)
         {
-            var secretsDirectory = @"/run/secrets";
-            if (!Directory.Exists(secretsDirectory))
+            if (!Directory.Exists(DockerSecretDirectory))
             {
-                Directory.CreateDirectory(secretsDirectory);
+                Directory.CreateDirectory(DockerSecretDirectory);
             }
-            var secretFile = Path.Combine(secretsDirectory, name);
+            var secretFile = Path.Combine(DockerSecretDirectory, name);
             var setting = File.Create(secretFile);
             using (var writer = new StreamWriter(setting))
             {
                 writer.Write(value);
             }
+        }
+
+        private void DeleteDockerSecret(string name)
+        {
+            var secretsFile = Path.Combine(DockerSecretDirectory, name);
+            if (!File.Exists(secretsFile))
+            {
+                return;
+            }
+            File.Delete(secretsFile);
         }
 
         private X509Certificate2 GetCertificate()
