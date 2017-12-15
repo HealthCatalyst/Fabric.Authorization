@@ -59,6 +59,8 @@ namespace Fabric.Authorization.IntegrationTests
         private IDocumentDbService _dbService;
 
         private readonly string CouchDbServerEnvironmentVariable = "COUCHDBSETTINGS__SERVER";
+        private readonly string CouchDbUsernameEnvironmentVariable = "COUCHDBSETTINGS__USERNAME";
+        private readonly string CouchDbPasswordEnvironmentVariable = "COUCHDBSETTINGS__PASSWORD";
 
         protected DefaultPropertySettings DefaultPropertySettings = new DefaultPropertySettings
         {
@@ -99,6 +101,18 @@ namespace Fabric.Authorization.IntegrationTests
             if (!string.IsNullOrEmpty(couchDbServer))
             {
                 config.Server = couchDbServer;
+            }
+
+            var couchDbUsername = Environment.GetEnvironmentVariable(CouchDbUsernameEnvironmentVariable);
+            if (!string.IsNullOrEmpty(couchDbUsername))
+            {
+                config.Username = couchDbUsername;
+            }
+
+            var couchDbPassword = Environment.GetEnvironmentVariable(CouchDbPasswordEnvironmentVariable);
+            if (!string.IsNullOrEmpty(couchDbPassword))
+            {
+                config.Password = couchDbPassword;
             }
             return config;
         }
