@@ -17,6 +17,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
 
         public Guid PermissionId { get; set; }
         public string Grain { get; set; }
+        public string Name { get; set; }
 
         public DateTime CreatedDateTimeUtc { get; set; }
         public DateTime? ModifiedDateTimeUtc { get; set; }
