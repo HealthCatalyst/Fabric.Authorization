@@ -3,14 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using Fabric.Authorization.API.Constants;
-using Fabric.Authorization.API.Infrastructure.PipelineHooks;
 using Fabric.Authorization.API.Models;
-using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Stores;
-using Fabric.Authorization.Domain.Stores.CouchDB;
-using Fabric.Authorization.Domain.Stores.InMemory;
-using Fabric.Authorization.Domain.Stores.Services;
-using Fabric.Authorization.Domain.Validators;
 using Nancy;
 using Nancy.Testing;
 
@@ -23,8 +17,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
     [Collection("InMemoryTests")]
     public class RolesTests : IntegrationTestsFixture
     {
-        private readonly IIdentifierFormatter _identifierFormatter = new IdpIdentifierFormatter();
-
         public RolesTests(bool useInMemoryDB = true)
         {
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
