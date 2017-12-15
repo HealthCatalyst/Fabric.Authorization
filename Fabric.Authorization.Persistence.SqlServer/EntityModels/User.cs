@@ -8,7 +8,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
     {
         public User()
         {
-            UserGroups = new List<UserGroup>();
+            GroupUsers = new List<GroupUser>();
             UserPermissions = new List<UserPermission>();
         }
 
@@ -23,7 +23,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
         public string ModifiedBy { get; set; }
         public bool IsDeleted { get; set; }
 
-        public ICollection<UserGroup> UserGroups { get; set; }
+        public ICollection<GroupUser> GroupUsers { get; set; }
         public ICollection<UserPermission> UserPermissions { get; set; }
     }
 }

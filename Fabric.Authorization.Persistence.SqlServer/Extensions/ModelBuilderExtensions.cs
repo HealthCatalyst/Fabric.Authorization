@@ -190,7 +190,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .WithOne(e => e.Group)
                     .HasForeignKey(e => e.GroupId);
 
-                entity.HasMany(e => e.UserGroups)
+                entity.HasMany(e => e.GroupUsers)
                     .WithOne(e => e.Group)
                     .HasForeignKey(e => e.GroupId);
             });
@@ -227,7 +227,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
 
                 entity.Property(e => e.IsDeleted).HasDefaultValueSql("0");
 
-                entity.HasMany(e => e.UserGroups)
+                entity.HasMany(e => e.GroupUsers)
                     .WithOne(e => e.User)
                     .HasForeignKey(e => e.UserId);
 
@@ -277,20 +277,20 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             });
         }
 
-        public static void ConfigureUserGroup(this ModelBuilder modelBuilder)
+        public static void ConfigureGroupUser(this ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<UserGroup>(entity =>
+            modelBuilder.Entity<GroupUser>(entity =>
             {
-                entity.ToTable("UserGroups");
+                entity.ToTable("GroupUsers");
 
                 entity.HasAlternateKey(e => new { e.UserId, e.GroupId });
 
                 entity.HasOne(e => e.User)
-                    .WithMany(e => e.UserGroups)
+                    .WithMany(e => e.GroupUsers)
                     .HasForeignKey(e => e.UserId);
 
                 entity.HasOne(e => e.Group)
-                    .WithMany(e => e.UserGroups)
+                    .WithMany(e => e.GroupUsers)
                     .HasForeignKey(e => e.GroupId);
             });
         }
