@@ -1,6 +1,14 @@
-﻿namespace Fabric.Authorization.Persistence.SqlServer.Mappers
+﻿using AutoMapper;
+
+namespace Fabric.Authorization.Persistence.SqlServer.Mappers
 {
-    public class GroupMapperProfile
+    public class GroupMapperProfile : Profile
     {
+        public GroupMapperProfile()
+        {
+            CreateMap<EntityModels.Group, Domain.Models.Group>()
+                .ForMember(x => x.Id, opt => opt.MapFrom(src => src.GroupId))
+                .ReverseMap();
+        }
     }
 }

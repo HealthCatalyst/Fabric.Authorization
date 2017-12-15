@@ -18,7 +18,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
         public int Id { get; set; }
         public int? ParentRoleId { get; set; }
         public int SecurableItemId { get; set; }
-        public Guid ExternalIdentifier { get; set; }
+        public Guid RoleId { get; set; }
         public string Grain { get; set; }
         public string Name { get; set; }
 

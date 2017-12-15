@@ -160,20 +160,20 @@ namespace Fabric.Authorization.API.Models
             return permissionRoleApiModel;
         }
 
-        public static Permission ToPermissionDomainModel(this PermissionApiModel permission)
+        public static Permission ToPermissionDomainModel(this PermissionApiModel permissionApiModel)
         {
-            var permissionApiModel = new Permission
+            var permission = new Permission
             {
-                Id = permission.Id ?? Guid.Empty,
-                Grain = permission.Grain,
-                Name = permission.Name,
-                SecurableItem = permission.SecurableItem,
-                CreatedDateTimeUtc = permission.CreatedDateTimeUtc,
-                ModifiedDateTimeUtc = permission.ModifiedDateTimeUtc,
-                CreatedBy = permission.CreatedBy,
-                ModifiedBy = permission.ModifiedBy
+                Id = permissionApiModel.Id ?? Guid.Empty,
+                Grain = permissionApiModel.Grain,
+                Name = permissionApiModel.Name,
+                SecurableItem = permissionApiModel.SecurableItem,
+                CreatedDateTimeUtc = permissionApiModel.CreatedDateTimeUtc,
+                ModifiedDateTimeUtc = permissionApiModel.ModifiedDateTimeUtc,
+                CreatedBy = permissionApiModel.CreatedBy,
+                ModifiedBy = permissionApiModel.ModifiedBy
             };
-            return permissionApiModel;
+            return permission;
         }
 
         public static ClientApiModel ToClientApiModel(this Client client)
