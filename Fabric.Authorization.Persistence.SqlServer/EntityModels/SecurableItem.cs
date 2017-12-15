@@ -18,5 +18,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
 
         public ICollection<SecurableItem> SecurableItems { get; set; }
         public ICollection<Client> Clients { get; set; }
+        public ICollection<Permission> Permissions { get; set; }
+        public ICollection<Role> Roles { get; set; }
     }
 }

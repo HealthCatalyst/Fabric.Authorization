@@ -9,7 +9,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
         public Group()
         {
             GroupRoles = new List<GroupRole>();
-            Users = new List<User>();
+            UserGroups = new List<UserGroup>();
         }
 
         public int Id { get; set; }
@@ -24,6 +24,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
         public bool IsDeleted { get; set; }
 
         public ICollection<GroupRole> GroupRoles{ get; set; }
-        public ICollection<User> Users { get; set; }
+        public ICollection<UserGroup> UserGroups { get; set; }
     }
 }

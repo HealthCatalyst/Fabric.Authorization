@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Persistence.SqlServer.EntityModels;
+using Fabric.Authorization.Persistence.SqlServer.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Client = Fabric.Authorization.Persistence.SqlServer.EntityModels.Client;
 using Group = Fabric.Authorization.Persistence.SqlServer.EntityModels.Group;
@@ -83,59 +84,15 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Client>(entity =>
-            {
-                entity.ToTable("Clients");
-
-                entity.HasIndex(i => i.SecurableItemId)
-                    .HasName("IX_Client_SecurableItemId");
-
-                entity.Property(p => p.Name)
-                    .IsRequired()
-                    .HasMaxLength(200);
-
-                entity.Property(p => p.SecurableItemId)
-                    .IsRequired();
-
-                entity.Property(p => p.CreatedBy)
-                    .IsRequired()
-                    .HasMaxLength(100);
-
-                entity.Property(p => p.CreatedDateTimeUtc)
-                    .HasColumnType("datetime")
-                    .IsRequired();
-
-                entity.Property(e => e.IsDeleted).HasDefaultValueSql("0");
-
-                entity.HasOne(e => e.TopLevelSecurableItem)
-                    .WithMany(d => d.Clients)
-                    .HasForeignKey(d => d.SecurableItemId);
-            });
-
-            modelBuilder.Entity<SecurableItem>(entity =>
-            {
-                entity.ToTable("SecurableItems");
-
-                entity.HasIndex(i => i.SecurableItemId)
-                    .HasName("IX_SecurableItem_SecurableItemId");
-
-                entity.Property(p => p.Name)
-                    .IsRequired()
-                    .HasMaxLength(200);
-
-                entity.Property(p => p.SecurableItemId)
-                    .IsRequired();
-
-                entity.Property(p => p.CreatedBy)
-                    .IsRequired()
-                    .HasMaxLength(100);
-
-                entity.Property(p => p.CreatedDateTimeUtc)
-                    .HasColumnType("datetime")
-                    .IsRequired();
-
-                entity.Property(e => e.IsDeleted).HasDefaultValueSql("0");
-            });
+            modelBuilder.ConfigureClient();
+            modelBuilder.ConfigureSecurableItem();
+            modelBuilder.ConfigurePermission();
+            modelBuilder.ConfigureRole();
+            modelBuilder.ConfigureGroup();
+            modelBuilder.ConfigureUser();
+            modelBuilder.ConfigureGroupRole();
+            modelBuilder.ConfigureRolePermission();
+            modelBuilder.ConfigureUserPermission();
         }
     }
 }
