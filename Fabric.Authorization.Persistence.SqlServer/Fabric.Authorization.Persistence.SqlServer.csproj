@@ -1,8 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFrameworks>netcoreapp1.1;netstandard1.3</TargetFrameworks>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Migrations\**" />
+    <EmbeddedResource Remove="Migrations\**" />
+    <None Remove="Migrations\**" />
+  </ItemGroup>
 
 
   <ItemGroup>
@@ -21,6 +27,7 @@
   <ItemGroup>
     <Folder Include="DependencyInjection\" />
     <Folder Include="Configuration\" />
+    <Folder Include="Mappers\" />
     <Folder Include="Stores\" />
   </ItemGroup>
 
