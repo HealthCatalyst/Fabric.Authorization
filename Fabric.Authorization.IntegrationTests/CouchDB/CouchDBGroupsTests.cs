@@ -1,6 +1,7 @@
 ﻿using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.IntegrationTests.Modules;
 using Nancy;
+using Nancy.Testing;
 using Xunit;
 
 namespace Fabric.Authorization.IntegrationTests.CouchDB
@@ -22,14 +23,18 @@ namespace Fabric.Authorization.IntegrationTests.CouchDB
             DbService().AddDocument("group1", new Group
             {
                 Id = groupName,
-                Name = groupName
+                Name = groupName,
+                Source = "Custom"
             }).Wait();
 
             var response = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("GroupName", groupName);
-                with.Header("Accept", "application/json");
+                with.JsonBody(new
+                {
+                    GroupName = groupName,
+                    GroupSource = "Custom"
+                });
             }).Result;
 
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
@@ -52,8 +57,10 @@ namespace Fabric.Authorization.IntegrationTests.CouchDB
             var response = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.FormValue("GroupName", groupName);
-                with.Header("Accept", "application/json");
+                with.JsonBody(new
+                {
+                    GroupName = groupName
+                });
             }).Result;
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -61,7 +68,6 @@ namespace Fabric.Authorization.IntegrationTests.CouchDB
             response = Browser.Get($"/groups/{groupName}", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
             }).Result;
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

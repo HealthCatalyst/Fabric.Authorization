@@ -19,13 +19,18 @@ namespace Fabric.Authorization.IntegrationTests
 {
     public class IntegrationTestsFixture : IDisposable
     {
+        protected CouchDbSettings CouchDbSettings { get; }
+        public IntegrationTestsFixture()
+        {
+            CouchDbSettings = GetCouchDbSettings();
+        }
         public Browser Browser { get; set; }
 
         public Browser GetBrowser(ClaimsPrincipal principal, bool useInMemoryStores)
         {
             var appConfiguration = new AppConfiguration
             {
-                CouchDbSettings = GetCouchDbSettings(),
+                CouchDbSettings = CouchDbSettings,
                 UseInMemoryStores = useInMemoryStores,
                 IdentityServerConfidentialClientSettings = new IdentityServerConfidentialClientSettings
                 {
@@ -38,6 +43,10 @@ namespace Fabric.Authorization.IntegrationTests
                         "fabric/authorization.write",
                         "fabric/authorization.manageclients"
                     }
+                },
+                DefaultPropertySettings = new DefaultPropertySettings
+                {
+                    GroupSource = "Windows"
                 }
             };
             var hostingEnvironment = new Mock<IHostingEnvironment>();
@@ -74,7 +83,7 @@ namespace Fabric.Authorization.IntegrationTests
                 return _dbService;
             }
 
-            ICouchDbSettings config = GetCouchDbSettings();
+            ICouchDbSettings config = CouchDbSettings;
 
             var innerDbService = new CouchDbAccessService(config, new Mock<ILogger>().Object);
             innerDbService.Initialize().Wait();
