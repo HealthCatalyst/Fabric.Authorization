@@ -17,7 +17,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
 {
     public class AuthorizationDbContext : DbContext, IAuthorizationDbContext
     {
-        private readonly IEventContextResolverService _eventContextResolverService;
+        private readonly IEventContextResolverService _eventContextResolverService;        
 
         public AuthorizationDbContext()
         {
@@ -40,7 +40,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
         public DbSet<User> Users { get; set; }
         public DbSet<GroupUser> GroupUsers { get; set; }
         public DbSet<UserPermission> UserPermissions { get; set; }
-
 
         public async Task<int> SaveChangesAsync()
         {

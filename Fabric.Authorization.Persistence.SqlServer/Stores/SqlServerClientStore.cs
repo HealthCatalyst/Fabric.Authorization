@@ -100,8 +100,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         /// <returns></returns>
         public async Task<bool> Exists(string id)
         {
-            var client = await _authorizationDbContext.Clients
-                .Include(i => i.TopLevelSecurableItem)
+            var client = await _authorizationDbContext.Clients                
                 .SingleOrDefaultAsync(c => c.ClientId.Equals(id, StringComparison.OrdinalIgnoreCase)
                                            && !c.IsDeleted);
 

@@ -31,10 +31,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .IsRequired();
 
                 entity.Property(e => e.IsDeleted).HasDefaultValueSql("0");
-
-                entity.HasOne(e => e.TopLevelSecurableItem)
-                    .WithMany(d => d.Clients)
-                    .HasForeignKey(d => d.SecurableItemId);
             });
         }
 
@@ -71,6 +67,9 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .HasForeignKey(e => e.RoleId);
 
                 entity.Property(e => e.IsDeleted).HasDefaultValueSql("0");
+
+                entity.HasOne(p => p.Parent)
+                    .WithMany(p => p.SecurableItems);
             });
         }
 
