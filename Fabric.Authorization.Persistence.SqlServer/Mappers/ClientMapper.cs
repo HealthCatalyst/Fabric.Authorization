@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using AutoMapper;
+﻿using AutoMapper;
 
 namespace Fabric.Authorization.Persistence.SqlServer.Mappers
 {

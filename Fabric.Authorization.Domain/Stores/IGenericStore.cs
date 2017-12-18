@@ -4,18 +4,19 @@ using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.Domain.Stores
 {
-    public interface IGenericStore<K, T> where T : ITrackable
+    public interface IGenericStore<in TKey, TEntity>
+        where TEntity : ITrackable
     {
-        Task<T> Add(T model);
+        Task<TEntity> Get(TKey id);
 
-        Task<T> Get(K id);
+        Task<TEntity> Add(TEntity model);
 
-        Task<IEnumerable<T>> GetAll();
+        Task<IEnumerable<TEntity>> GetAll();
 
-        Task Delete(T model);
+        Task Delete(TEntity model);
 
-        Task Update(T model);
+        Task Update(TEntity model);
 
-        Task<bool> Exists(K id);
+        Task<bool> Exists(TKey id);
     }
 }
