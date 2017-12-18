@@ -67,7 +67,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             if (client == null)
             {
-                throw new NotFoundException<Client>($"Could not find {typeof(Client).Name} entity with ID {id}");
+                throw new NotFoundException<Client>($"Could not find {typeof(Client).Name} entity with ID {model.Id}");
             }
 
             client.IsDeleted = true;
@@ -93,7 +93,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                                            && !c.IsDeleted);
             if (client == null)
             {
-                throw new NotFoundException<Client>($"Could not find {typeof(Client).Name} entity with ID {id}");
+                throw new NotFoundException<Client>($"Could not find {typeof(Client).Name} entity with ID {model.Id}");
             }
 
             model.ToEntity(client);
