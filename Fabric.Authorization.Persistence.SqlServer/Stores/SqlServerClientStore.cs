@@ -65,6 +65,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .SingleOrDefaultAsync(c => c.ClientId.Equals(model.Id, StringComparison.OrdinalIgnoreCase)
                                            && !c.IsDeleted);
 
+            if (client == null)
+            {
+                throw new NotFoundException<Client>($"Could not find {typeof(Client).Name} entity with ID {id}");
+            }
+
             client.IsDeleted = true;
             MarkSecurableItemsDeleted(client.TopLevelSecurableItem);
 
@@ -86,6 +91,10 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .Include(i => i.TopLevelSecurableItem)
                 .SingleOrDefaultAsync(c => c.ClientId.Equals(model.Id, StringComparison.OrdinalIgnoreCase)
                                            && !c.IsDeleted);
+            if (client == null)
+            {
+                throw new NotFoundException<Client>($"Could not find {typeof(Client).Name} entity with ID {id}");
+            }
 
             model.ToEntity(client);
 
