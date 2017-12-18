@@ -119,6 +119,10 @@ namespace Fabric.Authorization.API
             {
                 _logger.Warning("Error configuring Swagger Security Scheme. {exceptionMessage}", ex.Message);
             }
+            catch (NullReferenceException ex)
+            {
+                _logger.Warning("Error configuring Swagger Security Scheme: {exceptionMessage", ex.Message);
+            }
         }
 
         private void ConfigureRegistrations(TinyIoCContainer container)
