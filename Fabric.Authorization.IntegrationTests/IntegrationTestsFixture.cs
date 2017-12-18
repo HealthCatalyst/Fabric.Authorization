@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Security.Claims;
 using Fabric.Authorization.API.Configuration;
+using Fabric.Authorization.API.RemoteServices.Identity.Providers;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
@@ -26,7 +27,7 @@ namespace Fabric.Authorization.IntegrationTests
         }
         public Browser Browser { get; set; }
 
-        public Browser GetBrowser(ClaimsPrincipal principal, bool useInMemoryStores)
+        public Browser GetBrowser(ClaimsPrincipal principal, bool useInMemoryStores, IIdentityServiceProvider identityServiceProvider = null)
         {
             var appConfiguration = new AppConfiguration
             {
@@ -51,7 +52,7 @@ namespace Fabric.Authorization.IntegrationTests
             };
             var hostingEnvironment = new Mock<IHostingEnvironment>();
             var bootstrapper = new TestBootstrapper(new Mock<ILogger>().Object, appConfiguration,
-                new LoggingLevelSwitch(), hostingEnvironment.Object, principal);
+                new LoggingLevelSwitch(), hostingEnvironment.Object, principal, identityServiceProvider);
             return new Browser(bootstrapper, context =>
             {
                 context.HostName("testhost");
