@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Fabric.Authorization.API;
 using Fabric.Authorization.API.Configuration;
+using Fabric.Authorization.API.RemoteServices.Identity.Providers;
 using Microsoft.AspNetCore.Hosting;
 using Nancy;
 using Nancy.Bootstrapper;
@@ -13,15 +14,26 @@ namespace Fabric.Authorization.IntegrationTests
     public class TestBootstrapper : Bootstrapper
     {
         private readonly ClaimsPrincipal _principal;
-        public TestBootstrapper(ILogger logger, IAppConfiguration appConfig, LoggingLevelSwitch levelSwitch, IHostingEnvironment env, ClaimsPrincipal principal) : base(logger, appConfig, levelSwitch, env)
+        private readonly IIdentityServiceProvider _identityServiceProvider;
+        public TestBootstrapper(ILogger logger, IAppConfiguration appConfig, LoggingLevelSwitch levelSwitch, IHostingEnvironment env, ClaimsPrincipal principal, IIdentityServiceProvider identityServiceProvider = null) : base(logger, appConfig, levelSwitch, env)
         {
             _principal = principal;
+            _identityServiceProvider = identityServiceProvider;
         }
 
         protected override void RequestStartup(TinyIoCContainer container, IPipelines pipelines, NancyContext context)
         {
             base.RequestStartup(container, pipelines, context);
             context.CurrentUser = _principal;
+        }
+
+        protected override void ConfigureRequestContainer(TinyIoCContainer container, NancyContext context)
+        {
+            base.ConfigureRequestContainer(container, context);
+            if (_identityServiceProvider != null)
+            {
+                container.Register<IIdentityServiceProvider>(_identityServiceProvider);
+            }
         }
     }
 }
