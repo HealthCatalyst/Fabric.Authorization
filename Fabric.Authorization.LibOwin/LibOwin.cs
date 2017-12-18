@@ -894,7 +894,7 @@ namespace LibOwin
     using System.Threading.Tasks;
     using LibOwin.Infrastructure;
 
-    #if LIBOWIN_PUBLIC
+#if LIBOWIN_PUBLIC
 
     public partial class CookieOptions { }
     public partial class FormCollection { }
@@ -917,7 +917,7 @@ namespace LibOwin
     public partial class IOwinResponseExtension { }
     public partial class OwinEnvironmentExtension { }
 
-    #endif
+#endif
 
     /// <summary>
     /// Options used to create a new cookie.
@@ -974,7 +974,7 @@ namespace LibOwin
         /// <param name="store">The store for the form.</param>
         public FormCollection(IDictionary<string, string[]> store)
             : base(store)
-        {}
+        { }
     }
 
     /// <summary>
@@ -1445,7 +1445,7 @@ namespace LibOwin
     /// Contains the parsed form values.
     /// </summary>
     partial interface IFormCollection : IReadableStringCollection
-    {}
+    { }
 
     /// <summary>
     /// Represents a wrapper for owin.RequestHeaders and owin.ResponseHeaders.
@@ -1940,7 +1940,7 @@ namespace LibOwin
         // Raw
     }
 
-    internal static class OwinConstants
+    public static class OwinConstants
     {
         #region OWIN v1.0.0 - 3.2.1. Request Data
 
@@ -3590,7 +3590,7 @@ namespace LibOwin
     }
 
 
-    static partial class IOwinResponseExtension 
+    static partial class IOwinResponseExtension
     {
         /// <summary>
         /// Registers for an event that fires when the response headers are sent.
@@ -3600,16 +3600,17 @@ namespace LibOwin
         /// <param name="state">The callback state.</param>
         public static void OnSendingHeaders<T>(this IOwinResponse response, Action<T> callback, T state)
         {
-            if (response == null) {
+            if (response == null)
+            {
                 throw new ArgumentNullException("response");
             }
             Action<object> innerCallback = innerState => callback((T)innerState);
             response.OnSendingHeaders(innerCallback, state);
         }
-        
+
     }
 
-    static partial class OwinEnvironmentExtension 
+    static partial class OwinEnvironmentExtension
     {
         /// <summary>
         /// Creates an <see cref="OwinContext"/> with the environment.
