@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp1.1;netstandard1.3</TargetFrameworks>
+    <TargetFrameworks>netstandard1.3</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,8 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <DotNetCliToolReference Include="Microsoft.EntityFrameworkCore.Tools.DotNet"
-                            Version="1.1.5" />
+    <DotNetCliToolReference Include="Microsoft.EntityFrameworkCore.Tools.DotNet" Version="1.1.5" />
   </ItemGroup>
 
   <ItemGroup>
