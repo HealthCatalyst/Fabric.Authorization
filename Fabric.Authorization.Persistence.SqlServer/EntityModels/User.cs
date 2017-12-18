@@ -13,8 +13,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
         }
 
         public int Id { get; set; }
-        public string SubjectId { get; set; }
         public string IdentityProvider { get; set; }
+        public string SubjectId { get; set; }
         public string Name { get; set; }
 
         public DateTime CreatedDateTimeUtc { get; set; }

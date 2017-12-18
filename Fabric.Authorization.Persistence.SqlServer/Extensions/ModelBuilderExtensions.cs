@@ -212,6 +212,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             {
                 entity.ToTable("Users");
 
+                entity.HasAlternateKey(e => new { e.IdentityProvider, e.SubjectId });
+
                 entity.Property(e => e.SubjectId)
                     .IsRequired()
                     .HasMaxLength(200);
