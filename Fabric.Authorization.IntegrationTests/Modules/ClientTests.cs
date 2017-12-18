@@ -2,18 +2,9 @@
 using System.Linq;
 using System.Security.Claims;
 using Fabric.Authorization.API.Constants;
-using Fabric.Authorization.API.Infrastructure.PipelineHooks;
 using Fabric.Authorization.API.Models;
-using Fabric.Authorization.API.Modules;
-using Fabric.Authorization.Domain.Stores;
-using Fabric.Authorization.Domain.Stores.CouchDB;
-using Fabric.Authorization.Domain.Stores.InMemory;
-using Fabric.Authorization.Domain.Stores.Services;
 using Nancy;
 using Nancy.Testing;
-
-using Newtonsoft.Json;
-
 using Xunit;
 
 namespace Fabric.Authorization.IntegrationTests.Modules
@@ -23,30 +14,14 @@ namespace Fabric.Authorization.IntegrationTests.Modules
     {
         public ClientTests(bool useInMemoryDB = true)
         {
-            var store = useInMemoryDB ? new InMemoryClientStore() : (IClientStore)new CouchDbClientStore(this.DbService(), this.Logger, this.EventContextResolverService);
-            var clientService = new ClientService(store);
-
-            this.Browser = new Browser(with =>
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
             {
-                with.Module(new ClientsModule(
-                        clientService,
-                        new Domain.Validators.ClientValidator(clientService),
-                        this.Logger));
-                
-                with.RequestStartup((_, pipelines, context) =>
-                {
-                    context.CurrentUser = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
-                    {
-                        new Claim(Claims.Scope, Scopes.ManageClientsScope),
-                        new Claim(Claims.Scope, Scopes.ReadScope),
-                        new Claim(Claims.Scope, Scopes.WriteScope),
-                    }, "testprincipal"));
-                    pipelines.BeforeRequest += ctx => RequestHooks.ErrorResponseIfContentTypeMissingForPostAndPut(ctx);
-                    pipelines.BeforeRequest += ctx => RequestHooks.RemoveContentTypeHeaderForGet(ctx);
-                    pipelines.BeforeRequest += ctx => RequestHooks.SetDefaultVersionInUrl(ctx);
-                });
-                
-            }, withDefaults => withDefaults.HostName("testhost"));
+                new Claim(Claims.Scope, Scopes.ManageClientsScope),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.Scope, Scopes.WriteScope),
+            }, "testprincipal"));
+
+            Browser = GetBrowser(principal, useInMemoryDB);
         }
 
         [Theory]
@@ -58,7 +33,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var get = this.Browser.Get($"/clients/{Id}", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
             }).Result;
 
             Assert.Equal(HttpStatusCode.NotFound, get.StatusCode);
@@ -72,13 +46,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var getInitialCountResponse = this.Browser.Get("/clients", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
             }).Result;
             Assert.Equal(HttpStatusCode.OK, getInitialCountResponse.StatusCode);
             var initialClients = getInitialCountResponse.Body.DeserializeJson<IEnumerable<ClientApiModel>>();
             var initialClientCount = initialClients.Count();
 
-            var clientIds = new[] {clientId1, clientId2};
+            var clientIds = new[] { clientId1, clientId2 };
             //add two clients
             foreach (var clientId in clientIds)
             {
@@ -87,8 +60,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 var postResponse = this.Browser.Post("/clients", with =>
                 {
                     with.HttpRequest();
-                    with.Header("Accept", "application/json");
-                    with.Header("Content-Type", "application/json");
                     with.JsonBody(client);
                 }).Result;
                 Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
@@ -97,7 +68,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var getResponse = this.Browser.Get("/clients", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
             }).Result;
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
             var clients = getResponse.Body.DeserializeJson<IEnumerable<ClientApiModel>>();
@@ -107,7 +77,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var delete = this.Browser.Delete($"/clients/{clientIds[0]}", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
             }).Result;
 
             Assert.Equal(HttpStatusCode.NoContent, delete.StatusCode);
@@ -116,7 +85,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             getResponse = this.Browser.Get("/clients", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
             }).Result;
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
             clients = getResponse.Body.DeserializeJson<IEnumerable<ClientApiModel>>();
@@ -135,20 +103,17 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var postResponse = this.Browser.Post("/clients", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.Header("Content-Type", "application/json");
                 with.JsonBody(clientToAdd);
             }).Result;
 
             var getResponse = this.Browser.Get($"/clients/{Id}", with =>
                 {
                     with.HttpRequest();
-                    with.Header("Accept", "application/json");
                 }).Result;
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
-            Assert.True(getResponse.Body.AsString().Contains(Id));
+            Assert.Contains(Id, getResponse.Body.AsString());
         }
 
         [Theory]
@@ -162,8 +127,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             this.Browser.Post("/clients", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.Header("Content-Type", "application/json");
                 with.JsonBody(clientToAdd);
             }).Wait();
 
@@ -171,7 +134,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var postResponse = this.Browser.Post("/clients", with =>
             {
                 with.HttpRequest();
-                with.Header("Content-Type", "application/json");
                 with.JsonBody(clientToAdd);
             }).Result;
 
@@ -192,15 +154,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             this.Browser.Post("/clients", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                with.Header("Content-Type", "application/json");
                 with.JsonBody(clientToAdd);
             }).Wait();
 
             var delete = this.Browser.Delete($"/clients/{Id}", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
             }).Result;
 
             Assert.Equal(HttpStatusCode.NoContent, delete.StatusCode);
@@ -215,44 +174,10 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var delete = this.Browser.Delete($"/clients/{Id}", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
             }).Result;
 
             Assert.Equal(HttpStatusCode.NotFound, delete.StatusCode);
         }
 
-        [Fact]
-        [DisplayTestMethodName]
-        public void TestGetClient_ContentTypeHeaderSet_Success()
-        {
-            var get = this.Browser.Get($"/clients/Client1", with =>
-                {
-                    with.HttpRequest();
-                    with.Header("Accept", "application/json");
-                    with.Header("Content-Type", "application/json");
-                }).Result;
-
-            Assert.Equal(HttpStatusCode.NotFound, get.StatusCode);
-        }
-
-        [Fact]
-        [DisplayTestMethodName]
-        public void TestAddClient_InvalidContentTypeHeaderSet_BadRequestException()
-        {
-            var clientToAdd = new ClientApiModel { Id = "foo", Name = "foo" };
-
-            var postResponse = this.Browser.Post("/clients", with =>
-                {
-                    with.HttpRequest();
-                    with.Body(JsonConvert.SerializeObject(clientToAdd), "text/plain"); //default if nothing provided
-
-                }).Result;
-
-            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
-            Assert.Contains(
-                "Content-Type header must be application/json or application/xml when attempting a POST or PUT",
-                postResponse.Body.AsString());
-        }
-                
     }
 }

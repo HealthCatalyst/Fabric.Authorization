@@ -171,8 +171,8 @@ namespace Fabric.Authorization.UnitTests
             configurableBootstrapperConfigurator.RequestStartup((container, pipeline, context) =>
             {
                 context.CurrentUser = new TestPrincipal(claims);
-                pipeline.BeforeRequest += ctx => RequestHooks.RemoveContentTypeHeaderForGet(ctx);
-                pipeline.BeforeRequest += ctx => RequestHooks.SetDefaultVersionInUrl(ctx);
+                pipeline.BeforeRequest += ctx => API.Infrastructure.PipelineHooks.RequestHooks.RemoveContentTypeHeaderForGet(ctx);
+                pipeline.BeforeRequest += ctx => API.Infrastructure.PipelineHooks.RequestHooks.SetDefaultVersionInUrl(ctx);
             });
             return configurableBootstrapperConfigurator;
         }

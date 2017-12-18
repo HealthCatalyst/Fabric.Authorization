@@ -7,8 +7,7 @@ namespace Fabric.Authorization.Domain.Stores.InMemory
     public class InMemoryClientStore : InMemoryGenericStore<Client>, IClientStore
     {
         private readonly ConcurrentDictionary<string, Client> Clients = new ConcurrentDictionary<string, Client>();
-
-        [Obsolete]
+        
         public InMemoryClientStore()
         {
             var mvcClient = new Client
