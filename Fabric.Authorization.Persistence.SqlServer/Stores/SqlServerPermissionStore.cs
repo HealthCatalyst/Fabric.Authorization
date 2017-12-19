@@ -59,6 +59,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         public async Task Delete(Permission model)
         {
             var permission = await _authorizationDbContext.Permissions
+                .Include(p => p.RolePermissions)
+                .Include(p => p.UserPermissions)
                 .SingleOrDefaultAsync(p =>
                     p.PermissionId == model.Id
                     && !p.IsDeleted);
@@ -69,6 +71,17 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             }
 
             permission.IsDeleted = true;
+
+            foreach (var rolePermission in permission.RolePermissions)
+            {
+                rolePermission.IsDeleted = true;
+            }
+
+            foreach (var userPermission in permission.UserPermissions)
+            {
+                userPermission.IsDeleted = true;
+            }
+
             await _authorizationDbContext.SaveChangesAsync();
         }
 
@@ -137,9 +150,9 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             // remove all current permissions first and then replace them with the new set of permissions
             var currentUserPermissions = user.UserPermissions.Where(up => !up.IsDeleted);
-            foreach (var up in currentUserPermissions)
+            foreach (var userPermission in currentUserPermissions)
             {
-                _authorizationDbContext.UserPermissions.Remove(up);
+                _authorizationDbContext.UserPermissions.Remove(userPermission);
             }
 
             var additionalPermissionIds = granularPermission.AdditionalPermissions.Select(gp => gp.Id);
