@@ -11,14 +11,20 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
 {
     public class CouchDbGroupStore : FormattableIdentifierStore<string, Group>, IGroupStore
     {
+        private readonly IRoleStore _roleStore;
+        private readonly IUserStore _userStore;
         private const string IdDelimiter = "-:-:";
 
         public CouchDbGroupStore(
             IDocumentDbService dbService,
             ILogger logger,
             IEventContextResolverService eventContextResolverService,
-            IIdentifierFormatter identifierFormatter) : base(dbService, logger, eventContextResolverService, identifierFormatter)
+            IIdentifierFormatter identifierFormatter, 
+            IRoleStore roleStore,
+            IUserStore userStore) : base(dbService, logger, eventContextResolverService, identifierFormatter)
         {
+            _roleStore = roleStore;
+            _userStore = userStore;
         }
 
         public override async Task<Group> Add(Group group)
@@ -98,6 +104,32 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
         private string GetGroupIdPrefix(string id)
         {
             return $"{DocumentKeyPrefix}{FormatId(id)}{IdDelimiter}";
+        }
+
+        public async Task<Group> AddRoleToGroup(Group group, Role role)
+        {
+            group.Roles.Add(role);
+            role.Groups.Add(group.Name);
+
+            await _roleStore.Update(role);
+            await Update(group);
+
+            return group;
+        }
+
+        public Task<Group> DeleteRoleFromGroup(string groupName, Guid roleId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Group> AddUserToGroup(string groupName, string subjectId, string identityProvider)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Group> DeleteUserFromGroup(string groupName, string subjectId, string identityProvider)
+        {
+            throw new NotImplementedException();
         }
     }
 }

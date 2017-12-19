@@ -94,13 +94,8 @@ namespace Fabric.Authorization.Domain.Stores.Services
             {
                 throw new AlreadyExistsException<Role>($"Role {role.Name} already exists for group {group.Name}. Please provide a new role id.");
             }
-            
-            group.Roles.Add(role);
-            role.Groups.Add(groupName);
 
-            await _roleStore.Update(role);
-            await _groupStore.Update(group);
-            return group;
+           return await _groupStore.AddRoleToGroup(group, role);
         }
 
         public async Task<Group> DeleteRoleFromGroup(string groupName, Guid roleId)
