@@ -117,7 +117,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         {
             var permissions = _authorizationDbContext.Permissions
                 .Include(p => p.SecurableItem)
-                .Where(p => string.Equals(p.Grain, grain, StringComparison.OrdinalIgnoreCase));
+                .Where(p => string.Equals(p.Grain, grain, StringComparison.OrdinalIgnoreCase)
+                            && !p.IsDeleted);
 
             if (!string.IsNullOrWhiteSpace(securableItem))
             {
@@ -126,7 +127,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             if (!string.IsNullOrWhiteSpace(permissionName))
             {
-                permissions = permissions.Where(p => string.Equals(p.Name, securableItem));
+                permissions = permissions.Where(p => string.Equals(p.Name, permissionName));
             }
 
             return Task.FromResult(permissions.Select(p => p.ToModel()).AsEnumerable());
@@ -158,7 +159,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             var additionalPermissionIds = granularPermission.AdditionalPermissions.Select(gp => gp.Id);
             var deniedPermissionIds = granularPermission.DeniedPermissions.Select(gp => gp.Id);
 
-            // retrieve all permissions and store in memory for Id lookups below (assume this
+            // retrieve all permissions that a passed in and store in memory for Id lookups below
             var permissionDictionary = _authorizationDbContext.Permissions.Where(p => !p.IsDeleted)
                 .Where(p => additionalPermissionIds.Contains(p.PermissionId) || deniedPermissionIds.Contains(p.PermissionId))
                 .ToDictionary(p => p.PermissionId);
