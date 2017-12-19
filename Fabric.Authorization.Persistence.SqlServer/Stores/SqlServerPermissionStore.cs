@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
@@ -130,6 +129,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .SingleOrDefaultAsync(u => u.IdentityProvider.Equals(idParts[0], StringComparison.OrdinalIgnoreCase)
                                            && u.SubjectId.Equals(idParts.Length > 1 ? idParts[1] : idParts[0], StringComparison.OrdinalIgnoreCase)
                                            && !u.IsDeleted);
+
+            if (user == null)
+            {
+                throw new NotFoundException<User>($"Could not find {typeof(User).Name} User ID {granularPermission.Id}");
+            }
 
             // remove all current permissions first and then replace them with the new set of permissions
             var currentUserPermissions = user.UserPermissions.Where(up => !up.IsDeleted);
