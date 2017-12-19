@@ -153,7 +153,7 @@ namespace Fabric.Authorization.IntegrationTests
 
         #endregion IDisposable implementation
 
-        protected class DisplayTestMethodNameAttribute : BeforeAfterTestAttribute
+        public class DisplayTestMethodNameAttribute : BeforeAfterTestAttribute
         {
             private bool _writeToConsole = false;
             public override void Before(MethodInfo methodUnderTest)

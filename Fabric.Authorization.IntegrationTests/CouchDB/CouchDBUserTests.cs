@@ -4,9 +4,9 @@ using Xunit;
 namespace Fabric.Authorization.IntegrationTests.CouchDB
 {
     [Collection("CouchTests")]
-    public class CouchDBUserTests : UserTests
+    public class CouchDBUserTests : UserTests, IClassFixture<IntegrationTestsFixture>
     {
-        public CouchDBUserTests() : base(false)
+        public CouchDBUserTests(IntegrationTestsFixture fixture) : base(fixture, false)
         {
         }
     }
