@@ -35,7 +35,9 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         {
             var group = await _authorizationDbContext.Groups
                 .Include(g => g.GroupRoles)
+                .ThenInclude(gr => gr.Role)
                 .Include(g => g.GroupUsers)
+                .ThenInclude(gu => gu.User)
                 .SingleOrDefaultAsync(g => g.GroupId.Equals(id, StringComparison.OrdinalIgnoreCase)
                 && !g.IsDeleted);
 
@@ -50,6 +52,10 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         public async Task<IEnumerable<Group>> GetAll()
         {
             var groups = await _authorizationDbContext.Groups
+                .Include(g => g.GroupRoles)
+                .ThenInclude(gr => gr.Role)
+                .Include(g => g.GroupUsers)
+                .ThenInclude(gu => gu.User)
                 .Where(g => !g.IsDeleted)
                 .ToArrayAsync();
 
