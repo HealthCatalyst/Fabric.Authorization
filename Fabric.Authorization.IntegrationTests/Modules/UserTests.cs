@@ -14,31 +14,8 @@ using Xunit;
 namespace Fabric.Authorization.IntegrationTests.Modules
 {
     [Collection("InMemoryTests")]
-    public class UserTests : IntegrationTestsFixture
+    public class UserTests : IClassFixture<IntegrationTestsFixture>
     {
-        public UserTests(bool useInMemoryDB = true) : base()
-        {
-            var principal = new ClaimsPrincipal(
-                new ClaimsIdentity(new List<Claim>
-                {
-                    new Claim(Claims.Scope, Scopes.ManageClientsScope),
-                    new Claim(Claims.Scope, Scopes.ReadScope),
-                    new Claim(Claims.Scope, Scopes.WriteScope),
-                    new Claim(Claims.ClientId, "userprincipal"),
-                    new Claim(Claims.Sub, "userprincipal"),
-                    new Claim(JwtClaimTypes.Role, Group1),
-                    new Claim(JwtClaimTypes.Role, Group2),
-                    new Claim(JwtClaimTypes.IdentityProvider, IdentityProvider)
-                }, "userprincipal"));
-            Browser = GetBrowser(principal, useInMemoryDB);
-
-            Browser.Post("/clients", with =>
-            {
-                with.HttpRequest();
-                with.JsonBody(new ClientApiModel{Id = "userprincipal", Name = "userprincipal"});
-            }).Wait();
-        }
-
         private static readonly string Group1 = Guid.Parse("A9CA0300-1006-40B1-ABF1-E0C3B396F95F").ToString();
         private static readonly string Source1 = "Source1";
 
@@ -46,20 +23,52 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         private static readonly string Source2 = "Source2";
 
         private static readonly string IdentityProvider = "idP1";
-        private readonly IIdentifierFormatter _identifierFormatter = new IdpIdentifierFormatter();
+
+        private readonly Browser _browser;
+        private readonly string _securableItem;
+        public UserTests(IntegrationTestsFixture fixture, bool useInMemoryDB = true)
+        {
+
+            _securableItem = "userprincipal" + Guid.NewGuid();
+            var principal = new ClaimsPrincipal(
+                new ClaimsIdentity(new List<Claim>
+                {
+                    new Claim(Claims.Scope, Scopes.ManageClientsScope),
+                    new Claim(Claims.Scope, Scopes.ReadScope),
+                    new Claim(Claims.Scope, Scopes.WriteScope),
+                    new Claim(Claims.ClientId, _securableItem),
+                    new Claim(Claims.Sub, _securableItem),
+                    new Claim(JwtClaimTypes.Role, Group1),
+                    new Claim(JwtClaimTypes.Role, Group2),
+                    new Claim(JwtClaimTypes.IdentityProvider, IdentityProvider)
+                }, _securableItem));
+            _browser = fixture.GetBrowser(principal, useInMemoryDB);
+            CreateClient(_securableItem);
+        }
+
+        private void CreateClient(string clientId)
+        {
+            var id = clientId;
+            _browser.Post("/clients", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new ClientApiModel { Id = id, Name = id });
+            }).Wait();
+        }
 
         [Fact]
-        [DisplayTestMethodName]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public void GetUserPermissions_NonAuthenticatedUserWithPermissions_Success()
         {
-            const string groupName = "Admin";
-            const string roleName = "Administrator";
-            var permissionNames = new[] {"viewpatients", "editpatients", "adminpatients", "deletepatients"};
+            var groupName = "Admin" + Guid.NewGuid();
+            var roleName = "Administrator" + Guid.NewGuid();
+            var permissionNames = new[] {"viewpatients" + Guid.NewGuid(), "editpatients" + Guid.NewGuid(), "adminpatients" + Guid.NewGuid(), "deletepatients" + Guid.NewGuid() };
+            
             const string subjectId = "first.last";
             const string identityProvider = "Windows";
 
             // add custom group
-            var response = Browser.Post("/groups", with =>
+            var response = _browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new GroupRoleApiModel
@@ -72,13 +81,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
             // add role
-            response = Browser.Post("/roles", with =>
+            response = _browser.Post("/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new RoleApiModel
                 {
                     Grain = "app",
-                    SecurableItem = "userprincipal",
+                    SecurableItem = _securableItem,
                     Name = roleName
                 });
             }).Result;
@@ -88,7 +97,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var roleId = response.Body.DeserializeJson<RoleApiModel>().Id;
 
             // add role to group
-            response = Browser.Post($"/groups/{groupName}/roles", with =>
+            response = _browser.Post($"/groups/{groupName}/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -100,52 +109,52 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
             // add 4 permissions
-            response = Browser.Post("/permissions", with =>
+            response = _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
                 {
                     Grain = "app",
-                    SecurableItem = "userprincipal",
+                    SecurableItem = _securableItem,
                     Name = permissionNames[0]
                 });
             }).Result;
 
             var permission1Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
 
-            response = Browser.Post("/permissions", with =>
+            response = _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
                 {
                     Grain = "app",
-                    SecurableItem = "userprincipal",
+                    SecurableItem = _securableItem,
                     Name = permissionNames[1]
                 });
             }).Result;
 
             var permission2Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
 
-            response = Browser.Post("/permissions", with =>
+            response = _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
                 {
                     Grain = "app",
-                    SecurableItem = "userprincipal",
+                    SecurableItem = _securableItem,
                     Name = permissionNames[2]
                 });
             }).Result;
 
             var permission3Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
 
-            response = Browser.Post("/permissions", with =>
+            response = _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
                 {
                     Grain = "app",
-                    SecurableItem = "userprincipal",
+                    SecurableItem = _securableItem,
                     Name = permissionNames[3]
                 });
             }).Result;
@@ -153,7 +162,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var permission4Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
 
             // add user to group
-            response = Browser.Post($"/groups/{groupName}/users", with =>
+            response = _browser.Post($"/groups/{groupName}/users", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -171,7 +180,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 {
                     Id = permission1Id,
                     Grain = "app",
-                    SecurableItem = "userprincipal",
+                    SecurableItem = _securableItem,
                     Name = permissionNames[0],
                     PermissionAction = PermissionAction.Allow
                 },
@@ -179,7 +188,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 {
                     Id = permission2Id,
                     Grain = "app",
-                    SecurableItem = "userprincipal",
+                    SecurableItem = _securableItem,
                     Name = permissionNames[1],
                     PermissionAction = PermissionAction.Deny
                 },
@@ -187,7 +196,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 {
                     Id = permission3Id,
                     Grain = "app",
-                    SecurableItem = "userprincipal",
+                    SecurableItem = _securableItem,
                     Name = permissionNames[2],
                     PermissionAction = PermissionAction.Allow
                 },
@@ -195,14 +204,14 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 {
                     Id = permission4Id,
                     Grain = "app",
-                    SecurableItem = "userprincipal",
+                    SecurableItem = _securableItem,
                     Name = permissionNames[3],
                     PermissionAction = PermissionAction.Deny
                 }
             };
 
             // create 2 role-based permissions
-            response = Browser.Post($"/roles/{roleId}/permissions", with =>
+            response = _browser.Post($"/roles/{roleId}/permissions", with =>
             {
                 with.HttpRequest();
 
@@ -214,7 +223,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
             // create 2 granular (user-based) permissions
-            response = Browser.Post($"/user/{identityProvider}/{subjectId}/permissions", with =>
+            response = _browser.Post($"/user/{identityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
 
@@ -226,7 +235,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 
             // retrieve permissions for user
-            response = Browser.Get($"/user/{identityProvider}/{subjectId}/permissions", with =>
+            response = _browser.Get($"/user/{identityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
             }).Result;
@@ -239,47 +248,43 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var permission1 = permissions.FirstOrDefault(p => p.Name == permissionNames[0]);
             Assert.NotNull(permission1);
             Assert.Equal(PermissionAction.Allow, permission1.PermissionAction);
-            Assert.Equal(1, permission1.Roles.Count());
-
-            /*var permission2 = permissions.FirstOrDefault(p => p.Name == permissionNames[1]);
-            Assert.NotNull(permission2);
-            Assert.Equal(PermissionAction.Deny, permission2.PermissionAction);
-            Assert.Equal(1, permission2.Roles.Count());*/
+            Assert.Single(permission1.Roles);
 
             var permission3 = permissions.FirstOrDefault(p => p.Name == permissionNames[2]);
             Assert.NotNull(permission3);
             Assert.Equal(PermissionAction.Allow, permission3.PermissionAction);
-            Assert.Equal(0, permission3.Roles.Count());
+            Assert.Empty(permission3.Roles);
             Assert.NotEqual(DateTime.MinValue, permission3.CreatedDateTimeUtc);
 
             var permission4 = permissions.FirstOrDefault(p => p.Name == permissionNames[3]);
             Assert.NotNull(permission4);
             Assert.Equal(PermissionAction.Deny, permission4.PermissionAction);
-            Assert.Equal(0, permission4.Roles.Count());
+            Assert.Empty(permission4.Roles);
             Assert.NotEqual(DateTime.MinValue, permission4.CreatedDateTimeUtc);
         }
 
         [Fact]
-        [DisplayTestMethodName]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public void Test_AddGranularPermission_AllowDenyPermissionInSameRequest()
         {
+            var permissionName = "readpatient" + Guid.NewGuid();
             var allowReadPatientPermission = new PermissionApiModel
             {
                 Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "readpatient",
+                SecurableItem = _securableItem,
+                Name = permissionName,
                 PermissionAction = PermissionAction.Allow
             };
 
             var denyReadPatientPermission = new PermissionApiModel
             {
                 Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "readpatient",
+                SecurableItem = _securableItem,
+                Name = permissionName,
                 PermissionAction = PermissionAction.Deny
             };
 
-            var response = Browser.Post("/permissions", with =>
+            var response = _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(allowReadPatientPermission);
@@ -288,9 +293,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             allowReadPatientPermission.Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
             denyReadPatientPermission.Id = allowReadPatientPermission.Id;
 
-            string subjectId = "userprincipal";
+            string subjectId = _securableItem;
 
-            var postResponse = Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            var postResponse = _browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
                 var perms = new List<PermissionApiModel> { allowReadPatientPermission, denyReadPatientPermission };
@@ -298,115 +303,108 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Result;
 
             Assert.Equal(HttpStatusCode.Conflict, postResponse.StatusCode);
-            Assert.Contains("The following permissions cannot be specified as both 'allow' and 'deny': app/userprincipal.readpatient", postResponse.Body.AsString());
+            Assert.Contains($"The following permissions cannot be specified as both 'allow' and 'deny': app/{subjectId}.{permissionName}", postResponse.Body.AsString());
         }
 
         [Fact]
-        [DisplayTestMethodName]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public void Test_AddGranularPermission_Duplicate()
         {
             var modifyPatientPermission = new PermissionApiModel
             {
                 Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "modifypatient",
+                SecurableItem = _securableItem,
+                Name = "modifypatient" + Guid.NewGuid(),
                 PermissionAction = PermissionAction.Allow
             };
 
-            var response = Browser.Post("/permissions", with =>
+            var response = _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 with.JsonBody(modifyPatientPermission);
             }).Result;
 
             modifyPatientPermission.Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
 
-            var subjectId = "userprincipal";
+            var subjectId = _securableItem;
 
-            Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            _browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 var perms = new List<PermissionApiModel> {modifyPatientPermission};
                 with.JsonBody(perms);
             }).Wait();
 
-            var postResponse = Browser.Post($"/user/{IdentityProvider}/{subjectId.ToUpper()}/permissions", with =>
+            var postResponse = _browser.Post($"/user/{IdentityProvider}/{subjectId.ToUpper()}/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 var perms = new List<PermissionApiModel> {modifyPatientPermission};
                 with.JsonBody(perms);
             }).Result;
 
             Assert.Equal(HttpStatusCode.Conflict, postResponse.StatusCode);
             Assert.Contains(
-                "The following permissions already exist as 'allow' permissions: app/userprincipal.modifypatient",
+                $"The following permissions already exist as 'allow' permissions: app/{subjectId}.{modifyPatientPermission.Name}",
                 postResponse.Body.AsString());
         }
 
         [Fact]
-        [DisplayTestMethodName]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public void Test_AddGranularPermission_ExistWithOtherAction_Duplicate()
         {
             var modifyPatientPermission = new PermissionApiModel
             {
                 Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "modifypatient",
+                SecurableItem = _securableItem,
+                Name = "modifypatient" + Guid.NewGuid(),
                 PermissionAction = PermissionAction.Allow
             };
 
             var deletePatientPermission = new PermissionApiModel
             {
                 Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "deletepatient",
+                SecurableItem = _securableItem,
+                Name = "deletepatient" + Guid.NewGuid(),
                 PermissionAction = PermissionAction.Allow
             };
 
             var readPatientPermission = new PermissionApiModel
             {
                 Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "readpatient",
+                SecurableItem = _securableItem,
+                Name = "readpatient" + Guid.NewGuid(),
                 PermissionAction = PermissionAction.Allow
             };
 
-            var response = Browser.Post("/permissions", with =>
+            var response = _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 with.JsonBody(modifyPatientPermission);
             }).Result;
 
             modifyPatientPermission.Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
 
-            response = Browser.Post("/permissions", with =>
+            response = _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 with.JsonBody(deletePatientPermission);
             }).Result;
 
             deletePatientPermission.Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
 
-            response = Browser.Post("/permissions", with =>
+            response = _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 with.JsonBody(readPatientPermission);
             }).Result;
 
             readPatientPermission.Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
 
-            var subjectId = "userprincipal";
+            var subjectId = _securableItem;
 
-            Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            _browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 var perms = new List<PermissionApiModel>
                 {
                     modifyPatientPermission,
@@ -418,10 +416,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             modifyPatientPermission.PermissionAction = PermissionAction.Deny;
 
-            var postResponse = Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            var postResponse = _browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 var perms = new List<PermissionApiModel>
                 {
                     modifyPatientPermission,
@@ -433,23 +430,22 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.Conflict, postResponse.StatusCode);
             Assert.Contains(
-                "The following permissions exist as 'allow' and cannot be added as 'deny': app/userprincipal.modifypatient",
+                $"The following permissions exist as 'allow' and cannot be added as 'deny': app/{_securableItem}.{modifyPatientPermission.Name}",
                 postResponse.Body.AsString());
             Assert.Contains(
-                "The following permissions already exist as 'allow' permissions: app/userprincipal.deletepatient, app/userprincipal.readpatient",
+                $"The following permissions already exist as 'allow' permissions: app/{_securableItem}.{deletePatientPermission.Name}, app/{_securableItem}.{readPatientPermission.Name}",
                 postResponse.Body.AsString());
         }
 
         [Fact]
-        [DisplayTestMethodName]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public void Test_AddGranularPermissions_NoPermissionsInBody()
         {
-            var subjectId = "userprincipal";
+            var subjectId = _securableItem;
 
-            var postRequest = Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            var postRequest = _browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 var perms = new List<PermissionApiModel>();
                 with.JsonBody(perms);
             }).Result;
@@ -458,258 +454,241 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
-        [DisplayTestMethodName]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public void Test_AddGranularPermssion_ExistsWithOtherAction()
         {
             var modifyPatientPermission = new PermissionApiModel
             {
                 Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "modifypatient",
+                SecurableItem = _securableItem,
+                Name = "modifypatient" + Guid.NewGuid(),
                 PermissionAction = PermissionAction.Allow
             };
 
-            var response = Browser.Post("/permissions", with =>
+            var response = _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 with.JsonBody(modifyPatientPermission);
             }).Result;
 
             modifyPatientPermission.Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
 
-            var subjectId = "userprincipal";
+            var subjectId = _securableItem;
 
-            Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            _browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 var perms = new List<PermissionApiModel> {modifyPatientPermission};
                 with.JsonBody(perms);
             }).Wait();
 
             modifyPatientPermission.PermissionAction = PermissionAction.Deny;
 
-            var postResponse = Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            var postResponse = _browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 var perms = new List<PermissionApiModel> {modifyPatientPermission};
                 with.JsonBody(perms);
             }).Result;
 
             Assert.Equal(HttpStatusCode.Conflict, postResponse.StatusCode);
             Assert.Contains(
-                "The following permissions exist as 'allow' and cannot be added as 'deny': app/userprincipal.modifypatient",
+                $"The following permissions exist as 'allow' and cannot be added as 'deny': app/{_securableItem}.{modifyPatientPermission.Name}",
                 postResponse.Body.AsString());
         }
 
         [Fact]
-        [DisplayTestMethodName]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public void Test_Delete_Success()
         {
             // Adding permission
             var modifyPatientPermission = new PermissionApiModel
             {
                 Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "modifypatient",
+                SecurableItem = _securableItem,
+                Name = "modifypatient" + Guid.NewGuid(),
                 PermissionAction = PermissionAction.Allow
             };
 
-            var response = Browser.Post("/permissions", with =>
+            var response = _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 with.JsonBody(modifyPatientPermission);
             }).Result;
 
             modifyPatientPermission.Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
 
-            var subjectId = "userprincipal";
-            Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            var subjectId = _securableItem;
+            _browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 var perms = new List<PermissionApiModel> {modifyPatientPermission};
                 with.JsonBody(perms);
             }).Wait();
 
             // Get the permissions
-            var get = Browser.Get("/user/permissions", with =>
+            var get = _browser.Get("/user/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
             }).Result;
 
             Assert.Equal(HttpStatusCode.OK, get.StatusCode);
             var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
-            Assert.Contains("app/userprincipal.modifypatient", permissions.Permissions);
+            Assert.Contains($"app/{_securableItem}.{modifyPatientPermission.Name}", permissions.Permissions);
 
             //delete the permission
-            Browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            _browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 var perms = new List<PermissionApiModel> {modifyPatientPermission};
                 with.JsonBody(perms);
             }).Wait();
 
             // Get the permissions
-            get = Browser.Get("/user/permissions", with =>
+            get = _browser.Get("/user/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
             }).Result;
 
             Assert.Equal(HttpStatusCode.OK, get.StatusCode);
             permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
-            Assert.DoesNotContain("app/userprincipal.modifypatient", permissions.Permissions);
+            Assert.DoesNotContain("app/{_securableItem}.{modifyPatientPermission.Name}", permissions.Permissions);
         }
 
         [Fact]
-        [DisplayTestMethodName]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public void Test_Delete_UserHasNoGranularPermissions()
         {
             // Get the permissions
-            var get = Browser.Get("/user/permissions", with =>
+            var get = _browser.Get("/user/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
             }).Result;
 
             Assert.Equal(HttpStatusCode.OK, get.StatusCode);
             var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
-            Assert.Equal(0, permissions.Permissions.Count());
+            Assert.Empty(permissions.Permissions);
 
             var modifyPatientPermission = new PermissionApiModel
             {
                 Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "modifypatient",
+                SecurableItem = _securableItem,
+                Name = "modifypatient" + Guid.NewGuid(),
                 PermissionAction = PermissionAction.Allow
             };
 
-            var subjectId = "userprincipal";
+            var subjectId = _securableItem;
 
             //attempt to delete a permission the user does not have 
-            var deleteRequest = Browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            var deleteRequest = _browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 var perms = new List<PermissionApiModel> {modifyPatientPermission};
                 with.JsonBody(perms);
             }).Result;
 
             Assert.Equal(HttpStatusCode.BadRequest, deleteRequest.StatusCode);
             Assert.Contains(
-                "The following permissions do not exist as 'allow' permissions: app/userprincipal.modifypatient",
+                $"The following permissions do not exist as 'allow' permissions: app/{_securableItem}.{modifyPatientPermission.Name}",
                 deleteRequest.Body.AsString());
             Assert.DoesNotContain("The following permissions exist as 'deny' for user but 'allow' was specified",
                 deleteRequest.Body.AsString());
         }
 
         [Fact]
-        [DisplayTestMethodName]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public void Test_Delete_WrongPermissionAction()
         {
             var modifyPatientPermission = new PermissionApiModel
             {
                 Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "modifypatient",
+                SecurableItem = _securableItem,
+                Name = "modifypatient" + Guid.NewGuid(),
                 PermissionAction = PermissionAction.Allow
             };
 
-            var response = Browser.Post("/permissions", with =>
+            var response = _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 with.JsonBody(modifyPatientPermission);
             }).Result;
 
             modifyPatientPermission.Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
 
-            var subjectId = "userprincipal";
+            var subjectId = _securableItem;
 
-            Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            _browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 var perms = new List<PermissionApiModel> {modifyPatientPermission};
                 with.JsonBody(perms);
             }).Wait();
 
             // Get the permissions
-            var get = Browser.Get("/user/permissions", with =>
+            var get = _browser.Get("/user/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
             }).Result;
 
             Assert.Equal(HttpStatusCode.OK, get.StatusCode);
             var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
-            Assert.Contains("app/userprincipal.modifypatient", permissions.Permissions);
+            Assert.Contains($"app/{subjectId}.{modifyPatientPermission.Name}", permissions.Permissions);
 
             //attempt to delete modifyPatientPermission with permission action Deny
             modifyPatientPermission.PermissionAction = PermissionAction.Deny;
 
-            var deleteRequest = Browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            var deleteRequest = _browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 var perms = new List<PermissionApiModel> {modifyPatientPermission};
                 with.JsonBody(perms);
             }).Result;
 
             Assert.Equal(HttpStatusCode.BadRequest, deleteRequest.StatusCode);
             Assert.Contains(
-                "The following permissions exist as 'allow' for user but 'deny' was specified: app/userprincipal.modifypatient",
+                $"The following permissions exist as 'allow' for user but 'deny' was specified: app/{subjectId}.{modifyPatientPermission.Name}",
                 deleteRequest.Body.AsString());
             Assert.DoesNotContain("The permissions do not exist as 'deny' permissions", deleteRequest.Body.AsString());
         }
 
         [Fact]
-        [DisplayTestMethodName]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public void Test_Delete_WrongPermissionAction_InvalidPermission()
         {
             var modifyPatientPermission = new PermissionApiModel
             {
                 Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "modifypatient",
+                SecurableItem = _securableItem,
+                Name = "modifypatient" + Guid.NewGuid(),
                 PermissionAction = PermissionAction.Allow
             };
 
-            var response = Browser.Post("/permissions", with =>
+            var response = _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 with.JsonBody(modifyPatientPermission);
             }).Result;
 
             modifyPatientPermission.Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
 
-            var subjectId = "userprincipal";
+            var subjectId = _securableItem;
 
-            Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            _browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 var perms = new List<PermissionApiModel> {modifyPatientPermission};
                 with.JsonBody(perms);
             }).Wait();
 
             // Get the permissions
-            var get = Browser.Get("/user/permissions", with =>
+            var get = _browser.Get("/user/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
             }).Result;
 
             Assert.Equal(HttpStatusCode.OK, get.StatusCode);
             var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
-            Assert.Contains("app/userprincipal.modifypatient", permissions.Permissions);
+            Assert.Contains($"app/{_securableItem}.{modifyPatientPermission.Name}", permissions.Permissions);
 
             //attempt to delete modifyPatientPermission with permission action Deny and include an invalid permission
             modifyPatientPermission.PermissionAction = PermissionAction.Deny;
@@ -717,41 +696,39 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var deletePatientPermission = new PermissionApiModel
             {
                 Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "deletepatient",
+                SecurableItem = _securableItem,
+                Name = "deletepatient" + Guid.NewGuid(),
                 PermissionAction = PermissionAction.Allow
             };
 
-            var deleteRequest = Browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            var deleteRequest = _browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 var perms = new List<PermissionApiModel> {modifyPatientPermission, deletePatientPermission};
                 with.JsonBody(perms);
             }).Result;
 
             Assert.Equal(HttpStatusCode.BadRequest, deleteRequest.StatusCode);
             Assert.Contains(
-                "The following permissions exist as 'allow' for user but 'deny' was specified: app/userprincipal.modifypatient",
+                $"The following permissions exist as 'allow' for user but 'deny' was specified: app/{subjectId}.{modifyPatientPermission.Name}",
                 deleteRequest.Body.AsString());
             Assert.DoesNotContain("The permissions do not exist as 'deny' permissions", deleteRequest.Body.AsString());
             Assert.Contains(
-                "The following permissions do not exist as 'allow' permissions: app/userprincipal.deletepatient",
+                $"The following permissions do not exist as 'allow' permissions: app/{subjectId}.{deletePatientPermission.Name}",
                 deleteRequest.Body.AsString());
             Assert.DoesNotContain("The following permissions exist as 'deny' for user but 'allow' was specified",
                 deleteRequest.Body.AsString());
         }
 
         [Fact]
-        [DisplayTestMethodName]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public void Test_DeleteGranularPermissions_NoPermissionsInBody()
         {
-            var subjectId = "userprincipal";
+            var subjectId = _securableItem;
 
-            var deleteRequest = Browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            var deleteRequest = _browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 var perms = new List<PermissionApiModel>();
                 with.JsonBody(perms);
             }).Result;
@@ -760,31 +737,31 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
-        [DisplayTestMethodName]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public void TestGetPermissions_Success()
         {
             // Adding permissions
-            var post = Browser.Post("/permissions", with =>
+            var post = _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
                 {
                     Grain = "app",
-                    SecurableItem = "userprincipal",
-                    Name = "viewpatient"
+                    SecurableItem = _securableItem,
+                    Name = "viewpatient" + Guid.NewGuid()
                 });
             }).Result;
 
             var viewPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
 
-            post = Browser.Post("/permissions", with =>
+            post = _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
                 {
                     Grain = "app",
-                    SecurableItem = "userprincipal",
-                    Name = "editpatient"
+                    SecurableItem = _securableItem,
+                    Name = "editpatient" + Guid.NewGuid()
                 });
             }).Result;
 
@@ -793,12 +770,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var role = new RoleApiModel
             {
                 Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "viewer",
+                SecurableItem = _securableItem,
+                Name = "viewer" + Guid.NewGuid(),
                 Permissions = new List<PermissionApiModel> {viewPatientPermission}
             };
 
-            post = Browser.Post("/roles", with => // -3
+            post = _browser.Post("/roles", with => // -3
             {
                 with.HttpRequest();
                 with.JsonBody(role);
@@ -806,17 +783,17 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             var viewerRole = post.Body.DeserializeJson<RoleApiModel>();
 
-            post = Browser.Post("/roles", with => // -2
+            post = _browser.Post("/roles", with => // -2
             {
                 with.HttpRequest();
-                role.Name = "editor";
+                role.Name = "editor" + Guid.NewGuid();
                 role.Permissions = new List<PermissionApiModel> {editPatientPermission};
                 with.JsonBody(role);
             }).Result;
 
             var editorRole = post.Body.DeserializeJson<RoleApiModel>();
-
-            Browser.Post("/groups", with =>
+            
+            _browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -827,7 +804,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 });
             }).Wait();
 
-            Browser.Post("/groups", with =>
+            _browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -838,7 +815,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 });
             }).Wait();
 
-            Browser.Post($"/groups/{Group1}/roles", with =>
+            _browser.Post($"/groups/{Group1}/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -847,7 +824,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 });
             }).Wait();
 
-            Browser.Post($"/groups/{Group2}/roles", with =>
+            _browser.Post($"/groups/{Group2}/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -857,7 +834,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Wait();
 
             // Get the permissions
-            var get = Browser.Get("/user/permissions", with =>
+            var get = _browser.Get("/user/permissions", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -865,78 +842,78 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.OK, get.StatusCode);
             var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
-            Assert.Contains("app/userprincipal.editpatient", permissions.Permissions);
-            Assert.Contains("app/userprincipal.viewpatient", permissions.Permissions);
+            Assert.Contains($"app/{_securableItem}.{editPatientPermission.Name}", permissions.Permissions);
+            Assert.Contains($"app/{_securableItem}.{viewPatientPermission.Name}", permissions.Permissions);
             Assert.Equal(2, permissions.Permissions.Count());
         }
 
         [Fact]
-        [DisplayTestMethodName]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public void TestInheritance_Success()
         {
             var group = Group1;
 
             // Adding permissions
-            var post = Browser.Post("/permissions", with =>
+            var post = _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
                 {
                     Grain = "app",
-                    SecurableItem = "userprincipal",
-                    Name = "greatgrandfatherpermissions"
+                    SecurableItem = _securableItem,
+                    Name = "greatgrandfatherpermissions" + Guid.NewGuid()
                 });
             }).Result;
 
             var ggfperm = post.Body.DeserializeJson<PermissionApiModel>();
 
-            post = Browser.Post("/permissions", with =>
+            post = _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
                 {
                     Grain = "app",
-                    SecurableItem = "userprincipal",
-                    Name = "grandfatherpermissions"
+                    SecurableItem = _securableItem,
+                    Name = "grandfatherpermissions" + Guid.NewGuid()
                 });
             }).Result;
 
             var gfperm = post.Body.DeserializeJson<PermissionApiModel>();
 
-            post = Browser.Post("/permissions", with =>
+            post = _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
                 {
                     Grain = "app",
-                    SecurableItem = "userprincipal",
-                    Name = "fatherpermissions"
+                    SecurableItem = _securableItem,
+                    Name = "fatherpermissions" + Guid.NewGuid()
                 });
             }).Result;
 
             var fperm = post.Body.DeserializeJson<PermissionApiModel>();
 
-            post = Browser.Post("/permissions", with =>
+            post = _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
                 {
                     Grain = "app",
-                    SecurableItem = "userprincipal",
-                    Name = "himselfpermissions"
+                    SecurableItem = _securableItem,
+                    Name = "himselfpermissions" + Guid.NewGuid()
                 });
             }).Result;
 
             var hsperm = post.Body.DeserializeJson<PermissionApiModel>();
 
-            post = Browser.Post("/permissions", with =>
+            post = _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
                 {
                     Grain = "app",
-                    SecurableItem = "userprincipal",
-                    Name = "sonpermissions"
+                    SecurableItem = _securableItem,
+                    Name = "sonpermissions" + Guid.NewGuid()
                 });
             }).Result;
 
@@ -946,25 +923,23 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var role = new RoleApiModel
             {
                 Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "greatgrandfather",
+                SecurableItem = _securableItem,
+                Name = "greatgrandfather" + Guid.NewGuid(),
                 Permissions = new List<PermissionApiModel> {ggfperm}
             };
 
-            post = Browser.Post("/roles", with => // -3
+            post = _browser.Post("/roles", with => // -3
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 with.JsonBody(role);
             }).Result;
 
             var ggf = post.Body.DeserializeJson<RoleApiModel>();
 
-            post = Browser.Post("/roles", with => // -2
+            post = _browser.Post("/roles", with => // -2
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                role.Name = "grandfather";
+                role.Name = "grandfather" + Guid.NewGuid();
                 role.ParentRole = ggf.Id;
                 role.Permissions = new List<PermissionApiModel> {gfperm};
                 with.JsonBody(role);
@@ -972,11 +947,10 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             var gf = post.Body.DeserializeJson<RoleApiModel>();
 
-            post = Browser.Post("/roles", with => // -1
+            post = _browser.Post("/roles", with => // -1
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                role.Name = "father";
+                role.Name = "father" + Guid.NewGuid();
                 role.ParentRole = gf.Id;
                 role.Permissions = new List<PermissionApiModel> {fperm};
                 with.JsonBody(role);
@@ -984,11 +958,10 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             var f = post.Body.DeserializeJson<RoleApiModel>();
 
-            post = Browser.Post("/roles", with => // 0
+            post = _browser.Post("/roles", with => // 0
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                role.Name = "himself";
+                role.Name = "himself" + Guid.NewGuid();
                 role.ParentRole = f.Id;
                 role.Permissions = new List<PermissionApiModel> {hsperm};
                 with.JsonBody(role);
@@ -996,11 +969,10 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             var hs = post.Body.DeserializeJson<RoleApiModel>();
 
-            post = Browser.Post("/roles", with => // 1
+            post = _browser.Post("/roles", with => // 1
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                role.Name = "son";
+                role.Name = "son" + Guid.NewGuid();
                 role.ParentRole = hs.Id;
                 role.Permissions = new List<PermissionApiModel> {sonperm};
                 with.JsonBody(role);
@@ -1009,7 +981,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             post.Body.DeserializeJson<RoleApiModel>();
 
             // Adding groups
-            Browser.Post("/groups", with =>
+            _browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new 
@@ -1020,7 +992,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 });
             }).Wait();
 
-            Browser.Post($"/groups/{group}/roles", with =>
+            _browser.Post($"/groups/{group}/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -1030,46 +1002,45 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Wait();
 
             // Get the permissions
-            var get = Browser.Get("/user/permissions", with =>
+            var get = _browser.Get("/user/permissions", with =>
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
             }).Result;
 
             Assert.Equal(HttpStatusCode.OK, get.StatusCode);
-            Assert.Contains("greatgrandfatherpermissions", get.Body.AsString());
-            Assert.Contains("grandfatherpermissions", get.Body.AsString());
-            Assert.Contains("fatherpermissions", get.Body.AsString());
-            Assert.Contains("himselfpermissions", get.Body.AsString());
-            Assert.DoesNotContain("sonpermissions", get.Body.AsString());
+            Assert.Contains(ggfperm.Name, get.Body.AsString());
+            Assert.Contains(gfperm.Name, get.Body.AsString());
+            Assert.Contains(fperm.Name, get.Body.AsString());
+            Assert.Contains(hsperm.Name, get.Body.AsString());
+            Assert.DoesNotContain(sonperm.Name, get.Body.AsString());
         }
 
         [Fact]
-        [DisplayTestMethodName]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public void TestRoleBlacklist_Success()
         {
             // Adding permissions
-            var post = Browser.Post("/permissions", with =>
+            var post = _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
                 {
                     Grain = "app",
-                    SecurableItem = "userprincipal",
-                    Name = "viewpatient"
+                    SecurableItem = _securableItem,
+                    Name = "viewpatient" + Guid.NewGuid()
                 });
             }).Result;
 
             var viewPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
 
-            post = Browser.Post("/permissions", with =>
+            post = _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
                 {
                     Grain = "app",
-                    SecurableItem = "userprincipal",
-                    Name = "editpatient"
+                    SecurableItem = _securableItem,
+                    Name = "editpatient" + Guid.NewGuid()
                 });
             }).Result;
 
@@ -1079,25 +1050,23 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var role = new RoleApiModel
             {
                 Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "viewer",
+                SecurableItem = _securableItem,
+                Name = "viewer" + Guid.NewGuid(),
                 Permissions = new List<PermissionApiModel> {viewPatientPermission}
             };
 
-            post = Browser.Post("/roles", with => // -3
+            post = _browser.Post("/roles", with => // -3
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
                 with.JsonBody(role);
             }).Result;
 
             var viewerRole = post.Body.DeserializeJson<RoleApiModel>();
 
-            post = Browser.Post("/roles", with => // -2
+            post = _browser.Post("/roles", with => // -2
             {
                 with.HttpRequest();
-                with.Header("Accept", "application/json");
-                role.Name = "editor";
+                role.Name = "editor" + Guid.NewGuid();
                 role.Permissions = new List<PermissionApiModel> {editPatientPermission};
 
                 // Role denies viewPatient permission
@@ -1108,7 +1077,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var editorRole = post.Body.DeserializeJson<RoleApiModel>();
 
             // Adding groups
-            Browser.Post("/groups", with =>
+            _browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -1119,7 +1088,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 });
             }).Wait();
 
-            Browser.Post("/groups", with =>
+            _browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -1130,7 +1099,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 });
             }).Wait();
 
-            Browser.Post($"/groups/{Group1}/roles", with =>
+            _browser.Post($"/groups/{Group1}/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -1139,7 +1108,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 });
             }).Wait();
 
-            Browser.Post($"/groups/{Group2}/roles", with =>
+            _browser.Post($"/groups/{Group2}/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -1149,44 +1118,46 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Wait();
 
             // Get the permissions
-            var get = Browser.Get("/user/permissions", with =>
+            var get = _browser.Get("/user/permissions", with =>
             {
                 with.HttpRequest();
             }).Result;
 
+            var subjectId = _securableItem;
+
             Assert.Equal(HttpStatusCode.OK, get.StatusCode);
             var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
-            Assert.Contains("app/userprincipal.editpatient", permissions.Permissions);
-            Assert.DoesNotContain("app/userprincipal.viewpatient", permissions.Permissions); // Denied by role
+            Assert.Contains($"app/{subjectId}.{editPatientPermission.Name}", permissions.Permissions);
+            Assert.DoesNotContain($"app/{subjectId}.{viewPatientPermission.Name}", permissions.Permissions); // Denied by role
             Assert.Single(permissions.Permissions);
         }
 
         [Fact]
-        [DisplayTestMethodName]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public void TestUserBlacklist_Success()
         {
             // Adding permissions
-            var post = Browser.Post("/permissions", with =>
+            var post = _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
                 {
                     Grain = "app",
-                    SecurableItem = "userprincipal",
-                    Name = "viewpatient"
+                    SecurableItem = _securableItem,
+                    Name = "viewpatient" + Guid.NewGuid()
                 });
             }).Result;
 
             var viewPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
 
-            post = Browser.Post("/permissions", with =>
+            post = _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
                 {
                     Grain = "app",
-                    SecurableItem = "userprincipal",
-                    Name = "editpatient"
+                    SecurableItem = _securableItem,
+                    Name = "editpatient" + Guid.NewGuid()
                 });
             }).Result;
 
@@ -1196,12 +1167,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var role = new RoleApiModel
             {
                 Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "viewer",
+                SecurableItem = _securableItem,
+                Name = "viewer" + Guid.NewGuid(),
                 Permissions = new List<PermissionApiModel> {viewPatientPermission}
             };
 
-            post = Browser.Post("/roles", with => // -3
+            post = _browser.Post("/roles", with => // -3
             {
                 with.HttpRequest();
                 with.JsonBody(role);
@@ -1209,10 +1180,10 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             var viewerRole = post.Body.DeserializeJson<RoleApiModel>();
 
-            post = Browser.Post("/roles", with => // -2
+            post = _browser.Post("/roles", with => // -2
             {
                 with.HttpRequest();
-                role.Name = "editor";
+                role.Name = "editor" + Guid.NewGuid();
                 role.Permissions = new List<PermissionApiModel> {editPatientPermission};
                 with.JsonBody(role);
             }).Result;
@@ -1220,7 +1191,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var editorRole = post.Body.DeserializeJson<RoleApiModel>();
 
             // Adding groups
-            Browser.Post("/groups", with =>
+            _browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -1231,7 +1202,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 });
             }).Wait();
 
-            Browser.Post("/groups", with =>
+            _browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -1242,7 +1213,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 });
             }).Wait();
 
-            Browser.Post($"/groups/{Group1}/roles", with =>
+            _browser.Post($"/groups/{Group1}/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -1251,7 +1222,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 });
             }).Wait();
 
-            Browser.Post($"/groups/{Group2}/roles", with =>
+            _browser.Post($"/groups/{Group2}/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -1261,11 +1232,11 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Wait();
 
             // Adding blacklist (user cannot edit patient, even though role allows)
-            var subjectId = "userprincipal";
+            var subjectId = _securableItem;
 
             editPatientPermission.PermissionAction = PermissionAction.Deny;
 
-            Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            _browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
                 var perms = new List<PermissionApiModel> {editPatientPermission};
@@ -1273,44 +1244,44 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Wait();
 
             // Get the permissions
-            var get = Browser.Get("/user/permissions", with =>
+            var get = _browser.Get("/user/permissions", with =>
             {
                 with.HttpRequest();
             }).Result;
 
             Assert.Equal(HttpStatusCode.OK, get.StatusCode);
             var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
-            Assert.DoesNotContain("app/userprincipal.editpatient", permissions.Permissions);
-            Assert.Contains("app/userprincipal.viewpatient", permissions.Permissions);
-            Assert.Equal(1, permissions.Permissions.Count());
+            Assert.DoesNotContain($"app/{_securableItem}.{editPatientPermission.Name}", permissions.Permissions);
+            Assert.Contains($"app/{_securableItem}.{viewPatientPermission.Name}", permissions.Permissions);
+            Assert.Single(permissions.Permissions);
         }
 
         [Fact]
-        [DisplayTestMethodName]
+        [IntegrationTestsFixture.DisplayTestMethodNameAttribute]
         public void TestUserWhitelist_Success()
         {
             // Adding permissions
-            var post = Browser.Post("/permissions", with =>
+            var post = _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
                 {
                     Grain = "app",
-                    SecurableItem = "userprincipal",
-                    Name = "viewpatient"
+                    SecurableItem = _securableItem,
+                    Name = "viewpatient" + Guid.NewGuid()
                 });
             }).Result;
 
             var viewPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
 
-            post = Browser.Post("/permissions", with =>
+            post = _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
                 {
                     Grain = "app",
-                    SecurableItem = "userprincipal",
-                    Name = "editpatient"
+                    SecurableItem = _securableItem,
+                    Name = "editpatient" + Guid.NewGuid()
                 });
             }).Result;
 
@@ -1320,12 +1291,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var role = new RoleApiModel
             {
                 Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "viewer",
+                SecurableItem = _securableItem,
+                Name = "viewer" + Guid.NewGuid(),
                 Permissions = new List<PermissionApiModel> {viewPatientPermission}
             };
 
-            post = Browser.Post("/roles", with => // -3
+            post = _browser.Post("/roles", with => // -3
             {
                 with.HttpRequest();
                 with.JsonBody(role);
@@ -1333,10 +1304,10 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             var viewerRole = post.Body.DeserializeJson<RoleApiModel>();
 
-            post = Browser.Post("/roles", with => // -2
+            post = _browser.Post("/roles", with => // -2
             {
                 with.HttpRequest();
-                role.Name = "editor";
+                role.Name = "editor" + Guid.NewGuid();
                 role.Permissions = new List<PermissionApiModel> {editPatientPermission};
                 with.JsonBody(role);
             }).Result;
@@ -1344,7 +1315,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var editorRole = post.Body.DeserializeJson<RoleApiModel>();
 
             // Adding groups
-            Browser.Post("/groups", with =>
+            _browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -1355,7 +1326,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 });
             }).Wait();
 
-            Browser.Post("/groups", with =>
+            _browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -1366,7 +1337,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 });
             }).Wait();
 
-            Browser.Post($"/groups/{Group1}/roles", with =>
+            _browser.Post($"/groups/{Group1}/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -1375,7 +1346,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 });
             }).Wait();
 
-            Browser.Post($"/groups/{Group2}/roles", with =>
+            _browser.Post($"/groups/{Group2}/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -1388,12 +1359,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var modifyPatientPermission = new PermissionApiModel
             {
                 Grain = "app",
-                SecurableItem = "userprincipal",
-                Name = "modifypatient",
+                SecurableItem = _securableItem,
+                Name = "modifypatient" + Guid.NewGuid(),
                 PermissionAction = PermissionAction.Allow
             };
 
-            var response = Browser.Post("/permissions", with =>
+            var response = _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(modifyPatientPermission);
@@ -1401,9 +1372,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             modifyPatientPermission.Id = response.Body.DeserializeJson<PermissionApiModel>().Id;
 
-            var subjectId = "userprincipal";
+            var subjectId = _securableItem;
 
-            Browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
+            _browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
                 var perms = new List<PermissionApiModel> {modifyPatientPermission};
@@ -1411,24 +1382,24 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Wait();
 
             // Get the permissions
-            var get = Browser.Get("/user/permissions", with =>
+            var get = _browser.Get("/user/permissions", with =>
             {
                 with.HttpRequest();
             }).Result;
 
             Assert.Equal(HttpStatusCode.OK, get.StatusCode);
             var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
-            Assert.Contains("app/userprincipal.editpatient", permissions.Permissions);
-            Assert.Contains("app/userprincipal.viewpatient", permissions.Permissions);
-            Assert.Contains("app/userprincipal.modifypatient", permissions.Permissions);
+            Assert.Contains($"app/{subjectId}.{editPatientPermission.Name}", permissions.Permissions);
+            Assert.Contains($"app/{subjectId}.{viewPatientPermission.Name}", permissions.Permissions);
+            Assert.Contains($"app/{subjectId}.{modifyPatientPermission.Name}", permissions.Permissions);
             Assert.Equal(3, permissions.Permissions.Count());
         }
 
         [Fact]
-        [DisplayTestMethodName]
+        [IntegrationTestsFixture.DisplayTestMethodNameAttribute]
         public void Test_GetGroups_UserNotFound()
         {            
-            var get = Browser.Get("/user/foo/bar/groups", with =>
+            var get = _browser.Get("/user/foo/bar/groups", with =>
                 {
                     with.HttpRequest();
                 }).Result;
