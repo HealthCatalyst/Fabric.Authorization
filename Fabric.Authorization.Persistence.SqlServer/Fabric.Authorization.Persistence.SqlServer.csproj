@@ -33,7 +33,6 @@
     <Folder Include="DependencyInjection\" />
     <Folder Include="Configuration\" />
     <Folder Include="Mappers\" />
-    <Folder Include="Stores\" />
   </ItemGroup>
 
 </Project>
