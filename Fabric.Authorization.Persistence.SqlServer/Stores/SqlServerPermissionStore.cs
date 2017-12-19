@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
@@ -121,7 +122,47 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task AddOrUpdateGranularPermission(GranularPermission granularPermission)
         {
-            throw new NotImplementedException();
+            var idParts = SplitUserId(granularPermission.Id);
+
+            var user = await _authorizationDbContext.Users
+                .Include(u => u.UserPermissions)
+                .ThenInclude(up => up.Permission)
+                .SingleOrDefaultAsync(u => u.IdentityProvider.Equals(idParts[0], StringComparison.OrdinalIgnoreCase)
+                                           && u.SubjectId.Equals(idParts.Length > 1 ? idParts[1] : idParts[0], StringComparison.OrdinalIgnoreCase)
+                                           && !u.IsDeleted);
+
+            // remove all current permissions first and then replace them with the new set of permissions
+            var currentUserPermissions = user.UserPermissions.Where(up => !up.IsDeleted);
+            foreach (var up in currentUserPermissions)
+            {
+                _authorizationDbContext.UserPermissions.Remove(up);
+            }
+
+            var additionalPermissionIds = granularPermission.AdditionalPermissions.Select(gp => gp.Id);
+            var deniedPermissionIds = granularPermission.DeniedPermissions.Select(gp => gp.Id);
+
+            // retrieve all permissions and store in memory for Id lookups below (assume this
+            var permissionDictionary = _authorizationDbContext.Permissions.Where(p => !p.IsDeleted)
+                .Where(p => additionalPermissionIds.Contains(p.PermissionId) || deniedPermissionIds.Contains(p.PermissionId))
+                .ToDictionary(p => p.PermissionId);
+
+            await _authorizationDbContext.UserPermissions.AddRangeAsync(granularPermission.AdditionalPermissions.Select(
+                ap => new UserPermission
+                {
+                    UserId = user.Id,
+                    PermissionId = permissionDictionary[ap.Id].Id,
+                    PermissionAction = PermissionAction.Allow
+                }));
+
+            await _authorizationDbContext.UserPermissions.AddRangeAsync(granularPermission.DeniedPermissions.Select(
+                dp => new UserPermission
+                {
+                    UserId = user.Id,
+                    PermissionId = permissionDictionary[dp.Id].Id,
+                    PermissionAction = PermissionAction.Deny
+                }));
+
+            await _authorizationDbContext.SaveChangesAsync();
         }
 
         public async Task<GranularPermission> GetGranularPermission(string userId)
@@ -134,6 +175,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .SingleOrDefaultAsync(u => u.IdentityProvider.Equals(idParts[0], StringComparison.OrdinalIgnoreCase)
                             && u.SubjectId.Equals(idParts.Length > 1 ? idParts[1] : idParts[0], StringComparison.OrdinalIgnoreCase)
                             && !u.IsDeleted);
+
+            if (user == null)
+            {
+                throw new NotFoundException<User>($"Could not find {typeof(User).Name} entity with ID {userId}");
+            }
 
             var userPermissions = user.UserPermissions.Where(up => !up.IsDeleted).ToList();
             var allowedUserPermissions = userPermissions.Where(up => up.PermissionAction == PermissionAction.Allow);
