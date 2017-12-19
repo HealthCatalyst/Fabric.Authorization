@@ -67,7 +67,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             if (permission == null)
             {
-                throw new NotFoundException<User>($"Could not find {typeof(Permission).Name} entity with ID {model.Id}");
+                throw new NotFoundException<Permission>($"Could not find {typeof(Permission).Name} entity with ID {model.Id}");
             }
 
             permission.IsDeleted = true;
@@ -94,7 +94,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             if (permission == null)
             {
-                throw new NotFoundException<User>($"Could not find {typeof(Permission).Name} entity with ID {model.Id}");
+                throw new NotFoundException<Permission>($"Could not find {typeof(Permission).Name} entity with ID {model.Id}");
             }
 
             model.ToEntity(permission);
