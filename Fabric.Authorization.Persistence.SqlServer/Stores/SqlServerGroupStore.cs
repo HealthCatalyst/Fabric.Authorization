@@ -38,7 +38,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .ThenInclude(gr => gr.Role)
                 .Include(g => g.GroupUsers)
                 .ThenInclude(gu => gu.User)
-                .SingleOrDefaultAsync(g => g.GroupId.Equals(id, StringComparison.OrdinalIgnoreCase)
+                .SingleOrDefaultAsync(g => g.Name.Equals(id, StringComparison.OrdinalIgnoreCase)
                 && !g.IsDeleted);
 
             if (group == null)
@@ -67,11 +67,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             var group = await _authorizationDbContext.Groups
                 .Include(g => g.GroupRoles)
                 .Include(g => g.GroupUsers)
-                .SingleOrDefaultAsync(g => g.GroupId.Equals(model.Id, StringComparison.OrdinalIgnoreCase));
+                .SingleOrDefaultAsync(g => g.GroupId.Equals(model.Name, StringComparison.OrdinalIgnoreCase));
 
             if (group == null)
             {
-                throw new NotFoundException<Group>($"Could not find {typeof(Group).Name} entity with ID {model.Id}");
+                throw new NotFoundException<Group>($"Could not find {typeof(Group).Name} entity with ID {model.Name}");
             }
 
             group.IsDeleted = true;
@@ -93,11 +93,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             var group = await _authorizationDbContext.Groups
                 .Include(g => g.GroupRoles)
                 .Include(g => g.GroupUsers)
-                .SingleOrDefaultAsync(g => g.GroupId.Equals(model.Id, StringComparison.OrdinalIgnoreCase));
+                .SingleOrDefaultAsync(g => g.GroupId.Equals(model.Name, StringComparison.OrdinalIgnoreCase));
 
             if (group == null)
             {
-                throw new NotFoundException<Group>($"Could not find {typeof(Group).Name} entity with ID {model.Id}");
+                throw new NotFoundException<Group>($"Could not find {typeof(Group).Name} entity with ID {model.Name}");
             }
 
             model.ToEntity(group);
@@ -109,7 +109,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         public async Task<bool> Exists(string id)
         {
             var group = await _authorizationDbContext.Groups
-                .SingleOrDefaultAsync(g => g.GroupId.Equals(id, StringComparison.OrdinalIgnoreCase)
+                .SingleOrDefaultAsync(g => g.Name.Equals(id, StringComparison.OrdinalIgnoreCase)
                                            && !g.IsDeleted);
 
             return group != null;
