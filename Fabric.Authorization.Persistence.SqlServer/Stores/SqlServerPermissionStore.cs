@@ -5,9 +5,12 @@ using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
+using Fabric.Authorization.Persistence.SqlServer.EntityModels;
 using Fabric.Authorization.Persistence.SqlServer.Mappers;
 using Fabric.Authorization.Persistence.SqlServer.Services;
 using Microsoft.EntityFrameworkCore;
+using Permission = Fabric.Authorization.Domain.Models.Permission;
+using User = Fabric.Authorization.Domain.Models.User;
 
 namespace Fabric.Authorization.Persistence.SqlServer.Stores
 {
@@ -96,7 +99,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return permission != null;
         }
 
-        public async Task<IEnumerable<Permission>> GetPermissions(string grain, string securableItem = null,
+        public Task<IEnumerable<Permission>> GetPermissions(string grain, string securableItem = null,
             string permissionName = null)
         {
             var permissions = _authorizationDbContext.Permissions
@@ -113,7 +116,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 permissions = permissions.Where(p => string.Equals(p.Name, securableItem));
             }
 
-            return permissions.Select(p => p.ToModel()).AsEnumerable();
+            return Task.FromResult(permissions.Select(p => p.ToModel()).AsEnumerable());
         }
 
         public async Task AddOrUpdateGranularPermission(GranularPermission granularPermission)
@@ -123,7 +126,35 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task<GranularPermission> GetGranularPermission(string userId)
         {
-            throw new NotImplementedException();
+            var idParts = SplitUserId(userId);
+
+            var user = await _authorizationDbContext.Users
+                .Include(u => u.UserPermissions)
+                .ThenInclude(up => up.Permission)
+                .SingleOrDefaultAsync(u => u.IdentityProvider.Equals(idParts[0], StringComparison.OrdinalIgnoreCase)
+                            && u.SubjectId.Equals(idParts.Length > 1 ? idParts[1] : idParts[0], StringComparison.OrdinalIgnoreCase)
+                            && !u.IsDeleted);
+
+            var userPermissions = user.UserPermissions.Where(up => !up.IsDeleted).ToList();
+            var allowedUserPermissions = userPermissions.Where(up => up.PermissionAction == PermissionAction.Allow);
+            var deniedUserPermissions = userPermissions.Where(up => up.PermissionAction == PermissionAction.Deny);
+
+            return new GranularPermission
+            {
+                AdditionalPermissions = allowedUserPermissions.Select(aup => aup.Permission.ToModel()),
+                DeniedPermissions = deniedUserPermissions.Select(dup => dup.Permission.ToModel())
+            };
+        }
+
+        /// <summary>
+        /// TODO: consolidate this method and same method in SqlServerUser store
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        private static string[] SplitUserId(string id)
+        {
+            var delimiter = new[] { @"\" };
+            return id.Split(delimiter, StringSplitOptions.RemoveEmptyEntries);
         }
     }
 }
