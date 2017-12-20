@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
@@ -31,5 +33,20 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
         public ICollection<GroupRole> GroupRoles { get; set; }
         public ICollection<Role> ChildRoles { get; set; }
         public ICollection<RolePermission> RolePermissions { get; set; }
+
+        [NotMapped]
+        public ICollection<Group> Groups => GroupRoles.Select(gr => gr.Group).ToList();
+
+        [NotMapped]
+        public ICollection<Permission> AllowedPermissions =>
+            RolePermissions
+                .Where(rp => rp.PermissionAction == PermissionAction.Allow)
+                .Select(rp => rp.Permission).ToList();
+
+        [NotMapped]
+        public ICollection<Permission> DeniedPermissions =>
+            RolePermissions
+                .Where(rp => rp.PermissionAction == PermissionAction.Deny)
+                .Select(rp => rp.Permission).ToList();
     }
 }
