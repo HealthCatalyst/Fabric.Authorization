@@ -49,14 +49,6 @@ namespace Fabric.Authorization.Domain.Stores.CouchDB
         {
             foreach (var permissionId in permissionIds)
             {
-                if (role.Permissions.All(p => p.Id != permissionId))
-                {
-                    throw new NotFoundException<Permission>($"Permission with id {permissionId} not found on role {role.Id}");
-                }
-            }
-
-            foreach (var permissionId in permissionIds)
-            {
                 var permission = role.Permissions.First(p => p.Id == permissionId);
                 role.Permissions.Remove(permission);
             }

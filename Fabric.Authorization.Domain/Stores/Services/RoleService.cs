@@ -128,24 +128,21 @@ namespace Fabric.Authorization.Domain.Stores.Services
         
         public async Task<Role> RemovePermissionsFromRole(Role role, Guid[] permissionIds)
         {
+            foreach (var permissionId in permissionIds)
+            {
+                if (role.Permissions.All(p => p.Id != permissionId))
+                {
+                    throw new NotFoundException<Permission>($"Permission with id {permissionId} not found on role {role.Id}");
+                }
+            }
+
             var updatedRole = await _roleStore.RemovePermissionsFromRole(role, permissionIds);
             return updatedRole;
         }
 
         public async Task RemovePermissionsFromRoles(Guid permissionId, string grain, string securableItem = null)
         {
-            var roles = await _roleStore.GetRoles(grain, securableItem);
-
-            // TODO: candidate for batch update
-            foreach (var role in roles)
-            {
-                if (role.Permissions != null && role.Permissions.Any(p => p.Id == permissionId))
-                {
-                    var permission = role.Permissions.First(p => p.Id == permissionId);
-                    role.Permissions.Remove(permission);
-                    await _roleStore.Update(role);
-                }
-            }
+            await _roleStore.RemovePermissionsFromRoles(permissionId, grain, securableItem);
         }
 
         /// <summary>
