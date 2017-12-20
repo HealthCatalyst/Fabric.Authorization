@@ -42,5 +42,26 @@ namespace Fabric.Authorization.Domain.Stores.InMemory
             }
             return Task.FromResult(roles.Where(r => !r.IsDeleted));
         }
+
+        public async Task<Role> AddPermissionsToRole(Role role, ICollection<Permission> permissions)
+        {
+            foreach (var permission in permissions)
+            {
+                role.Permissions.Add(permission);
+            }
+
+            await Update(role);
+            return role;
+        }
+
+        public Task<Role> RemovePermissionsFromRole(Role role, Guid[] permissionIds)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task RemovePermissionsFromRoles(Guid permissionId, string grain, string securableItem = null)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
