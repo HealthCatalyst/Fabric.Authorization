@@ -10,9 +10,10 @@ using Xunit;
 namespace Fabric.Authorization.IntegrationTests.Modules
 {
     [Collection("InMemoryTests")]
-    public class ClientTests : IntegrationTestsFixture
+    public class ClientTests : IClassFixture<IntegrationTestsFixture>
     {
-        public ClientTests(bool useInMemoryDB = true)
+        private readonly Browser _browser;
+        public ClientTests(IntegrationTestsFixture fixture, bool useInMemoryDb = true)
         {
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
             {
@@ -21,16 +22,16 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 new Claim(Claims.Scope, Scopes.WriteScope),
             }, "testprincipal"));
 
-            Browser = GetBrowser(principal, useInMemoryDB);
+            _browser = fixture.GetBrowser(principal, useInMemoryDb);
         }
 
         [Theory]
-        [DisplayTestMethodName]
-        [InlineData("InexistentClient")]
-        [InlineData("InexistentClient2")]
-        public void TestGetClient_Fail(string Id)
+        [IntegrationTestsFixture.DisplayTestMethodName]
+        [InlineData("CD47FCAB-0C85-45C0-95F8-9F4A4E5B8E57")]
+        [InlineData("C470B25B-4309-4C02-91DD-EB7C2D99E341")]
+        public void TestGetClient_Fail(string id)
         {
-            var get = this.Browser.Get($"/clients/{Id}", with =>
+            var get = _browser.Get($"/clients/{id}", with =>
             {
                 with.HttpRequest();
             }).Result;
@@ -39,11 +40,11 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Theory]
-        [DisplayTestMethodName]
-        [InlineData("Client1", "Client2")]
+        [IntegrationTestsFixture.DisplayTestMethodName]
+        [InlineData("8993363C-2E3C-4168-BAD7-F0F3DDFDB6F3", "97B3E59A-C76C-4383-A765-609686F15FAB")]
         public void TestGetClients_Success(string clientId1, string clientId2)
         {
-            var getInitialCountResponse = this.Browser.Get("/clients", with =>
+            var getInitialCountResponse = _browser.Get("/clients", with =>
             {
                 with.HttpRequest();
             }).Result;
@@ -57,7 +58,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             {
                 var client = new ClientApiModel { Id = clientId, Name = clientId };
 
-                var postResponse = this.Browser.Post("/clients", with =>
+                var postResponse = _browser.Post("/clients", with =>
                 {
                     with.HttpRequest();
                     with.JsonBody(client);
@@ -65,7 +66,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             }
             //confirm you can get two clients back 
-            var getResponse = this.Browser.Get("/clients", with =>
+            var getResponse = _browser.Get("/clients", with =>
             {
                 with.HttpRequest();
             }).Result;
@@ -74,7 +75,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(initialClientCount + 2, clients.Count());
 
             //delete one client
-            var delete = this.Browser.Delete($"/clients/{clientIds[0]}", with =>
+            var delete = _browser.Delete($"/clients/{clientIds[0]}", with =>
             {
                 with.HttpRequest();
             }).Result;
@@ -82,7 +83,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.NoContent, delete.StatusCode);
 
             //confirm you get one client back 
-            getResponse = this.Browser.Get("/clients", with =>
+            getResponse = _browser.Get("/clients", with =>
             {
                 with.HttpRequest();
             }).Result;
@@ -92,46 +93,46 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Theory]
-        [DisplayTestMethodName]
-        [InlineData("Client1")]
-        [InlineData("Client2")]
+        [IntegrationTestsFixture.DisplayTestMethodName]
+        [InlineData("118475CC-A1B4-449C-8E13-EA4D06A159B3")]
+        [InlineData("F5DB70E2-AF0C-4C72-8447-1B418C47EE1A")]
         [InlineData("6BC32347-36A1-44CF-AA0E-6C1038AA1DF3")]
-        public void TestAddNewClient_Success(string Id)
+        public void TestAddNewClient_Success(string id)
         {
-            var clientToAdd = new ClientApiModel { Id = Id, Name = Id };
+            var clientToAdd = new ClientApiModel { Id = id, Name = id };
 
-            var postResponse = this.Browser.Post("/clients", with =>
+            var postResponse = _browser.Post("/clients", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(clientToAdd);
             }).Result;
 
-            var getResponse = this.Browser.Get($"/clients/{Id}", with =>
+            var getResponse = _browser.Get($"/clients/{id}", with =>
                 {
                     with.HttpRequest();
                 }).Result;
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
-            Assert.Contains(Id, getResponse.Body.AsString());
+            Assert.Contains(id, getResponse.Body.AsString());
         }
 
         [Theory]
-        [DisplayTestMethodName]
-        [InlineData("RepeatedClient1")]
-        [InlineData("RepeatedClient2")]
-        public void TestAddNewClient_Fail(string Id)
+        [IntegrationTestsFixture.DisplayTestMethodName]
+        [InlineData("3F205ECA-BA68-42F3-9CBC-B6D2C178D782")]
+        [InlineData("D622053D-03F5-489E-84F7-5471DA309213")]
+        public void TestAddNewClient_Fail(string id)
         {
-            var clientToAdd = new ClientApiModel { Id = Id, Name = Id };
+            var clientToAdd = new ClientApiModel { Id = id, Name = id };
 
-            this.Browser.Post("/clients", with =>
+            _browser.Post("/clients", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(clientToAdd);
             }).Wait();
 
             // Repeat
-            var postResponse = this.Browser.Post("/clients", with =>
+            var postResponse = _browser.Post("/clients", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(clientToAdd);
@@ -139,25 +140,25 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.Conflict, postResponse.StatusCode);
             Assert.Contains(
-                $"Client {Id} already exists. Please provide a new client id",
+                $"Client {id} already exists. Please provide a new client id",
                 postResponse.Body.AsString());
         }
 
         [Theory]
-        [DisplayTestMethodName]
-        [InlineData("ClientToBeDeleted")]
-        [InlineData("ClientToBeDeleted2")]
-        public void TestDeleteClient_Success(string Id)
+        [IntegrationTestsFixture.DisplayTestMethodName]
+        [InlineData("CD13516E-2C63-4F7F-8B4C-CF0187BC79D6")]
+        [InlineData("F8C01F6B-C09C-430C-97A5-A0F2F1B340FB")]
+        public void TestDeleteClient_Success(string id)
         {
-            var clientToAdd = new ClientApiModel { Id = Id, Name = Id };
+            var clientToAdd = new ClientApiModel { Id = id, Name = id };
 
-            this.Browser.Post("/clients", with =>
+            _browser.Post("/clients", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(clientToAdd);
             }).Wait();
 
-            var delete = this.Browser.Delete($"/clients/{Id}", with =>
+            var delete = _browser.Delete($"/clients/{id}", with =>
             {
                 with.HttpRequest();
             }).Result;
@@ -166,12 +167,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Theory]
-        [DisplayTestMethodName]
-        [InlineData("InexistentClient")]
-        [InlineData("InexistentClient2")]
-        public void TestDeleteClient_Fail(string Id)
+        [IntegrationTestsFixture.DisplayTestMethodName]
+        [InlineData("EF30B395-B505-4DE2-829B-8BBAA919F15C")]
+        [InlineData("BB93ADC5-CD86-4746-B39B-9C56564A1BD2")]
+        public void TestDeleteClient_Fail(string id)
         {
-            var delete = this.Browser.Delete($"/clients/{Id}", with =>
+            var delete = _browser.Delete($"/clients/{id}", with =>
             {
                 with.HttpRequest();
             }).Result;
