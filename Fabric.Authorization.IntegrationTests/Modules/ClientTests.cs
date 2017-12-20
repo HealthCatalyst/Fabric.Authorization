@@ -13,7 +13,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
     public class ClientTests : IClassFixture<IntegrationTestsFixture>
     {
         private readonly Browser _browser;
-        public ClientTests(IntegrationTestsFixture fixture, bool useInMemoryDb = true)
+        public ClientTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory)
         {
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
             {
@@ -22,7 +22,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 new Claim(Claims.Scope, Scopes.WriteScope),
             }, "testprincipal"));
 
-            _browser = fixture.GetBrowser(principal, useInMemoryDb);
+            _browser = fixture.GetBrowser(principal, storageProvider);
         }
 
         [Theory]

@@ -1,4 +1,5 @@
-﻿using Fabric.Authorization.IntegrationTests.Modules;
+﻿using Fabric.Authorization.API.Constants;
+using Fabric.Authorization.IntegrationTests.Modules;
 using Xunit;
 
 namespace Fabric.Authorization.IntegrationTests.CouchDB
@@ -6,7 +7,7 @@ namespace Fabric.Authorization.IntegrationTests.CouchDB
     [Collection("CouchTests")]
     public class CouchDBRolesTests : RolesTests, IClassFixture<IntegrationTestsFixture>
     {
-        public CouchDBRolesTests(IntegrationTestsFixture fixture) : base(fixture, useInMemoryDb: false)
+        public CouchDBRolesTests(IntegrationTestsFixture fixture) : base(fixture, StorageProviders.CouchDb)
         {
         }
     }

@@ -5,7 +5,6 @@ namespace Fabric.Authorization.API.Configuration
     public class AppConfiguration : IAppConfiguration
     {
         public string ClientName { get; set; }
-        public bool UseInMemoryStores { get; set; }
         public string StorageProvider { get; set; }
         public ElasticSearchSettings ElasticSearchSettings { get; set; }
         public IdentityServerConfidentialClientSettings IdentityServerConfidentialClientSettings { get; set; }

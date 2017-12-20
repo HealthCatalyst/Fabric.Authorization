@@ -1,4 +1,5 @@
-﻿using Fabric.Authorization.IntegrationTests.Modules;
+﻿using Fabric.Authorization.API.Constants;
+using Fabric.Authorization.IntegrationTests.Modules;
 using Xunit;
 
 namespace Fabric.Authorization.IntegrationTests.CouchDB
@@ -8,7 +9,7 @@ namespace Fabric.Authorization.IntegrationTests.CouchDB
     {
         public CouchDbIdentitySearchTests(IdentitySearchFixture fixture) : base(fixture)
         {
-            Fixture.Initialize(false);
+            Fixture.Initialize(StorageProviders.CouchDb);
         }
     }
 }

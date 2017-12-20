@@ -14,7 +14,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         private readonly Browser _browser;
         private readonly string _securableItem;
 
-        public PermissionsTests(IntegrationTestsFixture fixture, bool useInMemoryDb = true)
+        public PermissionsTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory)
         {
             _securableItem = "permissionprincipal" + Guid.NewGuid();
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
@@ -25,7 +25,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 new Claim(Claims.ClientId, _securableItem)
             }, _securableItem));
 
-            _browser = fixture.GetBrowser(principal, useInMemoryDb);
+            _browser = fixture.GetBrowser(principal, storageProvider);
             fixture.CreateClient(_browser, _securableItem);
         }
 

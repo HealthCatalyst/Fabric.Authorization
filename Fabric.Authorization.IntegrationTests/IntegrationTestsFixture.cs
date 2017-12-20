@@ -28,12 +28,12 @@ namespace Fabric.Authorization.IntegrationTests
         }
         public Browser Browser { get; set; }
 
-        public Browser GetBrowser(ClaimsPrincipal principal, bool useInMemoryStores, IIdentityServiceProvider identityServiceProvider = null)
+        public Browser GetBrowser(ClaimsPrincipal principal, string storageProvider, IIdentityServiceProvider identityServiceProvider = null)
         {
             var appConfiguration = new AppConfiguration
             {
                 CouchDbSettings = CouchDbSettings,
-                UseInMemoryStores = useInMemoryStores,
+                StorageProvider = storageProvider,
                 IdentityServerConfidentialClientSettings = new IdentityServerConfidentialClientSettings
                 {
                     Authority = "http://localhost",
