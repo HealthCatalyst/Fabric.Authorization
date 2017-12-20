@@ -160,7 +160,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                     r.RoleId == role.Id
                     && !r.IsDeleted);
 
-            if (role == null)
+            if (roleEntity == null)
             {
                 throw new NotFoundException<Role>($"Could not find {typeof(Role).Name} entity with ID {role.Id}");
             }
@@ -179,12 +179,12 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                     PermissionId = permissionDictionary[permission.Id].Id,
                     PermissionAction = PermissionAction.Allow
                 });
+
+                role.Permissions.Add(permission);
             }
 
             await _authorizationDbContext.SaveChangesAsync();
-
-            var updatedRole = await Get(role.Id);
-            return updatedRole;
+            return role;
         }
 
         public async Task<Role> RemovePermissionsFromRole(Role role, Guid[] permissionIds)
@@ -195,7 +195,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                     r.RoleId == role.Id
                     && !r.IsDeleted);
 
-            if (role == null)
+            if (roleEntity == null)
             {
                 throw new NotFoundException<Role>($"Could not find {typeof(Role).Name} entity with ID {role.Id}");
             }
@@ -211,16 +211,15 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                     rp => rp.RoleId == roleEntity.Id
                           && rp.PermissionId == permissionDictionary[permissionId].Id);
 
+                rolePermissionToRemove.IsDeleted = true;
                 roleEntity.RolePermissions.Remove(rolePermissionToRemove);
             }
 
             await _authorizationDbContext.SaveChangesAsync();
-
-            var updatedRole = await Get(role.Id);
-            return updatedRole;
+            return roleEntity.ToModel();
         }
 
-        public async Task RemovePermissionsFromRoles(Guid permissionId, string grain, string securableItem = null)
+        public async Task RemovePermissionFromRoles(Guid permissionId, string grain, string securableItem = null)
         {
             var roles = GetRoleEntityModels(grain, securableItem);
 
@@ -232,7 +231,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
                 if (rolePermissionToRemove != null)
                 {
-                    role.RolePermissions.Remove(rolePermissionToRemove);
+                    rolePermissionToRemove.IsDeleted = true;
                 }
             }
 

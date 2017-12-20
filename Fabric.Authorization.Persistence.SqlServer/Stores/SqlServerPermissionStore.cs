@@ -153,7 +153,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             var currentUserPermissions = user.UserPermissions.Where(up => !up.IsDeleted);
             foreach (var userPermission in currentUserPermissions)
             {
-                _authorizationDbContext.UserPermissions.Remove(userPermission);
+                userPermission.IsDeleted = true;
             }
 
             var additionalPermissionIds = granularPermission.AdditionalPermissions.Select(gp => gp.Id);

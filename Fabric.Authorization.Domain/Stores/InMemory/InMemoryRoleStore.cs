@@ -66,7 +66,7 @@ namespace Fabric.Authorization.Domain.Stores.InMemory
             return role;
         }
 
-        public async Task RemovePermissionsFromRoles(Guid permissionId, string grain, string securableItem = null)
+        public async Task RemovePermissionFromRoles(Guid permissionId, string grain, string securableItem = null)
         {
             var roles = await GetRoles(grain, securableItem);
 
