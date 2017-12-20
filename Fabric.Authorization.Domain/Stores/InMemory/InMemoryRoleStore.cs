@@ -54,14 +54,32 @@ namespace Fabric.Authorization.Domain.Stores.InMemory
             return role;
         }
 
-        public Task<Role> RemovePermissionsFromRole(Role role, Guid[] permissionIds)
+        public async Task<Role> RemovePermissionsFromRole(Role role, Guid[] permissionIds)
         {
-            throw new NotImplementedException();
+            foreach (var permissionId in permissionIds)
+            {
+                var permission = role.Permissions.First(p => p.Id == permissionId);
+                role.Permissions.Remove(permission);
+            }
+
+            await Update(role);
+            return role;
         }
 
-        public Task RemovePermissionsFromRoles(Guid permissionId, string grain, string securableItem = null)
+        public async Task RemovePermissionsFromRoles(Guid permissionId, string grain, string securableItem = null)
         {
-            throw new NotImplementedException();
+            var roles = await GetRoles(grain, securableItem);
+
+            // TODO: candidate for batch update
+            foreach (var role in roles)
+            {
+                if (role.Permissions != null && role.Permissions.Any(p => p.Id == permissionId))
+                {
+                    var permission = role.Permissions.First(p => p.Id == permissionId);
+                    role.Permissions.Remove(permission);
+                    await Update(role);
+                }
+            }
         }
     }
 }

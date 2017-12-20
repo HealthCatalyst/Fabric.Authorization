@@ -35,6 +35,12 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task<Role> Get(Guid id)
         {
+            var role = await GetEntityModel(id);
+            return role.ToModel();
+        }
+
+        public async Task<EntityModels.Role> GetEntityModel(Guid id)
+        {
             var role = await _authorizationDbContext.Roles
                 .Include(r => r.RolePermissions)
                 .ThenInclude(rp => rp.Permission)
@@ -49,7 +55,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 throw new NotFoundException<Role>($"Could not find {typeof(Role).Name} entity with ID {id}");
             }
 
-            return role.ToModel();
+            return role;
         }
 
         public async Task<IEnumerable<Role>> GetAll()
@@ -123,6 +129,12 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public Task<IEnumerable<Role>> GetRoles(string grain, string securableItem = null, string roleName = null)
         {
+            var roles = GetRoleEntityModels(grain, securableItem, roleName);
+            return Task.FromResult(roles.Select(r => r.ToModel()).AsEnumerable());
+        }
+
+        private IEnumerable<EntityModels.Role> GetRoleEntityModels(string grain, string securableItem = null, string roleName = null)
+        {
             var roles = _authorizationDbContext.Roles
                 .Include(r => r.SecurableItem)
                 .Where(r => string.Equals(r.Grain, grain, StringComparison.OrdinalIgnoreCase)
@@ -138,7 +150,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 roles = roles.Where(r => string.Equals(r.Name, roleName));
             }
 
-            return Task.FromResult(roles.Select(r => r.ToModel()).AsEnumerable());
+            return roles;
         }
 
         public async Task<Role> AddPermissionsToRole(Role role, ICollection<Permission> permissions)
@@ -177,38 +189,54 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task<Role> RemovePermissionsFromRole(Role role, Guid[] permissionIds)
         {
-            foreach (var permissionId in permissionIds)
+            var roleEntity = await _authorizationDbContext.Roles
+                .Include(r => r.RolePermissions)
+                .SingleOrDefaultAsync(r =>
+                    r.RoleId == role.Id
+                    && !r.IsDeleted);
+
+            if (role == null)
             {
-                if (role.Permissions.All(p => p.Id != permissionId))
-                {
-                    throw new NotFoundException<Permission>($"Permission with id {permissionId} not found on role {role.Id}");
-                }
+                throw new NotFoundException<Role>($"Could not find {typeof(Role).Name} entity with ID {role.Id}");
             }
+
+            var permissionDictionary = _authorizationDbContext.Permissions
+                .Where(p => !p.IsDeleted)
+                .Where(p => permissionIds.Contains(p.PermissionId))
+                .ToDictionary(p => p.PermissionId);
 
             foreach (var permissionId in permissionIds)
             {
-                var permission = role.Permissions.First(p => p.Id == permissionId);
-                role.Permissions.Remove(permission);
+                var rolePermissionToRemove = roleEntity.RolePermissions.Single(
+                    rp => rp.RoleId == roleEntity.Id
+                          && rp.PermissionId == permissionDictionary[permissionId].Id);
+
+                roleEntity.RolePermissions.Remove(rolePermissionToRemove);
             }
 
-            await Update(role);
-            return role;
+            await _authorizationDbContext.SaveChangesAsync();
+
+            var updatedRole = await Get(role.Id);
+            return updatedRole;
         }
 
         public async Task RemovePermissionsFromRoles(Guid permissionId, string grain, string securableItem = null)
         {
-            var roles = await GetRoles(grain, securableItem);
+            var roles = GetRoleEntityModels(grain, securableItem);
 
-            // TODO: candidate for batch update
             foreach (var role in roles)
             {
-                if (role.Permissions != null && role.Permissions.Any(p => p.Id == permissionId))
+                var rolePermissionToRemove = role.RolePermissions.Single(
+                    rp => rp.RoleId == role.Id
+                          && rp.Permission.PermissionId == permissionId);
+
+                if (rolePermissionToRemove != null)
                 {
-                    var permission = role.Permissions.First(p => p.Id == permissionId);
-                    role.Permissions.Remove(permission);
-                    await Update(role);
+                    role.RolePermissions.Remove(rolePermissionToRemove);
                 }
             }
+
+            await _authorizationDbContext.SaveChangesAsync();
         }
     }
 }
