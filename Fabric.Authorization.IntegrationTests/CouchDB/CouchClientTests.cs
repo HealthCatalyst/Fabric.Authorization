@@ -6,7 +6,7 @@ namespace Fabric.Authorization.IntegrationTests.CouchDB
     [Collection("CouchTests")]
     public class CouchClientTests : ClientTests
     {
-        public CouchClientTests() : base(useInMemoryDB: false)
+        public CouchClientTests(IntegrationTestsFixture fixture) : base(fixture, useInMemoryDb: false)
         {
         }
     }
