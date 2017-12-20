@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Security.Claims;
 using Fabric.Authorization.API.Configuration;
+using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Converters;
 using Fabric.Authorization.API.Extensions;
 using Fabric.Authorization.API.Infrastructure;
@@ -66,8 +67,7 @@ namespace Fabric.Authorization.API
             var appConfig = container.Resolve<IAppConfiguration>();
             container.UseHttpClientFactory(context, appConfig.IdentityServerConfidentialClientSettings);
             container.RegisterServices();
-            if (!_appConfig.UseInMemoryStores)
-                container.RegisterCouchDbStores(_appConfig, _loggingLevelSwitch);
+            ConfigureRequestDataStores(container, _appConfig);
         }
         
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
@@ -96,7 +96,7 @@ namespace Fabric.Authorization.API
                 }
             };
 
-            ConfigureRegistrations(container);
+            ConfigureSingletonRegistrations(container);
         }
 
         private void InitializeSwaggerMetadata()
@@ -125,7 +125,7 @@ namespace Fabric.Authorization.API
             }
         }
 
-        private void ConfigureRegistrations(TinyIoCContainer container)
+        private void ConfigureSingletonRegistrations(TinyIoCContainer container)
         {
             container.Register(_appConfig);
             container.Register(_logger);
@@ -138,47 +138,42 @@ namespace Fabric.Authorization.API
             container.Register<IPropertySettings>(_appConfig.DefaultPropertySettings);
             container.Register(typeof(IOptions<>), typeof(OptionsManager<>));
             container.Register<IMemoryCache, MemoryCache>();
-
-            if (_appConfig.UseInMemoryStores)
-            {
-                container.RegisterInMemoryStores();
-            }
-            else
-            {
-                container.Register<IDocumentDbService, CouchDbAccessService>("inner");
-                var dbAccessService = container.Resolve<CouchDbAccessService>();
-                dbAccessService.Initialize().Wait();
-                dbAccessService.SetupDefaultUser().Wait();
-                dbAccessService.AddViews("roles", CouchDbRoleStore.GetViews()).Wait();
-                dbAccessService.AddViews("permissions", CouchDbPermissionStore.GetViews()).Wait();
-            }
+            ConfigureSingletonDataStores(container, _appConfig);
         }
 
-        protected void ApplicationStartupForTests(TinyIoCContainer container, IPipelines pipelines)
+        private void ConfigureSingletonDataStores(TinyIoCContainer container, IAppConfiguration appConfig)
         {
-            base.ApplicationStartup(container, pipelines);
-            pipelines.OnError.AddItemToEndOfPipeline(
-                (ctx, ex) => new OnErrorHooks(_logger)
-                    .HandleInternalServerError(
-                        ctx,
-                        ex,
-                        container.Resolve<IResponseNegotiator>(),
-                        _env));
-
-            pipelines.AfterRequest += ctx =>
+            switch (appConfig.StorageProvider)
             {
-                foreach (var corsHeader in HttpResponseHeaders.CorsHeaders)
-                {
-                    ctx.Response.Headers.Add(corsHeader.Item1, corsHeader.Item2);
-                }
-            };
-
-            //container registrations
-            container.Register(_appConfig);
-            container.Register(_logger);
-            container.Register<NancyContextWrapper>();
-            container.RegisterServices();
-            container.RegisterInMemoryStores();
+                case StorageProviders.InMemory:
+                    container.RegisterInMemoryStores();
+                    break;
+                case StorageProviders.CouchDb:
+                    container.Register<IDocumentDbService, CouchDbAccessService>("inner");
+                    var dbAccessService = container.Resolve<CouchDbAccessService>();
+                    dbAccessService.Initialize().Wait();
+                    dbAccessService.SetupDefaultUser().Wait();
+                    dbAccessService.AddViews("roles", CouchDbRoleStore.GetViews()).Wait();
+                    dbAccessService.AddViews("permissions", CouchDbPermissionStore.GetViews()).Wait();
+                    break;
+                case StorageProviders.SqlServer:
+                    break;
+                    
+            }
+        }
+        
+        private void ConfigureRequestDataStores(TinyIoCContainer container, IAppConfiguration appConfig)
+        {
+            switch (appConfig.StorageProvider)
+            {
+                case StorageProviders.InMemory:
+                    break;
+                case StorageProviders.CouchDb:
+                    container.RegisterCouchDbStores(_appConfig, _loggingLevelSwitch);
+                    break;
+                case StorageProviders.SqlServer:
+                    break;
+            }
         }
 
         protected override void ConfigureConventions(NancyConventions nancyConventions)
@@ -187,14 +182,6 @@ namespace Fabric.Authorization.API
 
             nancyConventions.StaticContentsConventions.Add(
                 StaticContentConventionBuilder.AddDirectory("/swagger"));
-        }
-
-        private void RegisterStores(TinyIoCContainer container)
-        {
-            if (_appConfig.UseInMemoryStores)
-                container.RegisterInMemoryStores();
-            else
-                container.RegisterCouchDbStores(_appConfig, _loggingLevelSwitch);
         }
     }    
 }

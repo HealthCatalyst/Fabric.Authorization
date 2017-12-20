@@ -19,7 +19,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         private readonly Browser _browser;
         private readonly string _securableItem;
         private readonly string _subjectId;
-        public RolesTests(IntegrationTestsFixture fixture, bool useInMemoryDb = true)
+        public RolesTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory)
         {
             _securableItem = "rolesprincipal" + Guid.NewGuid();
             _subjectId = _securableItem;
@@ -31,7 +31,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 new Claim(Claims.ClientId, _securableItem)
             }, _securableItem));
 
-            _browser = fixture.GetBrowser(principal, useInMemoryDb);
+            _browser = fixture.GetBrowser(principal, storageProvider);
             fixture.CreateClient(_browser, _securableItem);
         }
 

@@ -22,7 +22,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         public IdentitySearchTests(IdentitySearchFixture fixture)
         {
             Fixture = fixture;
-            Fixture.Initialize(true);
+            Fixture.Initialize(StorageProviders.InMemory);
         }
 
         [Fact]
@@ -182,11 +182,11 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         public string AdminAtlasRoleName { get; private set; }
         public string UserAtlasRoleName { get; private set; }
         
-        private bool _useInMemoryDb;
+        private string _storageProvider;
 
-        public void Initialize(bool useInMemoryDb)
+        public void Initialize(string storageProvider)
         {
-            _useInMemoryDb = useInMemoryDb;
+            _storageProvider = storageProvider;
             AtlasClientId = $"atlas-{DateTime.Now.Ticks}";
             AdminAtlasGroupName = $"adminAtlasGroup-{DateTime.Now.Ticks}";
             UserAtlasGroupName = $"userAtlasGroup-{DateTime.Now.Ticks}";
@@ -204,7 +204,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 new Claim(Claims.ClientId, AtlasClientId),
                 new Claim(Claims.IdentityProvider, "idP1")
             }, "rolesprincipal"));
-            Browser = GetBrowser(principal, _useInMemoryDb, identityServiceProvider);
+            Browser = GetBrowser(principal, _storageProvider, identityServiceProvider);
         }
 
         public void InitializeSuccessData(IIdentityServiceProvider identityServiceProvider)

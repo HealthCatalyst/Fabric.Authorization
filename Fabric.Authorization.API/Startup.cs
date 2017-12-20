@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
+using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Infrastructure;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Stores;
@@ -67,7 +68,7 @@ namespace Fabric.Authorization.API
         public async Task<bool> HealthCheck()
         {
             var eventContextResolverService = new EventContextResolverService(new NancyContextWrapper(new NancyContext()));
-            var clientStore = _appConfig.UseInMemoryStores
+            var clientStore = _appConfig.StorageProvider == StorageProviders.InMemory
                 ? (IClientStore) new InMemoryClientStore()
                 : new CouchDbClientStore(new CouchDbAccessService(_appConfig.CouchDbSettings, _logger), _logger, eventContextResolverService);
             
