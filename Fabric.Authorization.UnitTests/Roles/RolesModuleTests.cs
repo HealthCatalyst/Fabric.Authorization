@@ -138,22 +138,6 @@ namespace Fabric.Authorization.UnitTests.Roles
         }
 
         [Fact]
-        public void AddPermissionsToRole_Succeeds()
-        {
-            var existingClient = ExistingClients.First();
-            var existingRole = ExistingRoles.First(r => r.SecurableItem == existingClient.Id);
-            var existingPermission =
-                ExistingPermissions.First(p => p.Grain == existingRole.Grain &&
-                                                p.SecurableItem == existingRole.SecurableItem);
-            var rolesModule = CreateBrowser(new Claim(Claims.Scope, Scopes.WriteScope),
-                new Claim(Claims.ClientId, existingClient.Id));
-            var result = rolesModule.Post($"/roles/{existingRole.Id}/permissions",
-                    with => with.JsonBody(new List<Permission>{existingPermission}))
-                .Result;
-            AssertRoleOK(result, 1);
-        }
-
-        [Fact]
         public void AddPermissionsToRole_BadRequest()
         {
             var existingClient = ExistingClients.First();
@@ -231,23 +215,6 @@ namespace Fabric.Authorization.UnitTests.Roles
             var permission =
                 ExistingPermissions.First(p => p.Grain == role.Grain && p.SecurableItem == role.SecurableItem);
             PostPermissionAndAssert(role, permission, clientId, HttpStatusCode.Forbidden, scope);
-        }
-
-        [Fact]
-        public void DeletePermissionFromRole_Succeeds()
-        {
-            var existingClient = ExistingClients.First();
-            var existingRole = ExistingRoles.First(r => r.SecurableItem == existingClient.Id);
-            var existingPermission =
-                ExistingPermissions.First(p => p.Grain == existingRole.Grain &&
-                                                p.SecurableItem == existingRole.SecurableItem);
-            existingRole.Permissions.Add(existingPermission);
-            var rolesModule = CreateBrowser(new Claim(Claims.Scope, Scopes.WriteScope),
-                new Claim(Claims.ClientId, existingClient.Id));
-            var result = rolesModule.Delete($"/roles/{existingRole.Id}/permissions",
-                    with => with.JsonBody(new List<Permission> { existingPermission }))
-                .Result;
-            AssertRoleOK(result, 0);
         }
 
         [Fact]
