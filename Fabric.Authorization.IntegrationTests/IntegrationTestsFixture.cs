@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Security.Claims;
 using Fabric.Authorization.API.Configuration;
+using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.RemoteServices.Identity.Providers;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Services;
@@ -149,6 +150,16 @@ namespace Fabric.Authorization.IntegrationTests
             {
                 //this.Browser = null;
             }
+        }
+
+        public void CreateClient(Browser browser, string clientId)
+        {
+            var id = clientId;
+            browser.Post("/clients", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new ClientApiModel { Id = id, Name = id });
+            }).Wait();
         }
 
         #endregion IDisposable implementation
