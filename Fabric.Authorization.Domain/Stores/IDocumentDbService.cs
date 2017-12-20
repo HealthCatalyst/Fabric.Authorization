@@ -23,5 +23,9 @@ namespace Fabric.Authorization.Domain.Stores
         Task<IEnumerable<T>> GetDocuments<T>(string designdoc, string viewName, Dictionary<string, object> customParams);
 
         Task<IEnumerable<T>> GetDocuments<T>(string designdoc, string viewName, string customParams);
+
+        Task Initialize();
+
+        Task SetupDefaultUser();
     }
 }

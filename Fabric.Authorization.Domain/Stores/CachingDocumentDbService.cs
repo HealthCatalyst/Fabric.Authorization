@@ -84,5 +84,15 @@ namespace Fabric.Authorization.Domain.Stores
         {
             return await _innerDocumentDbService.GetDocuments<T>(designdoc, viewName, customParams);
         }
+
+        public async Task Initialize()
+        {
+            await _innerDocumentDbService.Initialize();
+        }
+
+        public async Task SetupDefaultUser()
+        {
+            await _innerDocumentDbService.SetupDefaultUser();
+        }
     }
 }
