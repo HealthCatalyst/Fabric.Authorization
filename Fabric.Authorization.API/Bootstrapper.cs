@@ -11,6 +11,7 @@ using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Events;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
+using Fabric.Authorization.Domain.Stores.InMemory;
 using Fabric.Platform.Bootstrappers.Nancy;
 using LibOwin;
 using Microsoft.AspNetCore.Hosting;
@@ -97,6 +98,8 @@ namespace Fabric.Authorization.API
             };
 
             ConfigureSingletonRegistrations(container);
+            var dbBootstrapper = container.Resolve<IDbBootstrapper>();
+            dbBootstrapper.Setup();
         }
 
         private void InitializeSwaggerMetadata()
@@ -143,18 +146,18 @@ namespace Fabric.Authorization.API
 
         private void ConfigureSingletonDataStores(TinyIoCContainer container, IAppConfiguration appConfig)
         {
-            switch (appConfig.StorageProvider)
+            switch (appConfig.StorageProvider.ToLowerInvariant())
             {
                 case StorageProviders.InMemory:
                     container.RegisterInMemoryStores();
+                    container.Register<IDbBootstrapper, InMemoryDbBootstrapper>();
                     break;
                 case StorageProviders.CouchDb:
                     container.Register<IDocumentDbService, CouchDbAccessService>("inner");
-                    var dbAccessService = container.Resolve<CouchDbAccessService>();
-                    dbAccessService.Initialize().Wait();
-                    dbAccessService.SetupDefaultUser().Wait();
-                    dbAccessService.AddViews("roles", CouchDbRoleStore.GetViews()).Wait();
-                    dbAccessService.AddViews("permissions", CouchDbPermissionStore.GetViews()).Wait();
+                    container.Register<IDbBootstrapper>((c, p) => c.Resolve<CouchDbBootstrapper>(new NamedParameterOverloads
+                    {
+                        {"documentDbService", c.Resolve<IDocumentDbService>("inner")}
+                    }));
                     break;
                 case StorageProviders.SqlServer:
                     throw new ArgumentException("The SqlServer implementation has not been implemented yet.");
@@ -165,7 +168,7 @@ namespace Fabric.Authorization.API
 
         private void ConfigureRequestDataStores(TinyIoCContainer container, IAppConfiguration appConfig)
         {
-            switch (appConfig.StorageProvider)
+            switch (appConfig.StorageProvider.ToLowerInvariant())
             {
                 case StorageProviders.InMemory:
                     break;
