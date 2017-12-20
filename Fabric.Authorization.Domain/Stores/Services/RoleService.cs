@@ -142,7 +142,7 @@ namespace Fabric.Authorization.Domain.Stores.Services
 
         public async Task RemovePermissionsFromRoles(Guid permissionId, string grain, string securableItem = null)
         {
-            await _roleStore.RemovePermissionsFromRoles(permissionId, grain, securableItem);
+            await _roleStore.RemovePermissionFromRoles(permissionId, grain, securableItem);
         }
 
         /// <summary>
