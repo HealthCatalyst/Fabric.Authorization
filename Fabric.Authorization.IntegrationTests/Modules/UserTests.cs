@@ -43,17 +43,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     new Claim(JwtClaimTypes.IdentityProvider, IdentityProvider)
                 }, _securableItem));
             _browser = fixture.GetBrowser(principal, useInMemoryDB);
-            CreateClient(_securableItem);
-        }
-
-        private void CreateClient(string clientId)
-        {
-            var id = clientId;
-            _browser.Post("/clients", with =>
-            {
-                with.HttpRequest();
-                with.JsonBody(new ClientApiModel { Id = id, Name = id });
-            }).Wait();
+            fixture.CreateClient(_browser, _securableItem);
         }
 
         [Fact]

@@ -17,27 +17,22 @@ namespace Fabric.Authorization.IntegrationTests.Modules
     public class RolesTests : IClassFixture<IntegrationTestsFixture>
     {
         private readonly Browser _browser;
+        private readonly string _securableItem;
+        private readonly string _subjectId;
         public RolesTests(IntegrationTestsFixture fixture, bool useInMemoryDb = true)
         {
+            _securableItem = "rolesprincipal" + Guid.NewGuid();
+            _subjectId = _securableItem;
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
             {
                 new Claim(Claims.Scope, Scopes.ManageClientsScope),
                 new Claim(Claims.Scope, Scopes.ReadScope),
                 new Claim(Claims.Scope, Scopes.WriteScope),
-                new Claim(Claims.ClientId, "rolesprincipal")
-            }, "rolesprincipal"));
+                new Claim(Claims.ClientId, _securableItem)
+            }, _securableItem));
 
             _browser = fixture.GetBrowser(principal, useInMemoryDb);
-
-            _browser.Post("/clients", with =>
-            {
-                with.HttpRequest();
-                with.JsonBody(new
-                {
-                    Id = "rolesprincipal",
-                    Name = "rolesprincipal"
-                });
-            }).Wait();
+            fixture.CreateClient(_browser, _securableItem);
         }
 
         [Theory]
@@ -46,7 +41,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("C5247AA4-0063-4E68-B1E4-55BD5E0E177E")]
         public void TestGetRole_Fail(string name)
         {
-            var get = _browser.Get($"/roles/app/rolesprincipal/{name}", with =>
+            var get = _browser.Get($"/roles/app/{_securableItem}/{name}", with =>
             {
                 with.HttpRequest();
             }).Result;
@@ -57,8 +52,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Theory]
         [IntegrationTestsFixture.DisplayTestMethodName]
-        [InlineData("Role1")]
-        [InlineData("Role2")]
+        [InlineData("EA318378-CCA3-42B4-93E2-F2FBF12E679A")]
+        [InlineData("2374EEB4-EC72-454D-915B-23A89AD67879")]
         [InlineData("6BC32347-36A1-44CF-AA0E-6C1038AA1DF3")]
         public void TestAddNewRole_Success(string name)
         {
@@ -68,12 +63,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(new
                 {
                     Grain = "app",
-                    SecurableItem = "rolesprincipal",
+                    SecurableItem = _securableItem,
                     Name = name
                 });
             }).Result;
 
-            var getResponse = _browser.Get($"/roles/app/rolesprincipal/{name}", with =>
+            var getResponse = _browser.Get($"/roles/app/{_securableItem}/{name}", with =>
             {
                 with.HttpRequest();
             }).Result;
@@ -85,8 +80,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Theory]
         [IntegrationTestsFixture.DisplayTestMethodName]
-        [InlineData("NewRole1")]
-        [InlineData("NewRole2")]
+        [InlineData("E70ABF1E-D827-432F-9DC1-05D83A574527")]
+        [InlineData("BB51C27D-1310-413D-980E-FC2A6DEC78CF")]
         public void TestAddGetRole_Success(string name)
         {
             var postResponse = _browser.Post("/roles", with =>
@@ -95,13 +90,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(new
                 {
                     Grain = "app",
-                    SecurableItem = "rolesprincipal",
+                    SecurableItem = _securableItem,
                     Name = name
                 });
             }).Result;
 
             // Get by name
-            var getResponse = _browser.Get($"/roles/app/rolesprincipal/{name}", with =>
+            var getResponse = _browser.Get($"/roles/app/{_securableItem}/{name}", with =>
             {
                 with.HttpRequest();
             }).Result;
@@ -111,7 +106,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Contains(name, getResponse.Body.AsString());
 
             // Get by secitem
-            getResponse = _browser.Get($"/roles/app/rolesprincipal", with =>
+            getResponse = _browser.Get($"/roles/app/{_securableItem}", with =>
             {
                 with.HttpRequest();
             }).Result;
@@ -123,8 +118,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Theory]
         [IntegrationTestsFixture.DisplayTestMethodName]
-        [InlineData("SecItemRole1")]
-        [InlineData("SecItemRole2")]
+        [InlineData("90431E6A-8E40-43A8-8564-7AEE1524925D")]
+        [InlineData("B1A09125-2E01-4F5D-A77B-6C127C4F98BD")]
         public void TestGetRoleBySecItem_Success(string name)
         {
             var postResponse = _browser.Post("/roles", with =>
@@ -133,7 +128,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(new
                 {
                     Grain = "app",
-                    SecurableItem = "rolesprincipal",
+                    SecurableItem = _securableItem,
                     Name = name + "_1"
                 });
             }).Result;
@@ -146,14 +141,14 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(new
                 {
                     Grain = "app",
-                    SecurableItem = "rolesprincipal",
+                    SecurableItem = _securableItem,
                     Name = name + "_2"
                 });
             }).Result;
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
 
-            var getResponse = _browser.Get($"/roles/app/rolesprincipal", with =>
+            var getResponse = _browser.Get($"/roles/app/{_securableItem}", with =>
             {
                 with.HttpRequest();
             }).Result;
@@ -177,7 +172,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(new
                 {
                     Grain = "app",
-                    SecurableItem = "rolesprincipal",
+                    SecurableItem = _securableItem,
                     Name = id,
                     Id = id
                 });
@@ -190,7 +185,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(new
                 {
                     Grain = "app",
-                    SecurableItem = "rolesprincipal",
+                    SecurableItem = _securableItem,
                     Name = id,
                     Id = id
                 });
@@ -216,7 +211,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [Fact]
         public void Test_DeletePermissionFromRole_PermissionDoesntExist_NotFoundException()
         {
-            var roleName = "Role1";
+            var roleName = "Role1" + Guid.NewGuid();
 
             var postResponse = _browser.Post("/roles", with =>
                 {
@@ -224,12 +219,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     with.JsonBody(new
                     {
                         Grain = "app",
-                        SecurableItem = "rolesprincipal",
+                        SecurableItem = _securableItem,
                         Name = roleName
                     });
                 }).Result;
 
-            var getResponse = _browser.Get($"/roles/app/rolesprincipal/{roleName}", with =>
+            var getResponse = _browser.Get($"/roles/app/{_securableItem}/{roleName}", with =>
                 {
                     with.HttpRequest();
                 }).Result;
@@ -271,7 +266,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [Fact]
         public void Test_AddPermissionToRole_PermissionDoesntExist_NotFoundException()
         {
-            var roleName = "Role1";
+            var roleName = "Role1" + Guid.NewGuid();
 
             var postResponse = _browser.Post("/roles", with =>
                 {
@@ -279,12 +274,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     with.JsonBody(new
                     {
                         Grain = "app",
-                        SecurableItem = "rolesprincipal",
+                        SecurableItem = _securableItem,
                         Name = roleName
                     });
                 }).Result;
 
-            var getResponse = _browser.Get($"/roles/app/rolesprincipal/{roleName}", with =>
+            var getResponse = _browser.Get($"/roles/app/{_securableItem}/{roleName}", with =>
                 {
                     with.HttpRequest();
                 }).Result;
@@ -326,7 +321,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [Fact]
         public void Test_AddPermissionToRole_NoPermissionInBody_BadRequestException()
         {
-            var roleName = "Role1";
+            var roleName = "Role1" + Guid.NewGuid();
 
             var postResponse = _browser.Post("/roles", with =>
             {
@@ -334,12 +329,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(new
                 {
                     Grain = "app",
-                    SecurableItem = "rolesprincipal",
+                    SecurableItem = _securableItem,
                     Name = roleName
                 });
             }).Result;
 
-            var getResponse = _browser.Get($"/roles/app/rolesprincipal/{roleName}", with =>
+            var getResponse = _browser.Get($"/roles/app/{_securableItem}/{roleName}", with =>
             {
                 with.HttpRequest();
             }).Result;
@@ -353,19 +348,19 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             var emptyPermissionArray = new List<PermissionApiModel>();
 
-            var delete = _browser.Post($"/roles/{roleApiModelResponse.Id}/permissions", with =>
+            var addResponse = _browser.Post($"/roles/{roleApiModelResponse.Id}/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(emptyPermissionArray);
             }).Result;
 
-            Assert.Equal(HttpStatusCode.BadRequest, delete.StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, addResponse.StatusCode);
         }
 
         [Fact]
         public void Test_AddPermissionToRole_NoIdOnPermission_BadRequestException()
         {
-            var roleName = "Role1";
+            var roleName = "Role1" + Guid.NewGuid();
 
             var postResponse = _browser.Post("/roles", with =>
             {
@@ -373,12 +368,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(new
                 {
                     Grain = "app",
-                    SecurableItem = "rolesprincipal",
+                    SecurableItem = _securableItem,
                     Name = roleName
                 });
             }).Result;
 
-            var getResponse = _browser.Get($"/roles/app/rolesprincipal/{roleName}", with =>
+            var getResponse = _browser.Get($"/roles/app/{_securableItem}/{roleName}", with =>
             {
                 with.HttpRequest();
             }).Result;
