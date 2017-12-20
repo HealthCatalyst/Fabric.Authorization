@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.Services;
@@ -80,68 +79,6 @@ namespace Fabric.Authorization.UnitTests.Roles
                     }
                 }
             };
-        }
-
-        [Fact]
-        public void AddPermissionToRole_Succeeds()
-        {
-            var existingRole = new Role
-            {
-                Id = Guid.NewGuid(),
-                Grain = "app",
-                SecurableItem = "patientsafety",
-                Name = "admin"
-            };
-            var mockRoleStore = new Mock<IRoleStore>()
-                .SetupGetRoles(new List<Role> {existingRole})
-                .Create();
-
-            var permissionToAdd = new Permission
-            {
-                Id = Guid.NewGuid(),
-                Grain = "app",
-                SecurableItem = "patientsafety",
-                Name = "manageusers"
-            };
-            var mockPermissionStore = new Mock<IPermissionStore>()
-                .SetupGetPermissions(new List<Permission> {permissionToAdd})
-                .Create();
-            var roleService = new RoleService(mockRoleStore, mockPermissionStore);
-            var updatedRole = roleService.AddPermissionsToRole(existingRole, new[] {permissionToAdd.Id}).Result;
-            Assert.Equal(1, updatedRole.Permissions.Count);
-            Assert.Equal(permissionToAdd.Id, updatedRole.Permissions.First().Id);
-        }
-
-        [Fact]
-        public void RemovePermissionFromRole_Succeeds()
-        {
-            var permissionToRemove = new Permission
-            {
-                Id = Guid.NewGuid(),
-                Grain = "app",
-                SecurableItem = "patientsafety",
-                Name = "manageusers"
-            };
-            var mockPermissionStore = new Mock<IPermissionStore>()
-                .SetupGetPermissions(new List<Permission> {permissionToRemove})
-                .Create();
-
-            var existingRole = new Role
-            {
-                Id = Guid.NewGuid(),
-                Grain = "app",
-                SecurableItem = "patientsafety",
-                Name = "admin",
-                Permissions = new List<Permission> {permissionToRemove}
-            };
-            var mockRoleStore = new Mock<IRoleStore>()
-                .SetupGetRoles(new List<Role> {existingRole})
-                .Create();
-
-
-            var roleService = new RoleService(mockRoleStore, mockPermissionStore);
-            var updatedRole = roleService.RemovePermissionsFromRole(existingRole, new[] {permissionToRemove.Id}).Result;
-            Assert.False(updatedRole.Permissions.Any());
         }
 
         [Fact]
