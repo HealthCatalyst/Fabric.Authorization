@@ -101,9 +101,6 @@ namespace Fabric.Authorization.Domain.Stores.Services
         /// </summary>
         public async Task DeleteRole(Role role) => await _roleStore.Delete(role);
 
-        /// <summary>
-        /// Adds permissions to a Role.
-        /// </summary>
         public async Task<Role> AddPermissionsToRole(Role role, Guid[] permissionIds)
         {
             var permissionsToAdd = new List<Permission>();
@@ -116,52 +113,25 @@ namespace Fabric.Authorization.Domain.Stores.Services
                 }
 
                 var permission = await _permissionStore.Get(permissionId);
-
                 if (permission.Grain == role.Grain && permission.SecurableItem == role.SecurableItem)
                 {
                     permissionsToAdd.Add(permission);
                 }
                 else
                 {
-                    throw new IncompatiblePermissionException($"Permission with id {permission.Id} has the wrong grain, securableItem.");
+                    throw new IncompatiblePermissionException($"Permission with id {permission.Id} has the wrong grain and/or securableItem.");
                 }
             }
-
-            foreach (var permission in permissionsToAdd)
-            {
-                role.Permissions.Add(permission);
-            }
-
-            await _roleStore.Update(role);
-            return role;
+            var updatedRole = await _roleStore.AddPermissionsToRole(role, permissionsToAdd);
+            return updatedRole;
         }
-
-        /// <summary>
-        /// Removes permissions from a Role.
-        /// </summary>
+        
         public async Task<Role> RemovePermissionsFromRole(Role role, Guid[] permissionIds)
         {
-            foreach (var permissionId in permissionIds)
-            {
-                if (role.Permissions.All(p => p.Id != permissionId))
-                {
-                    throw new NotFoundException<Permission>($"Permission with id {permissionId} not found on role {role.Id}");
-                }
-            }
-
-            foreach (var permissionId in permissionIds)
-            {
-                var permission = role.Permissions.First(p => p.Id == permissionId);
-                role.Permissions.Remove(permission);
-            }
-
-            await _roleStore.Update(role);
-            return role;
+            var updatedRole = await _roleStore.RemovePermissionsFromRole(role, permissionIds);
+            return updatedRole;
         }
 
-        /// <summary>
-        /// Removes a permission from all roles.
-        /// </summary>
         public async Task RemovePermissionsFromRoles(Guid permissionId, string grain, string securableItem = null)
         {
             var roles = await _roleStore.GetRoles(grain, securableItem);

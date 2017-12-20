@@ -160,7 +160,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             var deniedPermissionIds = granularPermission.DeniedPermissions.Select(gp => gp.Id);
 
             // retrieve all permissions that a passed in and store in memory for Id lookups below
-            var permissionDictionary = _authorizationDbContext.Permissions.Where(p => !p.IsDeleted)
+            var permissionDictionary = _authorizationDbContext.Permissions
+                .Where(p => !p.IsDeleted)
                 .Where(p => additionalPermissionIds.Contains(p.PermissionId) || deniedPermissionIds.Contains(p.PermissionId))
                 .ToDictionary(p => p.PermissionId);
 
