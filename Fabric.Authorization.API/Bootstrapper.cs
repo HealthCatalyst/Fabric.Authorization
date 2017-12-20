@@ -157,11 +157,12 @@ namespace Fabric.Authorization.API
                     dbAccessService.AddViews("permissions", CouchDbPermissionStore.GetViews()).Wait();
                     break;
                 case StorageProviders.SqlServer:
-                    break;
-                    
+                    throw new ArgumentException("The SqlServer implementation has not been implemented yet.");
+                default:
+                    throw new ConfigurationException($"Invalid configuration for StorageProvider: {appConfig.StorageProvider}. Valid storage providers are: {StorageProviders.InMemory}, {StorageProviders.CouchDb}, {StorageProviders.SqlServer}");
             }
         }
-        
+
         private void ConfigureRequestDataStores(TinyIoCContainer container, IAppConfiguration appConfig)
         {
             switch (appConfig.StorageProvider)
@@ -172,7 +173,9 @@ namespace Fabric.Authorization.API
                     container.RegisterCouchDbStores(_appConfig, _loggingLevelSwitch);
                     break;
                 case StorageProviders.SqlServer:
-                    break;
+                    throw new ArgumentException("The SqlServer implementation has not been implemented yet.");
+                default:
+                    throw new ConfigurationException($"Invalid configuration for StorageProvider: {appConfig.StorageProvider}. Valid storage providers are: {StorageProviders.InMemory}, {StorageProviders.CouchDb}, {StorageProviders.SqlServer}");
             }
         }
 
@@ -183,5 +186,5 @@ namespace Fabric.Authorization.API
             nancyConventions.StaticContentsConventions.Add(
                 StaticContentConventionBuilder.AddDirectory("/swagger"));
         }
-    }    
+    }
 }
