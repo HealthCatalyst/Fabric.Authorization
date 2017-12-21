@@ -1,4 +1,5 @@
 ﻿using System;
+using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.IntegrationTests.Modules;
@@ -13,10 +14,10 @@ namespace Fabric.Authorization.IntegrationTests.CouchDB
     {
         private readonly IDocumentDbService _documentDbService;
         private readonly Browser _browser;
-        public CouchDbGroupsTests(IntegrationTestsFixture fixture) : base(fixture, false)
+        public CouchDbGroupsTests(IntegrationTestsFixture fixture) : base(fixture, StorageProviders.CouchDb)
         {
             _documentDbService = fixture.DbService();
-            _browser = fixture.GetBrowser(Principal, false);
+            _browser = fixture.GetBrowser(Principal, StorageProviders.CouchDb);
         }
 
         

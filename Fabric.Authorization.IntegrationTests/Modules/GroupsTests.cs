@@ -26,9 +26,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             new Claim(Claims.IdentityProvider, "idP1")
         }, "rolesprincipal"));
 
-        public GroupsTests(IntegrationTestsFixture fixture, bool useInMemoryDb = true)
+        public GroupsTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory)
         {
-            _browser = fixture.GetBrowser(Principal, useInMemoryDb);
+            _browser = fixture.GetBrowser(Principal, storageProvider);
             _defaultPropertySettings = fixture.DefaultPropertySettings;
 
             _browser.Post("/clients", with =>
