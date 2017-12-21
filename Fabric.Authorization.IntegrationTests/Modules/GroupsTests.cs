@@ -5,7 +5,6 @@ using System.Security.Claims;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
-using Fabric.Authorization.Domain.Stores;
 using Nancy;
 using Nancy.Testing;
 using Xunit;
