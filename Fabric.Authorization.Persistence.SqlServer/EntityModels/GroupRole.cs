@@ -7,13 +7,13 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
     {
         public int Id { get; set; }
         public int GroupId { get; set; }
-        public int RoleId { get; set; }
+        public Guid RoleId { get; set; }
 
+        public bool IsDeleted { get; set; }
+        public string CreatedBy { get; set; }
         public DateTime CreatedDateTimeUtc { get; set; }
         public DateTime? ModifiedDateTimeUtc { get; set; }
-        public string CreatedBy { get; set; }
         public string ModifiedBy { get; set; }
-        public bool IsDeleted { get; set; }
 
         public Group Group { get; set; }
         public Role Role { get; set; }

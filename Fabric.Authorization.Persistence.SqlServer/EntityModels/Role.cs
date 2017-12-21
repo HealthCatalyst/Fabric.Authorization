@@ -16,17 +16,17 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
         }
 
         public int Id { get; set; }
-        public int? ParentRoleId { get; set; }
-        public int SecurableItemId { get; set; }
         public Guid RoleId { get; set; }
+        public Guid? ParentRoleId { get; set; }
+        public int SecurableItemId { get; set; }
         public string Grain { get; set; }
         public string Name { get; set; }
 
+        public bool IsDeleted { get; set; }
+        public string CreatedBy { get; set; }
         public DateTime CreatedDateTimeUtc { get; set; }
         public DateTime? ModifiedDateTimeUtc { get; set; }
-        public string CreatedBy { get; set; }
         public string ModifiedBy { get; set; }
-        public bool IsDeleted { get; set; }
 
         public SecurableItem SecurableItem { get; set; }
         public Role ParentRole { get; set; }

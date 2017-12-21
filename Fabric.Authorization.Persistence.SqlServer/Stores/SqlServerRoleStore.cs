@@ -155,28 +155,13 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task<Role> AddPermissionsToRole(Role role, ICollection<Permission> permissions)
         {
-            var roleEntity = await _authorizationDbContext.Roles
-                .SingleOrDefaultAsync(r =>
-                    r.RoleId == role.Id
-                    && !r.IsDeleted);
-
-            if (roleEntity == null)
-            {
-                throw new NotFoundException<Role>($"Could not find {typeof(Role).Name} entity with ID {role.Id}");
-            }
-
-            var permissionIds = permissions.Select(p => p.Id);
-            var permissionDictionary = _authorizationDbContext.Permissions
-                .Where(p => !p.IsDeleted)
-                .Where(p => permissionIds.Contains(p.PermissionId))
-                .ToDictionary(p => p.PermissionId);
-
+            // TODO: handle case where role.Id may not exist in Roles table
             foreach (var permission in permissions)
             {
                 _authorizationDbContext.RolePermissions.Add(new RolePermission
                 {
-                    RoleId = roleEntity.Id,
-                    PermissionId = permissionDictionary[permission.Id].Id,
+                    RoleId = role.Id,
+                    PermissionId = permission.Id,
                     PermissionAction = PermissionAction.Allow
                 });
 
@@ -200,16 +185,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 throw new NotFoundException<Role>($"Could not find {typeof(Role).Name} entity with ID {role.Id}");
             }
 
-            var permissionDictionary = _authorizationDbContext.Permissions
-                .Where(p => !p.IsDeleted)
-                .Where(p => permissionIds.Contains(p.PermissionId))
-                .ToDictionary(p => p.PermissionId);
-
             foreach (var permissionId in permissionIds)
             {
                 var rolePermissionToRemove = roleEntity.RolePermissions.Single(
-                    rp => rp.RoleId == roleEntity.Id
-                          && rp.PermissionId == permissionDictionary[permissionId].Id);
+                    rp => rp.RoleId == roleEntity.RoleId
+                          && rp.PermissionId == permissionId);
 
                 rolePermissionToRemove.IsDeleted = true;
                 roleEntity.RolePermissions.Remove(rolePermissionToRemove);
@@ -226,7 +206,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             foreach (var role in roles)
             {
                 var rolePermissionToRemove = role.RolePermissions.Single(
-                    rp => rp.RoleId == role.Id
+                    rp => rp.RoleId == role.RoleId
                           && rp.Permission.PermissionId == permissionId);
 
                 if (rolePermissionToRemove != null)
