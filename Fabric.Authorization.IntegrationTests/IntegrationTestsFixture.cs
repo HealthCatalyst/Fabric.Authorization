@@ -73,12 +73,12 @@ namespace Fabric.Authorization.IntegrationTests
         private readonly string CouchDbUsernameEnvironmentVariable = "COUCHDBSETTINGS__USERNAME";
         private readonly string CouchDbPasswordEnvironmentVariable = "COUCHDBSETTINGS__PASSWORD";
 
-        protected DefaultPropertySettings DefaultPropertySettings = new DefaultPropertySettings
+        public DefaultPropertySettings DefaultPropertySettings = new DefaultPropertySettings
         {
             GroupSource = "Windows"
         };
 
-        protected IDocumentDbService DbService()
+        public IDocumentDbService DbService()
         {
             if (_dbService != null)
             {
@@ -103,8 +103,8 @@ namespace Fabric.Authorization.IntegrationTests
             CouchDbSettings config = new CouchDbSettings()
             {
                 DatabaseName = "integration-" + DateTime.UtcNow.Ticks,
-                Username = "",
-                Password = "",
+                Username = "admin",
+                Password = "admin",
                 Server = "http://127.0.0.1:5984"
             };
 
