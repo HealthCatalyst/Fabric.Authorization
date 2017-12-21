@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.Domain.Exceptions;
+using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
 using MyCouch;
@@ -129,8 +130,12 @@ namespace Fabric.Authorization.API.Services
                 var results = new List<T>();
 
                 foreach (var responseRow in result.Rows)
-                {
+                {                    
                     var resultRow = JsonConvert.DeserializeObject<T>(responseRow.IncludedDoc);
+                    if (resultRow is ISoftDelete && (resultRow as ISoftDelete).IsDeleted)
+                    {
+                        continue;
+                    }
                     results.Add(resultRow);
                 }
 
@@ -267,6 +272,10 @@ namespace Fabric.Authorization.API.Services
                 foreach (var responseRow in result.Rows)
                 {
                     var resultRow = JsonConvert.DeserializeObject<T>(responseRow.IncludedDoc);
+                    if (resultRow is ISoftDelete && (resultRow as ISoftDelete).IsDeleted)
+                    {
+                        continue;
+                    }
                     results.Add(resultRow);
                 }
 
@@ -294,6 +303,10 @@ namespace Fabric.Authorization.API.Services
                     if (responseRow.Key != null && (string.IsNullOrEmpty(key) || responseRow.Key.ToString() == key))
                     {
                         var resultRow = JsonConvert.DeserializeObject<T>(responseRow.Value);
+                        if (resultRow is ISoftDelete && (resultRow as ISoftDelete).IsDeleted)
+                        {
+                            continue;
+                        }
                         results.Add(resultRow);
                     }
                 }
