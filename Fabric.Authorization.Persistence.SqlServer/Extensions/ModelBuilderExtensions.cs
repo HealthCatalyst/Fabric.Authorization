@@ -79,6 +79,9 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             {
                 entity.ToTable("Permissions");
 
+                entity.Property(e => e.Id)
+                    .UseSqlServerIdentityColumn();
+
                 entity.Property(e => e.SecurableItemId)
                     .IsRequired();
 
@@ -107,7 +110,9 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .HasColumnType("datetime");
 
                 entity.HasKey(e => e.PermissionId);
-                entity.HasIndex(e => e.Id);
+                entity.HasIndex(e => e.Id)
+                    .IsUnique()
+                    .ForSqlServerIsClustered();
                 entity.HasIndex(e => e.SecurableItemId)
                     .HasName("IX_Permissions_SecurableItemId");
 
@@ -121,7 +126,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
 
                 entity.HasMany(e => e.UserPermissions)
                     .WithOne(e => e.Permission)
-                    .HasForeignKey(e => e.UserId);
+                    .HasForeignKey(e => new {e.SubjectId, e.IdentityProvider});
             });
         }
 
@@ -130,6 +135,10 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             modelBuilder.Entity<Role>(entity =>
             {
                 entity.ToTable("Roles");
+
+                entity.Property(e => e.Id)
+                    .UseSqlServerIdentityColumn();
+
                 entity.Property(e => e.SecurableItemId)
                     .IsRequired();
 
@@ -158,7 +167,9 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .HasColumnType("datetime");
 
                 entity.HasKey(e => e.RoleId);
-                entity.HasIndex(e => e.Id);
+                entity.HasIndex(e => e.Id)
+                    .IsUnique()
+                    .ForSqlServerIsClustered();
                 entity.HasIndex(e => e.SecurableItemId)
                     .HasName("IX_Roles_SecurableItemId");
 
@@ -183,6 +194,15 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             modelBuilder.Entity<Group>(entity =>
             {
                 entity.ToTable("Groups");
+
+                entity.HasKey(g => g.Name);
+
+                entity.HasIndex(e => e.Id)
+                    .IsUnique()
+                    .ForSqlServerIsClustered();
+
+                entity.Property(e => e.Id)
+                    .UseSqlServerIdentityColumn();
 
                 entity.Property(e => e.Name)
                     .IsRequired()
@@ -210,11 +230,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
 
                 entity.HasMany(e => e.GroupRoles)
                     .WithOne(e => e.Group)
-                    .HasForeignKey(e => e.GroupId);
+                    .HasForeignKey(e => e.GroupName);
 
                 entity.HasMany(e => e.GroupUsers)
                     .WithOne(e => e.Group)
-                    .HasForeignKey(e => e.GroupId);
+                    .HasForeignKey(e => e.GroupName);
             });
         }
 
@@ -224,7 +244,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             {
                 entity.ToTable("Users");
 
-                entity.HasAlternateKey(e => new { e.IdentityProvider, e.SubjectId });
+                entity.HasKey(u => new {u.SubjectId, u.IdentityProvider});
+
+                entity.HasIndex(e => e.Id)
+                    .IsUnique()
+                    .ForSqlServerIsClustered();
 
                 entity.Property(e => e.SubjectId)
                     .IsRequired()
@@ -253,11 +277,15 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
 
                 entity.HasMany(e => e.GroupUsers)
                     .WithOne(e => e.User)
-                    .HasForeignKey(e => e.UserId);
+                    .HasForeignKey(e => new {e.SubjectId, e.IdentityProvider});
 
                 entity.HasMany(e => e.UserPermissions)
                     .WithOne(e => e.User)
-                    .HasForeignKey(e => e.UserId);
+                    .HasForeignKey(e => new {e.SubjectId, e.IdentityProvider});
+
+                entity.Property(p => p.ComputedUserId)
+                    .HasComputedColumnSql("SubjectId + ':' + IdentityProvider")
+                    .HasColumnName("ComputedUserId");
             });
         }
 
@@ -283,11 +311,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                 entity.Property(e => e.ModifiedDateTimeUtc)
                     .HasColumnType("datetime");
 
-                entity.HasAlternateKey(e => new { e.GroupId, e.RoleId });
+                entity.HasAlternateKey(e => new { GroupId = e.GroupName, e.RoleId });
 
                 entity.HasOne(e => e.Group)
                     .WithMany(e => e.GroupRoles)
-                    .HasForeignKey(e => e.GroupId);
+                    .HasForeignKey(e => e.GroupName);
 
                 entity.HasOne(e => e.Role)
                     .WithMany(e => e.GroupRoles)
@@ -340,15 +368,15 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             {
                 entity.ToTable("GroupUsers");
 
-                entity.HasAlternateKey(e => new { e.UserId, e.GroupId });
+                entity.HasAlternateKey(e => new { e.SubjectId, e.IdentityProvider, GroupId = e.GroupName });
 
                 entity.HasOne(e => e.User)
                     .WithMany(e => e.GroupUsers)
-                    .HasForeignKey(e => e.UserId);
+                    .HasForeignKey(e => new {e.SubjectId, e.IdentityProvider});
 
                 entity.HasOne(e => e.Group)
                     .WithMany(e => e.GroupUsers)
-                    .HasForeignKey(e => e.GroupId);
+                    .HasForeignKey(e => e.GroupName);
             });
         }
 
@@ -358,11 +386,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             {
                 entity.ToTable("UserPermissions");
 
-                entity.HasAlternateKey(e => new { e.UserId, e.PermissionId });
+                entity.HasAlternateKey(e => new { e.SubjectId, e.IdentityProvider, e.PermissionId });
 
                 entity.HasOne(e => e.User)
                     .WithMany(e => e.UserPermissions)
-                    .HasForeignKey(e => e.UserId);
+                    .HasForeignKey(e => new {e.SubjectId, e.IdentityProvider});
 
                 entity.HasOne(e => e.Permission)
                     .WithMany(e => e.UserPermissions)

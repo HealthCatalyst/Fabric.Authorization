@@ -6,8 +6,9 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
     public class GroupUser : ITrackable, ISoftDelete
     {
         public int Id { get; set; }
-        public int UserId { get; set; }
-        public int GroupId { get; set; }
+        public string SubjectId { get; set; }
+        public string IdentityProvider { get; set; }
+        public string GroupName { get; set; }
 
         public DateTime CreatedDateTimeUtc { get; set; }
         public DateTime? ModifiedDateTimeUtc { get; set; }

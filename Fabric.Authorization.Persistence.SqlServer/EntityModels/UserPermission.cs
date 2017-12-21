@@ -6,7 +6,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
     public class UserPermission : ITrackable, ISoftDelete
     {
         public int Id { get; set; }
-        public int UserId { get; set; }
+        public string SubjectId { get; set; }
+        public string IdentityProvider { get; set; }
         public Guid PermissionId { get; set; }
         public PermissionAction PermissionAction { get; set; }
 

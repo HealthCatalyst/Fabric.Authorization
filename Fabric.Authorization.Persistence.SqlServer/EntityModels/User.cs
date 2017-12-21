@@ -23,7 +23,10 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
         public string ModifiedBy { get; set; }
         public bool IsDeleted { get; set; }
 
+        public string ComputedUserId { get; set; }
+
         public ICollection<GroupUser> GroupUsers { get; set; }
         public ICollection<UserPermission> UserPermissions { get; set; }
+        
     }
 }
