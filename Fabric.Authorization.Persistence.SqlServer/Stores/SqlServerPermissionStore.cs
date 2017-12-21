@@ -159,7 +159,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             await _authorizationDbContext.UserPermissions.AddRangeAsync(granularPermission.AdditionalPermissions.Select(
                 ap => new UserPermission
                 {
-                    UserId = user.Id,
+                    SubjectId = user.SubjectId,
+                    IdentityProvider = user.IdentityProvider,
                     PermissionId = ap.Id,
                     PermissionAction = PermissionAction.Allow
                 }));
@@ -167,7 +168,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             await _authorizationDbContext.UserPermissions.AddRangeAsync(granularPermission.DeniedPermissions.Select(
                 dp => new UserPermission
                 {
-                    UserId = user.Id,
+                    SubjectId = user.SubjectId,
+                    IdentityProvider = user.IdentityProvider,
                     PermissionId = dp.Id,
                     PermissionAction = PermissionAction.Deny
                 }));

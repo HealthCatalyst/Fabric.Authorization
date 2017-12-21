@@ -142,7 +142,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             var groupRole = new GroupRole
             {
-                GroupId = group.Id,
+                GroupName = group.Name,
                 RoleId = role.RoleId
             };
             group.GroupRoles.Add(groupRole);
@@ -220,12 +220,14 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             }
 
             //check if user already belongs to the group
-            if (!group.GroupUsers.Any(u => u.UserId.Equals(user.Id)))
+            if (!group.GroupUsers.Any(u => u.SubjectId.Equals(user.SubjectId,StringComparison.OrdinalIgnoreCase)
+                && u.IdentityProvider.Equals(user.IdentityProvider, StringComparison.OrdinalIgnoreCase)))
             {
                 group.GroupUsers.Add(new GroupUser
                 {
-                    GroupId = group.Id,
-                    UserId = user.Id
+                    GroupName = group.Name,
+                    SubjectId = user.SubjectId,
+                    IdentityProvider = user.IdentityProvider
                 });
 
                 await _authorizationDbContext.SaveChangesAsync();
