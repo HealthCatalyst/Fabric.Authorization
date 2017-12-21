@@ -143,7 +143,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             var groupRole = new GroupRole
             {
                 GroupId = group.Id,
-                RoleId = role.Id
+                RoleId = role.RoleId
             };
             group.GroupRoles.Add(groupRole);
             _authorizationDbContext.GroupRoles.Add(groupRole);

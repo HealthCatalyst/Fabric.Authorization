@@ -79,9 +79,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             {
                 entity.ToTable("Permissions");
 
-                entity.HasIndex(e => e.SecurableItemId)
-                    .HasName("IX_Permissions_SecurableItemId");
-
                 entity.Property(e => e.SecurableItemId)
                     .IsRequired();
 
@@ -93,6 +90,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .IsRequired()
                     .HasMaxLength(200);
 
+                entity.Property(e => e.IsDeleted).HasDefaultValueSql("0");
+
                 entity.Property(e => e.CreatedBy)
                     .IsRequired()
                     .HasMaxLength(100);
@@ -101,10 +100,16 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .HasColumnType("datetime")
                     .IsRequired();
 
+                entity.Property(e => e.ModifiedBy)
+                    .HasMaxLength(100);
+
                 entity.Property(e => e.ModifiedDateTimeUtc)
                     .HasColumnType("datetime");
 
-                entity.Property(e => e.IsDeleted).HasDefaultValueSql("0");
+                entity.HasKey(e => e.PermissionId);
+                entity.HasIndex(e => e.Id);
+                entity.HasIndex(e => e.SecurableItemId)
+                    .HasName("IX_Permissions_SecurableItemId");
 
                 entity.HasOne(e => e.SecurableItem)
                     .WithMany(e => e.Permissions)
@@ -125,10 +130,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             modelBuilder.Entity<Role>(entity =>
             {
                 entity.ToTable("Roles");
-
-                entity.HasIndex(e => e.SecurableItemId)
-                    .HasName("IX_Roles_SecurableItemId");
-
                 entity.Property(e => e.SecurableItemId)
                     .IsRequired();
 
@@ -140,6 +141,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .IsRequired()
                     .HasMaxLength(200);
 
+                entity.Property(e => e.IsDeleted).HasDefaultValueSql("0");
+
                 entity.Property(e => e.CreatedBy)
                     .IsRequired()
                     .HasMaxLength(100);
@@ -148,10 +151,16 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .HasColumnType("datetime")
                     .IsRequired();
 
+                entity.Property(e => e.ModifiedBy)
+                    .HasMaxLength(100);
+
                 entity.Property(e => e.ModifiedDateTimeUtc)
                     .HasColumnType("datetime");
 
-                entity.Property(e => e.IsDeleted).HasDefaultValueSql("0");
+                entity.HasKey(e => e.RoleId);
+                entity.HasIndex(e => e.Id);
+                entity.HasIndex(e => e.SecurableItemId)
+                    .HasName("IX_Roles_SecurableItemId");
 
                 entity.HasOne(e => e.ParentRole).WithMany(e => e.ChildRoles).HasForeignKey(e => e.ParentRoleId);
 
@@ -183,6 +192,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .IsRequired()
                     .HasMaxLength(200);
 
+                entity.Property(e => e.IsDeleted).HasDefaultValueSql("0");
+
                 entity.Property(e => e.CreatedBy)
                     .IsRequired()
                     .HasMaxLength(100);
@@ -191,10 +202,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .HasColumnType("datetime")
                     .IsRequired();
 
+                entity.Property(e => e.ModifiedBy)
+                    .HasMaxLength(100);
+
                 entity.Property(e => e.ModifiedDateTimeUtc)
                     .HasColumnType("datetime");
-
-                entity.Property(e => e.IsDeleted).HasDefaultValueSql("0");
 
                 entity.HasMany(e => e.GroupRoles)
                     .WithOne(e => e.Group)
@@ -255,6 +267,22 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             {
                 entity.ToTable("GroupRoles");
 
+                entity.Property(e => e.IsDeleted).HasDefaultValueSql("0");
+
+                entity.Property(e => e.CreatedBy)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.CreatedDateTimeUtc)
+                    .HasColumnType("datetime")
+                    .IsRequired();
+
+                entity.Property(e => e.ModifiedBy)
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.ModifiedDateTimeUtc)
+                    .HasColumnType("datetime");
+
                 entity.HasAlternateKey(e => new { e.GroupId, e.RoleId });
 
                 entity.HasOne(e => e.Group)
@@ -272,6 +300,22 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             modelBuilder.Entity<RolePermission>(entity =>
             {
                 entity.ToTable("RolePermissions");
+
+                entity.Property(e => e.IsDeleted).HasDefaultValueSql("0");
+
+                entity.Property(e => e.CreatedBy)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.CreatedDateTimeUtc)
+                    .HasColumnType("datetime")
+                    .IsRequired();
+
+                entity.Property(e => e.ModifiedBy)
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.ModifiedDateTimeUtc)
+                    .HasColumnType("datetime");
 
                 entity.HasAlternateKey(e => new {e.RoleId, e.PermissionId});
 

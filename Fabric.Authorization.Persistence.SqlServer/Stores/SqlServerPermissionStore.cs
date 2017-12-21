@@ -156,20 +156,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 userPermission.IsDeleted = true;
             }
 
-            var additionalPermissionIds = granularPermission.AdditionalPermissions.Select(gp => gp.Id);
-            var deniedPermissionIds = granularPermission.DeniedPermissions.Select(gp => gp.Id);
-
-            // retrieve all permissions that a passed in and store in memory for Id lookups below
-            var permissionDictionary = _authorizationDbContext.Permissions
-                .Where(p => !p.IsDeleted)
-                .Where(p => additionalPermissionIds.Contains(p.PermissionId) || deniedPermissionIds.Contains(p.PermissionId))
-                .ToDictionary(p => p.PermissionId);
-
             await _authorizationDbContext.UserPermissions.AddRangeAsync(granularPermission.AdditionalPermissions.Select(
                 ap => new UserPermission
                 {
                     UserId = user.Id,
-                    PermissionId = permissionDictionary[ap.Id].Id,
+                    PermissionId = ap.Id,
                     PermissionAction = PermissionAction.Allow
                 }));
 
@@ -177,7 +168,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 dp => new UserPermission
                 {
                     UserId = user.Id,
-                    PermissionId = permissionDictionary[dp.Id].Id,
+                    PermissionId = dp.Id,
                     PermissionAction = PermissionAction.Deny
                 }));
 
