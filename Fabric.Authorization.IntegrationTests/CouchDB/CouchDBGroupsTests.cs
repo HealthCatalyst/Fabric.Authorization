@@ -20,14 +20,14 @@ namespace Fabric.Authorization.IntegrationTests.CouchDB
         }
 
         
-        [Fact(Skip="cause")]
+        [Fact(Skip = "cannot figure out why it cant find the first group created when it exists in the db")]
         [IntegrationTestsFixture.DisplayTestMethodName]
         public void AddGroup_ActiveGroupWithOldIdExists_BadRequest()
         {
             string groupName = "Group1" + Guid.NewGuid();
 
             // create an active Group document in CouchDB with the old style Group ID
-            _documentDbService.AddDocument("group1", new Group
+            _documentDbService.AddDocument(groupName, new Group
             {
                 Id = groupName,
                 Name = groupName,
@@ -47,7 +47,7 @@ namespace Fabric.Authorization.IntegrationTests.CouchDB
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         }
 
-        [Fact(Skip = "cause")]
+        [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
         public void AddGroup_InactiveGroupWithOldIdExists_Success()
         {
