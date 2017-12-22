@@ -11,6 +11,7 @@ using Fabric.Authorization.Persistence.SqlServer.Services;
 using Microsoft.EntityFrameworkCore;
 using Group = Fabric.Authorization.Domain.Models.Group;
 using Role = Fabric.Authorization.Domain.Models.Role;
+using User = Fabric.Authorization.Domain.Models.User;
 
 namespace Fabric.Authorization.Persistence.SqlServer.Stores
 {
@@ -117,154 +118,68 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return group != null;
         }
 
-        public async Task<Group> AddRoleToGroup(string groupName, Guid roleId)
+        public async Task<Group> AddRoleToGroup(Group group, Role role)
         {           
-            var group = await _authorizationDbContext.Groups
-                .SingleOrDefaultAsync(g => g.Name.Equals(groupName, StringComparison.OrdinalIgnoreCase));
-
-            if (group == null)
-            {
-                throw new NotFoundException<Group>($"Could not find {typeof(Group).Name} entity with ID {groupName}");
-            }
-
-            var role = await _authorizationDbContext.Roles
-                .SingleOrDefaultAsync(r => r.RoleId.Equals(roleId));
-
-            if (role == null)
-            {
-                throw new NotFoundException<Role>($"Could not find {typeof(Role).Name} entity with ID {roleId}");
-            }
-         
-            if (group.GroupRoles.SingleOrDefault(gr => gr.RoleId.Equals(role.Id)) != null)
-            {
-                throw new AlreadyExistsException<Role>($"Role {role.Name} already exists for group {group.Name}. Please provide a new role id.");
-            }
-
             var groupRole = new GroupRole
             {
                 GroupName = group.Name,
-                RoleId = role.RoleId
+                RoleId = role.Id
             };
-            group.GroupRoles.Add(groupRole);
-            _authorizationDbContext.GroupRoles.Add(groupRole);
+            group.Roles.Add(role);
 
-            var groupModel = group.ToModel();
-            return groupModel;
+            _authorizationDbContext.GroupRoles.Add(groupRole);
+            await _authorizationDbContext.SaveChangesAsync();
+            
+            return group;
         }
 
-        public async Task<Group> DeleteRoleFromGroup(string groupName, Guid roleId)
+        public async Task<Group> DeleteRoleFromGroup(Group group, Role role)
         {
-            var group = await _authorizationDbContext.Groups
-                .Include(g => g.GroupRoles)
-                .SingleOrDefaultAsync(g => g.Name.Equals(groupName, StringComparison.OrdinalIgnoreCase));
-
-            if (group == null)
-            {
-                throw new NotFoundException<Group>($"Could not find {typeof(Group).Name} entity with ID {groupName}");
-            }
-
-            var role = await _authorizationDbContext.Roles
-                .SingleOrDefaultAsync(r => r.RoleId.Equals(roleId));
-
-            if (role == null)
-            {
-                throw new NotFoundException<Role>($"Could not find {typeof(Role).Name} entity with ID {roleId}");
-            }
-
-            var groupRoleToRemove = group.GroupRoles.SingleOrDefault(r => r.RoleId.Equals(role.Id));
+            var groupRoleToRemove = await _authorizationDbContext.GroupRoles
+                .SingleOrDefaultAsync(gr => gr.RoleId.Equals(role.Id) &&
+                                   gr.GroupName.Equals(group.Name, StringComparison.OrdinalIgnoreCase));
 
             if (groupRoleToRemove != null)
             {
                 groupRoleToRemove.IsDeleted = true;
-                group.GroupRoles.Remove(groupRoleToRemove);
                 _authorizationDbContext.GroupRoles.Update(groupRoleToRemove);
                 await _authorizationDbContext.SaveChangesAsync();
             }
 
-            var groupModel = group.ToModel();
-            return groupModel;
+            return group;
         }
 
-        public async Task<Group> AddUserToGroup(string groupName, string subjectId, string identityProvider)
+        public async Task<Group> AddUserToGroup(Group group, User user)
         {
-            var group = await _authorizationDbContext.Groups
-                .Include(g => g.GroupUsers)
-                .SingleOrDefaultAsync(g =>
-                    g.Name.Equals(groupName, StringComparison.OrdinalIgnoreCase));
-
-            if (group == null)
+            var groupUser = new GroupUser
             {
-                throw new NotFoundException<Group>($"Could not find {typeof(Group).Name} entity with ID {groupName}");
-            }
+                GroupName = group.Name,
+                SubjectId = user.SubjectId,
+                IdentityProvider = user.IdentityProvider
+            };
 
-            //only add users to a custom group
-            if (!string.Equals(group.Source, GroupConstants.CustomSource, StringComparison.OrdinalIgnoreCase))
-            {
-                throw new BadRequestException<Group>("The group to which you are attempting to add a user is not specified as a 'Custom' group. Only 'Custom' groups allow associations with users.");
-            }
+            _authorizationDbContext.GroupUsers.Add(groupUser);
+            await _authorizationDbContext.SaveChangesAsync();
 
-            //see if user exists and if not then add the user 
-            var user = await _authorizationDbContext.Users.SingleOrDefaultAsync(u =>
-                u.SubjectId.Equals(subjectId, StringComparison.OrdinalIgnoreCase)
-                && u.IdentityProvider.Equals(identityProvider, StringComparison.OrdinalIgnoreCase));
-
-            if (user == null)
-            {
-                user = new User
-                {
-                    SubjectId = subjectId,
-                    IdentityProvider = identityProvider
-                };
-                _authorizationDbContext.Users.Add(user);
-                await _authorizationDbContext.SaveChangesAsync();
-            }
-
-            //check if user already belongs to the group
-            if (!group.GroupUsers.Any(u => u.SubjectId.Equals(user.SubjectId,StringComparison.OrdinalIgnoreCase)
-                && u.IdentityProvider.Equals(user.IdentityProvider, StringComparison.OrdinalIgnoreCase)))
-            {
-                group.GroupUsers.Add(new GroupUser
-                {
-                    GroupName = group.Name,
-                    SubjectId = user.SubjectId,
-                    IdentityProvider = user.IdentityProvider
-                });
-
-                await _authorizationDbContext.SaveChangesAsync();
-            }
-            else
-            {
-                throw new AlreadyExistsException<Group>(
-                    $"The user {identityProvider}:{subjectId} has already been added to the group {groupName}.");
-            }
-
-            return group.ToModel();
+            return group;
         }
 
-        public async Task<Group> DeleteUserFromGroup(string groupName, string subjectId, string identityProvider)
+        public async Task<Group> DeleteUserFromGroup(Group group, User user)
         {
-            var group = await _authorizationDbContext.Groups
-                .Include(g => g.GroupUsers)
-                .ThenInclude(gu => gu.User)
-                .SingleOrDefaultAsync(g => g.Name.Equals(groupName, StringComparison.OrdinalIgnoreCase));
-
-            if (group == null)
-            {
-                throw new NotFoundException<Group>($"Could not find {typeof(Group).Name} entity with ID {groupName}");
-            }
-
-            var userInGroup = group.GroupUsers.SingleOrDefault(gu =>
-                gu.User.SubjectId.Equals(subjectId, StringComparison.OrdinalIgnoreCase)
-                && gu.User.IdentityProvider.Equals(identityProvider, StringComparison.OrdinalIgnoreCase));
+            var userInGroup = await _authorizationDbContext.GroupUsers
+                .SingleOrDefaultAsync(gu =>
+                    gu.SubjectId.Equals(user.SubjectId, StringComparison.OrdinalIgnoreCase) && 
+                    gu.IdentityProvider.Equals(user.IdentityProvider, StringComparison.OrdinalIgnoreCase) && 
+                    gu.GroupName.Equals(group.Name, StringComparison.OrdinalIgnoreCase));
 
             if (userInGroup != null)
             {
                 userInGroup.IsDeleted = true;
-                group.GroupUsers.Remove(userInGroup);
+                _authorizationDbContext.GroupUsers.Update(userInGroup);
                 await _authorizationDbContext.SaveChangesAsync();
             }
 
-            return group.ToModel();
+            return group;
         }
     }
 }
