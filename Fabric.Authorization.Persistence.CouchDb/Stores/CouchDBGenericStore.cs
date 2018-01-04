@@ -5,9 +5,11 @@ using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
+using Fabric.Authorization.Domain.Stores;
+using Fabric.Authorization.Persistence.CouchDb.Services;
 using Serilog;
 
-namespace Fabric.Authorization.Domain.Stores.CouchDB
+namespace Fabric.Authorization.Persistence.CouchDb.Stores
 {
     public abstract class CouchDbGenericStore<K, T> : IGenericStore<K, T> where T : ITrackable, IIdentifiable
     {

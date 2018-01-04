@@ -1,28 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Fabric.Authorization.Domain.Events;
-using Fabric.Authorization.Domain.Models;
-using Fabric.Authorization.Domain.Services;
-using Fabric.Authorization.Domain.Stores.CouchDB;
+using Fabric.Authorization.Persistence.CouchDb.Stores;
+using Microsoft.Extensions.Caching.Memory;
 
-namespace Fabric.Authorization.Domain.Stores
+namespace Fabric.Authorization.Persistence.CouchDb.Services
 {
-    public class AuditingDocumentDbService : IDocumentDbService
+    public class CachingDocumentDbService : IDocumentDbService
     {
-        private readonly IEventService _eventService;
         private readonly IDocumentDbService _innerDocumentDbService;
+        private readonly IMemoryCache _cache;
 
-        public AuditingDocumentDbService(IEventService eventService, IDocumentDbService innerDocumentDbService)
+        public CachingDocumentDbService(IDocumentDbService innerDocumentDbService, IMemoryCache memoryCache)
         {
-            _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
             _innerDocumentDbService = innerDocumentDbService ??
                                       throw new ArgumentNullException(nameof(innerDocumentDbService));
+            _cache = memoryCache;
         }
-
         public async Task<T> GetDocument<T>(string documentId)
         {
-            return await _innerDocumentDbService.GetDocument<T>(documentId);
+            T document;
+            var fullDocumentId = DocumentDbHelpers.GetFullDocumentId<T>(documentId);
+            if (!_cache.TryGetValue(fullDocumentId, out document))
+            {
+                document = await _innerDocumentDbService.GetDocument<T>(documentId);
+                if (document != null)
+                {
+                    var cacheEntryOptions = new MemoryCacheEntryOptions()
+                        .SetSlidingExpiration(TimeSpan.FromSeconds(30));
+                    _cache.Set(fullDocumentId, document, cacheEntryOptions);
+                }
+            }
+            return document;
         }
 
         public async Task<IEnumerable<T>> GetDocuments<T>(string documentType)
@@ -37,20 +46,26 @@ namespace Fabric.Authorization.Domain.Stores
 
         public async Task AddDocument<T>(string documentId, T documentObject)
         {
-            await _eventService.RaiseEventAsync(new EntityAuditEvent<T>(EventTypes.EntityCreatedEvent, documentId, documentObject)).ConfigureAwait(false);
             await _innerDocumentDbService.AddDocument(documentId, documentObject);
         }
 
         public async Task UpdateDocument<T>(string documentId, T documentObject)
         {
-            await _eventService.RaiseEventAsync(new EntityAuditEvent<T>(EventTypes.EntityUpdatedEvent, documentId, documentObject));
+            var fullDocumentId = DocumentDbHelpers.GetFullDocumentId<T>(documentId);
+            if (_cache.TryGetValue(fullDocumentId, out var document))
+            {
+                _cache.Remove(fullDocumentId);
+            }
             await _innerDocumentDbService.UpdateDocument(documentId, documentObject);
         }
 
         public async Task DeleteDocument<T>(string documentId)
         {
-            await _eventService.RaiseEventAsync(new EntityAuditEvent<T>(EventTypes.EntityDeletedEvent, documentId))
-                .ConfigureAwait(false);
+            var fullDocumentId = DocumentDbHelpers.GetFullDocumentId<T>(documentId);
+            if (_cache.TryGetValue(fullDocumentId, out var document))
+            {
+                _cache.Remove(fullDocumentId);
+            }
             await _innerDocumentDbService.DeleteDocument<T>(documentId);
         }
 
@@ -71,7 +86,7 @@ namespace Fabric.Authorization.Domain.Stores
 
         public async Task Initialize()
         {
-            await  _innerDocumentDbService.Initialize();
+            await _innerDocumentDbService.Initialize();
         }
 
         public async Task SetupDefaultUser()

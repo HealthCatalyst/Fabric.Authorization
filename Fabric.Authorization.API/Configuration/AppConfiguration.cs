@@ -1,5 +1,5 @@
-﻿using System.Data;
 using Fabric.Authorization.Persistence.SqlServer.Configuration;
+﻿using Fabric.Authorization.Persistence.CouchDb.Configuration;
 using Fabric.Platform.Shared.Configuration;
 
 namespace Fabric.Authorization.API.Configuration

@@ -4,10 +4,10 @@ using System.Security.Claims;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.RemoteServices.Identity.Providers;
-using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Services;
-using Fabric.Authorization.Domain.Stores;
-using Fabric.Authorization.Domain.Stores.CouchDB;
+using Fabric.Authorization.Persistence.CouchDb.Configuration;
+using Fabric.Authorization.Persistence.CouchDb.Services;
+using Fabric.Authorization.Persistence.CouchDb.Stores;
 using Fabric.Platform.Shared.Configuration;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
@@ -100,7 +100,7 @@ namespace Fabric.Authorization.IntegrationTests
 
         private CouchDbSettings GetCouchDbSettings()
         {
-            CouchDbSettings config = new CouchDbSettings()
+            CouchDbSettings config = new CouchDbSettings
             {
                 DatabaseName = "integration-" + DateTime.UtcNow.Ticks,
                 Username = "admin",
