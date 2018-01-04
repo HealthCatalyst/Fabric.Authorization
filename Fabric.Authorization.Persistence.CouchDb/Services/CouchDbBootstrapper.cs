@@ -1,7 +1,9 @@
 ﻿using System;
+using Fabric.Authorization.Domain.Stores;
+using Fabric.Authorization.Persistence.CouchDb.Stores;
 using Serilog;
 
-namespace Fabric.Authorization.Domain.Stores.CouchDB
+namespace Fabric.Authorization.Persistence.CouchDb.Services
 {
     public class CouchDbBootstrapper : IDbBootstrapper
     {

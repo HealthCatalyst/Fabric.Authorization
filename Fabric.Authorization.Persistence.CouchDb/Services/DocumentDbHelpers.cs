@@ -1,4 +1,4 @@
-﻿namespace Fabric.Authorization.Domain.Stores
+﻿namespace Fabric.Authorization.Persistence.CouchDb.Services
 {
     public static class DocumentDbHelpers
     {

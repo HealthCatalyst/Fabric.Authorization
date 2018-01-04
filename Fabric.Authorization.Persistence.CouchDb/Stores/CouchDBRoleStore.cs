@@ -2,20 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
+using Fabric.Authorization.Domain.Stores;
+using Fabric.Authorization.Persistence.CouchDb.Services;
 using Serilog;
 
-namespace Fabric.Authorization.Domain.Stores.CouchDB
+namespace Fabric.Authorization.Persistence.CouchDb.Stores
 {
     public class CouchDbRoleStore : CouchDbGenericStore<Guid, Role>, IRoleStore
     {
-        private readonly IPermissionStore _permissionStore;
-
-        public CouchDbRoleStore(IDocumentDbService dbService, IPermissionStore permissionStore, ILogger logger, IEventContextResolverService eventContextResolverService) : base(dbService, logger, eventContextResolverService)
+        public CouchDbRoleStore(IDocumentDbService dbService, ILogger logger, IEventContextResolverService eventContextResolverService) : base(dbService, logger, eventContextResolverService)
         {
-            _permissionStore = permissionStore ?? throw new ArgumentNullException(nameof(permissionStore));
         }
 
         public override async Task<Role> Add(Role model)

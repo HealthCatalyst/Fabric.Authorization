@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
-using Fabric.Authorization.Domain.Stores;
+using Fabric.Authorization.Persistence.CouchDb.Services;
 using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using Xunit;

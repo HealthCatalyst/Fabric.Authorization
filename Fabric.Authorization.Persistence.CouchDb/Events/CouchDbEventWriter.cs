@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
-using Fabric.Authorization.Domain.Stores;
+using Fabric.Authorization.Domain.Events;
+using Fabric.Authorization.Persistence.CouchDb.Services;
 
-namespace Fabric.Authorization.Domain.Events
+namespace Fabric.Authorization.Persistence.CouchDb.Events
 {
     public class CouchDbEventWriter : IEventWriter
     {

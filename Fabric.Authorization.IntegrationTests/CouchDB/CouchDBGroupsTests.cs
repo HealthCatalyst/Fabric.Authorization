@@ -1,8 +1,8 @@
 ﻿using System;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.Domain.Models;
-using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.IntegrationTests.Modules;
+using Fabric.Authorization.Persistence.CouchDb.Services;
 using Nancy;
 using Nancy.Testing;
 using Xunit;

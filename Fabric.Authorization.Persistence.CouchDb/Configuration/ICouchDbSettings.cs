@@ -1,4 +1,4 @@
-﻿namespace Fabric.Authorization.API.Configuration
+﻿namespace Fabric.Authorization.Persistence.CouchDb.Configuration
 {
     public interface ICouchDbSettings
     {

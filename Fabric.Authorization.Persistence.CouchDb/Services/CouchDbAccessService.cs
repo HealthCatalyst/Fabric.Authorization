@@ -5,11 +5,10 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
-using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
-using Fabric.Authorization.Domain.Stores;
-using Fabric.Authorization.Domain.Stores.CouchDB;
+using Fabric.Authorization.Persistence.CouchDb.Configuration;
+using Fabric.Authorization.Persistence.CouchDb.Stores;
 using MyCouch;
 using MyCouch.Net;
 using MyCouch.Requests;
@@ -17,7 +16,7 @@ using MyCouch.Responses;
 using Newtonsoft.Json;
 using Serilog;
 
-namespace Fabric.Authorization.API.Services
+namespace Fabric.Authorization.Persistence.CouchDb.Services
 {
     public class CouchDbAccessService : IDocumentDbService
     {
@@ -62,9 +61,9 @@ namespace Fabric.Authorization.API.Services
             {
                 if (!(await client.Database.GetAsync()).IsSuccess)
                 {
-                    _logger.Information($"could not retrieve database information. attempting to create. Current Thread Id: {Thread.CurrentThread.ManagedThreadId}");
+                    //_logger.Information($"could not retrieve database information. attempting to create. Current Thread Id: {Thread.CurrentThread.ManagedThreadId}");
                     var creation = await client.Database.PutAsync();
-                    _logger.Information($"database created if it did not exist. Current Thread Id: {Thread.CurrentThread.ManagedThreadId}");
+                    //_logger.Information($"database created if it did not exist. Current Thread Id: {Thread.CurrentThread.ManagedThreadId}");
                     if (!creation.IsSuccess)
                     {
                         throw new ArgumentException(creation.Error);

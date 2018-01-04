@@ -10,9 +10,12 @@
 
   <ItemGroup>
     <Folder Include="DependencyInjection\" />
-    <Folder Include="Configuration\" />
-    <Folder Include="Services\" />
-    <Folder Include="Stores\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MyCouch" Version="5.0.1" />
+    <PackageReference Include="Serilog" Version="2.5.0" />
+    <PackageReference Include="Serilog.Extensions.Logging" Version="1.4.0" />
   </ItemGroup>
 
 </Project>

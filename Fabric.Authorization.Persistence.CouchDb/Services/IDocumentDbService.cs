@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Fabric.Authorization.Domain.Stores.CouchDB;
+using Fabric.Authorization.Persistence.CouchDb.Stores;
 
-namespace Fabric.Authorization.Domain.Stores
+namespace Fabric.Authorization.Persistence.CouchDb.Services
 {
     public interface IDocumentDbService
     {
