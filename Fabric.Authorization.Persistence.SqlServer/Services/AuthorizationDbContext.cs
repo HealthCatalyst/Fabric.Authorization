@@ -98,12 +98,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
             modelBuilder.ConfigureGroupUser();
             modelBuilder.ConfigureRolePermission();
             modelBuilder.ConfigureUserPermission();
-        }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            base.OnConfiguring(optionsBuilder);
-            optionsBuilder.UseSqlServer("Server=localhost;Database=Authorization;Trusted_Connection=True;");
-        }
+        }        
     }
 }

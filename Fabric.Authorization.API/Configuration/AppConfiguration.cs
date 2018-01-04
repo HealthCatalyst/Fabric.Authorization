@@ -1,4 +1,6 @@
-﻿using Fabric.Platform.Shared.Configuration;
+﻿using System.Data;
+using Fabric.Authorization.Persistence.SqlServer.Configuration;
+using Fabric.Platform.Shared.Configuration;
 
 namespace Fabric.Authorization.API.Configuration
 {
@@ -13,5 +15,6 @@ namespace Fabric.Authorization.API.Configuration
         public HostingOptions HostingOptions { get; set; }
         public EncryptionCertificateSettings EncryptionCertificateSettings { get; set; }
         public DefaultPropertySettings DefaultPropertySettings{ get; set; }
+        public ConnectionStrings ConnectionStrings { get; set; }
     }
 }
