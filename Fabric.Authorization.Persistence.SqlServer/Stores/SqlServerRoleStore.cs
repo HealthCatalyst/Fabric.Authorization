@@ -16,12 +16,10 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
     public class SqlServerRoleStore : IRoleStore
     {
         private readonly IAuthorizationDbContext _authorizationDbContext;
-        private readonly IPermissionStore _permissionStore;
 
-        public SqlServerRoleStore(IAuthorizationDbContext authorizationDbContext, IPermissionStore permissionStore)
+        public SqlServerRoleStore(IAuthorizationDbContext authorizationDbContext)
         {
             _authorizationDbContext = authorizationDbContext;
-            _permissionStore = permissionStore ?? throw new ArgumentNullException(nameof(permissionStore));
         }
 
         public async Task<Role> Add(Role model)
