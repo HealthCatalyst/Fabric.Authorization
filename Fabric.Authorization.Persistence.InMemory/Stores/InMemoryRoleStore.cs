@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
+using Fabric.Authorization.Domain.Stores;
 
-namespace Fabric.Authorization.Domain.Stores.InMemory
+namespace Fabric.Authorization.Persistence.InMemory.Stores
 {
     public class InMemoryRoleStore : InMemoryGenericStore<Role>, IRoleStore
     {

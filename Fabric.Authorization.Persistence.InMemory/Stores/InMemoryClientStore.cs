@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using Fabric.Authorization.Domain.Models;
+using Fabric.Authorization.Domain.Stores;
 
-namespace Fabric.Authorization.Domain.Stores.InMemory
+namespace Fabric.Authorization.Persistence.InMemory.Stores
 {
     public class InMemoryClientStore : InMemoryGenericStore<Client>, IClientStore
     {
-        private readonly ConcurrentDictionary<string, Client> Clients = new ConcurrentDictionary<string, Client>();
+        private readonly ConcurrentDictionary<string, Client> _clients = new ConcurrentDictionary<string, Client>();
         
         public InMemoryClientStore()
         {
@@ -21,7 +22,7 @@ namespace Fabric.Authorization.Domain.Stores.InMemory
                 }
             };
 
-            Clients.TryAdd(mvcClient.Id, mvcClient);
+            _clients.TryAdd(mvcClient.Id, mvcClient);
 
             var angularClient = new Client
             {

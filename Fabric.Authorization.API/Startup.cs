@@ -7,7 +7,7 @@ using Fabric.Authorization.API.Infrastructure;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
-using Fabric.Authorization.Domain.Stores.InMemory;
+using Fabric.Authorization.Persistence.InMemory.Stores;
 using Fabric.Platform.Auth;
 using Fabric.Platform.Logging;
 using Fabric.Platform.Shared.Configuration;
@@ -65,6 +65,7 @@ namespace Fabric.Authorization.API
                 .UseNancy(opt => opt.Bootstrapper = new Bootstrapper(_logger, _appConfig, _levelSwitch, env));
         }
 
+        // TODO: make this DB-agnostic
         public async Task<bool> HealthCheck()
         {
             var eventContextResolverService = new EventContextResolverService(new NancyContextWrapper(new NancyContext()));

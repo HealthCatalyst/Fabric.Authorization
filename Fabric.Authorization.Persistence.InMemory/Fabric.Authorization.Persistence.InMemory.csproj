@@ -6,8 +6,6 @@
 
   <ItemGroup>
     <Folder Include="DependencyInjection\" />
-    <Folder Include="Services\" />
-    <Folder Include="Stores\" />
   </ItemGroup>
 
   <ItemGroup>
