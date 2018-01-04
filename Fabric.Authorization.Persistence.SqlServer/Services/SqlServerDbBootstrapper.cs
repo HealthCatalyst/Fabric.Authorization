@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Fabric.Authorization.Domain.Stores;
+﻿using Fabric.Authorization.Domain.Stores;
 
 namespace Fabric.Authorization.Persistence.SqlServer.Services
 {
@@ -9,7 +6,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
     {
         public void Setup()
         {
-            return;
         }
     }
 }

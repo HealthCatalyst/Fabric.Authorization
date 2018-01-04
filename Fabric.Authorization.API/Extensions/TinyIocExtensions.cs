@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.RemoteServices.Identity.Providers;
 using Fabric.Authorization.API.Services;
-using Fabric.Authorization.Domain.Events;
 using Fabric.Authorization.Domain.Resolvers.Permissions;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
 using Fabric.Authorization.Domain.Stores.InMemory;
 using Fabric.Authorization.Domain.Stores.Services;
+using Fabric.Authorization.Persistence.SqlServer.Stores;
 using Nancy.TinyIoc;
 using Serilog.Core;
 
@@ -74,6 +73,20 @@ namespace Fabric.Authorization.API.Extensions
             container.Register<IPermissionStore, CouchDbPermissionStore>();
             container.Register<IGroupStore, CouchDbGroupStore>();
             container.Register<IClientStore, CouchDbClientStore>();
+
+            return container;
+        }
+
+        public static TinyIoCContainer RegisterSqlServerStores(
+            this TinyIoCContainer container,
+            IAppConfiguration appConfiguration,
+            LoggingLevelSwitch levelSwitch)
+        {
+            container.Register<IRoleStore, SqlServerRoleStore>();
+            container.Register<IUserStore, SqlServerUserStore>();
+            container.Register<IPermissionStore, SqlServerPermissionStore>();
+            container.Register<IGroupStore, SqlServerGroupStore>();
+            container.Register<IClientStore, SqlServerClientStore>();
 
             return container;
         }

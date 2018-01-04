@@ -12,6 +12,7 @@ using Fabric.Authorization.Domain.Events;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
 using Fabric.Authorization.Domain.Stores.InMemory;
+using Fabric.Authorization.Persistence.SqlServer.Services;
 using Fabric.Platform.Bootstrappers.Nancy;
 using LibOwin;
 using Microsoft.AspNetCore.Hosting;
@@ -144,7 +145,7 @@ namespace Fabric.Authorization.API
             ConfigureSingletonDataStores(container, _appConfig);
         }
 
-        private void ConfigureSingletonDataStores(TinyIoCContainer container, IAppConfiguration appConfig)
+        private static void ConfigureSingletonDataStores(TinyIoCContainer container, IAppConfiguration appConfig)
         {
             switch (appConfig.StorageProvider.ToLowerInvariant())
             {
@@ -160,7 +161,8 @@ namespace Fabric.Authorization.API
                     }));
                     break;
                 case StorageProviders.SqlServer:
-                    throw new ArgumentException("The SqlServer implementation has not been implemented yet.");
+                    container.Register<IDbBootstrapper, SqlServerDbBootstrapper>();
+                    break;
                 default:
                     throw new ConfigurationException($"Invalid configuration for StorageProvider: {appConfig.StorageProvider}. Valid storage providers are: {StorageProviders.InMemory}, {StorageProviders.CouchDb}, {StorageProviders.SqlServer}");
             }
@@ -176,7 +178,8 @@ namespace Fabric.Authorization.API
                     container.RegisterCouchDbStores(_appConfig, _loggingLevelSwitch);
                     break;
                 case StorageProviders.SqlServer:
-                    throw new ArgumentException("The SqlServer implementation has not been implemented yet.");
+                    container.RegisterSqlServerStores(_appConfig, _loggingLevelSwitch);
+                    break;
                 default:
                     throw new ConfigurationException($"Invalid configuration for StorageProvider: {appConfig.StorageProvider}. Valid storage providers are: {StorageProviders.InMemory}, {StorageProviders.CouchDb}, {StorageProviders.SqlServer}");
             }
