@@ -57,6 +57,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Fabric.Authorization.Domain\Fabric.Authorization.Domain.csproj" />
     <ProjectReference Include="..\Fabric.Authorization.LibOwin\Fabric.Authorization.LibOwin.csproj" />
+    <ProjectReference Include="..\Fabric.Authorization.Persistence.CouchDb\Fabric.Authorization.Persistence.CouchDb.csproj" />
+    <ProjectReference Include="..\Fabric.Authorization.Persistence.InMemory\Fabric.Authorization.Persistence.InMemory.csproj" />
     <ProjectReference Include="..\Fabric.Authorization.Persistence.SqlServer\Fabric.Authorization.Persistence.SqlServer.csproj" />
   </ItemGroup>
   <ItemGroup>

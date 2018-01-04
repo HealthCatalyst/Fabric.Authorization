@@ -1,8 +1,9 @@
 ﻿using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
+using Fabric.Authorization.Domain.Stores;
 
-namespace Fabric.Authorization.Domain.Stores.InMemory
+namespace Fabric.Authorization.Persistence.InMemory.Stores
 {
     public abstract class InMemoryFormattableIdentifierStore<T> : InMemoryGenericStore<T>
         where T : ITrackable, IIdentifiable, ISoftDelete

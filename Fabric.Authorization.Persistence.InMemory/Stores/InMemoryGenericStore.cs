@@ -4,8 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
+using Fabric.Authorization.Domain.Stores;
 
-namespace Fabric.Authorization.Domain.Stores.InMemory
+namespace Fabric.Authorization.Persistence.InMemory.Stores
 {
     public class InMemoryGenericStore<T> : IGenericStore<string, T> where T : ITrackable, IIdentifiable, ISoftDelete
     {

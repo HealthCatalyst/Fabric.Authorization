@@ -11,7 +11,7 @@ using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Events;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
-using Fabric.Authorization.Domain.Stores.InMemory;
+using Fabric.Authorization.Persistence.InMemory.Services;
 using Fabric.Authorization.Persistence.SqlServer.Services;
 using Fabric.Platform.Bootstrappers.Nancy;
 using LibOwin;
