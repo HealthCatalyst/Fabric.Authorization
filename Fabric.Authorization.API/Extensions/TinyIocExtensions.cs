@@ -9,6 +9,7 @@ using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Stores.CouchDB;
 using Fabric.Authorization.Domain.Stores.InMemory;
 using Fabric.Authorization.Domain.Stores.Services;
+using Fabric.Authorization.Persistence.SqlServer.Services;
 using Fabric.Authorization.Persistence.SqlServer.Stores;
 using Nancy.TinyIoc;
 using Serilog.Core;
@@ -82,6 +83,7 @@ namespace Fabric.Authorization.API.Extensions
             IAppConfiguration appConfiguration,
             LoggingLevelSwitch levelSwitch)
         {
+            container.Register<IAuthorizationDbContext, AuthorizationDbContext>();
             container.Register<IRoleStore, SqlServerRoleStore>();
             container.Register<IUserStore, SqlServerUserStore>();
             container.Register<IPermissionStore, SqlServerPermissionStore>();
