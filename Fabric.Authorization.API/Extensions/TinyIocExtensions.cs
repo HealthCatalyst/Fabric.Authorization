@@ -6,7 +6,6 @@ using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Resolvers.Permissions;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
-using Fabric.Authorization.Domain.Stores.Services;
 using Fabric.Authorization.Persistence.CouchDb.Services;
 using Fabric.Authorization.Persistence.CouchDb.Stores;
 using Fabric.Authorization.Persistence.InMemory.Stores;

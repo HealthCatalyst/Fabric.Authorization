@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Resolvers.Models;
-using Fabric.Authorization.Domain.Stores.Services;
+using Fabric.Authorization.Domain.Services;
 using Serilog;
 
 namespace Fabric.Authorization.Domain.Resolvers.Permissions

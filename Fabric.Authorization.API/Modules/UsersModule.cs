@@ -10,7 +10,7 @@ using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Resolvers.Models;
 using Fabric.Authorization.Domain.Resolvers.Permissions;
-using Fabric.Authorization.Domain.Stores.Services;
+using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Validators;
 using IdentityModel;
 using Nancy;

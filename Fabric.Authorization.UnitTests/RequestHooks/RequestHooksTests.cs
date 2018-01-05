@@ -3,7 +3,7 @@ using System.Security.Claims;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
-using Fabric.Authorization.Domain.Stores.Services;
+using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Persistence.InMemory.Stores;
 using Moq;
 using Nancy;
