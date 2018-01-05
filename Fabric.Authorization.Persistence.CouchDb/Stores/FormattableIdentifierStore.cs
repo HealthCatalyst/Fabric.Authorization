@@ -1,8 +1,8 @@
 ﻿using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
-using Fabric.Authorization.Domain.Stores.CouchDB;
 using Fabric.Authorization.Persistence.CouchDb.Services;
+using Fabric.Authorization.Persistence.CouchDB.Stores;
 using Serilog;
 
 namespace Fabric.Authorization.Persistence.CouchDb.Stores

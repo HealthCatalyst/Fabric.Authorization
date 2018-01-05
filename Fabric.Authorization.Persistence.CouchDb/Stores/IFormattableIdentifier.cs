@@ -1,4 +1,4 @@
-﻿namespace Fabric.Authorization.Domain.Stores.CouchDB
+﻿namespace Fabric.Authorization.Persistence.CouchDB.Stores
 {
     public interface IFormattableIdentifier
     {
