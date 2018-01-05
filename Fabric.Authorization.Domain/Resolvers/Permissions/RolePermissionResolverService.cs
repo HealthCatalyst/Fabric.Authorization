@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Resolvers.Models;
-using Fabric.Authorization.Domain.Stores.Services;
+using Fabric.Authorization.Domain.Services;
 
 namespace Fabric.Authorization.Domain.Resolvers.Permissions
 {

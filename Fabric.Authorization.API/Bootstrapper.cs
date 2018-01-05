@@ -8,7 +8,7 @@ using Fabric.Authorization.API.Infrastructure;
 using Fabric.Authorization.API.Infrastructure.PipelineHooks;
 using Fabric.Authorization.API.Logging;
 using Fabric.Authorization.Domain.Events;
-using Fabric.Authorization.Domain.Stores;
+using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Persistence.CouchDb.Configuration;
 using Fabric.Authorization.Persistence.CouchDb.Services;
 using Fabric.Authorization.Persistence.InMemory.Services;

@@ -6,7 +6,7 @@ using Fabric.Authorization.API.Models.Search;
 using Fabric.Authorization.API.RemoteServices.Identity.Providers;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
-using Fabric.Authorization.Domain.Stores.Services;
+using Fabric.Authorization.Domain.Services;
 using Nancy.Extensions;
 using Serilog;
 

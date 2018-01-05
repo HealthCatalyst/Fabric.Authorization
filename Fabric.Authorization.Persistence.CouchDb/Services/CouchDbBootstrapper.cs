@@ -1,5 +1,5 @@
 ﻿using System;
-using Fabric.Authorization.Domain.Stores;
+using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Persistence.CouchDb.Stores;
 using Serilog;
 

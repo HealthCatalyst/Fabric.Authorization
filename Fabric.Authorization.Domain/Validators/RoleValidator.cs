@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Fabric.Authorization.Domain.Models;
-using Fabric.Authorization.Domain.Stores.Services;
+using Fabric.Authorization.Domain.Services;
 using FluentValidation;
 
 namespace Fabric.Authorization.Domain.Validators

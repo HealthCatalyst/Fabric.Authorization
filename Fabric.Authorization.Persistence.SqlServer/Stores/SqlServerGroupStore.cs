@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Stores;
-using Fabric.Authorization.Domain.Stores.Services;
 using Fabric.Authorization.Persistence.SqlServer.EntityModels;
 using Fabric.Authorization.Persistence.SqlServer.Mappers;
 using Fabric.Authorization.Persistence.SqlServer.Services;

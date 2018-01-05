@@ -1,4 +1,4 @@
-﻿using Fabric.Authorization.Domain.Stores;
+﻿using Fabric.Authorization.Domain.Services;
 
 namespace Fabric.Authorization.Persistence.InMemory.Services
 {

@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Fabric.Authorization.Domain.Stores;
 
-namespace Fabric.Authorization.Domain.Stores.Services
+namespace Fabric.Authorization.Domain.Services
 {
     public class UserService
     {

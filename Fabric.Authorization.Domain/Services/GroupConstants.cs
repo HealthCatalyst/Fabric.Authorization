@@ -1,4 +1,4 @@
-﻿namespace Fabric.Authorization.Domain.Stores.Services
+﻿namespace Fabric.Authorization.Domain.Services
 {
     public static class GroupConstants
     {
