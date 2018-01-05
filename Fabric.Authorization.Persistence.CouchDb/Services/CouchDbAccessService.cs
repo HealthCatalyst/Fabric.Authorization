@@ -61,9 +61,9 @@ namespace Fabric.Authorization.Persistence.CouchDb.Services
             {
                 if (!(await client.Database.GetAsync()).IsSuccess)
                 {
-                    //_logger.Information($"could not retrieve database information. attempting to create. Current Thread Id: {Thread.CurrentThread.ManagedThreadId}");
+                    _logger.Information($"could not retrieve database information. attempting to create. Current Thread Id: {Thread.CurrentThread.ManagedThreadId}");
                     var creation = await client.Database.PutAsync();
-                    //_logger.Information($"database created if it did not exist. Current Thread Id: {Thread.CurrentThread.ManagedThreadId}");
+                    _logger.Information($"database created if it did not exist. Current Thread Id: {Thread.CurrentThread.ManagedThreadId}");
                     if (!creation.IsSuccess)
                     {
                         throw new ArgumentException(creation.Error);
