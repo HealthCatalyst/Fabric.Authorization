@@ -9,7 +9,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Mappers
             //entity to model 
             CreateMap<EntityModels.Client, Domain.Models.Client>()
                 .ForMember(x => x.Id, opt => opt.MapFrom(src => src.ClientId))
-                .ReverseMap();           
+                .ReverseMap()
+                .ForPath(x => x.ClientId, opt => opt.MapFrom(x => x.Id));
         }
     }
 }
