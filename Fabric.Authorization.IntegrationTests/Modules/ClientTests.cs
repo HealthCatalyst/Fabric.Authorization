@@ -99,7 +99,15 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("6BC32347-36A1-44CF-AA0E-6C1038AA1DF3")]
         public void TestAddNewClient_Success(string id)
         {
-            var clientToAdd = new ClientApiModel { Id = id, Name = id };
+            var clientToAdd = new ClientApiModel
+            {
+                Id = id,
+                Name = id,
+                TopLevelSecurableItem = new SecurableItemApiModel
+                {
+                    Name = id
+                }
+            };
 
             var postResponse = _browser.Post("/clients", with =>
             {
@@ -123,7 +131,15 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("D622053D-03F5-489E-84F7-5471DA309213")]
         public void TestAddNewClient_Fail(string id)
         {
-            var clientToAdd = new ClientApiModel { Id = id, Name = id };
+            var clientToAdd = new ClientApiModel
+            {
+                Id = id,
+                Name = id,
+                TopLevelSecurableItem = new SecurableItemApiModel
+                {
+                    Name = id
+                }
+            };
 
             _browser.Post("/clients", with =>
             {
@@ -150,7 +166,15 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("F8C01F6B-C09C-430C-97A5-A0F2F1B340FB")]
         public void TestDeleteClient_Success(string id)
         {
-            var clientToAdd = new ClientApiModel { Id = id, Name = id };
+            var clientToAdd = new ClientApiModel
+            {
+                Id = id,
+                Name = id,
+                TopLevelSecurableItem = new SecurableItemApiModel
+                {
+                    Name = id
+                }
+            };
 
             _browser.Post("/clients", with =>
             {
