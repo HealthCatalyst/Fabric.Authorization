@@ -8,7 +8,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectVersion>4.1</ProjectVersion>
     <ProjectGuid>{5d55f78b-6965-4093-9048-6f9ad0883a7c}</ProjectGuid>
-    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql130DatabaseSchemaProvider</DSP>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql110DatabaseSchemaProvider</DSP>
     <OutputType>Database</OutputType>
     <RootPath>
     </RootPath>
@@ -67,11 +67,23 @@
     <None Include="PublishProfiles\Fabric.Authorization.SqlServer.publish.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Storage\HCFabricAuthorizationData1.sql" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Storage\HCFabricAuthorizationPrimary.sql" />
     <Build Include="Storage\HCFabricAuthorizationLogFile1.sql" />
     <Build Include="Storage\HCFabricAuthorizationIndex1.sql" />
+    <Build Include="Tables\Clients.sql" />
+    <Build Include="Tables\GroupRoles.sql" />
+    <Build Include="Tables\Groups.sql" />
+    <Build Include="Tables\GroupUsers.sql" />
+    <Build Include="Tables\Permissions.sql" />
+    <Build Include="Tables\RolePermissions.sql" />
+    <Build Include="Tables\Roles.sql" />
+    <Build Include="Tables\SecurableItems.sql" />
+    <Build Include="Tables\UserPermissions.sql" />
+    <Build Include="Tables\Users.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="Storage\HCFabricAuthorizationData1.sql" />
   </ItemGroup>
 </Project>
