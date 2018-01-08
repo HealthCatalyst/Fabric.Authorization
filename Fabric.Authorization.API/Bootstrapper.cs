@@ -3,16 +3,13 @@ using System.Security.Claims;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Converters;
+using Fabric.Authorization.API.DependencyInjection;
 using Fabric.Authorization.API.Extensions;
 using Fabric.Authorization.API.Infrastructure;
 using Fabric.Authorization.API.Infrastructure.PipelineHooks;
 using Fabric.Authorization.API.Logging;
 using Fabric.Authorization.Domain.Events;
 using Fabric.Authorization.Domain.Services;
-using Fabric.Authorization.Persistence.CouchDb.Configuration;
-using Fabric.Authorization.Persistence.CouchDb.Services;
-using Fabric.Authorization.Persistence.InMemory.Services;
-using Fabric.Authorization.Persistence.SqlServer.Services;
 using Fabric.Platform.Bootstrappers.Nancy;
 using LibOwin;
 using Microsoft.AspNetCore.Hosting;
@@ -69,7 +66,9 @@ namespace Fabric.Authorization.API
             var appConfig = container.Resolve<IAppConfiguration>();
             container.UseHttpClientFactory(context, appConfig.IdentityServerConfidentialClientSettings);
             container.RegisterServices();
-            ConfigureRequestDataStores(container, _appConfig);
+
+            var configurator = container.Resolve<IPersistenceConfigurator>();
+            configurator.ConfigureRequestInstances(container);
         }
         
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
@@ -138,51 +137,30 @@ namespace Fabric.Authorization.API
             var serilogEventWriter = new SerilogEventWriter(eventLogger);
             container.Register<IEventWriter>(serilogEventWriter);
             container.Register(options);
-            container.Register<ICouchDbSettings>(_appConfig.CouchDbSettings);
             container.Register<IPropertySettings>(_appConfig.DefaultPropertySettings);
             container.Register(typeof(IOptions<>), typeof(OptionsManager<>));
             container.Register<IMemoryCache, MemoryCache>();
-            ConfigureSingletonDataStores(container, _appConfig);
-        }
 
-        private static void ConfigureSingletonDataStores(TinyIoCContainer container, IAppConfiguration appConfig)
-        {
-            switch (appConfig.StorageProvider.ToLowerInvariant())
+            container.Register<IPersistenceConfigurator>((c, p) =>
             {
-                case StorageProviders.InMemory:
-                    container.RegisterInMemoryStores();
-                    container.Register<IDbBootstrapper, InMemoryDbBootstrapper>();
-                    break;
-                case StorageProviders.CouchDb:
-                    container.Register<IDocumentDbService, CouchDbAccessService>("inner");
-                    container.Register<IDbBootstrapper>((c, p) => c.Resolve<CouchDbBootstrapper>(new NamedParameterOverloads
-                    {
-                        {"documentDbService", c.Resolve<IDocumentDbService>("inner")}
-                    }));
-                    break;
-                case StorageProviders.SqlServer:
-                    container.Register<IDbBootstrapper, SqlServerDbBootstrapper>();
-                    break;
-                default:
-                    throw new ConfigurationException($"Invalid configuration for StorageProvider: {appConfig.StorageProvider}. Valid storage providers are: {StorageProviders.InMemory}, {StorageProviders.CouchDb}, {StorageProviders.SqlServer}");
-            }
-        }
+                switch (_appConfig.StorageProvider.ToLowerInvariant())
+                {
+                    case StorageProviders.InMemory:
+                        return new InMemoryConfigurator();
 
-        private void ConfigureRequestDataStores(TinyIoCContainer container, IAppConfiguration appConfig)
-        {
-            switch (appConfig.StorageProvider.ToLowerInvariant())
-            {
-                case StorageProviders.InMemory:
-                    break;
-                case StorageProviders.CouchDb:
-                    container.RegisterCouchDbStores(_appConfig, _loggingLevelSwitch);
-                    break;
-                case StorageProviders.SqlServer:
-                    container.RegisterSqlServerStores(_appConfig, _loggingLevelSwitch);
-                    break;
-                default:
-                    throw new ConfigurationException($"Invalid configuration for StorageProvider: {appConfig.StorageProvider}. Valid storage providers are: {StorageProviders.InMemory}, {StorageProviders.CouchDb}, {StorageProviders.SqlServer}");
-            }
+                    case StorageProviders.CouchDb:
+                        return new CouchDbConfigurator(_appConfig);
+
+                    case StorageProviders.SqlServer:
+                        return new SqlServerConfigurator(_appConfig);
+
+                    default:
+                        throw new ConfigurationException($"Invalid configuration for StorageProvider: {_appConfig.StorageProvider}. Valid storage providers are: {StorageProviders.InMemory}, {StorageProviders.CouchDb}, {StorageProviders.SqlServer}");
+                }
+            });
+
+            var configurator = container.Resolve<IPersistenceConfigurator>();
+            configurator.ConfigureSingletons(container);
         }
 
         protected override void ConfigureConventions(NancyConventions nancyConventions)

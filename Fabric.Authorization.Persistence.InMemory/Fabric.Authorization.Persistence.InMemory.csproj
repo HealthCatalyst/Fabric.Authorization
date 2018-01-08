@@ -5,11 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="DependencyInjection\" />
+    <ProjectReference Include="..\Fabric.Authorization.Domain\Fabric.Authorization.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Fabric.Authorization.Domain\Fabric.Authorization.Domain.csproj" />
+    <Folder Include="DependencyInjection\" />
   </ItemGroup>
 
 </Project>
