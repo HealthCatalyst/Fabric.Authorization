@@ -47,11 +47,7 @@ namespace Fabric.Authorization.API
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddWebEncoders();            
-            services.AddTransient(provider => new NancyContextWrapper(new NancyContext()));
-            services.AddTransient<IEventContextResolverService, EventContextResolverService>();
-            services.AddDbContext<AuthorizationDbContext>(options =>
-                options.UseSqlServer(_appConfig.ConnectionStrings.AuthorizationDatabase));
+            services.AddWebEncoders();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

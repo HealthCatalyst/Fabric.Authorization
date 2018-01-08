@@ -140,7 +140,7 @@ namespace Fabric.Authorization.IntegrationTests
                 var nancyContext = new NancyContext {CurrentUser = new ClaimsPrincipal(testIdentity)};
                 var nancyContextWrapper = new NancyContextWrapper(nancyContext);
 
-                return new AuthorizationDbContext(builder.Options, new EventContextResolverService(nancyContextWrapper));
+                return new AuthorizationDbContext(new EventContextResolverService(nancyContextWrapper), ConnectionStrings);
             }
         }
 
@@ -149,8 +149,8 @@ namespace Fabric.Authorization.IntegrationTests
             CouchDbSettings config = new CouchDbSettings
             {
                 DatabaseName = "integration-" + DateTime.UtcNow.Ticks,
-                Username = "",
-                Password = "",
+                Username = "admin",
+                Password = "admin",
                 Server = "http://127.0.0.1:5984"
             };
 
