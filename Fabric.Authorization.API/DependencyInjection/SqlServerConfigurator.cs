@@ -20,7 +20,7 @@ namespace Fabric.Authorization.API.DependencyInjection
         public void ConfigureSingletons(TinyIoCContainer container)
         {
             container.Register<IDbBootstrapper, SqlServerDbBootstrapper>();
-            container.Register<IConnectionStrings>(_appConfiguration.ConnectionStrings);
+            container.Register(_appConfiguration.ConnectionStrings);
         }
 
         public void ConfigureRequestInstances(TinyIoCContainer container)

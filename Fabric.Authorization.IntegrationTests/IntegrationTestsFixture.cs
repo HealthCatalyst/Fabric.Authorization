@@ -119,7 +119,7 @@ namespace Fabric.Authorization.IntegrationTests
                 _connectionStrings = new ConnectionStrings
                 {
                     AuthorizationDatabase = 
-                        $"Server=.;Database=Authorization;TrustedConnection=true;MultipleActiveResultSets=true"
+                        $"Server=.;Database=Authorization;MultipleActiveResultSets=true;Trusted_Connection=true"
                 };
                 Console.WriteLine($"Connection String for tests: {_connectionStrings.AuthorizationDatabase}");
                 return _connectionStrings;
