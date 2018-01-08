@@ -11,5 +11,7 @@
   <files>
     <file src="Fabric.Authorization.InstallPackage.zip" target="build" />
     <file src="Fabric.Authorization.InstallPackage.targets" target="build" />
+    <file src="Fabric.Authorization.SqlServer.dacpac" target="build" />
+    <file src="Fabric.Authorization.SqlServer.publish.xml" target="build" />
   </files>
 </package>
