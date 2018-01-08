@@ -4,5 +4,13 @@
       <Link>SetupContent\Fabric.Authorization.InstallPackage.zip</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="$(MSBuildThisFileDirectory)Fabric.Authorization.SqlServer.dacpac">
+      <Link>SetupContent\Fabric.Authorization.SqlServer.dacpac</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)Fabric.Authorization.SqlServer.publish.xml">
+      <Link>SetupContent\Fabric.Authorization.SqlServer.publish.xml</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>
