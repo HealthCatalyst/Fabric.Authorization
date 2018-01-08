@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
+using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using Fabric.Authorization.Persistence.SqlServer.EntityModels;
 using Fabric.Authorization.Persistence.SqlServer.Extensions;
 using Microsoft.EntityFrameworkCore;
@@ -17,12 +18,13 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
 {
     public class AuthorizationDbContext : DbContext, IAuthorizationDbContext
     {
-        private readonly IEventContextResolverService _eventContextResolverService;        
+        private readonly IEventContextResolverService _eventContextResolverService;
+        private readonly ConnectionStrings _connectionStrings;
 
-        public AuthorizationDbContext(DbContextOptions options, IEventContextResolverService eventContextResolverService) 
-            : base(options)
+        public AuthorizationDbContext(IEventContextResolverService eventContextResolverService, ConnectionStrings connectionStrings)
         {
             _eventContextResolverService = eventContextResolverService;
+            _connectionStrings = connectionStrings;
         }
 
         public DbSet<Client> Clients { get; set; }
@@ -93,6 +95,12 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
             modelBuilder.ConfigureGroupUser();
             modelBuilder.ConfigureRolePermission();
             modelBuilder.ConfigureUserPermission();
-        }        
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.UseSqlServer(_connectionStrings.AuthorizationDatabase);
+            base.OnConfiguring(optionsBuilder);
+        }
     }
 }
