@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 
+
 namespace Fabric.Authorization.Persistence.SqlServer.Mappers
 {
     public static class ClientMapper
@@ -19,7 +20,21 @@ namespace Fabric.Authorization.Persistence.SqlServer.Mappers
 
         public static EntityModels.Client ToEntity(this Domain.Models.Client model)
         {
-            return model == null ? null : Mapper.Map<EntityModels.Client>(model);
+            if (model == null)
+            {
+                return null;
+            }
+
+            var entity = Mapper.Map<EntityModels.Client>(model);
+
+            entity.TopLevelSecurableItem = new EntityModels.SecurableItem
+            {
+                Name = model.TopLevelSecurableItem.Name
+            };
+
+            
+
+            return entity;
         }
 
         public static void ToEntity(this Domain.Models.Client model, EntityModels.Client entity)
