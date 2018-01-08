@@ -100,7 +100,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlServer(_connectionStrings.AuthorizationDatabase);
-            base.OnConfiguring(optionsBuilder);
         }
     }
 }
