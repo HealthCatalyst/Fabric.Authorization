@@ -19,11 +19,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
     {
         private readonly IEventContextResolverService _eventContextResolverService;        
 
-        public AuthorizationDbContext()
-        {
-            
-        }
-
         public AuthorizationDbContext(DbContextOptions options, IEventContextResolverService eventContextResolverService) 
             : base(options)
         {

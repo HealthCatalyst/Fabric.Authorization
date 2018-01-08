@@ -109,7 +109,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                 entity.Property(e => e.ModifiedDateTimeUtc)
                     .HasColumnType("datetime");
 
-                entity.HasKey(e => e.PermissionId);
+                entity.HasKey(e => e.PermissionId)
+                    .ForSqlServerIsClustered(false);
                 entity.HasIndex(e => e.Id)
                     .IsUnique()
                     .ForSqlServerIsClustered();
@@ -166,7 +167,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                 entity.Property(e => e.ModifiedDateTimeUtc)
                     .HasColumnType("datetime");
 
-                entity.HasKey(e => e.RoleId);
+                entity.HasKey(e => e.RoleId)
+                    .ForSqlServerIsClustered(false);
                 entity.HasIndex(e => e.Id)
                     .IsUnique()
                     .ForSqlServerIsClustered();
@@ -195,7 +197,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             {
                 entity.ToTable("Groups");
 
-                entity.HasKey(g => g.Name);
+                entity.HasKey(g => g.Name)
+                    .ForSqlServerIsClustered(false);                
 
                 entity.HasIndex(e => e.Id)
                     .IsUnique()
@@ -244,7 +247,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             {
                 entity.ToTable("Users");
 
-                entity.HasKey(u => new {u.SubjectId, u.IdentityProvider});
+                entity.HasKey(u => new {u.SubjectId, u.IdentityProvider})
+                    .ForSqlServerIsClustered(false);
 
                 entity.HasIndex(e => e.Id)
                     .IsUnique()
