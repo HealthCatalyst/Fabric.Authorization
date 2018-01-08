@@ -8,6 +8,7 @@ using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Persistence.CouchDb.Configuration;
 using Fabric.Authorization.Persistence.CouchDb.Services;
 using Fabric.Authorization.Persistence.CouchDb.Stores;
+using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using Fabric.Platform.Shared.Configuration;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
@@ -22,6 +23,8 @@ namespace Fabric.Authorization.IntegrationTests
     public class IntegrationTestsFixture : IDisposable
     {
         protected CouchDbSettings CouchDbSettings { get; }
+        private ConnectionStrings _connectionStrings;
+
         public IntegrationTestsFixture()
         {
             CouchDbSettings = GetCouchDbSettings();
@@ -49,7 +52,8 @@ namespace Fabric.Authorization.IntegrationTests
                 DefaultPropertySettings = new DefaultPropertySettings
                 {
                     GroupSource = "Windows"
-                }
+                },
+                ConnectionStrings = ConnectionStrings
             };
             var hostingEnvironment = new Mock<IHostingEnvironment>();
             var bootstrapper = new TestBootstrapper(new Mock<ILogger>().Object, appConfiguration,
@@ -96,6 +100,21 @@ namespace Fabric.Authorization.IntegrationTests
                 new CachingDocumentDbService(auditingDbService, new MemoryCache(new MemoryCacheOptions()));
             _dbService = cachingDbService;
             return _dbService;
+        }
+
+        private ConnectionStrings ConnectionStrings
+        {
+            get
+            {
+                if (_connectionStrings != null) return _connectionStrings;
+                _connectionStrings = new ConnectionStrings
+                {
+                    AuthorizationDatabase = 
+                        $"Server=.;Database=Authorization;TrustedConnection=true;MultipleActiveResultSets=true"
+                };
+                Console.WriteLine($"Connection String for tests: {_connectionStrings.AuthorizationDatabase}");
+                return _connectionStrings;
+            }
         }
 
         private CouchDbSettings GetCouchDbSettings()

@@ -5,15 +5,18 @@ using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Infrastructure;
 using Fabric.Authorization.API.Services;
+using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Persistence.CouchDb.Services;
 using Fabric.Authorization.Persistence.CouchDb.Stores;
 using Fabric.Authorization.Persistence.InMemory.Stores;
+using Fabric.Authorization.Persistence.SqlServer.Services;
 using Fabric.Platform.Auth;
 using Fabric.Platform.Logging;
 using Fabric.Platform.Shared.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Nancy;
@@ -44,7 +47,11 @@ namespace Fabric.Authorization.API
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddWebEncoders();
+            services.AddWebEncoders();            
+            services.AddTransient(provider => new NancyContextWrapper(new NancyContext()));
+            services.AddTransient<IEventContextResolverService, EventContextResolverService>();
+            services.AddDbContext<AuthorizationDbContext>(options =>
+                options.UseSqlServer(_appConfig.ConnectionStrings.AuthorizationDatabase));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
