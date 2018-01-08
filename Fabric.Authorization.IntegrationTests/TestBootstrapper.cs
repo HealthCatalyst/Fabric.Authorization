@@ -15,7 +15,14 @@ namespace Fabric.Authorization.IntegrationTests
     {
         private readonly ClaimsPrincipal _principal;
         private readonly IIdentityServiceProvider _identityServiceProvider;
-        public TestBootstrapper(ILogger logger, IAppConfiguration appConfig, LoggingLevelSwitch levelSwitch, IHostingEnvironment env, ClaimsPrincipal principal, IIdentityServiceProvider identityServiceProvider = null) : base(logger, appConfig, levelSwitch, env)
+
+        public TestBootstrapper(ILogger logger, 
+            IAppConfiguration appConfig, 
+            LoggingLevelSwitch levelSwitch,
+            IHostingEnvironment env, 
+            ClaimsPrincipal principal, 
+            IIdentityServiceProvider identityServiceProvider = null)
+            : base(logger, appConfig, levelSwitch, env)
         {
             _principal = principal;
             _identityServiceProvider = identityServiceProvider;
@@ -36,4 +43,6 @@ namespace Fabric.Authorization.IntegrationTests
             }
         }
     }
+
+
 }
