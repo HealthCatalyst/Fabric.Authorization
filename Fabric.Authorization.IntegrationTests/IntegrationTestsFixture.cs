@@ -30,11 +30,12 @@ namespace Fabric.Authorization.IntegrationTests
     public class IntegrationTestsFixture : IDisposable
     {
         protected CouchDbSettings CouchDbSettings { get; }
-        private static ConnectionStrings _connectionStrings;
-
+        protected ConnectionStrings ConnectionStrings { get; }
         public IntegrationTestsFixture()
         {
             CouchDbSettings = GetCouchDbSettings();
+            ConnectionStrings = GetSqlServerConnection();
+            //CreateSqlServerDb();
         }
         public Browser Browser { get; set; }
 
@@ -44,6 +45,7 @@ namespace Fabric.Authorization.IntegrationTests
             {
                 CouchDbSettings = CouchDbSettings,
                 StorageProvider = storageProvider,
+                ConnectionStrings = ConnectionStrings,
                 IdentityServerConfidentialClientSettings = new IdentityServerConfidentialClientSettings
                 {
                     Authority = "http://localhost",
@@ -59,8 +61,7 @@ namespace Fabric.Authorization.IntegrationTests
                 DefaultPropertySettings = new DefaultPropertySettings
                 {
                     GroupSource = "Windows"
-                },
-                ConnectionStrings = ConnectionStrings
+                }
             };
             var hostingEnvironment = new Mock<IHostingEnvironment>();
             
@@ -85,6 +86,9 @@ namespace Fabric.Authorization.IntegrationTests
         private readonly string CouchDbServerEnvironmentVariable = "COUCHDBSETTINGS__SERVER";
         private readonly string CouchDbUsernameEnvironmentVariable = "COUCHDBSETTINGS__USERNAME";
         private readonly string CouchDbPasswordEnvironmentVariable = "COUCHDBSETTINGS__PASSWORD";
+        private static readonly string SqlServerEnvironmentVariable = "SQLSERVERSETTINGS__SERVER";
+        private static readonly string SqlServerUsernameEnvironmentVariable = "SQLSERVERSETTINGS__USERNAME";
+        private static readonly string SqlServerPassworEnvironmentVariable = "SQLSERVERSETTINGS__PASSWORD";
 
         public DefaultPropertySettings DefaultPropertySettings = new DefaultPropertySettings
         {
@@ -111,22 +115,7 @@ namespace Fabric.Authorization.IntegrationTests
             return _dbService;
         }
 
-        private static ConnectionStrings ConnectionStrings
-        {
-            get
-            {
-                if (_connectionStrings != null) return _connectionStrings;
-                _connectionStrings = new ConnectionStrings
-                {
-                    AuthorizationDatabase = 
-                        $"Server=.;Database=Authorization;MultipleActiveResultSets=true;Trusted_Connection=true"
-                };
-                Console.WriteLine($"Connection String for tests: {_connectionStrings.AuthorizationDatabase}");
-                return _connectionStrings;
-            }
-        }
-
-        protected static AuthorizationDbContext IdentityDbContext
+        protected AuthorizationDbContext IdentityDbContext
         {
             get
             {         
@@ -146,11 +135,12 @@ namespace Fabric.Authorization.IntegrationTests
 
         private CouchDbSettings GetCouchDbSettings()
         {
+            var databaseNameSuffix = GetDatabaseNameSuffix();
             CouchDbSettings config = new CouchDbSettings
             {
-                DatabaseName = "integration-" + DateTime.UtcNow.Ticks,
-                Username = "admin",
-                Password = "admin",
+                DatabaseName = "integration-" + databaseNameSuffix,
+                Username = "",
+                Password = "",
                 Server = "http://127.0.0.1:5984"
             };
 
@@ -172,6 +162,36 @@ namespace Fabric.Authorization.IntegrationTests
                 config.Password = couchDbPassword;
             }
             return config;
+        }
+
+        private long GetDatabaseNameSuffix()
+        {
+            return DateTime.UtcNow.Ticks;
+        }
+
+        private ConnectionStrings GetSqlServerConnection()
+        {
+            var sqlServerHost = Environment.GetEnvironmentVariable(SqlServerEnvironmentVariable) ?? ".";
+            var sqlServerSecurityString = GetSqlServerSecurityString();
+            var databaseNameSuffix = GetDatabaseNameSuffix();
+            var connectionString = new ConnectionStrings
+            {
+                AuthorizationDatabase = $"Server={sqlServerHost};Database=Authorization-{databaseNameSuffix};{sqlServerSecurityString};MultipleActiveResultSets=true"
+            };
+
+            return connectionString;
+        }
+
+        private string GetSqlServerSecurityString()
+        {
+            var sqlServerUserName = Environment.GetEnvironmentVariable(SqlServerUsernameEnvironmentVariable);
+            var sqlServerPassword = Environment.GetEnvironmentVariable(SqlServerPassworEnvironmentVariable);
+            var securityString = "Trusted_Connection=True";
+            if (!string.IsNullOrEmpty(sqlServerUserName) && !string.IsNullOrEmpty(sqlServerPassword))
+            {
+                securityString = $"User Id={sqlServerUserName};Password={sqlServerPassword}";
+            }
+            return securityString;
         }
 
         #region IDisposable implementation
