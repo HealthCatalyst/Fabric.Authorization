@@ -5,11 +5,11 @@ using Xunit;
 namespace Fabric.Authorization.IntegrationTests.SqlServer
 {
     [Collection("SqlServerTests")]
-    public class SqlServerIdentitySearchTests : IdentitySearchTests
+    public class SqlServerIdentitySearchTests //: IdentitySearchTests
     {
-        public SqlServerIdentitySearchTests(IdentitySearchFixture fixture) : base(fixture)
+        public SqlServerIdentitySearchTests(IdentitySearchFixture fixture) //: base(fixture)
         {
-            Fixture.Initialize(StorageProviders.SqlServer);
+            //Fixture.Initialize(StorageProviders.SqlServer);
         }
     }
 }
