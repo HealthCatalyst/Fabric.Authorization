@@ -115,7 +115,7 @@ namespace Fabric.Authorization.IntegrationTests
             return _dbService;
         }
 
-        protected AuthorizationDbContext IdentityDbContext
+        protected AuthorizationDbContext AuthorizationDbContext
         {
             get
             {         
