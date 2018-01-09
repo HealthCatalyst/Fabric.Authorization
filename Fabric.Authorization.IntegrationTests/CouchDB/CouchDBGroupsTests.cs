@@ -13,14 +13,11 @@ namespace Fabric.Authorization.IntegrationTests.CouchDB
     public class CouchDbGroupsTests : GroupsTests
     {
         private readonly IDocumentDbService _documentDbService;
-        private readonly Browser _browser;
         public CouchDbGroupsTests(IntegrationTestsFixture fixture) : base(fixture, StorageProviders.CouchDb)
         {
             _documentDbService = fixture.DbService();
-            _browser = fixture.GetBrowser(Principal, StorageProviders.CouchDb);
         }
 
-        
         [Fact(Skip = "cannot figure out why it cant find the first group created when it exists in the db")]
         [IntegrationTestsFixture.DisplayTestMethodName]
         public void AddGroup_ActiveGroupWithOldIdExists_BadRequest()
@@ -35,7 +32,7 @@ namespace Fabric.Authorization.IntegrationTests.CouchDB
                 Source = "Custom"
             }).Wait();
 
-            var response = _browser.Post("/groups", with =>
+            var response = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -62,7 +59,7 @@ namespace Fabric.Authorization.IntegrationTests.CouchDB
                 IsDeleted = true
             }).Wait();
 
-            var response = _browser.Post("/groups", with =>
+            var response = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -73,7 +70,7 @@ namespace Fabric.Authorization.IntegrationTests.CouchDB
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
-            response = _browser.Get($"/groups/{groupName}", with =>
+            response = Browser.Get($"/groups/{groupName}", with =>
             {
                 with.HttpRequest();
             }).Result;

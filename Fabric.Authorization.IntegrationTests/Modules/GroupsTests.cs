@@ -14,7 +14,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
     [Collection("InMemoryTests")]
     public class GroupsTests : IClassFixture<IntegrationTestsFixture>
     {
-        private readonly Browser _browser;
+        protected readonly Browser Browser;
         private readonly DefaultPropertySettings _defaultPropertySettings;
         protected ClaimsPrincipal Principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
         {
@@ -27,18 +27,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         public GroupsTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory)
         {
-            _browser = fixture.GetBrowser(Principal, storageProvider);
+            Browser = fixture.GetBrowser(Principal, storageProvider);
             _defaultPropertySettings = fixture.DefaultPropertySettings;
-
-            _browser.Post("/clients", with =>
-            {
-                with.HttpRequest();
-                with.JsonBody(new
-                {
-                    Id = "rolesprincipal",
-                    Name = "rolesprincipal"
-                });
-            }).Wait();
+            fixture.CreateClient(Browser, "rolesprincipal");
         }
 
         [Theory]
@@ -47,7 +38,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("NonexistentGroup2")]
         public void GetGroup_NonexistentGroup_NotFound(string groupName)
         {
-            var get = _browser.Get($"/groups/{groupName}", with =>
+            var get = Browser.Get($"/groups/{groupName}", with =>
             {
                 with.HttpRequest();
             }).Result;
@@ -62,7 +53,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("6BC32347-36A1-44CF-AA0E-6C1038AA1DF3", "Source3")]
         public void AddGroup_SingleGroup_Success(string groupName, string groupSource)
         {
-            var postResponse = _browser.Post("/groups", with =>
+            var postResponse = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -72,7 +63,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 });
             }).Result;
 
-            var getResponse = _browser.Get($"/groups/{groupName}", with =>
+            var getResponse = Browser.Get($"/groups/{groupName}", with =>
             {
                 with.HttpRequest();
             }).Result;
@@ -90,7 +81,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         public void AddGroup_Batch_Success(string groupName, string groupSource)
         {
             groupName = groupName + Guid.NewGuid();
-            var postResponse = _browser.Post("/groups/UpdateGroups", with =>
+            var postResponse = Browser.Post("/groups/UpdateGroups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new []
@@ -118,19 +109,19 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.NoContent, postResponse.StatusCode);
 
-            var getResponse0 = _browser.Get($"/groups/{groupName}_0", with =>
+            var getResponse0 = Browser.Get($"/groups/{groupName}_0", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
             }).Result;
 
-            var getResponse1 = _browser.Get($"/groups/{groupName}_1", with =>
+            var getResponse1 = Browser.Get($"/groups/{groupName}_1", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
             }).Result;
 
-            var getResponse2 = _browser.Get($"/groups/{groupName}_2", with =>
+            var getResponse2 = Browser.Get($"/groups/{groupName}_2", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -155,7 +146,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         {
             string groupName = "Group1" + Guid.NewGuid();
             const string groupSource = "Custom";
-            var response = _browser.Post("/groups", with =>
+            var response = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -167,14 +158,14 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
-            response = _browser.Delete($"/groups/{groupName}", with =>
+            response = Browser.Delete($"/groups/{groupName}", with =>
             {
                 with.HttpRequest();
             }).Result;
 
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 
-            response = _browser.Post("/groups", with =>
+            response = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -193,7 +184,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData(null, "Source2")]
         public void AddGroup_NullOrEmptyName_BadRequest(string groupName, string groupSource)
         {
-            var postResponse = _browser.Post("/groups", with =>
+            var postResponse = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -211,7 +202,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("Source1")]
         public void AddGroup_MissingName_BadRequest(string groupSource)
         {
-            var postResponse = _browser.Post("/groups", with =>
+            var postResponse = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -230,7 +221,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         public void AddGroup_NullOrEmptySource_Success(string groupName, string groupSource)
         {
             groupName = groupName + Guid.NewGuid();
-            var postResponse = _browser.Post("/groups", with =>
+            var postResponse = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -242,7 +233,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
 
-            var getResponse = _browser.Get($"/groups/{groupName}", with =>
+            var getResponse = Browser.Get($"/groups/{groupName}", with =>
             {
                 with.HttpRequest();
             }).Result;
@@ -256,7 +247,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("Name1")]
         public void AddGroup_MissingSource_Success(string groupName)
         {
-            var postResponse = _browser.Post("/groups", with =>
+            var postResponse = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -267,7 +258,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
 
-            var getResponse = _browser.Get($"/groups/{groupName}", with =>
+            var getResponse = Browser.Get($"/groups/{groupName}", with =>
             {
                 with.HttpRequest();
             }).Result;
@@ -282,7 +273,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("RepeatedGroup2", "Custom")]
         public void AddGroup_AlreadyExists_Conflict(string groupName, string groupSource)
         {
-            _browser.Post("/groups", with =>
+            Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -293,7 +284,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Wait();
 
             // Repeat
-            var postResponse = _browser.Post("/groups", with =>
+            var postResponse = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -311,7 +302,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         public void UpdateGroup_Batch_Success(string groupName, string groupSource)
         {
             groupName = groupName + Guid.NewGuid();
-            var postResponse = _browser.Post("/groups/UpdateGroups", with =>
+            var postResponse = Browser.Post("/groups/UpdateGroups", with =>
             {
                 with.HttpRequest();
                with.JsonBody(new []
@@ -342,7 +333,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.NoContent, postResponse.StatusCode);
 
             // Replace groups. _0 should be removed and _3 should be added.
-            postResponse = _browser.Post("/groups/UpdateGroups", with =>
+            postResponse = Browser.Post("/groups/UpdateGroups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new[]
@@ -367,25 +358,25 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.NoContent, postResponse.StatusCode);
 
-            var getResponse0 = _browser.Get($"/groups/{groupName}_0", with =>
+            var getResponse0 = Browser.Get($"/groups/{groupName}_0", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
             }).Result;
 
-            var getResponse1 = _browser.Get($"/groups/{groupName}_1", with =>
+            var getResponse1 = Browser.Get($"/groups/{groupName}_1", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
             }).Result;
 
-            var getResponse2 = _browser.Get($"/groups/{groupName}_2", with =>
+            var getResponse2 = Browser.Get($"/groups/{groupName}_2", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
             }).Result;
 
-            var getResponse3 = _browser.Get($"/groups/{groupName}_3", with =>
+            var getResponse3 = Browser.Get($"/groups/{groupName}_3", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -407,7 +398,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("GroupToBeDeleted2", "Source2")]
         public void DeleteGroup_SingleGroup_Success(string groupName, string groupSource)
         {
-            _browser.Post("/groups", with =>
+            Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -417,7 +408,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 });
             }).Wait();
 
-            var delete = _browser.Delete($"/groups/{groupName}", with =>
+            var delete = Browser.Delete($"/groups/{groupName}", with =>
             {
                 with.HttpRequest();
             }).Result;
@@ -431,7 +422,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("NonexistentGroup2")]
         public void DeleteGroup_NonExistentGroup_NotFound(string groupName)
         {
-            var delete = _browser.Delete($"/groups/{groupName}", with =>
+            var delete = Browser.Delete($"/groups/{groupName}", with =>
             {
                 with.HttpRequest();
             }).Result;
@@ -443,7 +434,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         protected void SetupGroup(string groupName, string groupSource)
         {
-            var response = _browser.Post("/groups", with =>
+            var response = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -458,7 +449,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         protected Guid SetupRole(string roleName)
         {
-            var response = _browser.Post("/roles", with =>
+            var response = Browser.Post("/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -481,7 +472,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         protected BrowserResponse SetupGroupRoleMapping(string groupName, string roleId)
         {
-            var response = _browser.Post($"/groups/{groupName}/roles", with =>
+            var response = Browser.Post($"/groups/{groupName}/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -505,7 +496,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
-            response = _browser.Get($"/groups/{group1Name}/roles", with =>
+            response = Browser.Get($"/groups/{group1Name}/roles", with =>
             {
                 with.HttpRequest();
             }).Result;
@@ -526,7 +517,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
-            response = _browser.Get($"/groups/{group2Name}/roles", with =>
+            response = Browser.Get($"/groups/{group2Name}/roles", with =>
             {
                 with.HttpRequest();
             }).Result;
@@ -579,7 +570,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
             // delete the mapping
-            response = _browser.Delete($"/groups/{group1Name}/roles", with =>
+            response = Browser.Delete($"/groups/{group1Name}/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -590,7 +581,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            response = _browser.Get($"/groups/{group1Name}/roles", with =>
+            response = Browser.Get($"/groups/{group1Name}/roles", with =>
             {
                 with.HttpRequest();
             }).Result;
@@ -607,7 +598,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         public void DeleteRoleFromGroup_NonExistentGroup_NotFound()
         {            
             var roleId = SetupRole("RoleName" + Guid.NewGuid());
-            var response = _browser.Delete("/groups/invalidGroup/roles", with =>
+            var response = Browser.Delete("/groups/invalidGroup/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -624,7 +615,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         public void DeleteRoleFromGroup_NonExistentGroupRoleMapping_NotFound()
         {
             SetupGroup("Group1Name", "Custom");
-            var response = _browser.Delete("/groups/Group1Name/roles", with =>
+            var response = Browser.Delete("/groups/Group1Name/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -640,7 +631,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [IntegrationTestsFixture.DisplayTestMethodName]
         public void GetRolesForGroup_NonExistentGroup_NotFound()
         {
-            var response = _browser.Get("/groups/invalidGroup/roles", with =>
+            var response = Browser.Get("/groups/invalidGroup/roles", with =>
             {
                 with.HttpRequest();
             }).Result;
@@ -654,7 +645,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         protected BrowserResponse SetupGroupUserMapping(string groupName, string subjectId, string identityProvider)
         {
-            var response = _browser.Post($"/groups/{groupName}/users", with =>
+            var response = Browser.Post($"/groups/{groupName}/users", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -681,7 +672,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
-            response = _browser.Get($"/groups/{group1Name}/users", with =>
+            response = Browser.Get($"/groups/{group1Name}/users", with =>
             {
                 with.HttpRequest();
             }).Result;
@@ -708,7 +699,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
             // get users for group 1
-            response = _browser.Get($"/groups/{group1Name}/users", with =>
+            response = Browser.Get($"/groups/{group1Name}/users", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -721,7 +712,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(2, userList.Count);
 
             // get users for group 2
-            response = _browser.Get($"/groups/{group2Name}/users", with =>
+            response = Browser.Get($"/groups/{group2Name}/users", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -800,7 +791,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             response = SetupGroupUserMapping(group1Name, subject1Id, identityProvider);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
-            response = _browser.Get($"/groups/{group1Name}/users", with =>
+            response = Browser.Get($"/groups/{group1Name}/users", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -827,7 +818,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
             // delete the mapping
-            response = _browser.Delete($"/groups/{group1Name}/users", with =>
+            response = Browser.Delete($"/groups/{group1Name}/users", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -840,7 +831,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            response = _browser.Get($"/groups/{group1Name}/users", with =>
+            response = Browser.Get($"/groups/{group1Name}/users", with =>
             {
                 with.HttpRequest();
             }).Result;
@@ -852,7 +843,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Empty(userList);
 
             // ensure the deletion is reflected in the user model
-            response = _browser.Get($"/user/{identityProvider}/{subject1Id}/groups", with =>
+            response = Browser.Get($"/user/{identityProvider}/{subject1Id}/groups", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -868,7 +859,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [IntegrationTestsFixture.DisplayTestMethodName]
         public void DeleteUserFromGroup_NonExistentGroup_NotFound()
         {
-            var response = _browser.Delete("/groups/invalidGroup/users", with =>
+            var response = Browser.Delete("/groups/invalidGroup/users", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -888,7 +879,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             string group1Name = "Group1Name" + Guid.NewGuid();
 
             SetupGroup(group1Name, "Custom");
-            var response = _browser.Delete($"/groups/{group1Name}/users", with =>
+            var response = Browser.Delete($"/groups/{group1Name}/users", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -914,7 +905,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
             // attempt to delete the mapping
-            response = _browser.Delete($"/groups/{group1Name}/users", with =>
+            response = Browser.Delete($"/groups/{group1Name}/users", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -939,7 +930,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
             // attempt to delete the mapping
-            response = _browser.Delete($"/groups/{group1Name}/users", with =>
+            response = Browser.Delete($"/groups/{group1Name}/users", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -955,7 +946,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [IntegrationTestsFixture.DisplayTestMethodName]
         public void GetUsersForGroup_NonExistentGroup_NotFound()
         {
-            var response = _browser.Get("/groups/invalidGroup/users", with =>
+            var response = Browser.Get("/groups/invalidGroup/users", with =>
             {
                 with.HttpRequest();
             }).Result;
@@ -973,7 +964,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             SetupGroup(groupName, "Custom");
             SetupGroupUserMapping(groupName, subjectId, identityProvider);
 
-            var response = _browser.Get($"/user/{identityProvider}/{subjectId}/groups", with =>
+            var response = Browser.Get($"/user/{identityProvider}/{subjectId}/groups", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -997,7 +988,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             string permissionName = "app-write" + Guid.NewGuid();
 
             // create group
-            var postResponse = _browser.Post("/groups", with =>
+            var postResponse = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -1010,7 +1001,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
 
             // create role
-            postResponse = _browser.Post("/roles", with =>
+            postResponse = Browser.Post("/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -1027,7 +1018,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var roleId = role.Id.ToString();
 
             // add role to group
-            postResponse = _browser.Post($"/groups/{groupName}/roles", with =>
+            postResponse = Browser.Post($"/groups/{groupName}/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -1039,7 +1030,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
 
             // add permission
-            postResponse = _browser.Post("/permissions", with =>
+            postResponse = Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -1066,7 +1057,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             };
 
             // add permission to role
-            postResponse = _browser.Post($"/roles/{roleId}/permissions", with =>
+            postResponse = Browser.Post($"/roles/{roleId}/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(permissionApiModels);
@@ -1086,7 +1077,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             const string permissionName = "app-write";
 
             // create group
-            var postResponse = _browser.Post("/groups", with =>
+            var postResponse = Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -1099,7 +1090,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
 
             // create role
-            postResponse = _browser.Post("/roles", with =>
+            postResponse = Browser.Post("/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -1116,7 +1107,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var roleId = role.Id.ToString();
 
             // add role to group
-            postResponse = _browser.Post($"/groups/{groupName}/roles", with =>
+            postResponse = Browser.Post($"/groups/{groupName}/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -1128,7 +1119,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
 
             // add permission
-            postResponse = _browser.Post("/permissions", with =>
+            postResponse = Browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -1155,7 +1146,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             };
 
             // add permission to role
-            postResponse = _browser.Post($"/roles/{roleId}/permissions", with =>
+            postResponse = Browser.Post($"/roles/{roleId}/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(permissionApiModels);
@@ -1166,7 +1157,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             VerifyPermission(groupName, roleName, permissionName, true);
 
             // delete permission from role
-            postResponse = _browser.Delete($"/roles/{roleId}/permissions", with =>
+            postResponse = Browser.Delete($"/roles/{roleId}/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(permissionApiModels);
@@ -1180,7 +1171,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         private void VerifyPermission(string groupName, string roleName, string permissionName, bool exists)
         {
             // get the group
-            var getResponse = _browser.Get($"/groups/{groupName}", with =>
+            var getResponse = Browser.Get($"/groups/{groupName}", with =>
             {
                 with.HttpRequest();
             }).Result;
