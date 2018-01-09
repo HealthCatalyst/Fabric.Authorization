@@ -4,14 +4,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Mappers
 {
     public static class UserMapper
     {
-        internal static IMapper Mapper { get; }
-
-        static UserMapper()
-        {
-            Mapper = new MapperConfiguration(cfg => cfg.AddProfile<UserMapperProfile>())
-                .CreateMapper();
-        }
-
         public static Domain.Models.User ToModel(this EntityModels.User entity)
         {
             return entity == null ? null : Mapper.Map<Domain.Models.User>(entity);
