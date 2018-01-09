@@ -141,14 +141,16 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 }
             };
 
-            _browser.Post("/clients", with =>
+            var postResponse = _browser.Post("/clients", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(clientToAdd);
-            }).Wait();
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
 
             // Repeat
-            var postResponse = _browser.Post("/clients", with =>
+            postResponse = _browser.Post("/clients", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(clientToAdd);

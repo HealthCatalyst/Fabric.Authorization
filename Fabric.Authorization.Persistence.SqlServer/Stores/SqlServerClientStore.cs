@@ -81,7 +81,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             topLevelSecurableItem.IsDeleted = true;
             foreach (var securableItem in topLevelSecurableItem.SecurableItems)
             {
-                MarkSecurableItemsDeleted(securableItem);                               
+                MarkSecurableItemsDeleted(securableItem);
             }
         }
 

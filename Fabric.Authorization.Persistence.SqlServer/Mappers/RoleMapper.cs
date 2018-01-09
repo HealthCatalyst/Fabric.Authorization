@@ -4,14 +4,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Mappers
 {
     public static class RoleMapper
     {
-        internal static IMapper Mapper { get; }
-
-        static RoleMapper()
-        {
-            Mapper = new MapperConfiguration(cfg => cfg.AddProfile<RoleMapperProfile>())
-                .CreateMapper();
-        }
-
         public static Domain.Models.Role ToModel(this EntityModels.Role entity)
         {
             return entity == null ? null : Mapper.Map<Domain.Models.Role>(entity);

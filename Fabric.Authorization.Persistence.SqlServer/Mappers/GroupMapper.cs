@@ -4,14 +4,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Mappers
 {
     public static class GroupMapper
     {
-        internal static IMapper Mapper { get; }
-
-        static GroupMapper()
-        {
-            Mapper = new MapperConfiguration(cfg => cfg.AddProfile<GroupMapperProfile>())
-                .CreateMapper();
-        }
-
         public static Domain.Models.Group ToModel(this EntityModels.Group entity)
         {
             return entity == null ? null : Mapper.Map<Domain.Models.Group>(entity);
