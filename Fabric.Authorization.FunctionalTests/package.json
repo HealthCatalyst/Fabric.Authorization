@@ -10,7 +10,7 @@
     "chai": "^4.1.0",
     "chakram": "^1.5.0",
     "mocha": "^3.4.2",
-    "phantomjs": "^1.9.8",
+    "phantomjs-prebuilt": "^2.1.16",
     "selenium-webdriver": "^3.5.0"
   },
   "devDependencies": {},
