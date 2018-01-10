@@ -207,7 +207,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                           && rp.PermissionId == permissionId);
 
                 rolePermissionToRemove.IsDeleted = true;
-                roleEntity.RolePermissions.Remove(rolePermissionToRemove);
             }
 
             await _authorizationDbContext.SaveChangesAsync();
