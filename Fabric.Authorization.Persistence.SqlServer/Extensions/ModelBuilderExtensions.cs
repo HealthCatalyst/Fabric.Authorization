@@ -208,6 +208,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .IsRequired();
 
                 entity.Property(e => e.Id)
+                    .ValueGeneratedOnAdd()
                     .UseSqlServerIdentityColumn();
 
                 entity.Property(e => e.Name)

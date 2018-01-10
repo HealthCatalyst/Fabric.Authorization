@@ -8,7 +8,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
         public int Id { get; set; }
         public string SubjectId { get; set; }
         public string IdentityProvider { get; set; }
-        public string GroupName { get; set; }
+        public Guid GroupId { get; set; }
 
         public DateTime CreatedDateTimeUtc { get; set; }
         public DateTime? ModifiedDateTimeUtc { get; set; }

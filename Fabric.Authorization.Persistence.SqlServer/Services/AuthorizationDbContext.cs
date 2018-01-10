@@ -95,6 +95,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
             modelBuilder.ConfigureGroupUser();
             modelBuilder.ConfigureRolePermission();
             modelBuilder.ConfigureUserPermission();
+
+            base.OnModelCreating(modelBuilder);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

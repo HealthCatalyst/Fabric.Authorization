@@ -72,12 +72,18 @@ namespace Fabric.Authorization.Domain.Services
             var groupNames = groupList.Select(g => g.Name);
             var storedGroupNames = allGroups.Select(g => g.Name);
 
-            var toDelete = allGroups.Where(g => !groupNames.Contains(g.Name, StringComparer.OrdinalIgnoreCase));
-            var toAdd = groupList.Where(g => !storedGroupNames.Contains(g.Name, StringComparer.OrdinalIgnoreCase));
+            var toDelete = allGroups.Where(g => !groupNames.Contains(g.Name, StringComparer.OrdinalIgnoreCase)).ToList();
+            var toAdd = groupList.Where(g => !storedGroupNames.Contains(g.Name, StringComparer.OrdinalIgnoreCase)).ToList();
 
-            // TODO: This must be transactional or fault tolerant.
-            await Task.WhenAll(toDelete.ToList().Select(DeleteGroup));
-            await Task.WhenAll(toAdd.ToList().Select(AddGroup));
+            foreach (var g in toDelete)
+            {
+                await _groupStore.Delete(g);
+            }
+
+            foreach (var g in toAdd)
+            {
+                await _groupStore.Add(g);
+            }
         }
 
         public async Task<bool> Exists(string id)

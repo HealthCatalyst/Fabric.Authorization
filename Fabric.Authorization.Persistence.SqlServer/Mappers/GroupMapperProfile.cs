@@ -8,7 +8,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Mappers
         {
             CreateMap<EntityModels.Group, Domain.Models.Group>()
                 .ForMember(x => x.Id, opt => opt.MapFrom(src => src.GroupId))
-                .ReverseMap();
+                .ReverseMap()
+                .ForMember(x => x.Id, opt => opt.Ignore());
         }
     }
 }
