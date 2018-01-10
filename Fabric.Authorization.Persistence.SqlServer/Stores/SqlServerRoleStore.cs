@@ -24,11 +24,13 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task<Role> Add(Role model)
         {
+            //model.Id = Guid.NewGuid();
             var entity = model.ToEntity();
 
             _authorizationDbContext.Roles.Add(entity);
             await _authorizationDbContext.SaveChangesAsync();
-            return model;
+
+            return entity.ToModel();
         }
 
         public async Task<Role> Get(Guid id)
@@ -44,6 +46,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .ThenInclude(rp => rp.Permission)
                 .Include(r => r.GroupRoles)
                 .ThenInclude(gr => gr.Group)
+                .Include(r => r.SecurableItem)
                 .SingleOrDefaultAsync(r =>
                     r.RoleId == id
                     && !r.IsDeleted);

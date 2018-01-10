@@ -36,6 +36,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         public async Task<Permission> Get(Guid id)
         {
             var permission = await _authorizationDbContext.Permissions
+                .Include(p => p.SecurableItem)
                 .SingleOrDefaultAsync(p =>
                     p.PermissionId == id
                     && !p.IsDeleted);

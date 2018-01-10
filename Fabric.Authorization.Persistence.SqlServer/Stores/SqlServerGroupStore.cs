@@ -40,8 +40,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             var groupEntity = model.ToEntity();
             _authorizationDbContext.Groups.Add(groupEntity);
             await _authorizationDbContext.SaveChangesAsync();
-
-            return model;
+            return groupEntity.ToModel();
         }
 
         public async Task<Group> Get(string name)
