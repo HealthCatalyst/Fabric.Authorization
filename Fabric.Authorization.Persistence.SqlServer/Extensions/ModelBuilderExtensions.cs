@@ -23,12 +23,14 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .IsRequired();
 
                 entity.Property(p => p.CreatedBy)
-                    .IsRequired()
-                    .HasMaxLength(100);
+                    .IsRequired();
 
                 entity.Property(p => p.CreatedDateTimeUtc)
                     .HasColumnType("datetime")
                     .IsRequired();
+
+                entity.Property(e => e.ModifiedDateTimeUtc)
+                    .HasColumnType("datetime");
 
                 entity.Property(e => e.IsDeleted).HasDefaultValueSql("0");
             });
@@ -51,12 +53,14 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .IsRequired();
 
                 entity.Property(p => p.CreatedBy)
-                    .IsRequired()
-                    .HasMaxLength(100);
+                    .IsRequired();
 
                 entity.Property(p => p.CreatedDateTimeUtc)
                     .HasColumnType("datetime")
                     .IsRequired();
+
+                entity.Property(e => e.ModifiedDateTimeUtc)
+                    .HasColumnType("datetime");
 
                 entity.HasMany(e => e.Permissions)
                     .WithOne(e => e.SecurableItem)
@@ -97,15 +101,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                 entity.Property(e => e.IsDeleted).HasDefaultValueSql("0");
 
                 entity.Property(e => e.CreatedBy)
-                    .IsRequired()
-                    .HasMaxLength(100);
+                    .IsRequired();
 
                 entity.Property(e => e.CreatedDateTimeUtc)
                     .HasColumnType("datetime")
                     .IsRequired();
-
-                entity.Property(e => e.ModifiedBy)
-                    .HasMaxLength(100);
 
                 entity.Property(e => e.ModifiedDateTimeUtc)
                     .HasColumnType("datetime");
@@ -159,15 +159,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                 entity.Property(e => e.IsDeleted).HasDefaultValueSql("0");
 
                 entity.Property(e => e.CreatedBy)
-                    .IsRequired()
-                    .HasMaxLength(100);
+                    .IsRequired();
 
                 entity.Property(e => e.CreatedDateTimeUtc)
                     .HasColumnType("datetime")
                     .IsRequired();
-
-                entity.Property(e => e.ModifiedBy)
-                    .HasMaxLength(100);
 
                 entity.Property(e => e.ModifiedDateTimeUtc)
                     .HasColumnType("datetime");
@@ -201,12 +197,15 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             {
                 entity.ToTable("Groups");
 
-                entity.HasKey(g => g.Name)
+                entity.HasKey(g => g.GroupId)
                     .ForSqlServerIsClustered(false);                
 
                 entity.HasIndex(e => e.Id)
                     .IsUnique()
                     .ForSqlServerIsClustered();
+
+                entity.Property(e => e.GroupId)
+                    .IsRequired();
 
                 entity.Property(e => e.Id)
                     .UseSqlServerIdentityColumn();
@@ -222,26 +221,22 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                 entity.Property(e => e.IsDeleted).HasDefaultValueSql("0");
 
                 entity.Property(e => e.CreatedBy)
-                    .IsRequired()
-                    .HasMaxLength(100);
+                    .IsRequired();
 
                 entity.Property(e => e.CreatedDateTimeUtc)
                     .HasColumnType("datetime")
                     .IsRequired();
-
-                entity.Property(e => e.ModifiedBy)
-                    .HasMaxLength(100);
 
                 entity.Property(e => e.ModifiedDateTimeUtc)
                     .HasColumnType("datetime");
 
                 entity.HasMany(e => e.GroupRoles)
                     .WithOne(e => e.Group)
-                    .HasForeignKey(e => e.GroupName);
+                    .HasForeignKey(e => e.GroupId);
 
                 entity.HasMany(e => e.GroupUsers)
                     .WithOne(e => e.Group)
-                    .HasForeignKey(e => e.GroupName);
+                    .HasForeignKey(e => e.GroupId);
             });
         }
 
@@ -275,8 +270,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .HasMaxLength(200);
 
                 entity.Property(e => e.CreatedBy)
-                    .IsRequired()
-                    .HasMaxLength(100);
+                    .IsRequired();
 
                 entity.Property(e => e.CreatedDateTimeUtc)
                     .HasColumnType("datetime")
@@ -287,6 +281,10 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
 
                 entity.Property(e => e.IsDeleted).HasDefaultValueSql("0");
 
+                entity.Property(p => p.ComputedUserId)
+                    .HasComputedColumnSql("SubjectId + ':' + IdentityProvider")
+                    .HasColumnName("ComputedUserId");
+
                 entity.HasMany(e => e.GroupUsers)
                     .WithOne(e => e.User)
                     .HasForeignKey(e => new {e.SubjectId, e.IdentityProvider});
@@ -294,10 +292,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                 entity.HasMany(e => e.UserPermissions)
                     .WithOne(e => e.User)
                     .HasForeignKey(e => new {e.SubjectId, e.IdentityProvider});
-
-                entity.Property(p => p.ComputedUserId)
-                    .HasComputedColumnSql("SubjectId + ':' + IdentityProvider")
-                    .HasColumnName("ComputedUserId");
             });
         }
 
@@ -310,24 +304,20 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                 entity.Property(e => e.IsDeleted).HasDefaultValueSql("0");
 
                 entity.Property(e => e.CreatedBy)
-                    .IsRequired()
-                    .HasMaxLength(100);
+                    .IsRequired();
 
                 entity.Property(e => e.CreatedDateTimeUtc)
                     .HasColumnType("datetime")
                     .IsRequired();
 
-                entity.Property(e => e.ModifiedBy)
-                    .HasMaxLength(100);
-
                 entity.Property(e => e.ModifiedDateTimeUtc)
                     .HasColumnType("datetime");
 
-                entity.HasAlternateKey(e => new { GroupId = e.GroupName, e.RoleId });
+                entity.HasAlternateKey(e => new { e.GroupId, e.RoleId });
 
                 entity.HasOne(e => e.Group)
                     .WithMany(e => e.GroupRoles)
-                    .HasForeignKey(e => e.GroupName);
+                    .HasForeignKey(e => e.GroupId);
 
                 entity.HasOne(e => e.Role)
                     .WithMany(e => e.GroupRoles)
@@ -341,22 +331,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             {
                 entity.ToTable("RolePermissions");
 
-                entity.Property(e => e.IsDeleted).HasDefaultValueSql("0");
-
-                entity.Property(e => e.CreatedBy)
-                    .IsRequired()
-                    .HasMaxLength(100);
-
-                entity.Property(e => e.CreatedDateTimeUtc)
-                    .HasColumnType("datetime")
-                    .IsRequired();
-
-                entity.Property(e => e.ModifiedBy)
-                    .HasMaxLength(100);
-
-                entity.Property(e => e.ModifiedDateTimeUtc)
-                    .HasColumnType("datetime");
-
                 entity.HasAlternateKey(e => new {e.RoleId, e.PermissionId});
 
                 entity.HasOne(e => e.Role)
@@ -368,9 +342,21 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .WithMany(e => e.RolePermissions)
                     .HasForeignKey(e => e.PermissionId);
 
+                entity.Property(e => e.IsDeleted).HasDefaultValueSql("0");
+
                 entity.Property(e => e.PermissionAction)
                     .IsRequired()
                     .HasDefaultValueSql("0");
+
+                entity.Property(e => e.CreatedBy)
+                    .IsRequired();
+
+                entity.Property(e => e.CreatedDateTimeUtc)
+                    .HasColumnType("datetime")
+                    .IsRequired();
+
+                entity.Property(e => e.ModifiedDateTimeUtc)
+                    .HasColumnType("datetime");
             });
         }
 
@@ -380,7 +366,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             {
                 entity.ToTable("GroupUsers");
 
-                entity.HasAlternateKey(e => new { e.SubjectId, e.IdentityProvider, GroupId = e.GroupName });
+                entity.HasAlternateKey(e => new { e.SubjectId, e.IdentityProvider, e.GroupId });
 
                 entity.HasOne(e => e.User)
                     .WithMany(e => e.GroupUsers)
@@ -388,7 +374,17 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
 
                 entity.HasOne(e => e.Group)
                     .WithMany(e => e.GroupUsers)
-                    .HasForeignKey(e => e.GroupName);
+                    .HasForeignKey(e => e.GroupId);
+
+                entity.Property(e => e.CreatedBy)
+                    .IsRequired();
+
+                entity.Property(e => e.CreatedDateTimeUtc)
+                    .HasColumnType("datetime")
+                    .IsRequired();
+
+                entity.Property(e => e.ModifiedDateTimeUtc)
+                    .HasColumnType("datetime");
             });
         }
 
@@ -411,6 +407,16 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                 entity.Property(e => e.PermissionAction)
                     .IsRequired()
                     .HasDefaultValueSql("0");
+
+                entity.Property(e => e.CreatedBy)
+                    .IsRequired();
+
+                entity.Property(e => e.CreatedDateTimeUtc)
+                    .HasColumnType("datetime")
+                    .IsRequired();
+
+                entity.Property(e => e.ModifiedDateTimeUtc)
+                    .HasColumnType("datetime");
             });
         }
     }
