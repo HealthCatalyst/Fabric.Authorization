@@ -80,6 +80,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                 entity.ToTable("Permissions");
 
                 entity.Property(e => e.Id)
+                    .ValueGeneratedOnAdd()
                     .UseSqlServerIdentityColumn();
 
                 entity.Property(e => e.SecurableItemId)
