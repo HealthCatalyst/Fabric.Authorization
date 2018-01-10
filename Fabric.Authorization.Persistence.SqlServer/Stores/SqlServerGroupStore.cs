@@ -48,8 +48,12 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             var group = await _authorizationDbContext.Groups
                 .Include(g => g.GroupRoles)
                 .ThenInclude(gr => gr.Role)
+                .ThenInclude(r => r.RolePermissions)
+                .ThenInclude(rp => rp.Permission)
                 .Include(g => g.GroupUsers)
                 .ThenInclude(gu => gu.User)
+                .ThenInclude(u => u.UserPermissions)
+                .ThenInclude(up => up.Permission)
                 .SingleOrDefaultAsync(g => g.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
                                            && !g.IsDeleted);
 
@@ -59,7 +63,17 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             }
 
             group.GroupRoles = group.GroupRoles.Where(gr => !gr.IsDeleted).ToList();
+            foreach (var groupRole in group.GroupRoles)
+            {
+                groupRole.Role.RolePermissions = groupRole.Role.RolePermissions.Where(rp => !rp.IsDeleted).ToList();
+            }
+
             group.GroupUsers = group.GroupUsers.Where(gu => !gu.IsDeleted).ToList();
+            foreach (var groupUser in group.GroupUsers)
+            {
+                groupUser.User.UserPermissions = groupUser.User.UserPermissions.Where(up => !up.IsDeleted).ToList();
+            }
+
             return group.ToModel();
         }
 
