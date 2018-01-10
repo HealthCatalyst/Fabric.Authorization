@@ -46,13 +46,10 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         public async Task<Group> Get(string name)
         {
             var group = await _authorizationDbContext.Groups
-                .Select(g => new
-                {
-                    GroupItem = g,
-                    GroupRoles = g.GroupRoles.Where(gr => !gr.IsDeleted),
-                    GroupUsers = g.GroupUsers.Where(gu => !gu.IsDeleted)
-                })
-                .Select(g => g.GroupItem)
+                .Include(g => g.GroupRoles)
+                .ThenInclude(gr => gr.Role)
+                .Include(g => g.GroupUsers)
+                .ThenInclude(gu => gu.User)
                 .SingleOrDefaultAsync(g => g.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
                                            && !g.IsDeleted);
 
