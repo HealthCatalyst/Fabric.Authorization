@@ -27,7 +27,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         {
             var entity = model.ToEntity();
             entity.PermissionId = Guid.NewGuid();
-
+            entity.SecurableItem =
+                _authorizationDbContext.SecurableItems.First(s => !s.IsDeleted && s.Name == model.SecurableItem);
             _authorizationDbContext.Permissions.Add(entity);
             await _authorizationDbContext.SaveChangesAsync();
             return entity.ToModel();
