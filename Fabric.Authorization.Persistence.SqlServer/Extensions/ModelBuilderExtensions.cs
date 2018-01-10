@@ -251,6 +251,10 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             {
                 entity.ToTable("Users");
 
+                entity.Property(e => e.Id)
+                    .ValueGeneratedOnAdd()
+                    .UseSqlServerIdentityColumn();
+
                 entity.HasKey(u => new {u.SubjectId, u.IdentityProvider})
                     .ForSqlServerIsClustered(false);
 

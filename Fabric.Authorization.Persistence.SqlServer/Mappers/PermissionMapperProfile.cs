@@ -8,11 +8,10 @@ namespace Fabric.Authorization.Persistence.SqlServer.Mappers
         {
             CreateMap<EntityModels.Permission, Domain.Models.Permission>()
                 .ForMember(x => x.Id, opt => opt.MapFrom(src => src.PermissionId))
+                .ForMember(x => x.SecurableItem, opt => opt.MapFrom(src => src.SecurableItem.Name))
                 .ReverseMap()
-                .ForPath(x => x.SecurableItem.Name, opt => opt.MapFrom(src => src.SecurableItem));
-
-            CreateMap<EntityModels.Permission, Domain.Models.Permission>()
-                .ForMember(x => x.SecurableItem, opt => opt.MapFrom(src => src.SecurableItem.Name));
+                .ForPath(x => x.SecurableItem.Name, opt => opt.MapFrom(src => src.SecurableItem))
+                .ForMember(x => x.Id, opt => opt.Ignore());
         }
     }
 }
