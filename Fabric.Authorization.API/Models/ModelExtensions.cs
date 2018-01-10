@@ -194,7 +194,7 @@ namespace Fabric.Authorization.API.Models
 
         public static Client ToClientDomainModel(this ClientApiModel client)
         {
-            var clientApiModel = new Client
+            var clientModel = new Client
             {
                 Id = client.Id,
                 Name = client.Name,
@@ -205,7 +205,7 @@ namespace Fabric.Authorization.API.Models
                 TopLevelSecurableItem = client.TopLevelSecurableItem?.ToSecurableItemDomainModel()
 
             };
-            return clientApiModel;
+            return clientModel;
         }
 
         public static SecurableItemApiModel ToSecurableItemApiModel(this SecurableItem securableItem)
@@ -225,7 +225,7 @@ namespace Fabric.Authorization.API.Models
 
         public static SecurableItem ToSecurableItemDomainModel(this SecurableItemApiModel securableItem)
         {
-            var securableItemApiModel = new SecurableItem
+            var securableItemModel = new SecurableItem
             {
                 Id = securableItem.Id ?? Guid.Empty,
                 Name = securableItem.Name,
@@ -235,7 +235,7 @@ namespace Fabric.Authorization.API.Models
                 ModifiedDateTimeUtc = securableItem.ModifiedDateTimeUtc,
                 ModifiedBy = securableItem.ModifiedBy
             };
-            return securableItemApiModel;
+            return securableItemModel;
         }
 
         public static Error ToError(this ValidationResult validationResult)
