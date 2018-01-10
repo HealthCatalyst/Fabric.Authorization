@@ -48,6 +48,9 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 throw new NotFoundException<User>($"Could not find {typeof(User).Name} entity with ID {id}");
             }
 
+            user.GroupUsers = user.GroupUsers.Where(gu => !gu.IsDeleted).ToList();
+            user.UserPermissions = user.UserPermissions.Where(up => !up.IsDeleted).ToList();
+
             return user.ToModel();
         }
 
