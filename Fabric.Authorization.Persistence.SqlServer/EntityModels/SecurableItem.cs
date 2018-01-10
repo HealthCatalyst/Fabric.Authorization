@@ -16,7 +16,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
         public string ModifiedBy { get; set; }
         public bool IsDeleted { get; set; }
 
-        public int? ParentId { get; set; }
+        public Guid? ParentId { get; set; }
         public SecurableItem Parent { get; set; }
         public ICollection<SecurableItem> SecurableItems { get; set; } = new List<SecurableItem>();
         public Client Client { get; set; }

@@ -52,8 +52,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         {
             var groupName = "Admin" + Guid.NewGuid();
             var roleName = "Administrator" + Guid.NewGuid();
-            var permissionNames = new[] {"viewpatients" + Guid.NewGuid(), "editpatients" + Guid.NewGuid(), "adminpatients" + Guid.NewGuid(), "deletepatients" + Guid.NewGuid() };
-            
+            var permissionNames = new[] { "viewpatients" + Guid.NewGuid(), "editpatients" + Guid.NewGuid(), "adminpatients" + Guid.NewGuid(), "deletepatients" + Guid.NewGuid() };
+
             const string subjectId = "first.last";
             const string identityProvider = "Windows";
 
@@ -206,8 +206,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.HttpRequest();
 
                 with.Body(JsonConvert.SerializeObject(
-                    new List<PermissionApiModel> {permissionApiModels[0], permissionApiModels[1]}));
-                
+                    new List<PermissionApiModel> { permissionApiModels[0], permissionApiModels[1] }));
+
             }).Result;
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -218,8 +218,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.HttpRequest();
 
                 with.Body(JsonConvert.SerializeObject(
-                    new List<PermissionApiModel> {permissionApiModels[2], permissionApiModels[3]}));
-                
+                    new List<PermissionApiModel> { permissionApiModels[2], permissionApiModels[3] }));
+
             }).Result;
 
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
@@ -321,14 +321,14 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             _browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                var perms = new List<PermissionApiModel> {modifyPatientPermission};
+                var perms = new List<PermissionApiModel> { modifyPatientPermission };
                 with.JsonBody(perms);
             }).Wait();
 
             var postResponse = _browser.Post($"/user/{IdentityProvider}/{subjectId.ToUpper()}/permissions", with =>
             {
                 with.HttpRequest();
-                var perms = new List<PermissionApiModel> {modifyPatientPermission};
+                var perms = new List<PermissionApiModel> { modifyPatientPermission };
                 with.JsonBody(perms);
             }).Result;
 
@@ -468,7 +468,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             _browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                var perms = new List<PermissionApiModel> {modifyPatientPermission};
+                var perms = new List<PermissionApiModel> { modifyPatientPermission };
                 with.JsonBody(perms);
             }).Wait();
 
@@ -477,7 +477,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var postResponse = _browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                var perms = new List<PermissionApiModel> {modifyPatientPermission};
+                var perms = new List<PermissionApiModel> { modifyPatientPermission };
                 with.JsonBody(perms);
             }).Result;
 
@@ -512,7 +512,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             _browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                var perms = new List<PermissionApiModel> {modifyPatientPermission};
+                var perms = new List<PermissionApiModel> { modifyPatientPermission };
                 with.JsonBody(perms);
             }).Wait();
 
@@ -530,7 +530,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             _browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                var perms = new List<PermissionApiModel> {modifyPatientPermission};
+                var perms = new List<PermissionApiModel> { modifyPatientPermission };
                 with.JsonBody(perms);
             }).Wait();
 
@@ -573,7 +573,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var deleteRequest = _browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                var perms = new List<PermissionApiModel> {modifyPatientPermission};
+                var perms = new List<PermissionApiModel> { modifyPatientPermission };
                 with.JsonBody(perms);
             }).Result;
 
@@ -610,7 +610,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             _browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                var perms = new List<PermissionApiModel> {modifyPatientPermission};
+                var perms = new List<PermissionApiModel> { modifyPatientPermission };
                 with.JsonBody(perms);
             }).Wait();
 
@@ -630,7 +630,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var deleteRequest = _browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                var perms = new List<PermissionApiModel> {modifyPatientPermission};
+                var perms = new List<PermissionApiModel> { modifyPatientPermission };
                 with.JsonBody(perms);
             }).Result;
 
@@ -666,7 +666,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             _browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                var perms = new List<PermissionApiModel> {modifyPatientPermission};
+                var perms = new List<PermissionApiModel> { modifyPatientPermission };
                 with.JsonBody(perms);
             }).Wait();
 
@@ -694,7 +694,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var deleteRequest = _browser.Delete($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                var perms = new List<PermissionApiModel> {modifyPatientPermission, deletePatientPermission};
+                var perms = new List<PermissionApiModel> { modifyPatientPermission, deletePatientPermission };
                 with.JsonBody(perms);
             }).Result;
 
@@ -762,7 +762,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 Grain = "app",
                 SecurableItem = _securableItem,
                 Name = "viewer" + Guid.NewGuid(),
-                Permissions = new List<PermissionApiModel> {viewPatientPermission}
+                Permissions = new List<PermissionApiModel> { viewPatientPermission }
             };
 
             post = _browser.Post("/roles", with => // -3
@@ -777,12 +777,32 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             {
                 with.HttpRequest();
                 role.Name = "editor" + Guid.NewGuid();
-                role.Permissions = new List<PermissionApiModel> {editPatientPermission};
+                role.Permissions = new List<PermissionApiModel> { editPatientPermission };
                 with.JsonBody(role);
             }).Result;
 
             var editorRole = post.Body.DeserializeJson<RoleApiModel>();
-            
+
+            _browser.Post($"/roles/{viewerRole.Id}/permissions", with =>
+                {
+                    with.HttpRequest();
+                    with.JsonBody(new[]
+                    {
+                        viewPatientPermission
+                    });
+                })
+                .Wait();
+
+            _browser.Post($"/roles/{editorRole.Id}/permissions", with =>
+                {
+                    with.HttpRequest();
+                    with.JsonBody(new[]
+                    {
+                        editPatientPermission
+                    });
+                })
+                .Wait();
+
             _browser.Post("/groups", with =>
             {
                 with.HttpRequest();
@@ -915,7 +935,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 Grain = "app",
                 SecurableItem = _securableItem,
                 Name = "greatgrandfather" + Guid.NewGuid(),
-                Permissions = new List<PermissionApiModel> {ggfperm}
+                Permissions = new List<PermissionApiModel> { ggfperm }
             };
 
             post = _browser.Post("/roles", with => // -3
@@ -931,7 +951,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.HttpRequest();
                 role.Name = "grandfather" + Guid.NewGuid();
                 role.ParentRole = ggf.Id;
-                role.Permissions = new List<PermissionApiModel> {gfperm};
+                role.Permissions = new List<PermissionApiModel> { gfperm };
                 with.JsonBody(role);
             }).Result;
 
@@ -942,7 +962,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.HttpRequest();
                 role.Name = "father" + Guid.NewGuid();
                 role.ParentRole = gf.Id;
-                role.Permissions = new List<PermissionApiModel> {fperm};
+                role.Permissions = new List<PermissionApiModel> { fperm };
                 with.JsonBody(role);
             }).Result;
 
@@ -953,7 +973,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.HttpRequest();
                 role.Name = "himself" + Guid.NewGuid();
                 role.ParentRole = f.Id;
-                role.Permissions = new List<PermissionApiModel> {hsperm};
+                role.Permissions = new List<PermissionApiModel> { hsperm };
                 with.JsonBody(role);
             }).Result;
 
@@ -964,7 +984,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.HttpRequest();
                 role.Name = "son" + Guid.NewGuid();
                 role.ParentRole = hs.Id;
-                role.Permissions = new List<PermissionApiModel> {sonperm};
+                role.Permissions = new List<PermissionApiModel> { sonperm };
                 with.JsonBody(role);
             }).Result;
 
@@ -974,7 +994,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             _browser.Post("/groups", with =>
             {
                 with.HttpRequest();
-                with.JsonBody(new 
+                with.JsonBody(new
                 {
                     Id = group,
                     GroupName = group,
@@ -1042,7 +1062,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 Grain = "app",
                 SecurableItem = _securableItem,
                 Name = "viewer" + Guid.NewGuid(),
-                Permissions = new List<PermissionApiModel> {viewPatientPermission}
+                Permissions = new List<PermissionApiModel> { viewPatientPermission }
             };
 
             post = _browser.Post("/roles", with => // -3
@@ -1057,10 +1077,10 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             {
                 with.HttpRequest();
                 role.Name = "editor" + Guid.NewGuid();
-                role.Permissions = new List<PermissionApiModel> {editPatientPermission};
+                role.Permissions = new List<PermissionApiModel> { editPatientPermission };
 
                 // Role denies viewPatient permission
-                role.DeniedPermissions = new List<PermissionApiModel> {viewPatientPermission};
+                role.DeniedPermissions = new List<PermissionApiModel> { viewPatientPermission };
                 with.JsonBody(role);
             }).Result;
 
@@ -1159,7 +1179,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 Grain = "app",
                 SecurableItem = _securableItem,
                 Name = "viewer" + Guid.NewGuid(),
-                Permissions = new List<PermissionApiModel> {viewPatientPermission}
+                Permissions = new List<PermissionApiModel> { viewPatientPermission }
             };
 
             post = _browser.Post("/roles", with => // -3
@@ -1174,7 +1194,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             {
                 with.HttpRequest();
                 role.Name = "editor" + Guid.NewGuid();
-                role.Permissions = new List<PermissionApiModel> {editPatientPermission};
+                role.Permissions = new List<PermissionApiModel> { editPatientPermission };
                 with.JsonBody(role);
             }).Result;
 
@@ -1229,7 +1249,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             _browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                var perms = new List<PermissionApiModel> {editPatientPermission};
+                var perms = new List<PermissionApiModel> { editPatientPermission };
                 with.JsonBody(perms);
             }).Wait();
 
@@ -1283,7 +1303,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 Grain = "app",
                 SecurableItem = _securableItem,
                 Name = "viewer" + Guid.NewGuid(),
-                Permissions = new List<PermissionApiModel> {viewPatientPermission}
+                Permissions = new List<PermissionApiModel> { viewPatientPermission }
             };
 
             post = _browser.Post("/roles", with => // -3
@@ -1298,7 +1318,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             {
                 with.HttpRequest();
                 role.Name = "editor" + Guid.NewGuid();
-                role.Permissions = new List<PermissionApiModel> {editPatientPermission};
+                role.Permissions = new List<PermissionApiModel> { editPatientPermission };
                 with.JsonBody(role);
             }).Result;
 
@@ -1367,7 +1387,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             _browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
-                var perms = new List<PermissionApiModel> {modifyPatientPermission};
+                var perms = new List<PermissionApiModel> { modifyPatientPermission };
                 with.JsonBody(perms);
             }).Wait();
 
@@ -1388,7 +1408,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [Fact]
         [IntegrationTestsFixture.DisplayTestMethodNameAttribute]
         public void Test_GetGroups_UserNotFound()
-        {            
+        {
             var get = _browser.Get("/user/foo/bar/groups", with =>
                 {
                     with.HttpRequest();
