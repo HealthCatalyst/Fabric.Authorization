@@ -12,9 +12,9 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             {
                 entity.ToTable("Clients");
 
-                entity.HasIndex(i => i.SecurableItemId)
-                    .HasName("IX_Clients_SecurableItemId");
-
+                entity.Property(p => p.ClientId)
+                    .IsRequired();
+                
                 entity.Property(p => p.Name)
                     .IsRequired()
                     .HasMaxLength(200);
@@ -33,6 +33,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .HasColumnType("datetime");
 
                 entity.Property(e => e.IsDeleted).HasDefaultValueSql("0");
+
             });
         }
 
@@ -42,8 +43,15 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             {
                 entity.ToTable("SecurableItems");
 
-                entity.HasIndex(i => i.SecurableItemId)
-                    .HasName("IX_SecurableItems_SecurableItemId");
+                entity.Property(e => e.Id)
+                    .ValueGeneratedOnAdd()
+                    .UseSqlServerIdentityColumn();
+
+                entity.HasKey(e => e.SecurableItemId)
+                    .ForSqlServerIsClustered(false);
+                entity.HasIndex(e => e.Id)
+                    .IsUnique()
+                    .ForSqlServerIsClustered();
 
                 entity.Property(p => p.Name)
                     .IsRequired()
@@ -74,6 +82,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
 
                 entity.HasOne(p => p.Parent)
                     .WithMany(p => p.SecurableItems);
+
+
+                entity.HasOne(s => s.Client)
+                    .WithOne(c => c.TopLevelSecurableItem)
+                    .HasForeignKey<Client>(c => c.SecurableItemId);
             });
         }
 
