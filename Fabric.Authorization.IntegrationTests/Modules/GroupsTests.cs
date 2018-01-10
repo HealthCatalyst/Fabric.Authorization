@@ -341,17 +341,20 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     new
                     {
                         Id = groupName + "_1",
-                        GroupName = groupName + "_1"
+                        GroupName = groupName + "_1",
+                        GroupSource = groupSource + "_1"
                     },
                     new
                     {
                         Id = groupName + "_2",
-                        GroupName = groupName + "_2"
+                        GroupName = groupName + "_2",
+                        GroupSource = groupSource + "_2"
                     },
                     new
                     {
                         Id = groupName + "_3",
-                        GroupName = groupName + "_3"
+                        GroupName = groupName + "_3",
+                        GroupSource = groupSource + "_3"
                     }
                 });
             }).Result;

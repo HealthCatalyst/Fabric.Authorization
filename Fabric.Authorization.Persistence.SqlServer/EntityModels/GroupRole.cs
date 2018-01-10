@@ -6,7 +6,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
     public class GroupRole : ITrackable, ISoftDelete
     {
         public int Id { get; set; }
-        public string GroupName { get; set; }
+        public Guid GroupId { get; set; }
         public Guid RoleId { get; set; }
 
         public bool IsDeleted { get; set; }
