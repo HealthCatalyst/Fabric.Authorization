@@ -58,6 +58,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 throw new NotFoundException<Group>($"Could not find {typeof(Group).Name} entity with ID {name}");
             }
 
+            group.GroupRoles = group.GroupRoles.Where(gr => !gr.IsDeleted).ToList();
+            group.GroupUsers = group.GroupUsers.Where(gu => !gu.IsDeleted).ToList();
             return group.ToModel();
         }
 
