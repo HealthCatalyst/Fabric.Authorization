@@ -4,7 +4,7 @@ using Fabric.Authorization.Domain.Models.Formatters;
 
 namespace Fabric.Authorization.Domain.Models
 {
-    public class User : ITrackable, IIdentifiable, ISoftDelete
+    public class User : IUser, ITrackable, IIdentifiable, ISoftDelete
     {
         public User(string subjectId, string identityProvider)
         {

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Fabric.Authorization.Domain.Models.Formatters;
 
 namespace Fabric.Authorization.Persistence.SqlServer.Mappers
 {
@@ -7,7 +8,9 @@ namespace Fabric.Authorization.Persistence.SqlServer.Mappers
         public UserMapperProfile()
         {
             CreateMap<EntityModels.User, Domain.Models.User>()
-                .ReverseMap();
+                .ForMember(x => x.Id, opt => opt.MapFrom(src => new UserIdentifierFormatter().Format(src)))
+                .ReverseMap()
+                .ForMember(x => x.Id, opt => opt.Ignore());
         }
     }
 }

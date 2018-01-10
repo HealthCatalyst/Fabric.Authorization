@@ -2,9 +2,9 @@
 
 namespace Fabric.Authorization.Domain.Models.Formatters
 {
-    public class UserIdentifierFormatter : IIdentifierFormatter<User>
+    public class UserIdentifierFormatter : IIdentifierFormatter<IUser>
     {
-        public string Format(User user)
+        public string Format(IUser user)
         {
             if (user == null)
             {
