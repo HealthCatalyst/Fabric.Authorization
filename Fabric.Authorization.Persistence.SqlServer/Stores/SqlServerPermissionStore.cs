@@ -218,7 +218,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             var idParts = id.Split(delimiter, StringSplitOptions.RemoveEmptyEntries);
             if (idParts.Length != 2)
             {
-                throw new ArgumentException("The granular permission id was not in the format {userId}:{subjectId}");
+                throw new ArgumentException("The granular permission id was not in the format {subjectId}:{identityProvider}");
             }
             return idParts;
         }
