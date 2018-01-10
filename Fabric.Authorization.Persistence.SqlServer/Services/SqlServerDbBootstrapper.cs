@@ -9,7 +9,9 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
         static SqlServerDbBootstrapper()
         {
             //register all the automapper profiles - only ever want to call this once
-            Mapper.Initialize(cfg => cfg.AddProfiles(typeof(ClientMapperProfile)));
+            //http://automapper.readthedocs.io/en/latest/Configuration.html#assembly-scanning-for-auto-configuration
+            Mapper.Initialize(cfg => cfg.AddProfiles(typeof(SqlServerDbBootstrapper)));
+           // Mapper.AssertConfigurationIsValid();            
         }
 
         public void Setup()

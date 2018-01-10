@@ -138,7 +138,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             {
                 entity.ToTable("Roles");
 
-                entity.Property(e => e.Id)
+                entity.HasKey(e => e.RoleId)
+                    .ForSqlServerIsClustered(false);
+
+                entity.Property(e => e.Id)  
+                    .ValueGeneratedOnAdd()
                     .UseSqlServerIdentityColumn();
 
                 entity.Property(e => e.SecurableItemId)
@@ -168,11 +172,10 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                 entity.Property(e => e.ModifiedDateTimeUtc)
                     .HasColumnType("datetime");
 
-                entity.HasKey(e => e.RoleId)
-                    .ForSqlServerIsClustered(false);
                 entity.HasIndex(e => e.Id)
                     .IsUnique()
                     .ForSqlServerIsClustered();
+
                 entity.HasIndex(e => e.SecurableItemId)
                     .HasName("IX_Roles_SecurableItemId");
 
