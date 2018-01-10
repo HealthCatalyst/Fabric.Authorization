@@ -114,8 +114,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             var user = await _authorizationDbContext.Users
                 .SingleOrDefaultAsync(u =>
-                    u.IdentityProvider.Equals(idParts[0], StringComparison.OrdinalIgnoreCase)
-                    && u.SubjectId.Equals(idParts.Length > 1 ? idParts[1] : idParts[0], StringComparison.OrdinalIgnoreCase)
+                    u.IdentityProvider.Equals(idParts[1], StringComparison.OrdinalIgnoreCase)
+                    && u.SubjectId.Equals(idParts[0], StringComparison.OrdinalIgnoreCase)
                     && !u.IsDeleted);
 
             return user != null;
