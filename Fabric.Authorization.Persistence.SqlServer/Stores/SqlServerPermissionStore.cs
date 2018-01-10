@@ -26,10 +26,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         public async Task<Permission> Add(Permission model)
         {
             var entity = model.ToEntity();
+            entity.PermissionId = Guid.NewGuid();
 
             _authorizationDbContext.Permissions.Add(entity);
             await _authorizationDbContext.SaveChangesAsync();
-            return model;
+            return entity.ToModel();
         }
 
         public async Task<Permission> Get(Guid id)
@@ -135,18 +136,24 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task AddOrUpdateGranularPermission(GranularPermission granularPermission)
         {
-            var idParts = SplitUserId(granularPermission.Id);
+            var idParts = SplitGranularPermissionId(granularPermission.Id);
 
             var user = await _authorizationDbContext.Users
                 .Include(u => u.UserPermissions)
                 .ThenInclude(up => up.Permission)
-                .SingleOrDefaultAsync(u => u.IdentityProvider.Equals(idParts[0], StringComparison.OrdinalIgnoreCase)
-                                           && u.SubjectId.Equals(idParts.Length > 1 ? idParts[1] : idParts[0], StringComparison.OrdinalIgnoreCase)
+                .SingleOrDefaultAsync(u => u.IdentityProvider.Equals(idParts[1], StringComparison.OrdinalIgnoreCase)
+                                           && u.SubjectId.Equals(idParts[0], StringComparison.OrdinalIgnoreCase)
                                            && !u.IsDeleted);
 
             if (user == null)
             {
-                throw new NotFoundException<User>($"Could not find {typeof(User).Name} User ID {granularPermission.Id}");
+                user = new EntityModels.User
+                {
+                    IdentityProvider = idParts[1],
+                    SubjectId = idParts[0],
+                    Name = $"{idParts[1]}\\{idParts[0]}"
+                };
+                _authorizationDbContext.Users.Add(user);
             }
 
             // remove all current permissions first and then replace them with the new set of permissions
@@ -179,18 +186,19 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task<GranularPermission> GetGranularPermission(string userId)
         {
-            var idParts = SplitUserId(userId);
+            var idParts = SplitGranularPermissionId(userId);
 
             var user = await _authorizationDbContext.Users
                 .Include(u => u.UserPermissions)
                 .ThenInclude(up => up.Permission)
-                .SingleOrDefaultAsync(u => u.IdentityProvider.Equals(idParts[0], StringComparison.OrdinalIgnoreCase)
-                            && u.SubjectId.Equals(idParts.Length > 1 ? idParts[1] : idParts[0], StringComparison.OrdinalIgnoreCase)
+                .ThenInclude(p => p.SecurableItem)
+                .SingleOrDefaultAsync(u => u.IdentityProvider.Equals(idParts[1], StringComparison.OrdinalIgnoreCase)
+                            && u.SubjectId.Equals(idParts[0], StringComparison.OrdinalIgnoreCase)
                             && !u.IsDeleted);
 
             if (user == null)
             {
-                throw new NotFoundException<User>($"Could not find {typeof(User).Name} entity with ID {userId}");
+                throw new NotFoundException<GranularPermission>($"Could not find {typeof(User).Name} entity with ID {userId}");
             }
 
             var userPermissions = user.UserPermissions.Where(up => !up.IsDeleted).ToList();
@@ -204,15 +212,15 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             };
         }
 
-        /// <summary>
-        /// TODO: consolidate this method and same method in SqlServerUser store
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        private static string[] SplitUserId(string id)
+        private static string[] SplitGranularPermissionId(string id)
         {
-            var delimiter = new[] { @"\" };
-            return id.Split(delimiter, StringSplitOptions.RemoveEmptyEntries);
+            var delimiter = new[] { @":" };
+            var idParts = id.Split(delimiter, StringSplitOptions.RemoveEmptyEntries);
+            if (idParts.Length != 2)
+            {
+                throw new ArgumentException("The granular permission id was not in the format {userId}:{subjectId}");
+            }
+            return idParts;
         }
     }
 }
