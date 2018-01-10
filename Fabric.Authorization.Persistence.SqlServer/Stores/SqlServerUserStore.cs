@@ -26,7 +26,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             _authorizationDbContext.Users.Add(entity);
             await _authorizationDbContext.SaveChangesAsync();
-            return model;
+            return entity.ToModel();
         }
 
         public async Task<User> Get(string id)
@@ -39,8 +39,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .Include(u => u.UserPermissions)
                 .ThenInclude(up => up.Permission)
                 .SingleOrDefaultAsync(u =>
-                    u.IdentityProvider.Equals(idParts[0], StringComparison.OrdinalIgnoreCase)
-                    && u.SubjectId.Equals(idParts.Length > 1 ? idParts[1] : idParts[0], StringComparison.OrdinalIgnoreCase)
+                    u.IdentityProvider.Equals(idParts[1], StringComparison.OrdinalIgnoreCase)
+                    && u.SubjectId.Equals(idParts[0], StringComparison.OrdinalIgnoreCase)
                     && !u.IsDeleted);
 
             if (user == null)
@@ -113,7 +113,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         private static string[] SplitId(string id)
         {
-            var delimiter = new [] {@"\"};
+            var delimiter = new [] {@":"};
             return id.Split(delimiter, StringSplitOptions.RemoveEmptyEntries);
         }
     }
