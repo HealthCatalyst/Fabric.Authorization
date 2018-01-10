@@ -10,7 +10,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Mappers
                 .ForMember(x => x.Id, opt => opt.MapFrom(src => src.PermissionId))
                 .ForMember(x => x.SecurableItem, opt => opt.MapFrom(src => src.SecurableItem.Name))
                 .ReverseMap()
-                .ForPath(x => x.SecurableItem.Name, opt => opt.MapFrom(src => src.SecurableItem))
+                .ForPath(x => x.SecurableItem.Name, opt => opt.Ignore())
                 .ForMember(x => x.Id, opt => opt.Ignore());
         }
     }
