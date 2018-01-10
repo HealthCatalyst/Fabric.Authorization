@@ -4,7 +4,7 @@ using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
 {
-    public class User : ITrackable, ISoftDelete
+    public class User : IUser, ITrackable, ISoftDelete
     {
         public User()
         {

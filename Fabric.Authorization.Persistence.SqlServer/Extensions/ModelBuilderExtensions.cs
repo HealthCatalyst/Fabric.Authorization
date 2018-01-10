@@ -266,8 +266,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .IsRequired()
                     .HasMaxLength(200);
 
-                entity.Property(e => e.Name)
-                    .IsRequired()
+                entity.Property(e => e.Name)                   
                     .HasMaxLength(200);
 
                 entity.Property(e => e.CreatedBy)
