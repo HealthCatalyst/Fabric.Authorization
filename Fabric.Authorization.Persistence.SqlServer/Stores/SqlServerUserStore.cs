@@ -33,6 +33,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         {
             var idParts = SplitId(id);
 
+            if (idParts.Length != 2)
+            {
+                throw new ArgumentException("id must be in the format {subjectId}:{identityProvider}");
+            }
+
             var user = await _authorizationDbContext.Users
                 .Include(u => u.GroupUsers)
                 .ThenInclude(ug => ug.Group)
@@ -101,6 +106,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         public async Task<bool> Exists(string id)
         {
             var idParts = SplitId(id);
+
+            if (idParts.Length != 2)
+            {
+                throw new ArgumentException("id must be in the format {subjectId}:{identityProvider}");
+            }
 
             var user = await _authorizationDbContext.Users
                 .SingleOrDefaultAsync(u =>
