@@ -199,8 +199,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                             && !u.IsDeleted);
 
             if (user == null)
-            {                  
-                throw new NotFoundException<GranularPermission>($"Could not find {typeof(User).Name} entity with ID {userId}");
+            {
+                return new GranularPermission();           
             }
 
             var userPermissions = user.UserPermissions.Where(up => !up.IsDeleted).ToList();
