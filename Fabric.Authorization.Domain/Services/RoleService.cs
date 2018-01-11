@@ -96,17 +96,31 @@ namespace Fabric.Authorization.Domain.Services
         {
             //validate permissions and remove them from the domain model and add them explicitly
             
-            var allowPermissionsToAdd = role.Permissions.Distinct();
-            var denyPermissionsToAdd = role.DeniedPermissions.Distinct();
+            var allowPermissionsToAdd = role.Permissions.Distinct().ToList();
+            var denyPermissionsToAdd = role.DeniedPermissions.Distinct().ToList();
 
             bool isPermissionListValid;
 
             isPermissionListValid = allowPermissionsToAdd.Intersect(denyPermissionsToAdd).Any();
-             
+
+            var allPerms = new List<Permission>();
+            allPerms.AddRange(allowPermissionsToAdd);
+            allPerms.AddRange(denyPermissionsToAdd);
             //ensure permission already exists and the grain and securable item are correct
+            foreach (var permissionId in allPerms.Select(p => p.Id))
+            {
+                var permission = await _permissionStore.Get(permissionId);
+                if (!(permission.Grain == role.Grain && permission.SecurableItem == role.SecurableItem))
+                {                   
+                    throw new IncompatiblePermissionException($"Permission with id {permission.Id} has the wrong grain and/or securableItem.");
+                }
+            }
+
+            var newRole = await _roleStore.Add(role);
 
 
-            return await _roleStore.Add(role);
+
+            return newRole;
         }
 
         /// <summary>
@@ -114,10 +128,11 @@ namespace Fabric.Authorization.Domain.Services
         /// </summary>
         public async Task DeleteRole(Role role) => await _roleStore.Delete(role);
 
-        public async Task<Role> AddPermissionsToRole(Role role, Guid[] permissionIds)
+        public async Task<Role> AddPermissionsToRole(Role role, Guid[] allowPermissionIds, Guid[] denyPermissionIds)
         {
             var permissionsToAdd = new List<Permission>();
-            foreach (var permissionId in permissionIds)
+            var denyPermissionsToAdd = new List<Permission>();
+            foreach (var permissionId in allowPermissionIds)
             {
                 if (role.Permissions.Any(p => p.Id == permissionId))
                 {
@@ -135,7 +150,27 @@ namespace Fabric.Authorization.Domain.Services
                     throw new IncompatiblePermissionException($"Permission with id {permission.Id} has the wrong grain and/or securableItem.");
                 }
             }
-            var updatedRole = await _roleStore.AddPermissionsToRole(role, permissionsToAdd);
+
+            foreach (var permissionId in denyPermissionIds)
+            {
+                if (role.Permissions.Any(p => p.Id == permissionId))
+                {
+                    throw new AlreadyExistsException<Permission>(
+                        $"Permission {permissionId} already exists for role {role.Name}. Please provide a new permission id.");
+                }
+
+                var permission = await _permissionStore.Get(permissionId);
+                if (permission.Grain == role.Grain && permission.SecurableItem == role.SecurableItem)
+                {
+                    denyPermissionsToAdd.Add(permission);
+                }
+                else
+                {
+                    throw new IncompatiblePermissionException($"Permission with id {permission.Id} has the wrong grain and/or securableItem.");
+                }
+            }
+
+            var updatedRole = await _roleStore.AddPermissionsToRole(role, permissionsToAdd, denyPermissionsToAdd);
             return updatedRole;
         }
         

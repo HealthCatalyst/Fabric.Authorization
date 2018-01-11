@@ -34,7 +34,7 @@ namespace Fabric.Authorization.UnitTests.Roles
 
             var roleService = new RoleService(mockRoleStore, mockPermissionStore);
             Assert.Throws<AggregateException>(() => roleService
-                .AddPermissionsToRole(existingRole, new[] {permissionToAdd.Id}).Result);
+                .AddPermissionsToRole(existingRole, new[] {permissionToAdd.Id}, new Guid[]{}).Result);
         }
 
         public static IEnumerable<object[]> IncompatiblePermissionData()
