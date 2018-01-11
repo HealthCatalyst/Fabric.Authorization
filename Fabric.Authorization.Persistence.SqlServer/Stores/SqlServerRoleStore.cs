@@ -40,7 +40,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return role.ToModel();
         }
 
-        public async Task<EntityModels.Role> GetEntityModel(Guid id)
+        private async Task<EntityModels.Role> GetEntityModel(Guid id)
         {
             var role = await _authorizationDbContext.Roles
                 .Include(r => r.RolePermissions)
@@ -56,6 +56,9 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             {
                 throw new NotFoundException<Role>($"Could not find {typeof(Role).Name} entity with ID {id}");
             }
+
+            role.GroupRoles = role.GroupRoles.Where(gr => !gr.IsDeleted).ToList();
+            role.RolePermissions = role.RolePermissions.Where(rp => !rp.IsDeleted).ToList();
 
             return role;
         }
@@ -223,6 +226,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             }
 
             await _authorizationDbContext.SaveChangesAsync();
+
+            roleEntity.RolePermissions = roleEntity.RolePermissions.Where(rp => !rp.IsDeleted).ToList();
             return roleEntity.ToModel();
         }
 
@@ -240,6 +245,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 {
                     rolePermissionToRemove.IsDeleted = true;
                 }
+
+                role.RolePermissions = role.RolePermissions.Where(rp => !rp.IsDeleted).ToList();
             }
 
             await _authorizationDbContext.SaveChangesAsync();
