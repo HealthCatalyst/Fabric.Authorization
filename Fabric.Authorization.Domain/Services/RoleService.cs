@@ -95,32 +95,30 @@ namespace Fabric.Authorization.Domain.Services
         public async Task<Role> AddRole(Role role)
         {
             //validate permissions and remove them from the domain model and add them explicitly
-            
+
             var allowPermissionsToAdd = role.Permissions.Distinct().ToList();
             var denyPermissionsToAdd = role.DeniedPermissions.Distinct().ToList();
-
-            bool isPermissionListValid;
-
-            isPermissionListValid = allowPermissionsToAdd.Intersect(denyPermissionsToAdd).Any();
-
-            var allPerms = new List<Permission>();
-            allPerms.AddRange(allowPermissionsToAdd);
-            allPerms.AddRange(denyPermissionsToAdd);
-            //ensure permission already exists and the grain and securable item are correct
-            foreach (var permissionId in allPerms.Select(p => p.Id))
+            role.Permissions = new List<Permission>();
+            role.DeniedPermissions = new List<Permission>();
+            try
             {
-                var permission = await _permissionStore.Get(permissionId);
-                if (!(permission.Grain == role.Grain && permission.SecurableItem == role.SecurableItem))
-                {                   
-                    throw new IncompatiblePermissionException($"Permission with id {permission.Id} has the wrong grain and/or securableItem.");
-                }
+                var allowPermissions = await ValidatePermissionList(allowPermissionsToAdd.Select(p => p.Id), role.Name,
+                    role.Grain, role.SecurableItem, Enumerable.Empty<Permission>());
+                var denyPermissions = await ValidatePermissionList(denyPermissionsToAdd.Select(p => p.Id), role.Name,
+                    role.Grain, role.SecurableItem, Enumerable.Empty<Permission>());
+
+                var newRole = await _roleStore.Add(role);
+                await _roleStore.AddPermissionsToRole(newRole, allowPermissions, denyPermissions);
+                return newRole;
             }
-
-            var newRole = await _roleStore.Add(role);
-
-
-
-            return newRole;
+            catch (AlreadyExistsException<Permission> e)
+            {
+                throw new BadRequestException<Permission>(e.Message);
+            }
+            catch (IncompatiblePermissionException e)
+            {
+                throw new BadRequestException<Permission>(e.Message);
+            }
         }
 
         /// <summary>
@@ -130,50 +128,37 @@ namespace Fabric.Authorization.Domain.Services
 
         public async Task<Role> AddPermissionsToRole(Role role, Guid[] allowPermissionIds, Guid[] denyPermissionIds)
         {
-            var permissionsToAdd = new List<Permission>();
-            var denyPermissionsToAdd = new List<Permission>();
-            foreach (var permissionId in allowPermissionIds)
-            {
-                if (role.Permissions.Any(p => p.Id == permissionId))
-                {
-                    throw new AlreadyExistsException<Permission>(
-                        $"Permission {permissionId} already exists for role {role.Name}. Please provide a new permission id.");
-                }
-
-                var permission = await _permissionStore.Get(permissionId);
-                if (permission.Grain == role.Grain && permission.SecurableItem == role.SecurableItem)
-                {
-                    permissionsToAdd.Add(permission);
-                }
-                else
-                {
-                    throw new IncompatiblePermissionException($"Permission with id {permission.Id} has the wrong grain and/or securableItem.");
-                }
-            }
-
-            foreach (var permissionId in denyPermissionIds)
-            {
-                if (role.Permissions.Any(p => p.Id == permissionId))
-                {
-                    throw new AlreadyExistsException<Permission>(
-                        $"Permission {permissionId} already exists for role {role.Name}. Please provide a new permission id.");
-                }
-
-                var permission = await _permissionStore.Get(permissionId);
-                if (permission.Grain == role.Grain && permission.SecurableItem == role.SecurableItem)
-                {
-                    denyPermissionsToAdd.Add(permission);
-                }
-                else
-                {
-                    throw new IncompatiblePermissionException($"Permission with id {permission.Id} has the wrong grain and/or securableItem.");
-                }
-            }
+            var permissionsToAdd = await ValidatePermissionList(allowPermissionIds, role.Name, role.Grain, role.SecurableItem, role.Permissions);
+            var denyPermissionsToAdd = await ValidatePermissionList(denyPermissionIds, role.Name, role.Grain, role.SecurableItem, role.DeniedPermissions);
 
             var updatedRole = await _roleStore.AddPermissionsToRole(role, permissionsToAdd, denyPermissionsToAdd);
             return updatedRole;
         }
-        
+
+        private async Task<List<Permission>> ValidatePermissionList(IEnumerable<Guid> permissionIds, string roleName, string grain, string securableItem, IEnumerable<Permission> existingPermissions)
+        {
+            var permissionsToAdd = new List<Permission>();
+            var permissions = existingPermissions.ToList();
+            foreach (var permissionId in permissionIds)
+            { 
+                if (permissions.Any(p => p.Id == permissionId))
+                {
+                    throw new AlreadyExistsException<Permission>(
+                        $"Permission {permissionId} already exists for role {roleName}. Please provide a new permission id.");
+                }
+
+                var permission = await _permissionStore.Get(permissionId);
+                if (!(permission.Grain == grain && permission.SecurableItem == securableItem))
+                {
+                    throw new IncompatiblePermissionException(
+                        $"Permission with id {permission.Id} has the wrong grain and/or securableItem.");
+                }
+
+                permissionsToAdd.Add(permission);
+            }
+            return permissionsToAdd;
+        }
+
         public async Task<Role> RemovePermissionsFromRole(Role role, Guid[] permissionIds)
         {
             foreach (var permissionId in permissionIds)
