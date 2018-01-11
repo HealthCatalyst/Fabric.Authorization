@@ -94,6 +94,8 @@ namespace Fabric.Authorization.Domain.Services
         /// </summary>
         public async Task<Role> AddRole(Role role)
         {
+            //validate permissions
+
             return await _roleStore.Add(role);
         }
 
