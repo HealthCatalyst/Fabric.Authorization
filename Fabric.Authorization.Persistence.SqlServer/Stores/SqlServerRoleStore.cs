@@ -245,8 +245,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 {
                     rolePermissionToRemove.IsDeleted = true;
                 }
-
-                role.RolePermissions = role.RolePermissions.Where(rp => !rp.IsDeleted).ToList();
             }
 
             await _authorizationDbContext.SaveChangesAsync();
