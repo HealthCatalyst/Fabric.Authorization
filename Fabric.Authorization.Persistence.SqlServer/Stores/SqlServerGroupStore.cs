@@ -50,6 +50,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .ThenInclude(gr => gr.Role)
                 .ThenInclude(r => r.RolePermissions)
                 .ThenInclude(rp => rp.Permission)
+                .ThenInclude(p => p.SecurableItem)
                 .Include(g => g.GroupUsers)
                 .ThenInclude(gu => gu.User)
                 .ThenInclude(u => u.UserPermissions)
