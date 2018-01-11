@@ -169,7 +169,15 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 roles = roles.Where(r => string.Equals(r.Name, roleName));
             }
 
-            return roles;
+            var roleList = roles.ToList();
+
+            foreach (var role in roleList)
+            {
+                role.RolePermissions = role.RolePermissions.Where(rp => !rp.IsDeleted).ToList();
+                role.GroupRoles = role.GroupRoles.Where(gr => !gr.IsDeleted).ToList();
+            }
+
+            return roleList;
         }
 
         public async Task<Role> AddPermissionsToRole(Role role, ICollection<Permission> allowPermissions, ICollection<Permission> denyPermissions)
@@ -223,11 +231,10 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                           && rp.PermissionId == permissionId);
 
                 rolePermissionToRemove.IsDeleted = true;
+                _authorizationDbContext.RolePermissions.Update(rolePermissionToRemove);
             }
 
             await _authorizationDbContext.SaveChangesAsync();
-
-            roleEntity.RolePermissions = roleEntity.RolePermissions.Where(rp => !rp.IsDeleted).ToList();
             return roleEntity.ToModel();
         }
 
@@ -244,6 +251,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 if (rolePermissionToRemove != null)
                 {
                     rolePermissionToRemove.IsDeleted = true;
+                    _authorizationDbContext.RolePermissions.Update(rolePermissionToRemove);
                 }
             }
 
