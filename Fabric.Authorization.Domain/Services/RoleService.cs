@@ -94,7 +94,17 @@ namespace Fabric.Authorization.Domain.Services
         /// </summary>
         public async Task<Role> AddRole(Role role)
         {
-            //validate permissions
+            //validate permissions and remove them from the domain model and add them explicitly
+            
+            var allowPermissionsToAdd = role.Permissions.Distinct();
+            var denyPermissionsToAdd = role.DeniedPermissions.Distinct();
+
+            bool isPermissionListValid;
+
+            isPermissionListValid = allowPermissionsToAdd.Intersect(denyPermissionsToAdd).Any();
+             
+            //ensure permission already exists and the grain and securable item are correct
+
 
             return await _roleStore.Add(role);
         }

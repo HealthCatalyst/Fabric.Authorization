@@ -5,9 +5,9 @@ using Xunit;
 namespace Fabric.Authorization.IntegrationTests.SqlServer
 {
     [Collection("SqlServerTests")]
-    public class SqlServerUserTests //: UserTests
+    public class SqlServerUserTests : UserTests
     {
-        public SqlServerUserTests(IntegrationTestsFixture fixture) //: base(fixture, StorageProviders.SqlServer)
+        public SqlServerUserTests(IntegrationTestsFixture fixture) : base(fixture, StorageProviders.SqlServer)
         {
         }
     }
