@@ -53,8 +53,24 @@ namespace Fabric.Authorization.Domain.Services
         public async Task<Group> GetGroup(string id, string clientId)
         {
             var group = await _groupStore.Get(id);
-            var clientRoles = await _roleService.GetRoles(clientId);
+            var clientRoles = (await _roleService.GetRoles(clientId)).ToList();
+
+            // need to find intersection of permissions as well; otherwise Permissions with deleted RolePermissions
+            // under the GroupRole will get returned if they exist under the Client
+            foreach (var clientRole in clientRoles)
+            {
+                var groupRole = group.Roles.FirstOrDefault(gr => string.Equals(gr.Name, clientRole.Name, StringComparison.OrdinalIgnoreCase));
+
+                if (groupRole == null)
+                {
+                    continue;
+                }
+
+                clientRole.Permissions = clientRole.Permissions.Intersect(groupRole.Permissions).ToList();
+            }
+
             group.Roles = clientRoles.Intersect(group.Roles).ToList();
+
             return group;
         }
 
