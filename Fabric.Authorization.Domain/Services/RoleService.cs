@@ -94,8 +94,7 @@ namespace Fabric.Authorization.Domain.Services
         /// </summary>
         public async Task<Role> AddRole(Role role)
         {
-            var newRole =  await _roleStore.Add(role);
-            return await AddPermissionsToRole(newRole, role.Permissions.Select(r => r.Id).ToArray());
+            return await _roleStore.Add(role);
         }
 
         /// <summary>
