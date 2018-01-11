@@ -18,9 +18,7 @@ namespace Fabric.Authorization.Persistence.CouchDb.Stores
 
         public override async Task<Role> Add(Role model)
         {
-            model.Id = Guid.NewGuid();
-            model.Permissions = new List<Permission>();
-            model.DeniedPermissions = new List<Permission>();
+            model.Id = Guid.NewGuid();           
             return await base.Add(model.Id.ToString(), model);
         }
 
