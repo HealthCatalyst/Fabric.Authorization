@@ -168,16 +168,28 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return roles;
         }
 
-        public async Task<Role> AddPermissionsToRole(Role role, ICollection<Permission> permissions)
+        public async Task<Role> AddPermissionsToRole(Role role, ICollection<Permission> allowPermissions, ICollection<Permission> denyPermissions)
         {
             // TODO: handle case where role.Id may not exist in Roles table
-            foreach (var permission in permissions)
+            foreach (var permission in allowPermissions)
             {
                 _authorizationDbContext.RolePermissions.Add(new RolePermission
                 {
                     RoleId = role.Id,
                     PermissionId = permission.Id,
                     PermissionAction = PermissionAction.Allow
+                });
+
+                role.Permissions.Add(permission);
+            }
+
+            foreach (var permission in denyPermissions)
+            {
+                _authorizationDbContext.RolePermissions.Add(new RolePermission
+                {
+                    RoleId = role.Id,
+                    PermissionId = permission.Id,
+                    PermissionAction = PermissionAction.Deny
                 });
 
                 role.Permissions.Add(permission);

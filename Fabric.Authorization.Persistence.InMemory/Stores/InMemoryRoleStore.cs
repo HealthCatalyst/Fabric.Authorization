@@ -44,11 +44,16 @@ namespace Fabric.Authorization.Persistence.InMemory.Stores
             return Task.FromResult(roles.Where(r => !r.IsDeleted));
         }
 
-        public async Task<Role> AddPermissionsToRole(Role role, ICollection<Permission> permissions)
+        public async Task<Role> AddPermissionsToRole(Role role, ICollection<Permission> allowPermissions, ICollection<Permission> denyPermissions)
         {
-            foreach (var permission in permissions)
+            foreach (var permission in allowPermissions)
             {
                 role.Permissions.Add(permission);
+            }
+
+            foreach (var permission in denyPermissions)
+            {
+                role.DeniedPermissions.Add(permission);
             }
 
             await Update(role);

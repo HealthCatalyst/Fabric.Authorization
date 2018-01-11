@@ -19,6 +19,8 @@ namespace Fabric.Authorization.Persistence.CouchDb.Stores
         public override async Task<Role> Add(Role model)
         {
             model.Id = Guid.NewGuid();
+            model.Permissions = new List<Permission>();
+            model.DeniedPermissions = new List<Permission>();
             return await base.Add(model.Id.ToString(), model);
         }
 
@@ -32,11 +34,16 @@ namespace Fabric.Authorization.Persistence.CouchDb.Stores
                 await DocumentDbService.GetDocuments<Role>("roles", "bysecitem", customParams);
         }
 
-        public async Task<Role> AddPermissionsToRole(Role role, ICollection<Permission> permissions)
+        public async Task<Role> AddPermissionsToRole(Role role, ICollection<Permission> allowPermissions, ICollection<Permission> denyPermissions)
         {
-            foreach (var permission in permissions)
+            foreach (var permission in allowPermissions)
             {
-                role.Permissions.Add(permission);
+                role.Permissions.Add(permission);                
+            }
+
+            foreach (var denyPermission in denyPermissions)
+            {
+                role.DeniedPermissions.Add(denyPermission);
             }
 
             await Update(role);

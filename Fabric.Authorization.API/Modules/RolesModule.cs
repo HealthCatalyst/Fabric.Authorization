@@ -143,7 +143,7 @@ namespace Fabric.Authorization.API.Modules
                     AuthorizationWriteClaim);
                 var updatedRole = await _roleService.AddPermissionsToRole(
                                       roleToUpdate,
-                                      permissionApiModels.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToArray());
+                                      permissionApiModels.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToArray(), new Guid[]{});
                 return CreateSuccessfulPostResponse(updatedRole.ToRoleApiModel());
             }
             catch (NotFoundException<Role> ex)
