@@ -38,7 +38,7 @@ namespace Fabric.Authorization.IntegrationTests
             CouchDbSettings = GetCouchDbSettings();
             DatabaseNameSuffix = GetDatabaseNameSuffix();
             ConnectionStrings = GetSqlServerConnection(DatabaseNameSuffix);
-            CreateSqlServerDatabase();
+            //CreateSqlServerDatabase();
         }
         public Browser Browser { get; set; }
 
@@ -142,8 +142,8 @@ namespace Fabric.Authorization.IntegrationTests
             CouchDbSettings config = new CouchDbSettings
             {
                 DatabaseName = "integration-" + databaseNameSuffix,
-                Username = "admin",
-                Password = "admin",
+                Username = "",
+                Password = "",
                 Server = "http://127.0.0.1:5984"
             };
 
