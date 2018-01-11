@@ -138,6 +138,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         private IEnumerable<EntityModels.Role> GetRoleEntityModels(string grain, string securableItem = null, string roleName = null)
         {
             var roles = _authorizationDbContext.Roles
+                .Include(r => r.RolePermissions)
+                .ThenInclude(rp => rp.Permission)
+                .ThenInclude(p => p.SecurableItem)
+                .Include(r => r.GroupRoles)
+                .ThenInclude(gr => gr.Group)
                 .Include(r => r.SecurableItem)
                 .Include(r => r.RolePermissions)
                 .ThenInclude(r => r.Permission)
