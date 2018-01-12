@@ -25,7 +25,7 @@ namespace Fabric.Authorization.API.DependencyInjection
 
         public void ConfigureRequestInstances(TinyIoCContainer container)
         {
-            container.Register<IAuthorizationDbContext, AuthorizationDbContext>();
+            container.Register<IAuthorizationDbContext, AuthorizationDbContext>().AsMultiInstance();
             container.Register<IRoleStore, SqlServerRoleStore>();
             container.Register<IUserStore, SqlServerUserStore>();
             container.Register<IPermissionStore, SqlServerPermissionStore>();
