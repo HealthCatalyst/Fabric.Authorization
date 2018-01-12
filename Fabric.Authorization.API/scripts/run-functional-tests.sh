@@ -28,6 +28,7 @@ sleep 15
 docker run -d --name authz-functional-identity \
 	-p 5001:5001 \
 	-e "HostingOptions__StorageProvider=CouchDB" \
+	-e "HostingOptions_AllowUnsafeEval=true" \
 	-e "CouchDbSettings__Server=http://authz-functional-couchdb:5984" \
 	-e "CouchDbSettings__Username=$couchusername" \
 	-e "CouchDbSettings__Password=$couchpassword" \
