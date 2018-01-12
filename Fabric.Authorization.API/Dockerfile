@@ -16,6 +16,6 @@ RUN mkdir -p /usr/local/bin \
 	&& chmod a+x scripts/setup-crontab.sh \
 	&& chmod a+x /usr/local/bin/update-groups.sh
 
-RUN	./scripts/setup-crontab.sh
+#RUN	./scripts/setup-crontab.sh
 
 ENTRYPOINT ["dotnet", "Fabric.Authorization.API.dll"]
