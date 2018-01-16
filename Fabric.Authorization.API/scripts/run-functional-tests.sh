@@ -28,7 +28,7 @@ sleep 15
 docker run -d --name authz-functional-identity \
 	-p 5001:5001 \
 	-e "HostingOptions__StorageProvider=CouchDB" \
-	-e "HostingOptions_AllowUnsafeEval=true" \
+	-e "HostingOptions__AllowUnsafeEval=true" \
 	-e "CouchDbSettings__Server=http://authz-functional-couchdb:5984" \
 	-e "CouchDbSettings__Username=$couchusername" \
 	-e "CouchDbSettings__Password=$couchpassword" \
@@ -39,13 +39,13 @@ sleep 3
 
 output=$(curl -sSL https://raw.githubusercontent.com/HealthCatalyst/Fabric.Identity/master/Fabric.Identity.API/scripts/setup-samples.sh | sh /dev/stdin http://localhost:5001)
 installerSecret=$(echo $output | grep -oP '(?<="installerSecret":")[^"]*')
-authApiSecret=$(echo $output | grep -oP '(?<="authApiSecret":")[^"]*')
+authClientSecret=$(echo $output | grep -oP '(?<="authClientSecret":")[^"]*')
 
 export FABRIC_INSTALLER_SECRET=$installerSecret
 export COUCHDBSETTINGS__USERNAME=$couchusername
 export COUCHDBSETTINGS__PASSWORD=$couchpassword
 echo $installerSecret
-echo $authApiSecret
+echo $authClientSecret
 cd ..
 dotnet publish -o obj/Docker/publish
 docker build -t authorization.functional.api .
@@ -55,8 +55,8 @@ docker run -d --name authz-functional-authorization \
 	-e COUCHDBSETTINGS__USERNAME=$couchusername \
 	-e COUCHDBSETTINGS__PASSWORD=$couchpassword \
 	-e COUCHDBSETTINGS__SERVER=http://authz-functional-couchdb:5984 \
-	-e IDENTITYSERVERCONFIDENTIALCLIENTSETTINGS__AUTHORITY=http://authz-functional-identity:5001 \
-	-e IDENTITYSERVERCONFIDENTIALCLIENTSETTINGS__CLIENTSECRET=$authApiSecret \
+	-e IDENTITYSERVERCONFIDENTIALCLIENTSETTINGS__AUTHORITY=http://authz-functional-identity:5001/ \
+	-e IDENTITYSERVERCONFIDENTIALCLIENTSETTINGS__CLIENTSECRET=$authClientSecret \
 	--network="authz-functional-tests" \
 	authorization.functional.api
 echo "started authorization"
