@@ -57,7 +57,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 throw new NotFoundException<Role>($"Could not find {typeof(Role).Name} entity with ID {id}");
             }
 
-            role.GroupRoles = role.GroupRoles.Where(gr => !gr.IsDeleted).ToList();
             return role;
         }
 
@@ -165,11 +164,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             if (!string.IsNullOrWhiteSpace(roleName))
             {
                 roles = roles.Where(r => string.Equals(r.Name, roleName));
-            }
-
-            foreach (var role in roles)
-            {
-                role.GroupRoles = role.GroupRoles.Where(gr => !gr.IsDeleted).ToList();
             }
 
             return roles;

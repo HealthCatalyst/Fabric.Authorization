@@ -35,7 +35,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
         public ICollection<RolePermission> RolePermissions { get; set; }
 
         [NotMapped]
-        public ICollection<Group> Groups => GroupRoles.Select(gr => gr.Group).ToList();
+        public ICollection<Group> Groups => GroupRoles.Where(gr => !gr.IsDeleted).Select(gr => gr.Group).ToList();
 
         [NotMapped]
         public ICollection<Permission> AllowedPermissions =>
