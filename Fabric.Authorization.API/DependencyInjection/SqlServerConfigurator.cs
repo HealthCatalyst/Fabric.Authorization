@@ -1,7 +1,6 @@
 ﻿using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
-using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using Fabric.Authorization.Persistence.SqlServer.Services;
 using Fabric.Authorization.Persistence.SqlServer.Stores;
 using Nancy.TinyIoc;
@@ -25,7 +24,7 @@ namespace Fabric.Authorization.API.DependencyInjection
 
         public void ConfigureRequestInstances(TinyIoCContainer container)
         {
-            container.Register<IAuthorizationDbContext, AuthorizationDbContext>().AsMultiInstance();
+            container.Register<IAuthorizationDbContext, AuthorizationDbContext>();
             container.Register<IRoleStore, SqlServerRoleStore>();
             container.Register<IUserStore, SqlServerUserStore>();
             container.Register<IPermissionStore, SqlServerPermissionStore>();

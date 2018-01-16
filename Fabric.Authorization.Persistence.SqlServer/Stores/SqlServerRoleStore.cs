@@ -58,8 +58,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             }
 
             role.GroupRoles = role.GroupRoles.Where(gr => !gr.IsDeleted).ToList();
-            role.RolePermissions = role.RolePermissions.Where(rp => !rp.IsDeleted).ToList();
-
             return role;
         }
 
@@ -169,15 +167,12 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 roles = roles.Where(r => string.Equals(r.Name, roleName));
             }
 
-            var roleList = roles.ToList();
-
-            foreach (var role in roleList)
+            foreach (var role in roles)
             {
-                role.RolePermissions = role.RolePermissions.Where(rp => !rp.IsDeleted).ToList();
                 role.GroupRoles = role.GroupRoles.Where(gr => !gr.IsDeleted).ToList();
             }
 
-            return roleList;
+            return roles;
         }
 
         public async Task<Role> AddPermissionsToRole(Role role, ICollection<Permission> allowPermissions, ICollection<Permission> denyPermissions)
