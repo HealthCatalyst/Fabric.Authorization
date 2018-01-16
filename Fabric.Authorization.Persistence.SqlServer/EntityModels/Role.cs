@@ -40,13 +40,15 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
         [NotMapped]
         public ICollection<Permission> AllowedPermissions =>
             RolePermissions
-                .Where(rp => rp.PermissionAction == PermissionAction.Allow)
+                .Where(rp => rp.PermissionAction == PermissionAction.Allow
+                             && !rp.IsDeleted)
                 .Select(rp => rp.Permission).ToList();
 
         [NotMapped]
         public ICollection<Permission> DeniedPermissions =>
             RolePermissions
-                .Where(rp => rp.PermissionAction == PermissionAction.Deny)
+                .Where(rp => rp.PermissionAction == PermissionAction.Deny
+                             && !rp.IsDeleted)
                 .Select(rp => rp.Permission).ToList();
     }
 }
