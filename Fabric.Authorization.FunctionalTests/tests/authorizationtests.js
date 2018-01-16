@@ -383,7 +383,7 @@ describe("authorization tests", function () {
 
             function loginUser() {
                 //setup custom phantomJS capability
-                var phantomjsExe = require("phantomjs").path;
+                var phantomjsExe = require("phantomjs-prebuilt").path;
                 var customPhantom = webdriver.Capabilities.phantomjs();
                 customPhantom.set("phantomjs.binary.path", phantomjsExe);
 
