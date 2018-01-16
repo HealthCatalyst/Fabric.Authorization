@@ -1,7 +1,6 @@
 ﻿using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
-using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using Fabric.Authorization.Persistence.SqlServer.Services;
 using Fabric.Authorization.Persistence.SqlServer.Stores;
 using Nancy.TinyIoc;

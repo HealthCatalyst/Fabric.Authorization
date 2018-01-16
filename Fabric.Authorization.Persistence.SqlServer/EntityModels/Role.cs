@@ -35,18 +35,20 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
         public ICollection<RolePermission> RolePermissions { get; set; }
 
         [NotMapped]
-        public ICollection<Group> Groups => GroupRoles.Select(gr => gr.Group).ToList();
+        public ICollection<Group> Groups => GroupRoles.Where(gr => !gr.IsDeleted).Select(gr => gr.Group).ToList();
 
         [NotMapped]
         public ICollection<Permission> AllowedPermissions =>
             RolePermissions
-                .Where(rp => rp.PermissionAction == PermissionAction.Allow)
+                .Where(rp => rp.PermissionAction == PermissionAction.Allow
+                             && !rp.IsDeleted)
                 .Select(rp => rp.Permission).ToList();
 
         [NotMapped]
         public ICollection<Permission> DeniedPermissions =>
             RolePermissions
-                .Where(rp => rp.PermissionAction == PermissionAction.Deny)
+                .Where(rp => rp.PermissionAction == PermissionAction.Deny
+                             && !rp.IsDeleted)
                 .Select(rp => rp.Permission).ToList();
     }
 }

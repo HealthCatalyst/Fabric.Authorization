@@ -4,23 +4,17 @@ using System.IO;
 using System.Reflection;
 using System.Security.Claims;
 using Fabric.Authorization.API.Configuration;
-using Fabric.Authorization.API.Infrastructure;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.RemoteServices.Identity.Providers;
-using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Persistence.CouchDb.Configuration;
 using Fabric.Authorization.Persistence.CouchDb.Services;
 using Fabric.Authorization.Persistence.CouchDb.Stores;
 using Fabric.Authorization.Persistence.SqlServer.Configuration;
-using Fabric.Authorization.Persistence.SqlServer.Services;
 using Fabric.Platform.Shared.Configuration;
-using IdentityModel;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Moq;
-using Nancy;
 using Nancy.Testing;
 using Serilog;
 using Serilog.Core;
@@ -116,24 +110,6 @@ namespace Fabric.Authorization.IntegrationTests
                 new CachingDocumentDbService(auditingDbService, new MemoryCache(new MemoryCacheOptions()));
             _dbService = cachingDbService;
             return _dbService;
-        }
-
-        protected AuthorizationDbContext AuthorizationDbContext
-        {
-            get
-            {
-                var builder = new DbContextOptionsBuilder<AuthorizationDbContext>();
-
-                builder.UseSqlServer(ConnectionStrings.AuthorizationDatabase);
-
-                var testIdentity = new ClaimsIdentity();
-                testIdentity.AddClaim(new Claim(JwtClaimTypes.ClientId, "testing"));
-
-                var nancyContext = new NancyContext { CurrentUser = new ClaimsPrincipal(testIdentity) };
-                var nancyContextWrapper = new NancyContextWrapper(nancyContext);
-
-                return new AuthorizationDbContext(new EventContextResolverService(nancyContextWrapper), ConnectionStrings);
-            }
         }
 
         private CouchDbSettings GetCouchDbSettings()

@@ -40,7 +40,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return role.ToModel();
         }
 
-        public async Task<EntityModels.Role> GetEntityModel(Guid id)
+        private async Task<EntityModels.Role> GetEntityModel(Guid id)
         {
             var role = await _authorizationDbContext.Roles
                 .Include(r => r.RolePermissions)
@@ -220,6 +220,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                           && rp.PermissionId == permissionId);
 
                 rolePermissionToRemove.IsDeleted = true;
+                _authorizationDbContext.RolePermissions.Update(rolePermissionToRemove);
             }
 
             await _authorizationDbContext.SaveChangesAsync();
@@ -239,6 +240,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 if (rolePermissionToRemove != null)
                 {
                     rolePermissionToRemove.IsDeleted = true;
+                    _authorizationDbContext.RolePermissions.Update(rolePermissionToRemove);
                 }
             }
 
