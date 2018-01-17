@@ -85,7 +85,7 @@ namespace Fabric.Authorization.IntegrationTests
         private readonly string CouchDbPasswordEnvironmentVariable = "COUCHDBSETTINGS__PASSWORD";
         private static readonly string SqlServerEnvironmentVariable = "SQLSERVERSETTINGS__SERVER";
         private static readonly string SqlServerUsernameEnvironmentVariable = "SQLSERVERSETTINGS__USERNAME";
-        private static readonly string SqlServerPassworEnvironmentVariable = "SQLSERVERSETTINGS__PASSWORD";
+        private static readonly string SqlServerPasswordEnvironmentVariable = "SQLSERVERSETTINGS__PASSWORD";
 
         public DefaultPropertySettings DefaultPropertySettings = new DefaultPropertySettings
         {
@@ -118,8 +118,8 @@ namespace Fabric.Authorization.IntegrationTests
             CouchDbSettings config = new CouchDbSettings
             {
                 DatabaseName = "integration-" + databaseNameSuffix,
-                Username = "admin",
-                Password = "admin",
+                Username = "",
+                Password = "",
                 Server = "http://127.0.0.1:5984"
             };
 
@@ -164,7 +164,7 @@ namespace Fabric.Authorization.IntegrationTests
         private string GetSqlServerSecurityString()
         {
             var sqlServerUserName = Environment.GetEnvironmentVariable(SqlServerUsernameEnvironmentVariable);
-            var sqlServerPassword = Environment.GetEnvironmentVariable(SqlServerPassworEnvironmentVariable);
+            var sqlServerPassword = Environment.GetEnvironmentVariable(SqlServerPasswordEnvironmentVariable);
             var securityString = "Trusted_Connection=True";
             if (!string.IsNullOrEmpty(sqlServerUserName) && !string.IsNullOrEmpty(sqlServerPassword))
             {
