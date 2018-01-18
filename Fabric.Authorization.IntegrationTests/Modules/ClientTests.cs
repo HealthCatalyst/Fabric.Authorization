@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using Fabric.Authorization.API.Constants;
@@ -31,6 +32,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("C470B25B-4309-4C02-91DD-EB7C2D99E341")]
         public void TestGetClient_Fail(string id)
         {
+            Console.WriteLine("running test TestGetClient_Fail");
             var get = _browser.Get($"/clients/{id}", with =>
             {
                 with.HttpRequest();

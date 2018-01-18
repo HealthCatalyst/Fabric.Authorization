@@ -176,6 +176,7 @@ namespace Fabric.Authorization.IntegrationTests
         private void CreateSqlServerDatabase()
         {
             var targetDbName = $"Authorization-{DatabaseNameSuffix}";
+            Console.WriteLine($"creating database: {targetDbName}");
             var connection =
                 ConnectionStrings.AuthorizationDatabase.Replace(targetDbName, "master");
             var file = new FileInfo("Fabric.Authorization.SqlServer_Create.sql");
