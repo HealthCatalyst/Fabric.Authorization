@@ -24,7 +24,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 new Claim(Claims.Scope, Scopes.WriteScope),
             }, "testprincipal"));
 
-            _browser = fixture.GetBrowser(principal, storageProvider);
+            _browser = fixture.GetBrowser(principal, storageProvider);            
+            Console.WriteLine($"browser has been created for storage provider: {storageProvider}");
         }
 
         [Theory]
