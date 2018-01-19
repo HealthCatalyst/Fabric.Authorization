@@ -48,6 +48,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("8993363C-2E3C-4168-BAD7-F0F3DDFDB6F3", "97B3E59A-C76C-4383-A765-609686F15FAB")]
         public void TestGetClients_Success(string clientId1, string clientId2)
         {
+            Console.WriteLine("running test TestGetClients_Success");
             var getInitialCountResponse = _browser.Get("/clients", with =>
             {
                 with.HttpRequest();
@@ -103,6 +104,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("6BC32347-36A1-44CF-AA0E-6C1038AA1DF3")]
         public void TestAddNewClient_Success(string id)
         {
+            Console.WriteLine("running test TestAddNewClient_Success");
             var clientToAdd = new ClientApiModel
             {
                 Id = id,
@@ -135,6 +137,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("D622053D-03F5-489E-84F7-5471DA309213")]
         public void TestAddNewClient_Fail(string id)
         {
+            Console.WriteLine("running test TestAddNewClient_Fail");
             var clientToAdd = new ClientApiModel
             {
                 Id = id,
@@ -172,6 +175,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("F8C01F6B-C09C-430C-97A5-A0F2F1B340FB")]
         public void TestDeleteClient_Success(string id)
         {
+            Console.WriteLine("running test TestDeleteClient_Success");
             var clientToAdd = new ClientApiModel
             {
                 Id = id,
@@ -202,6 +206,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("BB93ADC5-CD86-4746-B39B-9C56564A1BD2")]
         public void TestDeleteClient_Fail(string id)
         {
+            Console.WriteLine("running test TestDeleteClient_Fail");
             var delete = _browser.Delete($"/clients/{id}", with =>
             {
                 with.HttpRequest();
