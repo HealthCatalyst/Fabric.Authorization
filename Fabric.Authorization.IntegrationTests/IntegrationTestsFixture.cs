@@ -37,8 +37,7 @@ namespace Fabric.Authorization.IntegrationTests
         public Browser Browser { get; set; }
 
         public Browser GetBrowser(ClaimsPrincipal principal, string storageProvider, IIdentityServiceProvider identityServiceProvider = null)
-        {
-            Console.WriteLine($"getting new browser for storage provider: {storageProvider}");
+        {            
             var appConfiguration = new AppConfiguration
             {
                 CouchDbSettings = CouchDbSettings,
@@ -177,7 +176,7 @@ namespace Fabric.Authorization.IntegrationTests
         private void CreateSqlServerDatabase()
         {
             var targetDbName = $"Authorization-{DatabaseNameSuffix}";
-            Console.WriteLine($"creating database: {targetDbName}");
+           
             var connection =
                 ConnectionStrings.AuthorizationDatabase.Replace(targetDbName, "master");
             var file = new FileInfo("Fabric.Authorization.SqlServer_Create.sql");
@@ -235,7 +234,7 @@ namespace Fabric.Authorization.IntegrationTests
                 }
             }
 
-            Console.WriteLine($"finished creating database: {targetDbName}");
+            
         }
 
         #region IDisposable implementation
