@@ -17,7 +17,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         private string _storageProvider;
         public ClientTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory)
         {
-            Console.WriteLine($"ClientTests ctor for storage provider: {storageProvider}");
+            
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
             {
                 new Claim(Claims.Scope, Scopes.ManageClientsScope),
@@ -27,7 +27,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             _storageProvider = storageProvider;
             _browser = fixture.GetBrowser(principal, storageProvider);            
-            Console.WriteLine($"ClientTests browser has been created for storage provider: {storageProvider}");            
+                     
         }
         
         [Theory]
@@ -36,7 +36,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("C470B25B-4309-4C02-91DD-EB7C2D99E341")]
         public void TestGetClient_Fail(string id)
         {
-            Console.WriteLine("running test TestGetClient_Fail");
+            
             var get = _browser.Get($"/clients/{id}", with =>
             {
                 with.HttpRequest();
@@ -50,7 +50,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("8993363C-2E3C-4168-BAD7-F0F3DDFDB6F3", "97B3E59A-C76C-4383-A765-609686F15FAB")]
         public void TestGetClients_Success(string clientId1, string clientId2)
         {
-            Console.WriteLine("running test TestGetClients_Success");
+            
             var getInitialCountResponse = _browser.Get("/clients", with =>
             {
                 with.HttpRequest();
@@ -106,7 +106,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("6BC32347-36A1-44CF-AA0E-6C1038AA1DF3")]
         public void TestAddNewClient_Success(string id)
         {
-            Console.WriteLine($"running test TestAddNewClient_Success for storage provider: {_storageProvider}");
+           
             var clientToAdd = new ClientApiModel
             {
                 Id = id,
@@ -123,14 +123,14 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(clientToAdd);
             }).Result;
 
-            Console.WriteLine($"TestAddNewClient_Success - client created for storage provider: {_storageProvider}");
+            
 
             var getResponse = _browser.Get($"/clients/{id}", with =>
                 {
                     with.HttpRequest();                    
                 }).Result;
 
-            Console.WriteLine($"TestAddNewClient_Success - client retrieved for storage provider: {_storageProvider}");
+            
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
@@ -143,7 +143,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("D622053D-03F5-489E-84F7-5471DA309213")]
         public void TestAddNewClient_Fail(string id)
         {
-            Console.WriteLine("running test TestAddNewClient_Fail");
+            
             var clientToAdd = new ClientApiModel
             {
                 Id = id,
@@ -181,7 +181,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("F8C01F6B-C09C-430C-97A5-A0F2F1B340FB")]
         public void TestDeleteClient_Success(string id)
         {
-            Console.WriteLine("running test TestDeleteClient_Success");
+           
             var clientToAdd = new ClientApiModel
             {
                 Id = id,
@@ -212,14 +212,14 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("BB93ADC5-CD86-4746-B39B-9C56564A1BD2")]
         public void TestDeleteClient_Fail(string id)
         {
-            Console.WriteLine($"running test TestDeleteClient_Fail for storage provider: {_storageProvider}");
+            
             var delete = _browser.Delete($"/clients/{id}", with =>
             {
                 with.HttpRequest();
             }).Result;
 
             Assert.Equal(HttpStatusCode.NotFound, delete.StatusCode);
-            Console.WriteLine($"finished running test TestDeleteClient_Fail for storage provider: {_storageProvider}");
+           
         }
 
     }

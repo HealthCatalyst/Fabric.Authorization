@@ -10,7 +10,7 @@ namespace Fabric.Authorization.IntegrationTests.SqlServer
     {
         public SqlServerClientTests(IntegrationTestsFixture fixture) : base(fixture,StorageProviders.SqlServer)
         {
-            Console.WriteLine($"SqlServerClientTests ctor");
+          
         }
     }
 }
