@@ -16,6 +16,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         private readonly Browser _browser;
         public ClientTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory)
         {
+            Console.WriteLine($"ClientTests ctor for storage provider: {storageProvider}");
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
             {
                 new Claim(Claims.Scope, Scopes.ManageClientsScope),
