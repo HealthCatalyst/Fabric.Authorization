@@ -25,7 +25,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }, "testprincipal"));
 
             _browser = fixture.GetBrowser(principal, storageProvider);            
-            Console.WriteLine($"browser has been created for storage provider: {storageProvider}");
+            Console.WriteLine($"ClientTests browser has been created for storage provider: {storageProvider}");
         }
 
         [Theory]
@@ -121,10 +121,14 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(clientToAdd);
             }).Result;
 
+            Console.WriteLine("TestAddNewClient_Success - client created");
+
             var getResponse = _browser.Get($"/clients/{id}", with =>
                 {
-                    with.HttpRequest();
+                    with.HttpRequest();                    
                 }).Result;
+
+            Console.WriteLine("TestAddNewClient_Success - client retrieved");
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
