@@ -14,6 +14,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
     public class ClientTests : IClassFixture<IntegrationTestsFixture>
     {
         private readonly Browser _browser;
+        private string _storageProvider;
         public ClientTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory)
         {
             Console.WriteLine($"ClientTests ctor for storage provider: {storageProvider}");
@@ -24,10 +25,11 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 new Claim(Claims.Scope, Scopes.WriteScope),
             }, "testprincipal"));
 
+            _storageProvider = storageProvider;
             _browser = fixture.GetBrowser(principal, storageProvider);            
-            Console.WriteLine($"ClientTests browser has been created for storage provider: {storageProvider}");
+            Console.WriteLine($"ClientTests browser has been created for storage provider: {storageProvider}");            
         }
-
+        
         [Theory]
         [IntegrationTestsFixture.DisplayTestMethodName]
         [InlineData("CD47FCAB-0C85-45C0-95F8-9F4A4E5B8E57")]
@@ -104,7 +106,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("6BC32347-36A1-44CF-AA0E-6C1038AA1DF3")]
         public void TestAddNewClient_Success(string id)
         {
-            Console.WriteLine("running test TestAddNewClient_Success");
+            Console.WriteLine($"running test TestAddNewClient_Success for storage provider: {_storageProvider}");
             var clientToAdd = new ClientApiModel
             {
                 Id = id,
@@ -121,14 +123,14 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(clientToAdd);
             }).Result;
 
-            Console.WriteLine("TestAddNewClient_Success - client created");
+            Console.WriteLine($"TestAddNewClient_Success - client created for storage provider: {_storageProvider}");
 
             var getResponse = _browser.Get($"/clients/{id}", with =>
                 {
                     with.HttpRequest();                    
                 }).Result;
 
-            Console.WriteLine("TestAddNewClient_Success - client retrieved");
+            Console.WriteLine($"TestAddNewClient_Success - client retrieved for storage provider: {_storageProvider}");
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
@@ -210,13 +212,14 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("BB93ADC5-CD86-4746-B39B-9C56564A1BD2")]
         public void TestDeleteClient_Fail(string id)
         {
-            Console.WriteLine("running test TestDeleteClient_Fail");
+            Console.WriteLine($"running test TestDeleteClient_Fail for storage provider: {_storageProvider}");
             var delete = _browser.Delete($"/clients/{id}", with =>
             {
                 with.HttpRequest();
             }).Result;
 
             Assert.Equal(HttpStatusCode.NotFound, delete.StatusCode);
+            Console.WriteLine($"finished running test TestDeleteClient_Fail for storage provider: {_storageProvider}");
         }
 
     }
