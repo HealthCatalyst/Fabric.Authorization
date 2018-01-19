@@ -22,6 +22,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task<Client> Add(Client model)
         {
+            Console.WriteLine($"SqlServerClientStore add");
             var clientEntity = model.ToEntity();
 
             _authorizationDbContext.Clients.Add(clientEntity);
@@ -60,6 +61,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task Delete(Client model)
         {
+            Console.WriteLine($"SqlServerClientStore delete");
+
             var client = await _authorizationDbContext.Clients
                 .Include(i => i.TopLevelSecurableItem)
                 .SingleOrDefaultAsync(c => c.ClientId.Equals(model.Id, StringComparison.OrdinalIgnoreCase)
