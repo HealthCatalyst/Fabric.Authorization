@@ -5,9 +5,9 @@ using Xunit;
 namespace Fabric.Authorization.IntegrationTests.CouchDB
 {
     [Collection("CouchTests")]
-    public class CouchDBPermissionsTests : PermissionsTests
+    public class CouchDBPermissionsTests //: PermissionsTests
     {
-        public CouchDBPermissionsTests(IntegrationTestsFixture fixture) : base(fixture, StorageProviders.CouchDb)
+        public CouchDBPermissionsTests(IntegrationTestsFixture fixture) //: base(fixture, StorageProviders.CouchDb)
         {
         }
     }
