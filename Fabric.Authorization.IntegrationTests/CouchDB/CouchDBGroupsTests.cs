@@ -45,7 +45,7 @@ namespace Fabric.Authorization.IntegrationTests.CouchDB
             //Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         }
 
-        [Fact]
+        [Fact(Skip = "disabling  couch db tests temporarily")]
         [IntegrationTestsFixture.DisplayTestMethodName]
         public void AddGroup_InactiveGroupWithOldIdExists_Success()
         {
