@@ -1,4 +1,5 @@
-﻿using Fabric.Authorization.API.Constants;
+﻿using System;
+using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.IntegrationTests.Modules;
 using Xunit;
 
@@ -9,6 +10,7 @@ namespace Fabric.Authorization.IntegrationTests.SqlServer
     {
         public SqlServerClientTests(IntegrationTestsFixture fixture) : base(fixture,StorageProviders.SqlServer)
         {
+            Console.WriteLine($"SqlServerClientTests ctor");
         }
     }
 }
