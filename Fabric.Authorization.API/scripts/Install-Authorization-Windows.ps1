@@ -1,23 +1,38 @@
 #
 # Install_Authorization_Windows.ps1
 #
-function Test-IdentityInstalled($identityServerUrl)
+
+function Get-DiscoveryServiceUrl()
 {
-	$url = "$identityServerUrl/.well-known/openid-configuration"
-	$headers = @{"Accept" = "application/json"}
-    
-    try {
-        $response = Invoke-RestMethod -Method Get -Uri $url -Headers $headers
-    } catch {
-        $exception = $_.Exception
+    return "https://$env:computername.$($env:userdnsdomain.tolower())/DiscoveryService"
+}
+
+function Get-IdentityServiceUrl()
+{
+    return "https://$env:computername.$($env:userdnsdomain.tolower())/Identity"
+}
+
+function Add-DiscoveryRegistration($discoveryUrl, $serviceUrl, $credential)
+{	
+    $registrationBody = @{
+        ServiceName = "AuthorizationService"
+        Version = 1
+        ServiceUrl = $serviceUrl
+        DiscoveryType = "Service"
+        IsHidden = $true
+        FriendlyName = "Fabric.Authorization"
+        Description = "The Fabric.Authorization service provides centralized authorization across the Fabric ecosystem."
+        BuildNumber = "1.1.2017120101"
     }
 
-    if($response.issuer -eq "https://fabric.identity")
-    {
-        return $true
-    }
-	
-    return $false
+	$url = "$discoveryUrl/v1/Services"
+	$jsonBody = $registrationBody | ConvertTo-Json	
+	try{
+		Invoke-RestMethod -Method Post -Uri "$url" -Body "$jsonBody" -ContentType "application/json" -Credential $credential | Out-Null
+		Write-Success "Fabric.Authorization successfully registered with DiscoveryService."
+	}catch{
+		Write-Error "Unable to register Fabric.Authorization with DiscoveryService. Error $($_.Exception.Message) Halting installation." -ErrorAction Stop
+	}
 }
 
 function Invoke-MonitorShallow($authorizationUrl)
@@ -29,7 +44,12 @@ function Invoke-MonitorShallow($authorizationUrl)
 if(!(Test-Path .\Fabric-Install-Utilities.psm1)){
 	Invoke-WebRequest -Uri https://raw.githubusercontent.com/HealthCatalyst/InstallScripts/master/common/Fabric-Install-Utilities.psm1 -OutFile Fabric-Install-Utilities.psm1
 }
-Import-Module -Name .\Fabric-Install-Utilities.psm1
+Import-Module -Name .\Fabric-Install-Utilities.psm1 -Force
+
+if(!(Test-IsRunAsAdministrator))
+{
+    Write-Error "You must run this script as an administrator. Halting configuration." -ErrorAction Stop
+}
 
 $installSettings = Get-InstallationSettings "authorization"
 $zipPackage = $installSettings.zipPackage
@@ -37,20 +57,135 @@ $webroot = $installSettings.webroot
 $appName = $installSettings.appName
 $iisUser = $installSettings.iisUser
 $encryptionCertificateThumbprint = $installSettings.encryptionCertificateThumbprint -replace '[^a-zA-Z0-9]', ''
-$couchDbServer = $installSettings.couchDbServer
-$couchDbUsername = $installSettings.couchDbUsername
-$couchDbPassword = $installSettings.couchDbPassword
 $appInsightsInstrumentationKey = $installSettings.appInsightsInstrumentationKey
 $siteName = $installSettings.siteName
-$identityServerUrl = $installSettings.identityServerUrl
+$sqlServerAddress = $installSettings.sqlServerAddress
+#$identityServerUrl = $installSettings.identityService
+$metadataDbName = $installSettings.metadataDbName
+$identityDbName = $installSettings.identityDbName
 $fabricInstallerSecret = $installSettings.fabricInstallerSecret
 $hostUrl = $installSettings.hostUrl
-
+$authorizationSerivceURL =  $installSettings.authorizationSerivce
+$storedIisUser = $installSettings.iisUser
 $workingDirectory = Get-CurrentScriptDirectory
+
+if([string]::IsNullOrEmpty($installSettings.discoveryService))  
+{
+	$discoveryServiceUrl = Get-DiscoveryServiceUrl
+} else
+{
+	$discoveryServiceUrl = $installSettings.discoveryService
+}
+
+if([string]::IsNullOrEmpty($installSettings.identityService))  
+{
+	$identityServerUrl = Get-IdentityServiceUrl
+} else
+{
+	$identityServerUrl = $installSettings.identityService
+}
+
+if([string]::IsNullOrEmpty($installSettings.authorizationSerivce))  
+{
+	$authorizationSerivceURL = "https://$env:computername.$($env:userdnsdomain.tolower())/Authorization"
+} else
+{
+	$authorizationSerivceURL = $installSettings.authorizationSerivce
+}
 
 Write-Host ""
 Write-Host "Checking prerequisites..."
 Write-Host ""
+
+if(!(Test-PrerequisiteExact "*.NET Core*Windows Server Hosting*" 1.1.30503.82))
+{    
+    try{
+        Write-Console "Windows Server Hosting Bundle version 1.1.30503.82 not installed...installing version 1.1.30503.82"        
+        Invoke-WebRequest -Uri https://go.microsoft.com/fwlink/?linkid=848766 -OutFile $env:Temp\bundle.exe
+        Start-Process $env:Temp\bundle.exe -Wait -ArgumentList '/quiet /install'
+        net stop was /y
+        net start w3svc			
+    }catch{
+        Write-Error "Could not install .NET Windows Server Hosting bundle. Please install the hosting bundle before proceeding. https://go.microsoft.com/fwlink/?linkid=844461" -ErrorAction Stop
+    }
+    try{
+        Remove-Item $env:Temp\bundle.exe
+    }catch{        
+        $e = $_.Exception        
+        Write-Warning "Unable to remove Server Hosting bundle exe" 
+        Write-Warning $e.Message
+    }
+
+}else{
+    Write-Success ".NET Core Windows Server Hosting Bundle installed and meets expectations."
+    Write-Host ""
+}
+
+try{
+    $sites = Get-ChildItem IIS:\Sites
+    if($sites -is [array]){
+        $sites |
+            ForEach-Object {New-Object PSCustomObject -Property @{
+                'Id'=$_.id;
+                'Name'=$_.name;
+                'Physical Path'=[System.Environment]::ExpandEnvironmentVariables($_.physicalPath);
+                'Bindings'=$_.bindings;
+            };} |
+            Format-Table Id,Name,'Physical Path',Bindings -AutoSize
+
+        $selectedSiteId = Read-Host "Select a web site by Id"
+        Write-Host ""
+        $selectedSite = $sites[$selectedSiteId - 1]
+    }else{
+        $selectedSite = $sites
+    }
+
+    $webroot = [System.Environment]::ExpandEnvironmentVariables($selectedSite.physicalPath)    
+    $siteName = $selectedSite.name
+
+}catch{
+    Write-Error "Could not select a website." -ErrorAction Stop
+}
+
+try{
+
+    $allCerts = Get-CertsFromLocation Cert:\LocalMachine\My
+    $index = 1
+    $allCerts |
+        ForEach-Object {New-Object PSCustomObject -Property @{
+        'Index'=$index;
+        'Subject'= $_.Subject; 
+        'Name' = $_.FriendlyName; 
+        'Thumbprint' = $_.Thumbprint; 
+        'Expiration' = $_.NotAfter
+        };
+        $index ++} |
+        Format-Table Index,Name,Subject,Expiration,Thumbprint  -AutoSize
+
+    $selectionNumber = Read-Host  "Select a signing and encryption certificate by Index"
+    Write-Host ""
+    if([string]::IsNullOrEmpty($selectionNumber)){
+		Write-Error "You must select a certificate so Fabric.Identity can sign access and identity tokens." -ErrorAction Stop
+    }
+    $selectionNumberAsInt = [convert]::ToInt32($selectionNumber, 10)
+    if(($selectionNumberAsInt -gt  $allCerts.Count) -or ($selectionNumberAsInt -le 0)){
+        Write-Error "Please select a certificate with index between 1 and $($allCerts.Count)."  -ErrorAction Stop
+    }
+    $certThumbprint = Get-CertThumbprint $allCerts $selectionNumberAsInt     
+    $primarySigningCertificateThumbprint = $certThumbprint -replace '[^a-zA-Z0-9]', ''    
+    $encryptionCertificateThumbprint = $certThumbprint -replace '[^a-zA-Z0-9]', ''
+    }catch{
+        $scriptDirectory =  Get-CurrentScriptDirectory
+        Set-Location $scriptDirectory
+        Write-Error "Could not set the certificate thumbprint. Error $($_.Exception.Message)" -ErrorAction Stop        
+}
+
+try{
+    $signingCert = Get-Certificate $primarySigningCertificateThumbprint
+}catch{
+    Write-Error "Could not get signing certificate with thumbprint $primarySigningCertificateThumbprint. Please verify that the primarySigningCertificateThumbprint setting in install.config contains a valid thumbprint for a certificate in the Local Machine Personal store."
+    throw $_.Exception
+}
 
 try{
 	$encryptionCert = Get-Certificate $encryptionCertificateThumbprint
@@ -59,18 +194,16 @@ try{
 	throw $_.Exception
 }
 
-if($fabricInstallerSecret -eq $null){
+
+$userEnteredFabricInstallerSecret = Read-Host  "Enter the Fabric Installer Secret or hit enter to accept the default [$fabricInstallerSecret]"
+Write-Host ""
+if(![string]::IsNullOrEmpty($userEnteredFabricInstallerSecret)){   
+     $fabricInstallerSecret = $userEnteredFabricInstallerSecret
+}
+<# if([string]::IsNullOrEmpty($fabricInstallerSecret -eq $null)){
 	Write-Host "fabricInstallerSecret is not present in install.config, cannot proceed with installation. Please ensure that the fabricInstallerSecret config has a value in the install.config. Halting installation."
 	exit 1
-}
-
-try{
-	$accessToken = Get-AccessToken -authUrl $identityServerUrl -clientId "fabric-installer" -scope "fabric/identity.manageresources" -secret $fabricInstallerSecret
-} catch {
-	Write-Host "There was a problem getting an access token for the Fabric Installer client, please make sure that Fabric.Identity is running and that the fabricInstallerSecret value in the install.config is correct. Halting installation."
-	throw $_.Exception
-	exit 1
-}
+} #>
 
 if((Test-Path $zipPackage))
 {
@@ -79,44 +212,100 @@ if((Test-Path $zipPackage))
 	{
 		$zipPackage = [System.IO.Path]::Combine($workingDirectory, $zipPackage)
 		Write-Host "zipPackage: $zipPackage"
+		Write-Host ""
 	}
 }else{
 	Write-Host "Could not find file or directory $zipPackage, please verify that the zipPackage configuration setting in install.config is the path to a valid zip file that exists. Halting installation."
 	exit 1
 }
 
-if(!(Test-Prerequisite '*.NET Core*Windows Server Hosting*' 1.1.30327.81))
-{
-    Write-Host ".NET Core Windows Server Hosting Bundle minimum version 1.1.30327.81 not installed...download and install from https://go.microsoft.com/fwlink/?linkid=844461. Halting installation."
-    exit 1
-}else{
-    Write-Host ".NET Core Windows Server Hosting Bundle installed and meets expectations."
+
+$userEnteredAuthorizationServiceURL = Read-Host  "Enter the URL for the Authorization Service or hit enter to accept the default [$authorizationSerivceURL]"
+Write-Host ""
+if(![string]::IsNullOrEmpty($userEnteredAuthorizationServiceURL)){   
+     $authorizationSerivceURL = $userEnteredAuthorizationServiceURL
 }
 
-if(!(Test-Prerequisite '*CouchDB*'))
-{
-    Write-Host "CouchDB not installed locally, testing to see if is installed on a remote server using $couchDbServer"
-    $remoteInstallationStatus = Get-CouchDbRemoteInstallationStatus $couchDbServer 2.0.0
-    if($remoteInstallationStatus -eq "NotInstalled")
-    {
-        Write-Host "CouchDB not installed, download and install from https://dl.bintray.com/apache/couchdb/win/2.1.0/apache-couchdb-2.1.0.msi. Halting installation."
-		exit 1
-    }elseif($remoteInstallationStatus -eq "MinVersionNotMet"){
-        Write-Host "CouchDB is installed on $couchDbServer but does not meet the minimum version requirements, you must have CouchDB 2.0.0.1 or greater installed: https://dl.bintray.com/apache/couchdb/win/2.1.0/apache-couchdb-2.1.0.msi. Halting installation."
-        exit 1
-    }else{
-        Write-Host "CouchDB installed and meets specifications"
+$userEnteredIdentityServiceURL = Read-Host  "Enter the URL for the Identity Service or hit enter to accept the default [$identityServerUrl]"
+Write-Host ""
+if(![string]::IsNullOrEmpty($userEnteredIdentityServiceURL)){   
+     $identityServerUrl = $userEnteredIdentityServiceURL
+}
+
+
+if(![string]::IsNullOrEmpty($storedIisUser)){
+    $userEnteredIisUser = Read-Host "Press Enter to accept the default IIS App Pool User '$($storedIisUser)' or enter a new App Pool User"
+    if([string]::IsNullOrEmpty($userEnteredIisUser)){
+        $userEnteredIisUser = $storedIisUser
     }
-}elseif (!(Test-Prerequisite '*CouchDB*' 2.0.0.1)) {
-    Write-Host "CouchDB is installed but does not meet the minimum version requirements, you must have CouchDB 2.0.0.1 or greater installed: https://dl.bintray.com/apache/couchdb/win/2.1.0/apache-couchdb-2.1.0.msi. Halting installation."
-    exit 1
 }else{
-    Write-Host "CouchDB installed and meets specifications"
+    $userEnteredIisUser = Read-Host "Please enter a user account for the App Pool"
 }
 
-if(!(Test-IdentityInstalled $identityServerUrl)){
-	Write-Host "Fabric.Identity is not installed, please first install Fabric.Identity then install Fabric.Authorization. Halting installation."
-	exit 1
+if(![string]::IsNullOrEmpty($userEnteredIisUser)){
+    
+    $iisUser = $userEnteredIisUser
+    $useSpecificUser = $true
+    $userEnteredPassword = Read-Host "Enter the password for $iisUser" -AsSecureString
+    $credential = New-Object -TypeName "System.Management.Automation.PSCredential" -ArgumentList $iisUser, $userEnteredPassword
+    [System.Reflection.Assembly]::LoadWithPartialName("System.DirectoryServices.AccountManagement") | Out-Null
+    $ct = [System.DirectoryServices.AccountManagement.ContextType]::Domain
+    $pc = New-Object System.DirectoryServices.AccountManagement.PrincipalContext -ArgumentList $ct,$credential.GetNetworkCredential().Domain
+    $isValid = $pc.ValidateCredentials($credential.GetNetworkCredential().UserName, $credential.GetNetworkCredential().Password)
+    if(!$isValid){
+        Write-Error "Incorrect credentials for $iisUser" -ErrorAction Stop
+    }
+    Write-Success "Credentials are valid for user $iisUser"
+    Write-Host ""
+}else{
+    Write-Error "No user account was entered, please enter a valid user account." -ErrorAction Stop
+}
+
+$userEnteredAppInsightsInstrumentationKey = Read-Host  "Enter Application Insights instrumentation key or hit enter to accept the default [$appInsightsInstrumentationKey]"
+Write-Host ""
+
+if(![string]::IsNullOrEmpty($userEnteredAppInsightsInstrumentationKey)){   
+     $appInsightsInstrumentationKey = $userEnteredAppInsightsInstrumentationKey
+}
+
+$userEnteredSqlServerAddress = Read-Host "Press Enter to accept the default Sql Server address '$($sqlServerAddress)' or enter a new Sql Server address" 
+Write-Host ""
+
+if(![string]::IsNullOrEmpty($userEnteredSqlServerAddress)){
+    $sqlServerAddress = $userEnteredSqlServerAddress
+}
+
+if(!($noDiscoveryService)){
+    $userEnteredMetadataDbName = Read-Host "Press Enter to accept the default Metadata DB Name '$($metadataDbName)' or enter a new Metadata DB Name"
+    if(![string]::IsNullOrEmpty($userEnteredMetadataDbName)){
+        $metadataDbName = $userEnteredMetadataDbName
+    }
+
+    $metadataConnStr = "Server=$($sqlServerAddress);Database=$($metadataDbName);Trusted_Connection=True;MultipleActiveResultSets=True;"
+    Invoke-Sql $metadataConnStr "SELECT TOP 1 RoleID FROM CatalystAdmin.RoleBASE" | Out-Null
+    Write-Success "Metadata DB Connection string: $metadataConnStr verified"
+    Write-Host ""
+}
+
+if(!($noDiscoveryService)){
+    $userEnteredDiscoveryServiceUrl = Read-Host "Press Enter to accept the default DiscoveryService URL [$discoveryServiceUrl] or enter a new URL"
+    Write-Host ""
+    if(![string]::IsNullOrEmpty($userEnteredDiscoveryServiceUrl)){   
+         $discoveryServiceUrl = $userEnteredDiscoveryServiceUrl
+    }
+
+}
+
+if(!($noDiscoveryService)){
+    Write-Host ""
+	Write-Host "Adding Service User to Discovery."
+	Write-Host ""
+	Add-ServiceUserToDiscovery $credential.UserName $metadataConnStr
+	Write-Host ""
+	Write-Host "Registering with Discovery Service."
+	Write-Host ""
+    Add-DiscoveryRegistration $discoveryServiceUrl $authorizationSerivceURL $credential
+    Write-Host ""
 }
 
 Write-Host ""
@@ -126,7 +315,7 @@ Write-Host ""
 $appDirectory = "$webroot\$appName"
 New-AppRoot $appDirectory $iisUser
 Write-Host "App directory is: $appDirectory"
-New-AppPool $appName
+New-AppPool $appName $iisUser $credential
 New-App $appName $siteName $appDirectory
 Publish-WebSite $zipPackage $appDirectory $appName
 
@@ -182,6 +371,7 @@ $body = @'
 }
 '@
 
+#signingCert
 Write-Host "Registering Fabric.GroupFetcher."
 try{
 	$groupFetcherSecret = Add-ClientRegistration -authUrl $identityServerUrl -body $body -accessToken $accessToken
@@ -205,19 +395,6 @@ if ($encryptionCertificateThumbprint){
 	$environmentVariables.Add("EncryptionCertificateSettings__EncryptionCertificateThumbprint", $encryptionCertificateThumbprint)
 }
 
-if ($couchDbServer){
-	$environmentVariables.Add("CouchDbSettings__Server", $couchDbServer)
-}
-
-if ($couchDbUsername){
-	$environmentVariables.Add("CouchDbSettings__Username", $couchDbUsername)
-}
-
-if ($couchDbPassword){
-	$encryptedCouchDbPassword = Get-EncryptedString $encryptionCert $couchDbPassword
-	$environmentVariables.Add("CouchDbSettings__Password", $encryptedCouchDbPassword)
-}
-
 if($appInsightsInstrumentationKey){
 	$environmentVariables.Add("ApplicationInsights__Enabled", "true")
 	$environmentVariables.Add("ApplicationInsights__InstrumentationKey", $appInsightsInstrumentationKey)
@@ -228,6 +405,7 @@ if($authorizationClientSecret){
 	$environmentVariables.Add("IdentityServerConfidentialClientSettings__ClientSecret", $encryptedSecret)
 }
 
+
 $environmentVariables.Add("IdentityServerConfidentialClientSettings__Authority", $identityServerUrl)
 
 Set-EnvironmentVariables $appDirectory $environmentVariables
@@ -235,5 +413,19 @@ Write-Host ""
 
 Set-Location $workingDirectory
 
+if($installerClientSecret){ Add-SecureInstallationSetting "common" "fabricInstallerSecret" $installerClientSecret $signingCert }
+if($encryptionCertificateThumbprint){ Add-InstallationSetting "common" "encryptionCertificateThumbprint" $encryptionCertificateThumbprint }
+if($encryptionCertificateThumbprint){ Add-InstallationSetting "authorization" "encryptionCertificateThumbprint" $encryptionCertificateThumbprint }
+if($appInsightsInstrumentationKey){ Add-InstallationSetting "authorization" "appInsightsInstrumentationKey" "$appInsightsInstrumentationKey" }
+if($sqlServerAddress){ Add-InstallationSetting "common" "sqlServerAddress" "$sqlServerAddress" }
+if($metadataDbName){ Add-InstallationSetting "common" "metadataDbName" "$metadataDbName" }
+if($identityServerUrl){ Add-InstallationSetting "common" "identityService" "$identityServerUrl" }
+if($discoveryServiceUrl) { Add-InstallationSetting "common" "discoveryService" "$discoveryServiceUrl" }
+if($authorizationSerivceURL) { Add-InstallationSetting "authorization" "authorizationSerivce" "$authorizationSerivceURL" }
+if($iisUser) { Add-InstallationSetting "authorization" "iisUser" "$iisUser" }
+if($fabricInstallerSecret) {Add-InstallationSetting "common" "fabricInstallerSecret" "$fabricInstallerSecret"}
+if($siteName) {Add-InstallationSetting "authorization" "siteName" "$siteName"}
+
 Invoke-MonitorShallow "$hostUrl/$appName"
+
 Write-Host "Installation complete, exiting."
