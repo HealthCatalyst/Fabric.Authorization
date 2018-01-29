@@ -200,10 +200,6 @@ Write-Host ""
 if(![string]::IsNullOrEmpty($userEnteredFabricInstallerSecret)){   
      $fabricInstallerSecret = $userEnteredFabricInstallerSecret
 }
-<# if([string]::IsNullOrEmpty($fabricInstallerSecret -eq $null)){
-	Write-Host "fabricInstallerSecret is not present in install.config, cannot proceed with installation. Please ensure that the fabricInstallerSecret config has a value in the install.config. Halting installation."
-	exit 1
-} #>
 
 if((Test-Path $zipPackage))
 {
