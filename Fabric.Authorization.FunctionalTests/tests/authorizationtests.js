@@ -140,6 +140,8 @@ describe("authorization tests", function () {
             }
         };
 
+        console.log("installer access token post data: " + JSON.stringify(postData));
+
         return getAccessToken(postData);
     }
 
