@@ -10,6 +10,8 @@ describe("authorization tests", function () {
     var baseIdentityUrl = process.env.BASE_IDENTITY_URL;
     var fabricInstallerSecret = process.env.FABRIC_INSTALLER_SECRET;
 
+    console.log("installer secret: " + fabricInstallerSecret);
+
     if (!baseAuthUrl) {
         baseAuthUrl = "http://localhost:5004";
     }
