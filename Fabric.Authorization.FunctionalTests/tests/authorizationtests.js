@@ -155,6 +155,7 @@ describe("authorization tests", function () {
     }
 
     function bootstrapIdentityServer() {
+        console.log("getting access token for installer with secret: " + fabricInstallerSecret);
         return getAccessTokenForInstaller(fabricInstallerSecret)
             .then(function (retrievedAccessToken) {
                 authRequestOptions.headers.Authorization = retrievedAccessToken;
