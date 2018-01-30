@@ -10,7 +10,7 @@ echo $clientSecretJson
 installersecret=$(echo $clientSecretJson | jq .installerSecret) 
 authorizationclientsecret=$(echo $clientSecretJson | jq .authClientSecret) 
 
-echo $installerSecret
+echo $installersecret
 echo $authorizationclientsecret
 
 echo "##vso[task.setvariable variable=FABRIC_INSTALLER_SECRET;]$installersecret"
