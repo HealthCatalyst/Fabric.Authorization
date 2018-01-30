@@ -10,6 +10,8 @@ describe("authorization tests", function () {
     var baseIdentityUrl = process.env.BASE_IDENTITY_URL;
     var fabricInstallerSecret = process.env.FABRIC_INSTALLER_SECRET;
 
+    console.log("identity url: " + baseIdentityUrl);
+    console.log("authorization url: " + baseAuthUrl);
     console.log("installer secret: " + fabricInstallerSecret);
 
     if (!baseAuthUrl) {
