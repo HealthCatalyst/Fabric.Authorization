@@ -12,6 +12,11 @@ namespace Fabric.Authorization.Persistence.InMemory.Stores
         public override async Task<Role> Add(Role model)
         {
             model.Id = Guid.NewGuid();
+            if (model.ParentRole.HasValue && Dictionary.ContainsKey(model.ParentRole.ToString()))
+            {
+                var parentRole = Dictionary[model.ParentRole.ToString()];
+                parentRole.ChildRoles.Add(model.Id);
+            }
             return await base.Add(model);
         }
 

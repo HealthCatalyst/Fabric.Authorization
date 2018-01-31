@@ -10,7 +10,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Mappers
             CreateMap<EntityModels.Role, Domain.Models.Role>()
                 .ForMember(x => x.Id, opt => opt.MapFrom(src => src.RoleId))
                 .ForMember(x => x.SecurableItem, opt => opt.MapFrom(src => src.SecurableItem.Name))
-                .ForMember(x => x.ParentRole, opt => opt.MapFrom(src => src.ParentRole.RoleId))
+                .ForMember(x => x.ParentRole, opt => opt.MapFrom(src => src.ParentRoleId))
                 .ForMember(x => x.Groups, opt => opt.MapFrom(src => src.Groups.Select(g => g.Name)))
                 .ForMember(x => x.ChildRoles, opt => opt.MapFrom(src => src.ChildRoles.Select(cr => cr.RoleId)))
                 .ForMember(x => x.Permissions, opt => opt.MapFrom(src => src.AllowedPermissions))
