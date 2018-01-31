@@ -78,6 +78,53 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Contains(name, getResponse.Body.AsString());
         }
 
+        [Fact]
+        public void TestAddParentRole_Success()
+        {
+            var parentRoleResponse = _browser.Post("/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = _securableItem,
+                    Name = "parent" + Guid.NewGuid().ToString(),
+                });
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, parentRoleResponse.StatusCode);
+            var parentRole = JsonConvert.DeserializeObject<RoleApiModel>(parentRoleResponse.Body.AsString());
+
+            var childRoleResponse = _browser.Post("/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = _securableItem,
+                    Name = "child" + Guid.NewGuid().ToString(),
+                    ParentRole = parentRole.Id
+                });
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, childRoleResponse.StatusCode);
+            var childRole = JsonConvert.DeserializeObject<RoleApiModel>(childRoleResponse.Body.AsString());
+            Assert.True(childRole.Id.HasValue);
+            Assert.True(childRole.ParentRole.HasValue);
+
+            var rolesResponse = _browser.Get($"/roles/app/{_securableItem}").Result;
+            Assert.Equal(HttpStatusCode.OK, rolesResponse.StatusCode);
+
+            var roles = JsonConvert.DeserializeObject<List<RoleApiModel>>(rolesResponse.Body.AsString());
+
+            Assert.Equal(2, roles.Count);
+            var retrievedChildRole = roles.First(r => r.Id == childRole.Id);
+            Assert.Equal(parentRole.Id, retrievedChildRole.ParentRole);
+
+            var retrievedParentRole = roles.First(r => r.Id == parentRole.Id);
+            Assert.Contains(childRole.Id.Value, retrievedParentRole.ChildRoles);
+        }
+
         [Theory]
         [IntegrationTestsFixture.DisplayTestMethodName]
         [InlineData("E70ABF1E-D827-432F-9DC1-05D83A574527")]
