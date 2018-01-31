@@ -7,8 +7,8 @@ echo $sourceFile
 clientSecretJson=$(<$sourceFile)
 echo $clientSecretJson
 
-installersecret=$(echo $clientSecretJson | jq .installerSecret) 
-authorizationclientsecret=$(echo $clientSecretJson | jq .authClientSecret) 
+installersecret=$(echo $clientSecretJson | jq -r .installerSecret) 
+authorizationclientsecret=$(echo $clientSecretJson | jq -r .authClientSecret) 
 
 echo $installersecret
 echo $authorizationclientsecret
