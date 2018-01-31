@@ -1512,9 +1512,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }).Result;
 
             Assert.Equal(HttpStatusCode.OK, permissionsResponse.StatusCode);
-            var permissions = JsonConvert.DeserializeObject<List<PermissionApiModel>>(permissionsResponse.Body.AsString());
+            var permissions = JsonConvert.DeserializeObject<List<ResolvedPermissionApiModel>>(permissionsResponse.Body.AsString());
             Assert.Single(permissions);
-            Assert.Equal(permission.Id, permissions.First().Id);
+
+            var resolvedPermission = permissions.First();
+            Assert.Equal(permission.Id, resolvedPermission.Id);
+            var resolvedRole = resolvedPermission.Roles.Single();
+            Assert.Equal(role.Id, resolvedRole.Id);
         }
     }
 }
