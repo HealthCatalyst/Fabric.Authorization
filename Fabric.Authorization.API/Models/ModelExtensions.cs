@@ -132,9 +132,9 @@ namespace Fabric.Authorization.API.Models
             return permissionApiModel;
         }
 
-        public static PermissionApiModel ToPermissionApiModel(this ResolvedPermission resolvedPermission)
+        public static ResolvedPermissionApiModel ToResolvedPermissionApiModel(this ResolvedPermission resolvedPermission)
         {
-            return new PermissionApiModel
+            return new ResolvedPermissionApiModel
             {
                 Id = resolvedPermission.Id,
                 Grain = resolvedPermission.Grain,

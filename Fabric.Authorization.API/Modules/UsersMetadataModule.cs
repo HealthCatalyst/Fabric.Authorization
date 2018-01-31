@@ -60,7 +60,7 @@ namespace Fabric.Authorization.API.Modules
                 "Gets permissions for specified user. Note this will only retrieve 1) granular permissions and 2) permissions under roles mapped to Custom groups.",
                 new[]
                 {
-                    new HttpResponseMetadata<List<PermissionApiModel>> {Code = (int) HttpStatusCode.OK, Message = "OK"},
+                    new HttpResponseMetadata<List<ResolvedPermissionApiModel>> {Code = (int) HttpStatusCode.OK, Message = "OK"},
                     new HttpResponseMetadata
                     {
                         Code = (int) HttpStatusCode.Forbidden,

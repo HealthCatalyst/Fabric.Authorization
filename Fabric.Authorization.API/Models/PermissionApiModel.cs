@@ -24,8 +24,6 @@ namespace Fabric.Authorization.API.Models
 
         public PermissionAction PermissionAction { get; set; }
 
-        public IEnumerable<PermissionRoleApiModel> Roles { get; set; }
-
         public string Identifier => Id.HasValue ? Id.ToString() : string.Empty;
 
         public override string ToString()
