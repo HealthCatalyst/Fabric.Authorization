@@ -1417,5 +1417,104 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.NotFound, get.StatusCode);
             Assert.Contains("User with SubjectId: bar and Identity Provider: foo was not found", get.Body.AsString());
         }
+
+        [Fact]
+        public void TestGetPermissions_FromCustomGroup_Success()
+        {
+            var groupName = "group1" + Guid.NewGuid();
+
+            var groupPostResponse = _browser.Post("/groups", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    GroupName = groupName,
+                    GroupSource = "Custom"
+                });
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, groupPostResponse.StatusCode);
+            var group = JsonConvert.DeserializeObject<GroupRoleApiModel>(groupPostResponse.Body.AsString());
+
+            var userName = "user1" + Guid.NewGuid();
+            var identityProvider = "TestIdp";
+
+            var userGroupResponse = _browser.Post($"/groups/{group.GroupName}/users", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    SubjectId = userName,
+                    IdentityProvider = identityProvider
+                });
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, userGroupResponse.StatusCode);
+
+            var roleName = "role1" + Guid.NewGuid();
+            var roleResponse = _browser.Post("/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = _securableItem,
+                    Name = roleName
+                });
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, roleResponse.StatusCode);
+            var role = JsonConvert.DeserializeObject<RoleApiModel>(roleResponse.Body.AsString());
+
+            var permissionName = "permission1" + Guid.NewGuid();
+            var permissionResponse = _browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = _securableItem,
+                    Name = permissionName
+                });
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, permissionResponse.StatusCode);
+            var permission = JsonConvert.DeserializeObject<PermissionApiModel>(permissionResponse.Body.AsString());
+
+            var groupRoleResponse = _browser.Post($"/groups/{group.GroupName}/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    Id = role.Id
+                });
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, groupRoleResponse.StatusCode);
+
+            var permissionRoleResponse = _browser.Post($"/roles/{role.Id}/permissions", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new[]
+                {
+                    new
+                    {
+                        Id = permission.Id
+                    }
+                });
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, permissionRoleResponse.StatusCode);
+
+            var permissionsResponse = _browser.Get($"/user/{identityProvider}/{userName}/permissions", with =>
+            {
+                with.HttpRequest();
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, permissionsResponse.StatusCode);
+            var permissions = JsonConvert.DeserializeObject<List<PermissionApiModel>>(permissionsResponse.Body.AsString());
+            Assert.Single(permissions);
+            Assert.Equal(permission.Id, permissions.First().Id);
+        }
     }
 }
