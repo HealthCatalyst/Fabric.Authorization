@@ -35,6 +35,8 @@ namespace Fabric.Authorization.API.Modules
             : base(modelCatalog, tagCatalog)
         {
             ModelCatalog.AddModels(typeof(PermissionAction));
+            ModelCatalog.AddModels(typeof(PermissionRoleApiModel));
+            ModelCatalog.AddModels(typeof(ResolvedPermissionApiModel));
 
             RouteDescriber.DescribeRoute(
                 "GetCurrentUserPermissions",
