@@ -8,11 +8,7 @@ var webdriver = require("selenium-webdriver"),
 describe("authorization tests", function () {
     var baseAuthUrl = process.env.BASE_AUTH_URL;
     var baseIdentityUrl = process.env.BASE_IDENTITY_URL;
-    var fabricInstallerSecret = process.env.FABRIC_INSTALLER_SECRET;
-
-    console.log("identity url: " + baseIdentityUrl);
-    console.log("authorization url: " + baseAuthUrl);
-    console.log("installer secret: " + fabricInstallerSecret);
+    var fabricInstallerSecret = process.env.FABRIC_INSTALLER_SECRET;    
 
     if (!baseAuthUrl) {
         baseAuthUrl = "http://localhost:5004";
@@ -138,9 +134,7 @@ describe("authorization tests", function () {
                 "grant_type": "client_credentials",
                 "scope": "fabric/identity.manageresources fabric/authorization.read fabric/authorization.write fabric/authorization.manageclients"
             }
-        };
-
-        console.log("installer access token post data: " + JSON.stringify(postData));
+        };        
 
         return getAccessToken(postData);
     }
@@ -158,8 +152,7 @@ describe("authorization tests", function () {
         return getAccessToken(clientData);
     }
 
-    function bootstrapIdentityServer() {
-        console.log("getting access token for installer with secret: " + fabricInstallerSecret);
+    function bootstrapIdentityServer() {        
         return getAccessTokenForInstaller(fabricInstallerSecret)
             .then(function (retrievedAccessToken) {
                 authRequestOptions.headers.Authorization = retrievedAccessToken;
