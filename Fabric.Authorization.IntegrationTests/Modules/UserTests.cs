@@ -230,7 +230,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.HttpRequest();
             }).Result;
 
-            var permissions = response.Body.DeserializeJson<List<PermissionApiModel>>();
+            var permissions = response.Body.DeserializeJson<List<ResolvedPermissionApiModel>>();
 
             Assert.NotNull(permissions);
             Assert.Equal(4, permissions.Count);

@@ -86,7 +86,7 @@ namespace Fabric.Authorization.API.Modules
 
             return permissionResolutionResult.AllowedPermissions
                 .Concat(permissionResolutionResult.DeniedPermissions)
-                .Select(p => p.ToPermissionApiModel());
+                .Select(p => p.ToResolvedPermissionApiModel());
         }
 
         private async Task<dynamic> GetCurrentUserPermissions()
