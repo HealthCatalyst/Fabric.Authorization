@@ -390,9 +390,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.OK, getResponse2.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse3.StatusCode);
 
-            Assert.True(getResponse1.Body.AsString().Contains(groupName + "_1"));
-            Assert.True(getResponse2.Body.AsString().Contains(groupName + "_2"));
-            Assert.True(getResponse3.Body.AsString().Contains(groupName + "_3"));
+            Assert.Contains(groupName + "_1", getResponse1.Body.AsString());
+            Assert.Contains(groupName + "_2", getResponse2.Body.AsString());
+            Assert.Contains(groupName + "_3", getResponse3.Body.AsString());
         }
 
         [Theory]
@@ -725,7 +725,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             responseEntity = response.Body.DeserializeJson<GroupUserApiModel>();
             userList = responseEntity.Users.ToList();
-            Assert.Equal(1, userList.Count);
+            Assert.Single(userList);
             Assert.Equal(user2SubjectId, userList[0].SubjectId);
         }
 
@@ -804,7 +804,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             var responseEntity = response.Body.DeserializeJson<GroupUserApiModel>();
             var userList = responseEntity.Users.ToList();
-            Assert.Equal(1, userList.Count);
+            Assert.Single(userList);
             Assert.Equal(subject1Id, userList[0].SubjectId);
         }
 
@@ -855,7 +855,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             var groups = response.Body.DeserializeJson<string[]>();
-            Assert.Equal(0, groups.Length);
+            Assert.Empty(groups);
         }
 
         [Fact]
@@ -1171,6 +1171,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             VerifyPermission(groupName, roleName, permissionName, false);
         }
 
+        // ReSharper disable once UnusedParameter.Local
         private void VerifyPermission(string groupName, string roleName, string permissionName, bool exists)
         {
             // get the group
