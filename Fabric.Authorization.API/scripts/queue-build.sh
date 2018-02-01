@@ -1,6 +1,7 @@
 #!/bin/bash
 definitionId=$1
-queueBuildResponse=$(curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $SYSTEM_ACCESSTOKEN" -d "{ \"definition\": { \"id\": $definitionId } }" https://healthcatalyst.visualstudio.com/DefaultCollection/Fabric/_apis/build/builds?api-version=2.0)
+sourceBranch=$2
+queueBuildResponse=$(curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $SYSTEM_ACCESSTOKEN" -d "{ \"definition\": { \"id\": $definitionId }, \"sourceBranch\": \"$sourceBranch\" }" https://healthcatalyst.visualstudio.com/DefaultCollection/Fabric/_apis/build/builds?api-version=2.0)
 echo $queueBuildResponse
 
 buildId=$(echo ${queueBuildResponse} | jq .id)
