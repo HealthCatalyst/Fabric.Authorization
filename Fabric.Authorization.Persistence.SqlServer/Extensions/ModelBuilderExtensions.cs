@@ -37,6 +37,55 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             });
         }
 
+        public static void ConfigureGrain(this ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Grain>(entity =>
+            {
+                entity.ToTable("Grain");
+
+                entity.Property(e => e.Id)
+                    .ValueGeneratedOnAdd()
+                    .UseSqlServerIdentityColumn();
+
+                entity.HasKey(e => e.GrainId)
+                    .ForSqlServerIsClustered(false);
+
+                entity.HasIndex(e => e.Id)
+                    .IsUnique()
+                    .ForSqlServerIsClustered();
+
+                entity.Property(p => p.Name)
+                    .IsRequired()
+                    .HasMaxLength(200);
+
+                entity.Property(p => p.RequiredWriteScopes)
+                    .HasMaxLength(4000);
+
+                entity.Property(p => p.GrainId)
+                    .IsRequired();
+
+                entity.Property(p => p.IsShared)
+                    .HasDefaultValueSql("0");
+
+                entity.Property(p => p.CreatedBy)
+                    .IsRequired();
+
+                entity.Property(p => p.CreatedDateTimeUtc)
+                    .HasColumnType("datetime")
+                    .IsRequired();
+
+                entity.Property(e => e.ModifiedDateTimeUtc)
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.IsDeleted)
+                    .HasDefaultValueSql("0");
+
+                entity.HasMany(e => e.SecurableItems)
+                    .WithOne(securableItem => securableItem.Grain)
+                    .HasForeignKey(k => k.GrainId);
+            });
+        }
+
         public static void ConfigureSecurableItem(this ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<SecurableItem>(entity =>
@@ -59,7 +108,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
 
                 entity.Property(p => p.SecurableItemId)
                     .IsRequired();
-
+                
                 entity.Property(p => p.CreatedBy)
                     .IsRequired();
 
