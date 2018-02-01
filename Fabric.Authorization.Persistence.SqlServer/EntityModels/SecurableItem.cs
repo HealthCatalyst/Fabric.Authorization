@@ -22,5 +22,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
         public Client Client { get; set; }
         public ICollection<Permission> Permissions { get; set; }
         public ICollection<Role> Roles { get; set; }
+        public Guid? GrainId { get; set; }
+        public Grain Grain { get; set; }
     }
 }

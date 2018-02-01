@@ -8,6 +8,7 @@ using Fabric.Authorization.Persistence.SqlServer.EntityModels;
 using Fabric.Authorization.Persistence.SqlServer.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Client = Fabric.Authorization.Persistence.SqlServer.EntityModels.Client;
+using Grain = Fabric.Authorization.Persistence.SqlServer.EntityModels.Grain;
 using Group = Fabric.Authorization.Persistence.SqlServer.EntityModels.Group;
 using Permission = Fabric.Authorization.Persistence.SqlServer.EntityModels.Permission;
 using Role = Fabric.Authorization.Persistence.SqlServer.EntityModels.Role;
@@ -20,13 +21,13 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
     {
         private readonly IEventContextResolverService _eventContextResolverService;
         private readonly ConnectionStrings _connectionStrings;
-
+        
         public AuthorizationDbContext(IEventContextResolverService eventContextResolverService, ConnectionStrings connectionStrings)
         {
             _eventContextResolverService = eventContextResolverService;
             _connectionStrings = connectionStrings;
         }
-
+        public DbSet<Grain> Grains { get; set; }
         public DbSet<Client> Clients { get; set; }
         public DbSet<SecurableItem> SecurableItems { get; set; }
         public DbSet<Group> Groups { get; set; }
@@ -85,6 +86,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.ConfigureGrain();
             modelBuilder.ConfigureClient();
             modelBuilder.ConfigureSecurableItem();
             modelBuilder.ConfigurePermission();

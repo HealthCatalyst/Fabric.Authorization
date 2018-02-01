@@ -12,6 +12,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
 {
     public interface IAuthorizationDbContext
     {
+        DbSet<Grain> Grains { get; set; }
         DbSet<Client> Clients { get; set; }
         DbSet<SecurableItem> SecurableItems { get; set; }
         DbSet<Group> Groups { get; set; }
