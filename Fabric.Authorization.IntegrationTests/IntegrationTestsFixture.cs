@@ -7,13 +7,9 @@ using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.RemoteServices.Identity.Providers;
 using Fabric.Authorization.Domain.Services;
-using Fabric.Authorization.Persistence.CouchDb.Configuration;
-using Fabric.Authorization.Persistence.CouchDb.Services;
-using Fabric.Authorization.Persistence.CouchDb.Stores;
 using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using Fabric.Platform.Shared.Configuration;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using Nancy.Testing;
 using Serilog;
@@ -24,12 +20,10 @@ namespace Fabric.Authorization.IntegrationTests
 {
     public class IntegrationTestsFixture : IDisposable
     {
-        protected CouchDbSettings CouchDbSettings { get; }
         protected ConnectionStrings ConnectionStrings { get; }
         private string DatabaseNameSuffix { get; }
         public IntegrationTestsFixture()
         {
-            CouchDbSettings = GetCouchDbSettings();
             DatabaseNameSuffix = GetDatabaseNameSuffix();
             ConnectionStrings = GetSqlServerConnection(DatabaseNameSuffix);
             CreateSqlServerDatabase();
@@ -40,7 +34,6 @@ namespace Fabric.Authorization.IntegrationTests
         {            
             var appConfiguration = new AppConfiguration
             {
-                CouchDbSettings = CouchDbSettings,
                 StorageProvider = storageProvider,
                 ConnectionStrings = ConnectionStrings,
                 IdentityServerConfidentialClientSettings = new IdentityServerConfidentialClientSettings
@@ -77,12 +70,7 @@ namespace Fabric.Authorization.IntegrationTests
 
         public IEventContextResolverService EventContextResolverService { get; set; } =
             new Mock<IEventContextResolverService>().Object;
-
-        private IDocumentDbService _dbService;
-
-        private readonly string CouchDbServerEnvironmentVariable = "COUCHDBSETTINGS__SERVER";
-        private readonly string CouchDbUsernameEnvironmentVariable = "COUCHDBSETTINGS__USERNAME";
-        private readonly string CouchDbPasswordEnvironmentVariable = "COUCHDBSETTINGS__PASSWORD";
+        
         private static readonly string SqlServerEnvironmentVariable = "SQLSERVERSETTINGS__SERVER";
         private static readonly string SqlServerUsernameEnvironmentVariable = "SQLSERVERSETTINGS__USERNAME";
         private static readonly string SqlServerPasswordEnvironmentVariable = "SQLSERVERSETTINGS__PASSWORD";
@@ -91,58 +79,8 @@ namespace Fabric.Authorization.IntegrationTests
         {
             GroupSource = "Windows"
         };
-
-        public IDocumentDbService DbService()
-        {
-            if (_dbService != null)
-            {
-                return _dbService;
-            }
-
-            ICouchDbSettings config = CouchDbSettings;
-
-            var innerDbService = new CouchDbAccessService(config, new Mock<ILogger>().Object);
-            innerDbService.Initialize().Wait();
-            innerDbService.AddViews("roles", CouchDbRoleStore.GetViews()).Wait();
-            innerDbService.AddViews("permissions", CouchDbPermissionStore.GetViews()).Wait();
-            var auditingDbService = new AuditingDocumentDbService(new Mock<IEventService>().Object, innerDbService);
-            var cachingDbService =
-                new CachingDocumentDbService(auditingDbService, new MemoryCache(new MemoryCacheOptions()));
-            _dbService = cachingDbService;
-            return _dbService;
-        }
-
-        private CouchDbSettings GetCouchDbSettings()
-        {
-            var databaseNameSuffix = GetDatabaseNameSuffix();
-            CouchDbSettings config = new CouchDbSettings
-            {
-                DatabaseName = "integration-" + databaseNameSuffix,
-                Username = "",
-                Password = "",
-                Server = "http://127.0.0.1:5984"
-            };
-
-            var couchDbServer = Environment.GetEnvironmentVariable(CouchDbServerEnvironmentVariable);
-            if (!string.IsNullOrEmpty(couchDbServer))
-            {
-                config.Server = couchDbServer;
-            }
-
-            var couchDbUsername = Environment.GetEnvironmentVariable(CouchDbUsernameEnvironmentVariable);
-            if (!string.IsNullOrEmpty(couchDbUsername))
-            {
-                config.Username = couchDbUsername;
-            }
-
-            var couchDbPassword = Environment.GetEnvironmentVariable(CouchDbPasswordEnvironmentVariable);
-            if (!string.IsNullOrEmpty(couchDbPassword))
-            {
-                config.Password = couchDbPassword;
-            }
-            return config;
-        }
-
+        
+        
         private string GetDatabaseNameSuffix()
         {
             var id = Guid.NewGuid().ToString().Replace("-", "");
@@ -261,6 +199,8 @@ namespace Fabric.Authorization.IntegrationTests
             }
         }
 
+        #endregion IDisposable implementation
+
         public void CreateClient(Browser browser, string clientId)
         {
             var id = clientId;
@@ -270,9 +210,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.JsonBody(new ClientApiModel { Id = id, Name = id });
             }).Wait();
         }
-
-        #endregion IDisposable implementation
-
+        
         public class DisplayTestMethodNameAttribute : BeforeAfterTestAttribute
         {
             private bool _writeToConsole = false;
