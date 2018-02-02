@@ -18,7 +18,9 @@ namespace Fabric.Authorization.API.DependencyInjection
 
         public void ConfigureSingletons(TinyIoCContainer container)
         {
-            container.Register<IDbBootstrapper, SqlServerDbBootstrapper>();
+            container.Register<IDbBootstrapper, SqlServerDbBootstrapper>().AsMultiInstance();
+            container.Register<IAuthorizationDbContext, AuthorizationDbContext>().AsMultiInstance();
+            container.Register<IEventContextResolverService, NoOpEventContextResolverService>().AsMultiInstance();
             container.Register(_appConfiguration.ConnectionStrings);
         }
 
