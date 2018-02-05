@@ -140,6 +140,7 @@ namespace Fabric.Authorization.API
             container.Register<IPropertySettings>(_appConfig.DefaultPropertySettings);
             container.Register(typeof(IOptions<>), typeof(OptionsManager<>));
             container.Register<IMemoryCache, MemoryCache>();
+            container.Register<Domain.Defaults.Authorization>();
 
             container.Register<IPersistenceConfigurator>((c, p) =>
             {

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using AutoMapper;
-using Fabric.Authorization.Domain.Constants;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Persistence.SqlServer.Mappers;
 
@@ -10,6 +9,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
     public class SqlServerDbBootstrapper : IDbBootstrapper
     {
         private readonly IAuthorizationDbContext _authorizationDbContext;
+        private readonly Domain.Defaults.Authorization _authorizationDefaults;
 
         static SqlServerDbBootstrapper()
         {
@@ -19,15 +19,16 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
            // Mapper.AssertConfigurationIsValid();            
         }
 
-        public SqlServerDbBootstrapper(IAuthorizationDbContext authorizationDbContext)
+        public SqlServerDbBootstrapper(IAuthorizationDbContext authorizationDbContext, Domain.Defaults.Authorization authorizationDefaults)
         {
             _authorizationDbContext = authorizationDbContext;
+            _authorizationDefaults = authorizationDefaults;
         }
 
         public void Setup()
         {
             var grains = _authorizationDbContext.Grains.ToList();
-            foreach (var builtInGrain in Grains.BuiltInGrains)
+            foreach (var builtInGrain in _authorizationDefaults.Grains)
             {
                 var existingGrain = grains.FirstOrDefault(g => g.Name == builtInGrain.Name);
                 var incomingGrain = builtInGrain.ToEntity();

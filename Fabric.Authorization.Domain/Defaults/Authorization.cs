@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using Fabric.Authorization.Domain.Models;
 
-namespace Fabric.Authorization.Domain.Constants
+namespace Fabric.Authorization.Domain.Defaults
 {
-    public static class Grains
+    public class Authorization
     {
-        public static IList<Grain> BuiltInGrains = new List<Grain>
+        public IList<Grain> Grains = new List<Grain>
         {
             new Grain
             {
