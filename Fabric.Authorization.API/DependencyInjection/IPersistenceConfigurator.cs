@@ -4,7 +4,7 @@ namespace Fabric.Authorization.API.DependencyInjection
 {
     public interface IPersistenceConfigurator
     {
-        void ConfigureSingletons(TinyIoCContainer container);
+        void ConfigureApplicationInstances(TinyIoCContainer container);
         void ConfigureRequestInstances(TinyIoCContainer container);
     }
 }

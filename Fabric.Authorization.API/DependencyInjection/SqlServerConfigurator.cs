@@ -16,7 +16,7 @@ namespace Fabric.Authorization.API.DependencyInjection
             _appConfiguration = appConfiguration;
         }
 
-        public void ConfigureSingletons(TinyIoCContainer container)
+        public void ConfigureApplicationInstances(TinyIoCContainer container)
         {
             container.Register<IDbBootstrapper, SqlServerDbBootstrapper>().AsMultiInstance();
             container.Register<IAuthorizationDbContext, AuthorizationDbContext>().AsMultiInstance();

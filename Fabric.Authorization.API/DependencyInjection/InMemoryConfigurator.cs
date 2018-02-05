@@ -8,7 +8,7 @@ namespace Fabric.Authorization.API.DependencyInjection
 {
     public class InMemoryConfigurator : IPersistenceConfigurator
     {
-        public void ConfigureSingletons(TinyIoCContainer container)
+        public void ConfigureApplicationInstances(TinyIoCContainer container)
         {
             container.Register<IDbBootstrapper, InMemoryDbBootstrapper>();
             container.Register<IIdentifierFormatter, IdpIdentifierFormatter>();
