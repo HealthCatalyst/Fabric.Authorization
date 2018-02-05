@@ -41,7 +41,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
         {
             modelBuilder.Entity<Grain>(entity =>
             {
-                entity.ToTable("Grain");
+                entity.ToTable("Grains");
 
                 entity.Property(e => e.Id)
                     .ValueGeneratedOnAdd()
