@@ -97,7 +97,7 @@ namespace Fabric.Authorization.API
                 }
             };
 
-            ConfigureSingletonRegistrations(container);
+            ConfigureApplicationRegistrations(container);
             var dbBootstrapper = container.Resolve<IDbBootstrapper>();
             dbBootstrapper.Setup();
         }
@@ -128,7 +128,7 @@ namespace Fabric.Authorization.API
             }
         }
 
-        private void ConfigureSingletonRegistrations(TinyIoCContainer container)
+        private void ConfigureApplicationRegistrations(TinyIoCContainer container)
         {
             container.Register(_appConfig);
             container.Register(_logger);
@@ -161,7 +161,7 @@ namespace Fabric.Authorization.API
             });
 
             var configurator = container.Resolve<IPersistenceConfigurator>();
-            configurator.ConfigureSingletons(container);
+            configurator.ConfigureApplicationInstances(container);
         }
 
         protected override void ConfigureConventions(NancyConventions nancyConventions)

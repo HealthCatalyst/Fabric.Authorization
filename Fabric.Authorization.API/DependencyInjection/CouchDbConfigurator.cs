@@ -17,7 +17,7 @@ namespace Fabric.Authorization.API.DependencyInjection
             _appConfiguration = appConfiguration;
         }
 
-        public void ConfigureSingletons(TinyIoCContainer container)
+        public void ConfigureApplicationInstances(TinyIoCContainer container)
         {
             container.Register<IDocumentDbService, CouchDbAccessService>("inner");
             container.Register<ICouchDbSettings>(_appConfiguration.CouchDbSettings);
