@@ -2,6 +2,7 @@
 using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using Fabric.Authorization.Persistence.SqlServer.Services;
 using Fabric.Authorization.UnitTests.Stubs;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace Fabric.Authorization.UnitTests.DbBootstrappers
@@ -9,30 +10,55 @@ namespace Fabric.Authorization.UnitTests.DbBootstrappers
     public class SqlServerDbBootstrapperTests
     {
         [Fact]
-        public void Setup_CreatesBuiltInGrains_Success()
+        public void Setup_CreatesDefaults_Success()
         {
             var dbContext = CreateDbContext();
             Bootstrap(dbContext, new Domain.Defaults.Authorization());
-            var grains = dbContext.Grains.ToList();
-            Assert.Equal(2, grains.Count);
+            AssertDefaults(dbContext);
         }
 
         [Fact]
-        public void Setup_UpdatesBuiltInGrains_Success()
+        public void Setup_UpdatesDefaults_Success()
         {
             var dbContext = CreateDbContext();
             var authorizationDefaults = new Domain.Defaults.Authorization();
             Bootstrap(dbContext, authorizationDefaults);
-            var grains = dbContext.Grains.ToList();
-            Assert.Equal(2, grains.Count);
+            AssertDefaults(dbContext);
 
             var dosGrain = authorizationDefaults.Grains.First(g => g.Name == "dos");
             dosGrain.RequiredWriteScopes.Add("fabric/authorization.write");
 
             Bootstrap(dbContext, authorizationDefaults);
 
+            AssertDefaults(dbContext);
+
             var updatedDosGrain = dbContext.Grains.First(g => g.Name == "dos");
             Assert.Equal("fabric/authorization.dos.write;fabric/authorization.write", updatedDosGrain.RequiredWriteScopes);
+        }
+
+        private void AssertDefaults(IAuthorizationDbContext dbContext)
+        {
+            var grains = dbContext.Grains.ToList();
+            Assert.Equal(2, grains.Count);
+            Assert.Equal(1, dbContext.SecurableItems.Count());
+            Assert.Equal(1, dbContext.Roles.Count());
+            Assert.Equal(1, dbContext.Permissions.Count());
+
+            var securableItem = dbContext.SecurableItems.FirstOrDefault(si => si.Name == "datamarts");
+            Assert.NotNull(securableItem);
+
+            var roles = dbContext.Roles
+                .Include(r => r.RolePermissions)
+                .ThenInclude(rp => rp.Permission)
+                .Where(r => r.Name == "AuthorizationAdmin")
+                .ToList();
+
+            var rolePermissions = roles.SelectMany(r => r.RolePermissions).ToList();
+            Assert.Single(rolePermissions);
+
+            var permissions = rolePermissions.Select(rp => rp.Permission).ToList();
+            Assert.Single(permissions);
+            Assert.Equal("AuthorizationAdmin", permissions.First().Name);
         }
 
         private void Bootstrap(IAuthorizationDbContext dbContext, Domain.Defaults.Authorization authorizationDefaults)
