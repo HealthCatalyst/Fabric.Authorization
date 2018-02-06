@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using AutoMapper;
 using Fabric.Authorization.Domain.Services;
+using Fabric.Authorization.Persistence.SqlServer.EntityModels;
 using Fabric.Authorization.Persistence.SqlServer.Mappers;
 
 namespace Fabric.Authorization.Persistence.SqlServer.Services
@@ -27,7 +29,13 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
 
         public void Setup()
         {
-            var grains = _authorizationDbContext.Grains.ToList();
+            SetupGrains();
+            _authorizationDbContext.SaveChanges();
+        }
+
+        private void SetupGrains()
+        {
+            var grains = _authorizationDbContext.Grains;
             foreach (var builtInGrain in _authorizationDefaults.Grains)
             {
                 var existingGrain = grains.FirstOrDefault(g => g.Name == builtInGrain.Name);
@@ -36,6 +44,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
                 {
                     incomingGrain.GrainId = Guid.NewGuid();
                     _authorizationDbContext.Grains.Add(incomingGrain);
+                    SetupRoles(incomingGrain);
                 }
                 else
                 {
@@ -48,9 +57,45 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
                         existingGrain.RequiredWriteScopes = incomingGrain.RequiredWriteScopes;
                     }
                 }
-                
+
             }
-            _authorizationDbContext.SaveChanges();
+        }
+
+        private void SetupRoles(Grain grain)
+        {
+            var roles = _authorizationDbContext.Roles;
+            foreach (var defaultRole in _authorizationDefaults.Roles)
+            {
+                var existingRole = roles.FirstOrDefault(r => r.Name == defaultRole.Name);
+                var securableItem = grain.SecurableItems.FirstOrDefault(si => si.Name == defaultRole.SecurableItem && si.Grain.Name == defaultRole.Grain);
+                var incomingRole = defaultRole.ToEntity();
+                if (existingRole == null && securableItem != null)
+                {
+                    incomingRole.RoleId = Guid.NewGuid();
+                    incomingRole.SecurableItemId = securableItem.SecurableItemId;
+                    _authorizationDbContext.Roles.Add(incomingRole);
+                    SetupPermissions(defaultRole, securableItem, incomingRole);
+                }
+            }
+        }
+
+        private void SetupPermissions(Domain.Models.Role defaultRole, SecurableItem securableItem, Role incomingRole)
+        {
+            foreach (var permission in defaultRole.Permissions)
+            {
+                var existingPermission =
+                    _authorizationDbContext.Permissions.FirstOrDefault(
+                        p => p.Name == permission.Name && p.Grain == permission.Grain &&
+                             p.SecurableItem.Name == securableItem.Name);
+                if (existingPermission == null)
+                {
+                    var incomingPermission = permission.ToEntity();
+                    incomingPermission.PermissionId = Guid.NewGuid();
+                    incomingPermission.SecurableItemId = securableItem.SecurableItemId;
+                    incomingPermission.RolePermissions.Add(new RolePermission { RoleId = incomingRole.RoleId, PermissionId = incomingPermission.PermissionId, PermissionAction = PermissionAction.Allow });
+                    _authorizationDbContext.Permissions.Add(incomingPermission);
+                }
+            }
         }
     }
 }

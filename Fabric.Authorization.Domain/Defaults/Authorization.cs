@@ -5,18 +5,50 @@ namespace Fabric.Authorization.Domain.Defaults
 {
     public class Authorization
     {
-        public IList<Grain> Grains = new List<Grain>
+        public IList<Grain> Grains { get; }
+        public IList<Role> Roles { get; }
+
+        public Authorization()
         {
-            new Grain
+            Grains = new List<Grain>
             {
-                Name = "app"
-            },
-            new Grain
+                new Grain
+                {
+                    Name = "app"
+                },
+                new Grain
+                {
+                    Name = "dos",
+                    IsShared = true,
+                    RequiredWriteScopes = new List<string> { "fabric/authorization.dos.write" },
+                    SecurableItems = new List<SecurableItem>
+                    {
+                        new SecurableItem
+                        {
+                            Name = "datamarts"
+                        }
+                    }
+                }
+            };
+
+            Roles = new List<Role>
             {
-                Name = "dos",
-                IsShared = true,
-                RequiredWriteScopes = new List<string> { "fabric/authorization.dos.write" }
-            }
-        };
+                new Role
+                {
+                    Name = "AuthorizationAdmin",
+                    Grain = "dos",
+                    SecurableItem = "datamarts",
+                    Permissions = new List<Permission>
+                    {
+                        new Permission
+                        {
+                            Name = "AuthorizationAdmin",
+                            Grain = "dos",
+                            SecurableItem = "datamarts"
+                        }
+                    }
+                }
+            };
+        }
     }
 }
