@@ -227,6 +227,37 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.Forbidden, postResponse.StatusCode);
         }
 
+        [Fact]
+        public void AddDosPermission_WrongSecurable_Forbidden()
+        {
+            var clientId = "fabric-installer";
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
+            {
+                new Claim(Claims.Scope, Scopes.ManageClientsScope),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.Scope, Scopes.ManageDosScope),
+                new Claim(Claims.ClientId, clientId)
+            }, "pwd"));
+
+            var browser = _fixture.GetBrowser(principal, _storageProvider);
+
+            var permission = "permission" + Guid.NewGuid();
+            var postResponse = browser.Post("/permissions", with =>
+                {
+                    with.HttpRequest();
+                    with.JsonBody(new
+                    {
+                        Grain = "dos",
+                        SecurableItem = "badsecurable",
+                        Name = permission
+                    });
+                })
+                .Result;
+
+            Assert.Equal(HttpStatusCode.Forbidden, postResponse.StatusCode);
+        }
+
         private void AssociateUserToDosAdminRole(string user)
         {
             var clientId = "fabric-installer";
