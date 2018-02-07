@@ -147,7 +147,7 @@ namespace Fabric.Authorization.API
                 switch (_appConfig.StorageProvider.ToLowerInvariant())
                 {
                     case StorageProviders.InMemory:
-                        return new InMemoryConfigurator();
+                        return new InMemoryConfigurator(_appConfig);
 
                     case StorageProviders.CouchDb:
                         return new CouchDbConfigurator(_appConfig);

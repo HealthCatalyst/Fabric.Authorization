@@ -21,12 +21,12 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
     public class AuthorizationDbContext : DbContext, IAuthorizationDbContext
     {
         private readonly IEventContextResolverService _eventContextResolverService;
-        private readonly ConnectionStrings _connectionStrings;
+        protected readonly ConnectionStrings ConnectionStrings;
         
         public AuthorizationDbContext(IEventContextResolverService eventContextResolverService, ConnectionStrings connectionStrings)
         {
             _eventContextResolverService = eventContextResolverService;
-            _connectionStrings = connectionStrings;
+            ConnectionStrings = connectionStrings;
         }
         public DbSet<Grain> Grains { get; set; }
         public DbSet<Client> Clients { get; set; }
@@ -104,7 +104,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(_connectionStrings.AuthorizationDatabase);
+            optionsBuilder.UseSqlServer(ConnectionStrings.AuthorizationDatabase);
         }
 
         public override EntityEntry<TEntity> Entry<TEntity>(TEntity entity)

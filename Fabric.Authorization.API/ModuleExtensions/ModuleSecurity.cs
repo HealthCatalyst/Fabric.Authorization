@@ -53,7 +53,7 @@ namespace Fabric.Authorization.API.ModuleExtensions
                     return null;
                 }
                 if (context.CurrentUser.HasClaims(claim => claim.Type == Claims.Scope && grain.RequiredWriteScopes.Contains(claim.Value)) 
-                    && permissions.Contains("dos/datamarts.authorizationadmin"))
+                    && (permissions.Contains("dos/datamarts.manageauthorization") || clientId == "fabric-installer"))
                 {
                     return null;
                 }
