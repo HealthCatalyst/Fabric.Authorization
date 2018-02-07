@@ -48,6 +48,7 @@ namespace Fabric.Authorization.API.DependencyInjection
             container.Register<IPermissionStore, CouchDbPermissionStore>();
             container.Register<IGroupStore, CouchDbGroupStore>();
             container.Register<IClientStore, CouchDbClientStore>();
+            container.Register<IGrainStore, CouchDbGrainStore>();
         }
     }
 }
