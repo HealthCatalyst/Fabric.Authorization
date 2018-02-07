@@ -5,6 +5,7 @@
         public static readonly string ReadScope = "fabric/authorization.read";
         public static readonly string WriteScope = "fabric/authorization.write";
         public static readonly string ManageClientsScope = "fabric/authorization.manageclients";
+        public static readonly string ManageDosScope = "fabric/authorization.dos.write";
     }
 
     public static class IdentityScopes

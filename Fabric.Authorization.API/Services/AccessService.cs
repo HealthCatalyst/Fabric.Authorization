@@ -31,17 +31,11 @@ namespace Fabric.Authorization.API.Services
         public async Task CheckSharedAccess<T>(Grain grain, string securableItemName, bool isWriteOperation, FabricModule<T> module)
         {
             var securableItemIsValid = IsSecurableItemChildOfGrain(grain, securableItemName);
-            var permissionResolutionResult = await _permissionResolverService.Resolve(new PermissionResolutionRequest
+            var permissions = new List<string>();
+            if (module.HasSubjectId)
             {
-                SubjectId = module.SubjectId,
-                IdentityProvider = module.IdentityProvider,
-                Grain = grain.Name,
-                SecurableItem = securableItemName,
-                UserGroups = await GetGroupsForAuthenticatedUser(module.SubjectId, module.IdentityProvider, module.Context.CurrentUser)
-            });
-            var permissions = permissionResolutionResult.AllowedPermissions
-                .Except(permissionResolutionResult.DeniedPermissions)
-                .Select(p => p.ToString());
+                permissions = (await GetPermissions<T>(module, grain, securableItemName)).ToList();
+            }
             module.RequiresSharedAccess<T>(grain, securableItemName, securableItemIsValid, isWriteOperation, permissions);
         }
 
@@ -118,6 +112,22 @@ namespace Fabric.Authorization.API.Services
             _logger.Information($"found claims for user: {allClaims.ToString(",")}");
 
             return allClaims ?? new string[] { };
+        }
+
+        private async Task<IEnumerable<string>> GetPermissions<T>(FabricModule<T> module, Grain grain, string securableItemName)
+        {
+            var permissionResolutionResult = await _permissionResolverService.Resolve(new PermissionResolutionRequest
+            {
+                SubjectId = module.SubjectId,
+                IdentityProvider = module.IdentityProvider,
+                Grain = grain.Name,
+                SecurableItem = securableItemName,
+                UserGroups = await GetGroupsForAuthenticatedUser(module.SubjectId, module.IdentityProvider, module.Context.CurrentUser)
+            });
+            var permissions = permissionResolutionResult.AllowedPermissions
+                .Except(permissionResolutionResult.DeniedPermissions)
+                .Select(p => p.ToString());
+            return permissions;
         }
 
     }

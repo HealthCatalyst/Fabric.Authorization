@@ -130,6 +130,8 @@ namespace Fabric.Authorization.API.Modules
 
         public string IdentityProvider => Context.CurrentUser.Claims.First(c => c.Type == Claims.IdentityProvider).Value;
 
+        public bool HasSubjectId => Context.CurrentUser.HasClaim(c => c.Type == Claims.Sub);
+
         protected Predicate<Claim> GetClientIdPredicate(string clientId)
         {
             return claim => claim.Type == Claims.ClientId && claim.Value == clientId;

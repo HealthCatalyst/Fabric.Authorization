@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using Fabric.Authorization.Persistence.SqlServer.Services;
-using Fabric.Authorization.UnitTests.Stubs;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
@@ -50,7 +49,7 @@ namespace Fabric.Authorization.UnitTests.DbBootstrappers
             var roles = dbContext.Roles
                 .Include(r => r.RolePermissions)
                 .ThenInclude(rp => rp.Permission)
-                .Where(r => r.Name == "AuthorizationAdmin")
+                .Where(r => r.Name == "dosadmin")
                 .ToList();
 
             var rolePermissions = roles.SelectMany(r => r.RolePermissions).ToList();
@@ -58,7 +57,7 @@ namespace Fabric.Authorization.UnitTests.DbBootstrappers
 
             var permissions = rolePermissions.Select(rp => rp.Permission).ToList();
             Assert.Single(permissions);
-            Assert.Equal("AuthorizationAdmin", permissions.First().Name);
+            Assert.Equal("manageauthorization", permissions.First().Name);
         }
 
         private void Bootstrap(IAuthorizationDbContext dbContext, Domain.Defaults.Authorization authorizationDefaults)

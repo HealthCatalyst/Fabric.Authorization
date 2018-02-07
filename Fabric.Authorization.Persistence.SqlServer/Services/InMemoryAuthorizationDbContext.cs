@@ -1,9 +1,8 @@
 ﻿using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Persistence.SqlServer.Configuration;
-using Fabric.Authorization.Persistence.SqlServer.Services;
 using Microsoft.EntityFrameworkCore;
 
-namespace Fabric.Authorization.UnitTests.Stubs
+namespace Fabric.Authorization.Persistence.SqlServer.Services
 {
     public class InMemoryAuthorizationDbContext : AuthorizationDbContext
     {
@@ -13,7 +12,7 @@ namespace Fabric.Authorization.UnitTests.Stubs
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseInMemoryDatabase();
+            optionsBuilder.UseInMemoryDatabase(databaseName: ConnectionStrings.AuthorizationDatabase);
         }
     }
 }

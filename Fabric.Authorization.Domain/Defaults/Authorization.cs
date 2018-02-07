@@ -35,14 +35,14 @@ namespace Fabric.Authorization.Domain.Defaults
             {
                 new Role
                 {
-                    Name = "AuthorizationAdmin",
+                    Name = "dosadmin",
                     Grain = "dos",
                     SecurableItem = "datamarts",
                     Permissions = new List<Permission>
                     {
                         new Permission
                         {
-                            Name = "AuthorizationAdmin",
+                            Name = "manageauthorization",
                             Grain = "dos",
                             SecurableItem = "datamarts"
                         }
