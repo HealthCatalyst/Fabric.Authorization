@@ -94,7 +94,7 @@ namespace Fabric.Authorization.API.Services
                 childSecurableItem => HasRequestedSecurableItem(childSecurableItem, securableItem));
         }
 
-        private async Task<IEnumerable<string>> GetGroupsForAuthenticatedUser(string subjectId, string providerId, ClaimsPrincipal currentUser)
+        public async Task<IEnumerable<string>> GetGroupsForAuthenticatedUser(string subjectId, string providerId, ClaimsPrincipal currentUser)
         {
             var userClaims = currentUser?.Claims
                 .Where(c => c.Type == "role" || c.Type == "groups")

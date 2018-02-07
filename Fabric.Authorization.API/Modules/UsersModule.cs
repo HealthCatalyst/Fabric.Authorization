@@ -106,7 +106,7 @@ namespace Fabric.Authorization.API.Modules
                 IdentityProvider = IdentityProvider,
                 Grain = userPermissionRequest.Grain,
                 SecurableItem = userPermissionRequest.SecurableItem,
-                UserGroups = await GetGroupsForAuthenticatedUser(SubjectId, IdentityProvider)
+                UserGroups = await AccessService.GetGroupsForAuthenticatedUser(SubjectId, IdentityProvider, Context.CurrentUser)
             });
 
             return new UserPermissionsApiModel
@@ -255,33 +255,7 @@ namespace Fabric.Authorization.API.Modules
                     HttpStatusCode.NotFound);
             }
         }
-
-        private async Task<IEnumerable<string>> GetGroupsForAuthenticatedUser(string subjectId, string providerId)
-        {
-            var userClaims = Context.CurrentUser?.Claims
-                .Where(c => c.Type == "role" || c.Type == "groups")
-                .Distinct(new ClaimComparer())
-                .Select(c => c.Value.ToString());
-
-            var groups = new List<string>();
-            try
-            {
-                groups = (await _userService.GetGroupsForUser(subjectId, providerId)).ToList();
-            }
-            catch (NotFoundException<User>)
-            {
-                Logger.Information($"User {subjectId} not found while attempting to retrieve groups.");
-            }
-
-            var allClaims = userClaims?
-                .Concat(groups)
-                .Distinct();
-
-            Logger.Information($"found claims for user: {allClaims.ToString(",")}");
-
-            return allClaims ?? new string[] { };
-        }
-
+        
         private async Task SetDefaultRequest(UserInfoRequest request)
         {
             if (string.IsNullOrEmpty(request.Grain) && string.IsNullOrEmpty(request.SecurableItem))
