@@ -51,6 +51,39 @@ namespace Fabric.Authorization.Domain.Services
             return item;
         }
 
+        public bool IsSecurableItemChildOfGrain(Grain grain, string securableItemName)
+        {
+            foreach (var securableItem in grain.SecurableItems)
+            {
+                if (HasRequestedSecurableItem(securableItem, securableItemName))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool HasRequestedSecurableItem(SecurableItem parentSecurableItem, string securableItem)
+        {
+            if (parentSecurableItem.Name == securableItem)
+            {
+                return true;
+            }
+            var childSecurableItems = parentSecurableItem.SecurableItems;
+            if (childSecurableItems == null || childSecurableItems.Count == 0)
+            {
+                return false;
+            }
+
+            if (childSecurableItems.Any(si => si.Name == securableItem))
+            {
+                return true;
+            }
+
+            return childSecurableItems.Any(
+                childSecurableItem => HasRequestedSecurableItem(childSecurableItem, securableItem));
+        }
+
         private bool TryGetSecurableItemById(SecurableItem parentSecurableItem, Guid itemId, out SecurableItem item)
         {
             try

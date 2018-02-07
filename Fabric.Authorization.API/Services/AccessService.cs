@@ -21,16 +21,19 @@ namespace Fabric.Authorization.API.Services
         private readonly IPermissionResolverService _permissionResolverService;
         private readonly UserService _userService;
         private readonly ILogger _logger;
-        public AccessService(IPermissionResolverService permissionResolverService, UserService userService, ILogger logger)
+        private readonly SecurableItemService _securableItemService;
+        public AccessService(IPermissionResolverService permissionResolverService, UserService userService, ILogger logger, SecurableItemService securableItemService)
         {
             _permissionResolverService = permissionResolverService ?? throw new ArgumentNullException(nameof(permissionResolverService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _securableItemService = securableItemService ??
+                                    throw new ArgumentNullException(nameof(securableItemService));
         }
 
         public async Task CheckSharedAccess<T>(Grain grain, string securableItemName, bool isWriteOperation, FabricModule<T> module)
         {
-            var securableItemIsValid = IsSecurableItemChildOfGrain(grain, securableItemName);
+            var securableItemIsValid = _securableItemService.IsSecurableItemChildOfGrain(grain, securableItemName);
             var permissions = new List<string>();
             if (module.HasSubjectId)
             {
@@ -55,38 +58,7 @@ namespace Fabric.Authorization.API.Services
             module.RequiresOwnershipAndClaims<T>(doesClientOwnItem, grain, securableItem, requiredClaims);
         }
 
-        private bool IsSecurableItemChildOfGrain(Grain grain, string securableItemName)
-        {
-            foreach (var securableItem in grain.SecurableItems)
-            {
-                if (HasRequestedSecurableItem(securableItem, securableItemName))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private bool HasRequestedSecurableItem(SecurableItem parentSecurableItem, string securableItem)
-        {
-            if (parentSecurableItem.Name == securableItem)
-            {
-                return true;
-            }
-            var childSecurableItems = parentSecurableItem.SecurableItems;
-            if (childSecurableItems == null || childSecurableItems.Count == 0)
-            {
-                return false;
-            }
-
-            if (childSecurableItems.Any(si => si.Name == securableItem))
-            {
-                return true;
-            }
-
-            return childSecurableItems.Any(
-                childSecurableItem => HasRequestedSecurableItem(childSecurableItem, securableItem));
-        }
+       
 
         public async Task<IEnumerable<string>> GetGroupsForAuthenticatedUser(string subjectId, string providerId, ClaimsPrincipal currentUser)
         {
