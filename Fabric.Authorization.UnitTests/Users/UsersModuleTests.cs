@@ -137,7 +137,8 @@ namespace Fabric.Authorization.UnitTests.Users
                 .Dependency(MockLogger.Object)
                 .Dependency(MockClientStore.Object)
                 .Dependency(MockRoleStore.Object)
-                .Dependency(MockPermissionStore.Object);
+                .Dependency(MockPermissionStore.Object)
+                .Dependency(MockGrainStore.Object);
         }
 
         private void SetupTestData()

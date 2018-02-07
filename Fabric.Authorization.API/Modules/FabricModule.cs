@@ -7,7 +7,7 @@ using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.ModuleExtensions;
-using Fabric.Authorization.Domain.Exceptions;
+using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
 using FluentValidation;
@@ -21,6 +21,7 @@ namespace Fabric.Authorization.API.Modules
     {
         protected ILogger Logger;
         protected AbstractValidator<T> Validator;
+        protected readonly AccessService AccessService;
 
         protected FabricModule()
         {
@@ -30,11 +31,13 @@ namespace Fabric.Authorization.API.Modules
             string path,
             ILogger logger,
             AbstractValidator<T> abstractValidator,
+            AccessService accessService,
             IPropertySettings propertySettings = null) : base(path)
         {
             Validator = abstractValidator ?? throw new ArgumentNullException(nameof(abstractValidator));
             Logger = logger ?? throw new ArgumentNullException(nameof(logger));
             PropertySettings = propertySettings;
+            AccessService = accessService ?? throw new ArgumentNullException(nameof(accessService));
         }
 
         protected IPropertySettings PropertySettings { get; set; }
@@ -95,23 +98,21 @@ namespace Fabric.Authorization.API.Modules
             ClientService clientService,
             dynamic grain,
             dynamic securableItem,
+            bool isWriteOperaion,
             params Predicate<Claim>[] requiredClaims)
         {
             string grainAsString = grain.ToString();
             string securableItemAsString = securableItem.ToString();
-            var doesClientOwnItem = false;
-
-            try
+            var grainModel = await clientService.GetGrain(grainAsString);
+            if (grainModel != null && grainModel.IsShared)
             {
-                doesClientOwnItem =
-                    await clientService.DoesClientOwnItem(ClientId, grainAsString, securableItemAsString);
+                await AccessService.CheckSharedAccess(grainModel, securableItemAsString, isWriteOperaion, this);
             }
-            catch (NotFoundException<Client>)
+            else
             {
-                doesClientOwnItem = false;
+                await AccessService.CheckAppAccess(ClientId, grainAsString, securableItemAsString, clientService, this,
+                    requiredClaims);
             }
-
-            this.RequiresOwnershipAndClaims<T>(doesClientOwnItem, grainAsString, securableItemAsString, requiredClaims);
         }
 
         protected void Validate(T model)
@@ -125,9 +126,9 @@ namespace Fabric.Authorization.API.Modules
             }
         }
 
-        protected string SubjectId => Context.CurrentUser.Claims.First(c => c.Type == Claims.Sub).Value;
+        public string SubjectId => Context.CurrentUser.Claims.First(c => c.Type == Claims.Sub).Value;
 
-        protected string IdentityProvider => Context.CurrentUser.Claims.First(c => c.Type == Claims.IdentityProvider).Value;
+        public string IdentityProvider => Context.CurrentUser.Claims.First(c => c.Type == Claims.IdentityProvider).Value;
 
         protected Predicate<Claim> GetClientIdPredicate(string clientId)
         {

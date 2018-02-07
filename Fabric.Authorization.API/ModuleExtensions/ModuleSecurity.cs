@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
+using Fabric.Authorization.Domain.Models;
 using Nancy;
 using Nancy.Extensions;
 using Nancy.Responses;
@@ -17,6 +20,11 @@ namespace Fabric.Authorization.API.ModuleExtensions
             module.AddBeforeHookOrExecute(RequiresOwnership<T>(doesClientOwnItem, grain, securableItem));
         }
 
+        public static void RequiresSharedAccess<T>(this NancyModule module, Grain grain, string securableItem, bool isSecurableItemChildOfGrain, bool isWriteOperation, IEnumerable<string> permissions)
+        {
+            module.AddBeforeHookOrExecute(RequiresSharedAccess<T>(isSecurableItemChildOfGrain, grain, securableItem, isWriteOperation, permissions));
+        }
+
         public static Func<NancyContext, Response> RequiresOwnership<T>(bool doesClientOwnItem, string grain, string securableItem)
         {
             return (context) =>
@@ -28,6 +36,28 @@ namespace Fabric.Authorization.API.ModuleExtensions
                     response = CreateForbiddenResponse<T>(clientId, grain, securableItem, context);
                 }
                 return response;
+            };
+        }
+
+        public static Func<NancyContext, Response> RequiresSharedAccess<T>(bool isSecurableItemChildOfGrain, Grain grain, string securableItem, bool isWriteOperation, IEnumerable<string> permissions)
+        {
+            return (context) =>
+            {
+                var clientId = context.CurrentUser?.FindFirst(Claims.ClientId)?.Value;
+                if (!isSecurableItemChildOfGrain)
+                {
+                    return CreateForbiddenResponse<T>(clientId, grain.Name, securableItem, context);
+                }
+                if (!isWriteOperation)
+                {
+                    return null;
+                }
+                if (context.CurrentUser.HasClaims(claim => claim.Type == Claims.Scope && grain.RequiredWriteScopes.Contains(claim.Value)) 
+                    && permissions.Contains("dos/datamarts.authorizationadmin"))
+                {
+                    return null;
+                }
+                return CreateForbiddenResponse<T>(clientId, grain.Name, securableItem, context);
             };
         }
 

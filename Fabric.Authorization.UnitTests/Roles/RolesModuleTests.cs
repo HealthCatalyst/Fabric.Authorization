@@ -6,6 +6,7 @@ using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Models;
+using Fabric.Authorization.Domain.Resolvers.Permissions;
 using Fabric.Authorization.Domain.Services;
 using Nancy;
 using Nancy.Testing;
@@ -379,10 +380,13 @@ namespace Fabric.Authorization.UnitTests.Roles
             return base.ConfigureBootstrapper(configurableBootstrapper, claims)
                 .Dependency<RoleService>(typeof(RoleService))
                 .Dependency<ClientService>(typeof(ClientService))
+                .Dependency<IPermissionResolverService>(typeof(PermissionResolverService))
                 .Dependency(MockLogger.Object)
                 .Dependency(MockClientStore.Object)
                 .Dependency(MockPermissionStore.Object)
-                .Dependency(MockRoleStore.Object);
+                .Dependency(MockRoleStore.Object)
+                .Dependency(MockUserStore.Object)
+                .Dependency(MockGrainStore.Object);
         }
     }
 }

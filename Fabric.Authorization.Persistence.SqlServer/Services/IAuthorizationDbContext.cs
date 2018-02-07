@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Fabric.Authorization.Persistence.SqlServer.EntityModels;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Client = Fabric.Authorization.Persistence.SqlServer.EntityModels.Client;
 using Group = Fabric.Authorization.Persistence.SqlServer.EntityModels.Group;
 using Permission = Fabric.Authorization.Persistence.SqlServer.EntityModels.Permission;
@@ -24,6 +25,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
         DbSet<GroupUser> GroupUsers { get; set; }
         DbSet<UserPermission> UserPermissions { get; set; }
         Task<int> SaveChangesAsync();
+        EntityEntry<TEntity> Entry<TEntity>(TEntity entity) where TEntity : class;
         int SaveChanges();
     }
 }
