@@ -6,6 +6,7 @@ using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Models;
+using Fabric.Authorization.Domain.Resolvers.Permissions;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.UnitTests.Mocks;
@@ -22,6 +23,10 @@ namespace Fabric.Authorization.UnitTests.Clients
         private readonly List<Client> _existingClients;
         private readonly Mock<IClientStore> _mockClientStore;
         private readonly Mock<ILogger> _mockLogger;
+        private readonly Mock<IGrainStore> _mockGrainStore;
+        private readonly Mock<IRoleStore> _mockRolesStore;
+        private readonly Mock<IPermissionStore> _mockPermissionStore;
+        private readonly Mock<IUserStore> _mockUserStore;
 
         public ClientsModuleTests()
         {
@@ -53,6 +58,14 @@ namespace Fabric.Authorization.UnitTests.Clients
             _mockClientStore = new Mock<IClientStore>()
                 .SetupGetClient(_existingClients)
                 .SetupAddClient();
+
+            _mockGrainStore = new Mock<IGrainStore>();
+
+            _mockRolesStore = new Mock<IRoleStore>();
+
+            _mockPermissionStore = new Mock<IPermissionStore>();
+
+            _mockUserStore = new Mock<IUserStore>();
 
             _mockLogger = new Mock<ILogger>();
         }
@@ -224,8 +237,13 @@ namespace Fabric.Authorization.UnitTests.Clients
         {
             return base.ConfigureBootstrapper(configurableBootstrapper, claims)
                 .Dependency<ClientService>(typeof(ClientService))
+                .Dependency<IPermissionResolverService>(typeof(PermissionResolverService))
                 .Dependency(_mockLogger.Object)
-                .Dependency(_mockClientStore.Object);
+                .Dependency(_mockClientStore.Object)
+                .Dependency(MockGrainStore.Object)
+                .Dependency(MockRoleStore.Object)
+                .Dependency(MockPermissionStore.Object)
+                .Dependency(MockUserStore.Object);
         }
 
         public static IEnumerable<object[]> BadRequestData => new[]

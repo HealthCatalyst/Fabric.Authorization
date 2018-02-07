@@ -22,6 +22,8 @@ namespace Fabric.Authorization.UnitTests
         protected readonly Mock<ILogger> MockLogger;
         protected readonly Mock<IPermissionStore> MockPermissionStore;
         protected readonly Mock<IRoleStore> MockRoleStore;
+        protected readonly Mock<IUserStore> MockUserStore;
+        protected readonly Mock<IGrainStore> MockGrainStore;
 
         protected ModuleTestsBase()
         {
@@ -46,6 +48,10 @@ namespace Fabric.Authorization.UnitTests
             MockGroupStore = new Mock<IGroupStore>()
                 .SetupGetGroups(ExistingGroups)
                 .SetupAddGroup();
+
+            MockGrainStore = new Mock<IGrainStore>();
+
+            MockUserStore = new Mock<IUserStore>();
         }
 
         private List<Client> CreateClients => new List<Client>

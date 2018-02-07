@@ -6,6 +6,7 @@ using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Models;
+using Fabric.Authorization.Domain.Resolvers.Permissions;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.UnitTests.Mocks;
@@ -267,8 +268,13 @@ namespace Fabric.Authorization.UnitTests.SecurableItems
         {
             return base.ConfigureBootstrapper(configurableBootstrapper, claims)
                 .Dependency<SecurableItemService>(typeof(SecurableItemService))
+                .Dependency<IPermissionResolverService>(typeof(PermissionResolverService))
                 .Dependency(_mockClientStore.Object)
-                .Dependency(_mockLogger.Object);
+                .Dependency(_mockLogger.Object)
+                .Dependency(MockGrainStore.Object)
+                .Dependency(MockRoleStore.Object)
+                .Dependency(MockPermissionStore.Object)
+                .Dependency(MockUserStore.Object);
         }
     }
 }

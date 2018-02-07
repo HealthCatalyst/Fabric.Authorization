@@ -17,6 +17,7 @@ namespace Fabric.Authorization.API.DependencyInjection
             container.Register<IPermissionStore, InMemoryPermissionStore>();
             container.Register<IGroupStore, InMemoryGroupStore>();
             container.Register<IClientStore, InMemoryClientStore>();
+            container.Register<IGrainStore, InMemoryGrainStore>();
         }
 
         public void ConfigureRequestInstances(TinyIoCContainer container)

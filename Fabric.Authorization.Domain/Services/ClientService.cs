@@ -17,10 +17,12 @@ namespace Fabric.Authorization.Domain.Services
         };
 
         private readonly IClientStore _clientStore;
+        private readonly IGrainStore _grainStore;
 
-        public ClientService(IClientStore clientStore)
+        public ClientService(IClientStore clientStore, IGrainStore grainStore)
         {
             _clientStore = clientStore ?? throw new ArgumentNullException(nameof(clientStore));
+            _grainStore = grainStore ?? throw new ArgumentNullException(nameof(grainStore));
         }
 
         public async Task<bool> DoesClientOwnItem(string clientId, string grain, string securableItem)
@@ -33,7 +35,7 @@ namespace Fabric.Authorization.Domain.Services
             var client = await _clientStore.Get(clientId);
             return DoesClientOwnItem(client.TopLevelSecurableItem, grain, securableItem);
         }
-
+        
         public bool DoesClientOwnItem(SecurableItem topLevelSecurableItem, string grain, string securableItem)
         {
             if (topLevelSecurableItem == null)
@@ -75,6 +77,11 @@ namespace Fabric.Authorization.Domain.Services
         public async Task DeleteClient(Client client)
         {
             await _clientStore.Delete(client);
+        }
+
+        public async Task<Grain> GetGrain(string name)
+        {
+            return await _grainStore.Get(name);
         }
 
         private static bool HasRequestedSecurableItem(SecurableItem parentSecurableItem, string grain, string securableItem)

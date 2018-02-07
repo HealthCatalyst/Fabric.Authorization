@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Models;
+using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
@@ -22,7 +23,8 @@ namespace Fabric.Authorization.API.Modules
             PermissionService permissionService,
             ClientService clientService,
             PermissionValidator validator,
-            ILogger logger) : base("/v1/permissions", logger, validator)
+            ILogger logger,
+            AccessService accessService) : base("/v1/permissions", logger, validator, accessService)
         {
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
             _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
@@ -63,7 +65,7 @@ namespace Fabric.Authorization.API.Modules
                 }
 
                 var permission = await _permissionService.GetPermission(permissionId);
-                await CheckAccess(_clientService, permission.Grain, permission.SecurableItem, AuthorizationReadClaim);
+                await CheckAccess(_clientService, permission.Grain, permission.SecurableItem, false, AuthorizationReadClaim);
                 return permission.ToPermissionApiModel();
             }
             catch (NotFoundException<Permission> ex)
@@ -86,7 +88,7 @@ namespace Fabric.Authorization.API.Modules
             var incomingPermission = permissionApiModel.ToPermissionDomainModel();
 
             Validate(incomingPermission);
-            await CheckAccess(_clientService, permissionApiModel.Grain, permissionApiModel.SecurableItem,
+            await CheckAccess(_clientService, permissionApiModel.Grain, permissionApiModel.SecurableItem, true,
                 AuthorizationWriteClaim);
 
             var permission = await _permissionService.AddPermission(incomingPermission);
@@ -102,7 +104,7 @@ namespace Fabric.Authorization.API.Modules
                     return CreateFailureResponse("permissionId must be a guid.", HttpStatusCode.BadRequest);
                 }
                 var permission = await _permissionService.GetPermission(permissionId);
-                await CheckAccess(_clientService, permission.Grain, permission.SecurableItem, AuthorizationWriteClaim);
+                await CheckAccess(_clientService, permission.Grain, permission.SecurableItem, true, AuthorizationWriteClaim);
                 await _permissionService.DeletePermission(permission);
                 return HttpStatusCode.NoContent;
             }
@@ -117,7 +119,7 @@ namespace Fabric.Authorization.API.Modules
 
         private async Task<dynamic> GetPermissionsForSecurableItem(dynamic parameters)
         {
-            await CheckAccess(_clientService, parameters.grain, parameters.securableItem, AuthorizationReadClaim);
+            await CheckAccess(_clientService, parameters.grain, parameters.securableItem, false, AuthorizationReadClaim);
             IEnumerable<Permission> permissions =
                 await _permissionService.GetPermissions(parameters.grain, parameters.securableItem);
             return permissions.Select(p => p.ToPermissionApiModel());
@@ -125,7 +127,7 @@ namespace Fabric.Authorization.API.Modules
 
         private async Task<dynamic> GetPermissionByName(dynamic parameters)
         {
-            await CheckAccess(_clientService, parameters.grain, parameters.securableItem, AuthorizationReadClaim);
+            await CheckAccess(_clientService, parameters.grain, parameters.securableItem, false, AuthorizationReadClaim);
             IEnumerable<Permission> permissions =
                 await _permissionService.GetPermissions(parameters.grain, parameters.securableItem,
                     parameters.permissionName);

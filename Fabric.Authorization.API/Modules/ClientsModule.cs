@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Models;
+using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
@@ -18,8 +19,8 @@ namespace Fabric.Authorization.API.Modules
     {
         private readonly ClientService _clientService;
 
-        public ClientsModule(ClientService clientService, ClientValidator validator, ILogger logger) : base(
-            "/v1/Clients", logger, validator)
+        public ClientsModule(ClientService clientService, ClientValidator validator, ILogger logger, AccessService accessService) : base(
+            "/v1/Clients", logger, validator, accessService)
         {
             //private members
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));

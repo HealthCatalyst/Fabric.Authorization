@@ -16,7 +16,7 @@ namespace Fabric.Authorization.Domain.Services
         public async Task<IEnumerable<string>> GetGroupsForUser(string subjectId, string identityProvider)
         {
             var user = await _userStore.Get($"{subjectId}:{identityProvider}");
-            return user.Groups;
+            return user != null ? user.Groups : new List<string>();
         }
     }
 }

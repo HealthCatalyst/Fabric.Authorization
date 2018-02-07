@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Models;
+using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
@@ -18,7 +19,8 @@ namespace Fabric.Authorization.API.Modules
 
         public SecurableItemsModule(SecurableItemService securableItemService,
             SecurableItemValidator validator,
-            ILogger logger) : base("/v1/SecurableItems", logger, validator)
+            AccessService accessService,
+            ILogger logger) : base("/v1/SecurableItems", logger, validator, accessService)
         {
             _securableItemService = securableItemService ??
                                     throw new ArgumentNullException(nameof(securableItemService));

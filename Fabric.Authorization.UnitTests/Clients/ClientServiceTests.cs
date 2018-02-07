@@ -67,7 +67,9 @@ namespace Fabric.Authorization.UnitTests.Clients
                 .SetupGetClient(new List<Client> { _testClient })
                 .Create();
 
-            var clientService = new ClientService(mockClientStore);
+            var mockGrantStore = new Mock<IGrainStore>().Object;
+
+            var clientService = new ClientService(mockClientStore, mockGrantStore);
             var ownsRequestedItem =
                 clientService.DoesClientOwnItem(clientId, grain, securableItem).Result;
             Assert.Equal(expectedResult, ownsRequestedItem);

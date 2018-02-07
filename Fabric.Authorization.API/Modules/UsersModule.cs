@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
+using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Resolvers.Models;
@@ -35,7 +36,8 @@ namespace Fabric.Authorization.API.Modules
             RoleService roleService,
             IPermissionResolverService permissionResolverService,
             UserValidator validator,
-            ILogger logger) : base("/v1/user", logger, validator)
+            AccessService accessService,
+            ILogger logger) : base("/v1/user", logger, validator, accessService)
         {
             _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
@@ -73,6 +75,7 @@ namespace Fabric.Authorization.API.Modules
                 _clientService,
                 userPermissionRequest.Grain,
                 userPermissionRequest.SecurableItem,
+                false,
                 AuthorizationReadClaim);
 
             var permissionResolutionResult = await _permissionResolverService.Resolve(new PermissionResolutionRequest
@@ -94,6 +97,7 @@ namespace Fabric.Authorization.API.Modules
             var userPermissionRequest = this.Bind<UserInfoRequest>();
             await SetDefaultRequest(userPermissionRequest);
             await CheckAccess(_clientService, userPermissionRequest.Grain, userPermissionRequest.SecurableItem,
+                false,
                 AuthorizationReadClaim);
 
             var permissionResolutionResult = await _permissionResolverService.Resolve(new PermissionResolutionRequest
@@ -150,7 +154,7 @@ namespace Fabric.Authorization.API.Modules
 
             foreach (var perm in permissions)
             {
-                await CheckAccess(_clientService, perm.Grain, perm.SecurableItem, AuthorizationManageClientsClaim);
+                await CheckAccess(_clientService, perm.Grain, perm.SecurableItem, true, AuthorizationManageClientsClaim);
             }
 
             var allowedPermissions = permissions
@@ -200,7 +204,7 @@ namespace Fabric.Authorization.API.Modules
 
             foreach (var perm in permissions)
             {
-                await CheckAccess(_clientService, perm.Grain, perm.SecurableItem, AuthorizationManageClientsClaim);
+                await CheckAccess(_clientService, perm.Grain, perm.SecurableItem, true, AuthorizationManageClientsClaim);
             }
 
             var granularPermission = new GranularPermission

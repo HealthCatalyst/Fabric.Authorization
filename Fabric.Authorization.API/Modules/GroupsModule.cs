@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Models;
+using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
@@ -23,7 +24,8 @@ namespace Fabric.Authorization.API.Modules
             GroupService groupService,
             GroupValidator validator,
             ILogger logger,
-            IPropertySettings propertySettings = null) : base("/v1/groups", logger, validator, propertySettings)
+            AccessService accessService,
+            IPropertySettings propertySettings = null) : base("/v1/groups", logger, validator, accessService, propertySettings)
         {
             _groupService = groupService;
 

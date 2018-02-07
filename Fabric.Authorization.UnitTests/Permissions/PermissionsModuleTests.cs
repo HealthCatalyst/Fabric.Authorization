@@ -6,6 +6,7 @@ using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Models;
+using Fabric.Authorization.Domain.Resolvers.Permissions;
 using Fabric.Authorization.Domain.Services;
 using Moq;
 using Nancy;
@@ -89,10 +90,13 @@ namespace Fabric.Authorization.UnitTests.Permissions
                 .Dependency<RoleService>(typeof(RoleService))
                 .Dependency<PermissionService>(typeof(PermissionService))
                 .Dependency<ClientService>(typeof(ClientService))
+                .Dependency<IPermissionResolverService>(typeof(PermissionResolverService))
                 .Dependency(_mockLogger.Object)
                 .Dependency(MockClientStore.Object)
                 .Dependency(MockPermissionStore.Object)
-                .Dependency(MockRoleStore.Object);
+                .Dependency(MockRoleStore.Object)
+                .Dependency(MockGrainStore.Object)
+                .Dependency(MockUserStore.Object);
         }
 
         [Fact]

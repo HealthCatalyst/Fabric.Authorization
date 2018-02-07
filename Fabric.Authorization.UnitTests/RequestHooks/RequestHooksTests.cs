@@ -3,7 +3,10 @@ using System.Security.Claims;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
+using Fabric.Authorization.API.Services;
+using Fabric.Authorization.Domain.Resolvers.Permissions;
 using Fabric.Authorization.Domain.Services;
+using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Persistence.InMemory.Stores;
 using Moq;
 using Nancy;
@@ -21,14 +24,24 @@ namespace Fabric.Authorization.UnitTests.RequestHooks
         {
             var store = new InMemoryClientStore();
             var logger = new Mock<ILogger>().Object;
-            var clientService = new ClientService(store);
+            var mockGrantStore = new Mock<IGrainStore>().Object;
+            var mockUserStore = new Mock<IUserStore>().Object;
+            var mockPermissionStore = new Mock<IPermissionStore>().Object;
+            var mockRoleStore = new Mock<IRoleStore>().Object;
+            var userService = new UserService(mockUserStore);
+            var clientService = new ClientService(store, mockGrantStore);
+            var roleService = new RoleService(mockRoleStore, mockPermissionStore);
+            var permissionService = new PermissionService(mockPermissionStore, roleService);
+            var permissionResolverService = new PermissionResolverService(roleService, permissionService, new List<IPermissionResolverService>(), logger);
+            var accessService = new AccessService(permissionResolverService, userService, logger);
 
             _browser = new Browser(with =>
             {
                 with.Module(new ClientsModule(
                     clientService,
                     new Domain.Validators.ClientValidator(clientService),
-                    logger));
+                    logger,
+                    accessService));
 
                 with.RequestStartup((_, pipelines, context) =>
                 {
