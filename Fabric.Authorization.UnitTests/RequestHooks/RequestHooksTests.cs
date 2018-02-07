@@ -33,7 +33,8 @@ namespace Fabric.Authorization.UnitTests.RequestHooks
             var roleService = new RoleService(mockRoleStore, mockPermissionStore);
             var permissionService = new PermissionService(mockPermissionStore, roleService);
             var permissionResolverService = new PermissionResolverService(roleService, permissionService, new List<IPermissionResolverService>(), logger);
-            var accessService = new AccessService(permissionResolverService, userService, logger);
+            var securableItemService = new SecurableItemService(store);
+            var accessService = new AccessService(permissionResolverService, userService, logger, securableItemService);
 
             _browser = new Browser(with =>
             {
