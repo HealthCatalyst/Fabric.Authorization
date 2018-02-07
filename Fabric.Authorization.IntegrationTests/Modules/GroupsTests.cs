@@ -814,7 +814,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         {
             string group1Name = "Group1Name" + Guid.NewGuid();
             SetupGroup(group1Name, "Custom");
-            const string subject1Id = "Subject1Id";
+            string subject1Id = "Subject1Id" + Guid.NewGuid();
             const string identityProvider = "idP1";
             var response = SetupGroupUserMapping(group1Name, subject1Id, identityProvider);
 
