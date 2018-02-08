@@ -22,7 +22,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             _storageProvider = storageProvider;
         }
 
-        [Fact]
+        //[Fact]
         public void AddDosPermission_UserInRole_Success()
         {
             var user = "user" + Guid.NewGuid();
@@ -70,7 +70,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         }
 
-        [Fact]
+        //[Fact]
         public void AddDosPermission_Installer_Success()
         {
             var clientId = "fabric-installer";
@@ -120,7 +120,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal("datamarts", retrievedPermission.SecurableItem);
         }
 
-        [Fact]
+        //[Fact]
         public void AddDosPermission_UserNotInRole_Forbidden()
         {
             var sub = "sub" + Guid.NewGuid();
@@ -164,7 +164,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal("[]", permissionsAsString);
         }
 
-        [Fact]
+        //[Fact]
         public void AddDosPermission_MissingScope_Forbidden()
         {
             var user = "user" + Guid.NewGuid();
@@ -198,7 +198,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.Forbidden, postResponse.StatusCode);
         }
 
-        [Fact]
+        //[Fact]
         public void AddDosPermission_IncorrectClient_Forbidden()
         {
             var clientId = "not-fabric-installer";
@@ -228,7 +228,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.Forbidden, postResponse.StatusCode);
         }
 
-        [Fact]
+        //[Fact]
         public void AddDosPermission_WrongSecurable_Forbidden()
         {
             var clientId = "fabric-installer";
