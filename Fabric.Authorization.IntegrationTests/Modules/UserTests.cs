@@ -28,7 +28,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         private readonly string _securableItem;
         public UserTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory)
         {
-
+            Console.WriteLine($"UserTests ctor for storage provider: {storageProvider}");
             _securableItem = "userprincipal" + Guid.NewGuid();
             var principal = new ClaimsPrincipal(
                 new ClaimsIdentity(new List<Claim>
@@ -43,6 +43,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     new Claim(JwtClaimTypes.IdentityProvider, IdentityProvider)
                 }, _securableItem));
             _browser = fixture.GetBrowser(principal, storageProvider);
+            Console.WriteLine($"UserTests browser has been created for storage provider: {storageProvider}");
             fixture.CreateClient(_browser, _securableItem);
         }
 

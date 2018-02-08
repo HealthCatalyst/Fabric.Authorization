@@ -17,6 +17,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         private readonly string _storageProvider;
         public DosTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory)
         {
+            Console.WriteLine($"DosTests ctor for storage provider: {storageProvider}");
             _fixture = fixture;
             _storageProvider = storageProvider;
         }

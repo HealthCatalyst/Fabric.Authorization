@@ -16,6 +16,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         public PermissionsTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory)
         {
+            Console.WriteLine($"PermissionsTests ctor for storage provider: {storageProvider}");
             _securableItem = "permissionprincipal" + Guid.NewGuid();
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
             {
@@ -26,6 +27,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }, _securableItem));
 
             _browser = fixture.GetBrowser(principal, storageProvider);
+            Console.WriteLine($"PermissionsTests browser has been created for storage provider: {storageProvider}");
             fixture.CreateClient(_browser, _securableItem);
         }
 
