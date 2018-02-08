@@ -27,7 +27,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         public GroupsTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory)
         {
+            Console.WriteLine($"GroupsTests ctor for storage provider: {storageProvider}");
             Browser = fixture.GetBrowser(Principal, storageProvider);
+            Console.WriteLine($"GroupsTests browser has been created for storage provider: {storageProvider}");
             _defaultPropertySettings = fixture.DefaultPropertySettings;
             fixture.CreateClient(Browser, "rolesprincipal");
         }

@@ -14,20 +14,18 @@ namespace Fabric.Authorization.IntegrationTests.Modules
     public class ClientTests : IClassFixture<IntegrationTestsFixture>
     {
         private readonly Browser _browser;
-        private string _storageProvider;
         public ClientTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory)
         {
-            
+            Console.WriteLine($"ClientTests ctor for storage provider: {storageProvider}");
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
             {
                 new Claim(Claims.Scope, Scopes.ManageClientsScope),
                 new Claim(Claims.Scope, Scopes.ReadScope),
                 new Claim(Claims.Scope, Scopes.WriteScope),
             }, "testprincipal"));
-
-            _storageProvider = storageProvider;
-            _browser = fixture.GetBrowser(principal, storageProvider);            
-                     
+            
+            _browser = fixture.GetBrowser(principal, storageProvider);
+            Console.WriteLine($"ClientTests browser has been created for storage provider: {storageProvider}");
         }
         
         [Theory]

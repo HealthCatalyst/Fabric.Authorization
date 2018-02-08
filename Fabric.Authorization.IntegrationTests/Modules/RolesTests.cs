@@ -21,6 +21,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         private readonly string _subjectId;
         public RolesTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory)
         {
+            Console.WriteLine($"RoleTests ctor for storage provider: {storageProvider}");
             _securableItem = "rolesprincipal" + Guid.NewGuid();
             _subjectId = _securableItem;
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
@@ -32,6 +33,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }, _securableItem));
 
             _browser = fixture.GetBrowser(principal, storageProvider);
+            Console.WriteLine($"RoleTests browser has been created for storage provider: {storageProvider}");
             fixture.CreateClient(_browser, _securableItem);
         }
 

@@ -24,9 +24,12 @@ namespace Fabric.Authorization.IntegrationTests
         private string DatabaseNameSuffix { get; }
         public IntegrationTestsFixture()
         {
+            Console.WriteLine("IntegrationTestsFixture ctor.");
             DatabaseNameSuffix = GetDatabaseNameSuffix();
             ConnectionStrings = GetSqlServerConnection(DatabaseNameSuffix);
+            Console.WriteLine("IntegrationTestsFixture.CreateSqlServerDatabase-Start");
             CreateSqlServerDatabase();
+            Console.WriteLine("IntegrationTestsFixture.CreateSqlServerDatabase-Start");
         }
         public Browser Browser { get; set; }
 

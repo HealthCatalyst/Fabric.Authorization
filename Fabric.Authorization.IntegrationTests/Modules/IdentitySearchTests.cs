@@ -21,6 +21,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         public IdentitySearchTests(IdentitySearchFixture fixture)
         {
+            Console.WriteLine($"IdentitySearchTests ctor for storage provider: {StorageProviders.InMemory}");
             Fixture = fixture;
             Fixture.Initialize(StorageProviders.InMemory);
         }
