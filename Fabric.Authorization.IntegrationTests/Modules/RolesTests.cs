@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Nancy;
@@ -21,7 +22,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         private readonly string _subjectId;
         public RolesTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory)
         {
-            Console.WriteLine($"RoleTests ctor for storage provider: {storageProvider}");
             _securableItem = "rolesprincipal" + Guid.NewGuid();
             _subjectId = _securableItem;
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
@@ -33,7 +33,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }, _securableItem));
 
             _browser = fixture.GetBrowser(principal, storageProvider);
-            Console.WriteLine($"RoleTests browser has been created for storage provider: {storageProvider}");
             fixture.CreateClient(_browser, _securableItem);
         }
 
@@ -41,12 +40,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [IntegrationTestsFixture.DisplayTestMethodName]
         [InlineData("C5247AA4-0063-4E68-B1E4-55BD5E0E177D")]
         [InlineData("C5247AA4-0063-4E68-B1E4-55BD5E0E177E")]
-        public void TestGetRole_Fail(string name)
+        public async Task TestGetRole_FailAsync(string name)
         {
-            var get = _browser.Get($"/roles/app/{_securableItem}/{name}", with =>
+            var get = await _browser.Get($"/roles/app/{_securableItem}/{name}", with =>
             {
                 with.HttpRequest();
-            }).Result;
+            });
 
             Assert.Equal(HttpStatusCode.OK, get.StatusCode); //TODO: Should it be NotFound?
             Assert.True(!get.Body.AsString().Contains(name));
@@ -57,9 +56,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("EA318378-CCA3-42B4-93E2-F2FBF12E679A")]
         [InlineData("2374EEB4-EC72-454D-915B-23A89AD67879")]
         [InlineData("6BC32347-36A1-44CF-AA0E-6C1038AA1DF3")]
-        public void TestAddNewRole_Success(string name)
+        public async Task TestAddNewRole_SuccessAsync(string name)
         {
-            var postResponse = _browser.Post("/roles", with =>
+            var postResponse = await _browser.Post("/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -68,12 +67,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     SecurableItem = _securableItem,
                     Name = name
                 });
-            }).Result;
+            });
 
-            var getResponse = _browser.Get($"/roles/app/{_securableItem}/{name}", with =>
+            var getResponse = await _browser.Get($"/roles/app/{_securableItem}/{name}", with =>
             {
                 with.HttpRequest();
-            }).Result;
+            });
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
@@ -81,9 +80,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
-        public void TestAddParentRole_Success()
+        public async Task TestAddParentRole_SuccessAsync()
         {
-            var parentRoleResponse = _browser.Post("/roles", with =>
+            var parentRoleResponse = await _browser.Post("/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -92,12 +91,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     SecurableItem = _securableItem,
                     Name = "parent" + Guid.NewGuid().ToString(),
                 });
-            }).Result;
+            });
 
             Assert.Equal(HttpStatusCode.Created, parentRoleResponse.StatusCode);
             var parentRole = JsonConvert.DeserializeObject<RoleApiModel>(parentRoleResponse.Body.AsString());
 
-            var childRoleResponse = _browser.Post("/roles", with =>
+            var childRoleResponse = await _browser.Post("/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -107,14 +106,14 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     Name = "child" + Guid.NewGuid().ToString(),
                     ParentRole = parentRole.Id
                 });
-            }).Result;
+            });
 
             Assert.Equal(HttpStatusCode.Created, childRoleResponse.StatusCode);
             var childRole = JsonConvert.DeserializeObject<RoleApiModel>(childRoleResponse.Body.AsString());
             Assert.True(childRole.Id.HasValue);
             Assert.True(childRole.ParentRole.HasValue);
 
-            var rolesResponse = _browser.Get($"/roles/app/{_securableItem}").Result;
+            var rolesResponse = await _browser.Get($"/roles/app/{_securableItem}");
             Assert.Equal(HttpStatusCode.OK, rolesResponse.StatusCode);
 
             var roles = JsonConvert.DeserializeObject<List<RoleApiModel>>(rolesResponse.Body.AsString());
@@ -131,9 +130,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [IntegrationTestsFixture.DisplayTestMethodName]
         [InlineData("E70ABF1E-D827-432F-9DC1-05D83A574527")]
         [InlineData("BB51C27D-1310-413D-980E-FC2A6DEC78CF")]
-        public void TestAddGetRole_Success(string name)
+        public async Task TestAddGetRole_SuccessAsync(string name)
         {
-            var postResponse = _browser.Post("/roles", with =>
+            var postResponse = await _browser.Post("/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -142,23 +141,23 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     SecurableItem = _securableItem,
                     Name = name
                 });
-            }).Result;
+            });
 
             // Get by name
-            var getResponse = _browser.Get($"/roles/app/{_securableItem}/{name}", with =>
+            var getResponse = await _browser.Get($"/roles/app/{_securableItem}/{name}", with =>
             {
                 with.HttpRequest();
-            }).Result;
+            });
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
             Assert.Contains(name, getResponse.Body.AsString());
 
             // Get by secitem
-            getResponse = _browser.Get($"/roles/app/{_securableItem}", with =>
+            getResponse = await _browser.Get($"/roles/app/{_securableItem}", with =>
             {
                 with.HttpRequest();
-            }).Result;
+            });
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
@@ -169,9 +168,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [IntegrationTestsFixture.DisplayTestMethodName]
         [InlineData("90431E6A-8E40-43A8-8564-7AEE1524925D")]
         [InlineData("B1A09125-2E01-4F5D-A77B-6C127C4F98BD")]
-        public void TestGetRoleBySecItem_Success(string name)
+        public async Task TestGetRoleBySecItem_SuccessAsync(string name)
         {
-            var postResponse = _browser.Post("/roles", with =>
+            var postResponse = await _browser.Post("/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -180,11 +179,11 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     SecurableItem = _securableItem,
                     Name = name + "_1"
                 });
-            }).Result;
+            });
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
 
-            postResponse = _browser.Post("/roles", with =>
+            postResponse = await _browser.Post("/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -193,14 +192,14 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     SecurableItem = _securableItem,
                     Name = name + "_2"
                 });
-            }).Result;
+            });
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
 
-            var getResponse = _browser.Get($"/roles/app/{_securableItem}", with =>
+            var getResponse = await _browser.Get($"/roles/app/{_securableItem}", with =>
             {
                 with.HttpRequest();
-            }).Result;
+            });
 
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
@@ -213,9 +212,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [IntegrationTestsFixture.DisplayTestMethodName]
         [InlineData("C5247AA4-0063-4E68-B1E4-55BD5E0E171D")]
         [InlineData("C5247AA4-0063-4E68-B1E4-55BD5E0E172D")]
-        public void TestAddNewRole_Fail(string id)
+        public async Task TestAddNewRole_FailAsync(string id)
         {
-            _browser.Post("/roles", with =>
+            await _browser.Post("/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -225,10 +224,10 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     Name = id,
                     Id = id
                 });
-            }).Wait();
+            });
 
             // Repeat
-            var postResponse = _browser.Post("/roles", with =>
+            var postResponse = await _browser.Post("/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -238,7 +237,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     Name = id,
                     Id = id
                 });
-            }).Result;
+            });
 
             Assert.Equal(HttpStatusCode.Conflict, postResponse.StatusCode);
         }
@@ -247,22 +246,22 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [IntegrationTestsFixture.DisplayTestMethodName]
         [InlineData("C5247AA4-0063-4E68-B1E4-55BD5E0E977D")]
         [InlineData("C5247AA4-0063-4E68-B1E4-55BD5E0E877D")]
-        public void TestDeleteRole_Fail(string id)
+        public async Task TestDeleteRole_FailAsync(string id)
         {
-            var delete = _browser.Delete($"/roles/{id}", with =>
+            var delete = await _browser.Delete($"/roles/{id}", with =>
             {
                 with.HttpRequest();
-            }).Result;
+            });
 
             Assert.Equal(HttpStatusCode.NotFound, delete.StatusCode);
         }
 
         [Fact]
-        public void Test_DeletePermissionFromRole_PermissionDoesntExist_NotFoundException()
+        public async Task Test_DeletePermissionFromRole_PermissionDoesntExist_NotFoundExceptionAsync()
         {
             var roleName = "Role1" + Guid.NewGuid();
 
-            var postResponse = _browser.Post("/roles", with =>
+            var postResponse = await _browser.Post("/roles", with =>
                 {
                     with.HttpRequest();
                     with.JsonBody(new
@@ -271,12 +270,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                         SecurableItem = _securableItem,
                         Name = roleName
                     });
-                }).Result;
+                });
 
-            var getResponse = _browser.Get($"/roles/app/{_securableItem}/{roleName}", with =>
+            var getResponse = await _browser.Get($"/roles/app/{_securableItem}/{roleName}", with =>
                 {
                     with.HttpRequest();
-                }).Result;
+                });
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
@@ -303,21 +302,21 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                                                  }
                                          };
 
-            var delete = _browser.Delete($"/roles/{roleApiModelResponse.Id}/permissions", with =>
+            var delete = await _browser.Delete($"/roles/{roleApiModelResponse.Id}/permissions", with =>
                 {
                     with.HttpRequest();
                     with.JsonBody(permissionToDelete);
-                }).Result;
+                });
 
             Assert.Equal(HttpStatusCode.NotFound, delete.StatusCode);
         }
 
         [Fact]
-        public void Test_AddPermissionToRole_PermissionDoesntExist_NotFoundException()
+        public async Task Test_AddPermissionToRole_PermissionDoesntExist_NotFoundExceptionAsync()
         {
             var roleName = "Role1" + Guid.NewGuid();
 
-            var postResponse = _browser.Post("/roles", with =>
+            var postResponse = await _browser.Post("/roles", with =>
                 {
                     with.HttpRequest();
                     with.JsonBody(new
@@ -326,12 +325,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                         SecurableItem = _securableItem,
                         Name = roleName
                     });
-                }).Result;
+                });
 
-            var getResponse = _browser.Get($"/roles/app/{_securableItem}/{roleName}", with =>
+            var getResponse = await _browser.Get($"/roles/app/{_securableItem}/{roleName}", with =>
                 {
                     with.HttpRequest();
-                }).Result;
+                });
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
@@ -358,21 +357,21 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                                                  }
                                          };
 
-            var delete = _browser.Post($"/roles/{roleApiModelResponse.Id}/permissions", with =>
+            var delete = await _browser.Post($"/roles/{roleApiModelResponse.Id}/permissions", with =>
                 {
                     with.HttpRequest();
                     with.JsonBody(permissionToDelete);
-                }).Result;
+                });
 
             Assert.Equal(HttpStatusCode.NotFound, delete.StatusCode);
         }
 
         [Fact]
-        public void Test_AddPermissionToRole_NoPermissionInBody_BadRequestException()
+        public async Task Test_AddPermissionToRole_NoPermissionInBody_BadRequestExceptionAsync()
         {
             var roleName = "Role1" + Guid.NewGuid();
 
-            var postResponse = _browser.Post("/roles", with =>
+            var postResponse = await _browser.Post("/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -381,12 +380,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     SecurableItem = _securableItem,
                     Name = roleName
                 });
-            }).Result;
+            });
 
-            var getResponse = _browser.Get($"/roles/app/{_securableItem}/{roleName}", with =>
+            var getResponse = await _browser.Get($"/roles/app/{_securableItem}/{roleName}", with =>
             {
                 with.HttpRequest();
-            }).Result;
+            });
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
@@ -397,21 +396,21 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             var emptyPermissionArray = new List<PermissionApiModel>();
 
-            var addResponse = _browser.Post($"/roles/{roleApiModelResponse.Id}/permissions", with =>
+            var addResponse = await _browser.Post($"/roles/{roleApiModelResponse.Id}/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(emptyPermissionArray);
-            }).Result;
+            });
 
             Assert.Equal(HttpStatusCode.BadRequest, addResponse.StatusCode);
         }
 
         [Fact]
-        public void Test_AddPermissionToRole_NoIdOnPermission_BadRequestException()
+        public async Task Test_AddPermissionToRole_NoIdOnPermission_BadRequestExceptionAsync()
         {
             var roleName = "Role1" + Guid.NewGuid();
 
-            var postResponse = _browser.Post("/roles", with =>
+            var postResponse = await _browser.Post("/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -420,12 +419,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     SecurableItem = _securableItem,
                     Name = roleName
                 });
-            }).Result;
+            });
 
-            var getResponse = _browser.Get($"/roles/app/{_securableItem}/{roleName}", with =>
+            var getResponse = await _browser.Get($"/roles/app/{_securableItem}/{roleName}", with =>
             {
                 with.HttpRequest();
-            }).Result;
+            });
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
@@ -444,11 +443,11 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                                                  }
                                          };
 
-            postResponse = _browser.Post($"/roles/{roleApiModelResponse.Id}/permissions", with =>
+            postResponse = await _browser.Post($"/roles/{roleApiModelResponse.Id}/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(permissionToDelete);
-            }).Result;
+            });
 
             Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
             Assert.Contains(

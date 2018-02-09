@@ -88,7 +88,7 @@ namespace Fabric.Authorization.Domain.Services
 
         public async Task<bool> Exists(string id)
         {
-            return await _groupStore.Exists(id);
+            return await _groupStore.Exists(id).ConfigureAwait(false);
         }
 
         public async Task<Group> AddRoleToGroup(string groupName, Guid roleId)
