@@ -106,6 +106,10 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .IsRequired()
                     .HasMaxLength(200);
 
+                entity.Property(p => p.ClientOwner)
+                    .IsRequired()
+                    .HasMaxLength(200);
+
                 entity.Property(p => p.SecurableItemId)
                     .IsRequired();
                 

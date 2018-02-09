@@ -140,6 +140,7 @@ namespace Fabric.Authorization.UnitTests.SecurableItems
             Assert.Equal(HttpStatusCode.Created, result.StatusCode);
             var newSecurableItem = result.Body.DeserializeJson<SecurableItemApiModel>();
             Assert.Equal(securableItemToPost.Name, newSecurableItem.Name);
+            Assert.Equal(existingClient.Id, newSecurableItem.ClientOwner);
             Assert.NotNull(newSecurableItem.Id);
         }
 

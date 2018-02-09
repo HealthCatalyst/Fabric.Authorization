@@ -32,6 +32,7 @@ namespace Fabric.Authorization.Domain.Services
         {
             item.CreatedDateTimeUtc = DateTime.UtcNow;
             item.Id = Guid.NewGuid();
+            item.ClientOwner = clientId;
             var client = await _clientStore.Get(clientId);
             CheckUniqueness(client.TopLevelSecurableItem, item);
             client.TopLevelSecurableItem.SecurableItems.Add(item);
@@ -43,6 +44,7 @@ namespace Fabric.Authorization.Domain.Services
         {
             item.CreatedDateTimeUtc = DateTime.UtcNow;
             item.Id = Guid.NewGuid();
+            item.ClientOwner = clientId;
             var client = await _clientStore.Get(clientId);
             var parentSecurableItem = GetSecurableItemById(client.TopLevelSecurableItem, itemId);
             CheckUniqueness(parentSecurableItem, item);
