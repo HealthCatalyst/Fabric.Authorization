@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Nancy;
@@ -17,16 +18,15 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         private readonly string _storageProvider;
         public DosTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory)
         {
-            Console.WriteLine($"DosTests ctor for storage provider: {storageProvider}");
             _fixture = fixture;
             _storageProvider = storageProvider;
         }
 
-        //[Fact]
-        public void AddDosPermission_UserInRole_Success()
+        [Fact]
+        public async Task AddDosPermission_UserInRole_SuccessAsync()
         {
             var user = "user" + Guid.NewGuid();
-            AssociateUserToDosAdminRole(user);
+            await AssociateUserToDosAdminRoleAsync(user);
 
             var clientId = "clientid" + Guid.NewGuid();
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
@@ -41,9 +41,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             }, "pwd"));
 
             var browser = _fixture.GetBrowser(principal, _storageProvider);
-
             var permission = "permission" + Guid.NewGuid();
-            var postResponse = browser.Post("/permissions", with =>
+            var postResponse = await browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -52,26 +51,23 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     SecurableItem = "datamarts",
                     Name = permission
                 });
-            }).Result;
-
+            });
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             var createdPermission = JsonConvert.DeserializeObject<PermissionApiModel>(postResponse.Body.AsString());
 
-            var permissionResponse = browser.Get($"/permissions/{createdPermission.Id}", with =>
+            var permissionResponse = await browser.Get($"/permissions/{createdPermission.Id}", with =>
             {
                 with.HttpRequest();
-            }).Result;
-
+            });
             Assert.Equal(HttpStatusCode.OK, permissionResponse.StatusCode);
             var retrievedPermission =
                 JsonConvert.DeserializeObject<PermissionApiModel>(permissionResponse.Body.AsString());
 
             Assert.Equal(createdPermission.Id, retrievedPermission.Id);
-
         }
 
-        //[Fact]
-        public void AddDosPermission_Installer_Success()
+        [Fact]
+        public async Task AddDosPermission_Installer_SuccessAsync()
         {
             var clientId = "fabric-installer";
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
@@ -86,7 +82,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var browser = _fixture.GetBrowser(principal, _storageProvider);
 
             var permission = "permission" + Guid.NewGuid();
-            var postResponse = browser.Post("/permissions", with =>
+            var postResponse = await browser.Post("/permissions", with =>
                 {
                     with.HttpRequest();
                     with.JsonBody(new
@@ -95,8 +91,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                         SecurableItem = "datamarts",
                         Name = permission
                     });
-                })
-                .Result;
+                });
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             var createdPermission = JsonConvert.DeserializeObject<PermissionApiModel>(postResponse.Body.AsString());
@@ -106,11 +101,10 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal("datamarts", createdPermission.SecurableItem);
 
             // Get by name
-            var getResponse = browser.Get($"/permissions/{createdPermission.Id}", with =>
+            var getResponse = await browser.Get($"/permissions/{createdPermission.Id}", with =>
                 {
                     with.HttpRequest();
-                })
-                .Result;
+                });
 
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
             var retrievedPermission = JsonConvert.DeserializeObject<PermissionApiModel>(getResponse.Body.AsString());
@@ -120,8 +114,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal("datamarts", retrievedPermission.SecurableItem);
         }
 
-        //[Fact]
-        public void AddDosPermission_UserNotInRole_Forbidden()
+        [Fact]
+        public async Task AddDosPermission_UserNotInRole_ForbiddenAsync()
         {
             var sub = "sub" + Guid.NewGuid();
             var clientId = "clientid" + Guid.NewGuid();
@@ -139,7 +133,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var browser = _fixture.GetBrowser(principal, _storageProvider);
 
             var permission = "permission" + Guid.NewGuid();
-            var postResponse = browser.Post("/permissions", with =>
+            var postResponse = await browser.Post("/permissions", with =>
                 {
                     with.HttpRequest();
                     with.JsonBody(new
@@ -148,14 +142,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                         SecurableItem = "datamarts",
                         Name = permission
                     });
-                }).Result;
+                });
 
             // Get by name
-            var getResponse = browser.Get($"/permissions/dos/datamarts/{permission}", with =>
+            var getResponse = await browser.Get($"/permissions/dos/datamarts/{permission}", with =>
                 {
                     with.HttpRequest();
-                })
-                .Result;
+                });
 
             var permissionsAsString = getResponse.Body.AsString();
 
@@ -164,11 +157,11 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal("[]", permissionsAsString);
         }
 
-        //[Fact]
-        public void AddDosPermission_MissingScope_Forbidden()
+        [Fact]
+        public async Task AddDosPermission_MissingScope_ForbiddenAsync()
         {
             var user = "user" + Guid.NewGuid();
-            AssociateUserToDosAdminRole(user);
+            await AssociateUserToDosAdminRoleAsync(user);
 
             var clientId = "clientid" + Guid.NewGuid();
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
@@ -184,7 +177,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var browser = _fixture.GetBrowser(principal, _storageProvider);
 
             var permission = "permission" + Guid.NewGuid();
-            var postResponse = browser.Post("/permissions", with =>
+            var postResponse = await browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -193,13 +186,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     SecurableItem = "datamarts",
                     Name = permission
                 });
-            }).Result;
+            });
 
             Assert.Equal(HttpStatusCode.Forbidden, postResponse.StatusCode);
         }
 
-        //[Fact]
-        public void AddDosPermission_IncorrectClient_Forbidden()
+        [Fact]
+        public async Task AddDosPermission_IncorrectClient_ForbiddenAsync()
         {
             var clientId = "not-fabric-installer";
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
@@ -214,7 +207,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var browser = _fixture.GetBrowser(principal, _storageProvider);
 
             var permission = "permission" + Guid.NewGuid();
-            var postResponse = browser.Post("/permissions", with =>
+            var postResponse = await browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -223,13 +216,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     SecurableItem = "datamarts",
                     Name = permission
                 });
-            }).Result;
+            });
 
             Assert.Equal(HttpStatusCode.Forbidden, postResponse.StatusCode);
         }
 
-        //[Fact]
-        public void AddDosPermission_WrongSecurable_Forbidden()
+        [Fact]
+        public async Task AddDosPermission_WrongSecurable_ForbiddenAsync()
         {
             var clientId = "fabric-installer";
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
@@ -244,7 +237,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var browser = _fixture.GetBrowser(principal, _storageProvider);
 
             var permission = "permission" + Guid.NewGuid();
-            var postResponse = browser.Post("/permissions", with =>
+            var postResponse = await browser.Post("/permissions", with =>
                 {
                     with.HttpRequest();
                     with.JsonBody(new
@@ -253,13 +246,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                         SecurableItem = "badsecurable",
                         Name = permission
                     });
-                })
-                .Result;
+                });
 
             Assert.Equal(HttpStatusCode.Forbidden, postResponse.StatusCode);
         }
 
-        private void AssociateUserToDosAdminRole(string user)
+        private async Task AssociateUserToDosAdminRoleAsync(string user)
         {
             var clientId = "fabric-installer";
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
@@ -273,17 +265,15 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             var browser = _fixture.GetBrowser(principal, _storageProvider);
 
-            var roleResponse = browser.Get("/roles/dos/datamarts/dosadmin", with =>
+            var roleResponse = await browser.Get("/roles/dos/datamarts/dosadmin", with =>
                 {
                     with.HttpRequest();
-                })
-                .Result;
-
+                });
             Assert.Equal(HttpStatusCode.OK, roleResponse.StatusCode);
             var role = JsonConvert.DeserializeObject<List<RoleApiModel>>(roleResponse.Body.AsString()).First();
             Assert.Equal("dosadmin", role.Name);
 
-            var groupResponse = browser.Post("/groups", with =>
+            var groupResponse = await browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -291,23 +281,21 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     GroupName = "dosadmins" + Guid.NewGuid(),
                     GroupSource = "Custom"
                 });
-            }).Result;
-
+            });
             Assert.Equal(HttpStatusCode.Created, groupResponse.StatusCode);
             var group = JsonConvert.DeserializeObject<GroupRoleApiModel>(groupResponse.Body.AsString());
 
-            var groupRoleResponse = browser.Post($"/groups/{group.GroupName}/roles", with =>
+            var groupRoleResponse = await browser.Post($"/groups/{group.GroupName}/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
                 {
                     RoleId = role.Id
                 });
-            }).Result;
-
+            });
             Assert.Equal(HttpStatusCode.Created, groupRoleResponse.StatusCode);
 
-            var groupUserResponse = browser.Post($"/groups/{group.GroupName}/users", with =>
+            var groupUserResponse = await browser.Post($"/groups/{group.GroupName}/users", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -316,8 +304,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     SubjectId = user,
                     IdentityProvider = "Windows"
                 });
-            }).Result;
-
+            });
             Assert.Equal(HttpStatusCode.Created, groupUserResponse.StatusCode);
         }
     }

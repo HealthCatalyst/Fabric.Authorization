@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
 using FluentValidation;
@@ -47,8 +48,8 @@ namespace Fabric.Authorization.Domain.Validators
             {
                 return true;
             }
-
-            return !_groupService.Exists(group?.Id).Result;
+            var exists = Task.Run(async () => await _groupService.Exists(group.Id)).Result;
+            return !exists;
         }
     }
 }

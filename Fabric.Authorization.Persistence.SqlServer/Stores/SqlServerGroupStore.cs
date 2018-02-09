@@ -145,7 +145,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         {
             var group = await _authorizationDbContext.Groups
                 .SingleOrDefaultAsync(g => g.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
-                                           && !g.IsDeleted);
+                                           && !g.IsDeleted).ConfigureAwait(false);
 
             return group != null;
         }

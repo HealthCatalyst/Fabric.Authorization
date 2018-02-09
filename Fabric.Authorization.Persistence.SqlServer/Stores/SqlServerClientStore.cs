@@ -111,7 +111,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         {
             var client = await _authorizationDbContext.Clients                
                 .SingleOrDefaultAsync(c => c.ClientId.Equals(id, StringComparison.OrdinalIgnoreCase)
-                                           && !c.IsDeleted);
+                                           && !c.IsDeleted).ConfigureAwait(false);
 
             return client != null;
         }

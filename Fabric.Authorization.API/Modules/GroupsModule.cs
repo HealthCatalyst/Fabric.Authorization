@@ -35,7 +35,7 @@ namespace Fabric.Authorization.API.Modules
                 "GetGroup");
 
             Post("/", 
-                async _ => await AddGroup(),
+                async _ => await AddGroup().ConfigureAwait(false),
                 null,
                 "AddGroup");
 

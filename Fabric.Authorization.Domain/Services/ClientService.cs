@@ -104,7 +104,7 @@ namespace Fabric.Authorization.Domain.Services
 
         public async Task<bool> Exists(string id)
         {
-            return await _clientStore.Exists(id);
+            return await _clientStore.Exists(id).ConfigureAwait(false);
         }
     }
 }
