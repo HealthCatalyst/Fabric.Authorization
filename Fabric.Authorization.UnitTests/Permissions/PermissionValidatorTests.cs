@@ -24,7 +24,7 @@ namespace Fabric.Authorization.UnitTests.Permissions
             };
 
             var mockPermissionStore = new Mock<IPermissionStore>()
-                .SetupAddPermissions()
+                .SetupAddPermissions(new List<Permission>())
                 .SetupGetPermissions(new List<Permission>
                 {
                     existingPermission
@@ -53,7 +53,7 @@ namespace Fabric.Authorization.UnitTests.Permissions
         public void PermissionValidator_ValidatePermission_ReturnsValid()
         {
             var mockPermissionStore = new Mock<IPermissionStore>()
-                .SetupAddPermissions()
+                .SetupAddPermissions(new List<Permission>())
                 .SetupGetPermissions(new List<Permission>())
                 .Create();
 

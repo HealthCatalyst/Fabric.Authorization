@@ -118,7 +118,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             var roles = JsonConvert.DeserializeObject<List<RoleApiModel>>(rolesResponse.Body.AsString());
 
-            Assert.Equal(2, roles.Count);
+            Assert.Equal(3, roles.Count);
             var retrievedChildRole = roles.First(r => r.Id == childRole.Id);
             Assert.Equal(parentRole.Id, retrievedChildRole.ParentRole);
 

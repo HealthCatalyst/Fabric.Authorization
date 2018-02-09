@@ -11,12 +11,13 @@ namespace Fabric.Authorization.UnitTests.Mocks
 {
     public static class PermissionStoreMockExtensions
     {
-        public static Mock<IPermissionStore> SetupAddPermissions(this Mock<IPermissionStore> mockPermissionStore)
+        public static Mock<IPermissionStore> SetupAddPermissions(this Mock<IPermissionStore> mockPermissionStore, List<Permission> permissions)
         {
             mockPermissionStore.Setup(permissionStore => permissionStore.Add(It.IsAny<Permission>()))
                 .Returns((Permission p) =>
                 {
                     p.Id = Guid.NewGuid();
+                    permissions.Add(p);
                     return Task.FromResult(p);
                 });
             return mockPermissionStore;

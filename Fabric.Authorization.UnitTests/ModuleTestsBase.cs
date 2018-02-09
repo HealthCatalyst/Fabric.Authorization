@@ -38,12 +38,12 @@ namespace Fabric.Authorization.UnitTests
 
             MockPermissionStore = new Mock<IPermissionStore>()
                 .SetupGetPermissions(ExistingPermissions)
-                .SetupAddPermissions()
+                .SetupAddPermissions(ExistingPermissions)
                 .SetupGetGranularPermissions();
 
             MockRoleStore = new Mock<IRoleStore>()
                 .SetupGetRoles(ExistingRoles)
-                .SetupAddRole();
+                .SetupAddRole(ExistingRoles);
 
             MockGroupStore = new Mock<IGroupStore>()
                 .SetupGetGroups(ExistingGroups)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Domain.Services;
@@ -12,10 +13,10 @@ namespace Fabric.Authorization.UnitTests.Permissions
     public class PermissionServiceTests
     {
         [Fact]
-        public void PermissionService_AddPermission_Successful()
+        public async Task PermissionService_AddPermission_SuccessfulAsync()
         {
             var mockPermissionStore = new Mock<IPermissionStore>()
-                .SetupAddPermissions()
+                .SetupAddPermissions(new List<Permission>())
                 .Create();
 
             var mockRoleStore = new Mock<IRoleStore>().Object;
@@ -24,7 +25,7 @@ namespace Fabric.Authorization.UnitTests.Permissions
                 mockPermissionStore,
                 new Mock<RoleService>(mockRoleStore, mockPermissionStore).Object);
 
-            var permission = permissionService.AddPermission(new Permission
+            var permission = await permissionService.AddPermission(new Permission
             {
                 Grain = "app",
                 SecurableItem = "patientsafety",
@@ -32,11 +33,10 @@ namespace Fabric.Authorization.UnitTests.Permissions
             });
 
             Assert.NotNull(permission);
-            Assert.NotNull(permission.Id);
         }
 
         [Fact]
-        public void PermissionService_DeletePermission_Successful()
+        public async Task PermissionService_DeletePermission_SuccessfulAsync()
         {
             var existingPermission = new Permission
             {
@@ -54,7 +54,7 @@ namespace Fabric.Authorization.UnitTests.Permissions
                 mockPermissionStore.Object,
                 new Mock<RoleService>(mockRoleStore, mockPermissionStore.Object).Object);
 
-            permissionService.DeletePermission(existingPermission).Wait();
+            await permissionService.DeletePermission(existingPermission);
 
             mockPermissionStore.Verify();
         }

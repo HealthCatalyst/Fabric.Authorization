@@ -23,10 +23,6 @@ namespace Fabric.Authorization.UnitTests.Clients
         private readonly List<Client> _existingClients;
         private readonly Mock<IClientStore> _mockClientStore;
         private readonly Mock<ILogger> _mockLogger;
-        private readonly Mock<IGrainStore> _mockGrainStore;
-        private readonly Mock<IRoleStore> _mockRolesStore;
-        private readonly Mock<IPermissionStore> _mockPermissionStore;
-        private readonly Mock<IUserStore> _mockUserStore;
 
         public ClientsModuleTests()
         {
@@ -58,15 +54,7 @@ namespace Fabric.Authorization.UnitTests.Clients
             _mockClientStore = new Mock<IClientStore>()
                 .SetupGetClient(_existingClients)
                 .SetupAddClient();
-
-            _mockGrainStore = new Mock<IGrainStore>();
-
-            _mockRolesStore = new Mock<IRoleStore>();
-
-            _mockPermissionStore = new Mock<IPermissionStore>();
-
-            _mockUserStore = new Mock<IUserStore>();
-
+            
             _mockLogger = new Mock<ILogger>();
         }
         
@@ -79,7 +67,7 @@ namespace Fabric.Authorization.UnitTests.Clients
             var result = clientsModule.Get("/clients").Result;
             Assert.Equal(HttpStatusCode.OK, result.StatusCode);
             var clients = result.Body.DeserializeJson<List<Client>>();
-            Assert.Equal(1, clients.Count);
+            Assert.Single(clients);
             Assert.Equal(existingClient.Id, clients.First().Id);
         }
 
