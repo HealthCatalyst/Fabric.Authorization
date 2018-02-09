@@ -45,7 +45,7 @@ namespace Fabric.Authorization.UnitTests.DbBootstrappers
 
             var securableItem = dbContext.SecurableItems.FirstOrDefault(si => si.Name == "datamarts");
             Assert.NotNull(securableItem);
-            Assert.Equal("metadata-service", securableItem.ClientOwner);
+            Assert.Equal("dos-metadata-service", securableItem.ClientOwner);
             Assert.Equal("datamarts", securableItem.Name);
 
             var roles = dbContext.Roles

@@ -7,6 +7,7 @@ using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Nancy;
 using Nancy.Testing;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace Fabric.Authorization.IntegrationTests.Modules
@@ -15,6 +16,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
     public class ClientTests : IClassFixture<IntegrationTestsFixture>
     {
         private readonly Browser _browser;
+        private readonly IntegrationTestsFixture _fixture;
+        private readonly string _storageProvider;
         public ClientTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory)
         {
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
@@ -23,7 +26,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 new Claim(Claims.Scope, Scopes.ReadScope),
                 new Claim(Claims.Scope, Scopes.WriteScope),
             }, "testprincipal"));
-            
+
+            _storageProvider = storageProvider;
+            _fixture = fixture;
             _browser = fixture.GetBrowser(principal, storageProvider);
         }
         
@@ -124,6 +129,22 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
             Assert.Contains(id, getResponse.Body.AsString());
+
+            var clientBrowser = _fixture.GetBrowser(GetPrincipalForClient(clientToAdd.Id), _storageProvider);
+
+            var rolesResponse = await clientBrowser.Get($"/roles/{Domain.Defaults.Authorization.AppGrain}/{clientToAdd.Id}",
+                with =>
+                {
+                    with.HttpRequest();
+                });
+            Assert.Equal(HttpStatusCode.OK, rolesResponse.StatusCode);
+
+            var roles = JsonConvert.DeserializeObject<List<RoleApiModel>>(rolesResponse.Body.AsString());
+            Assert.Single(roles);
+
+            var permissions = roles.First().Permissions;
+            Assert.Single(roles.First().Permissions);
+            Assert.Equal(Domain.Defaults.Authorization.AuthorizationPermissionName, permissions.First().Name);
         }
 
         [Theory]
@@ -205,6 +226,18 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             });
 
             Assert.Equal(HttpStatusCode.NotFound, delete.StatusCode);
+        }
+
+        private ClaimsPrincipal GetPrincipalForClient(string clientId)
+        {
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
+            {
+                new Claim(Claims.Scope, Scopes.ManageClientsScope),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.ClientId, clientId)
+            }, "testprincipal"));
+            return principal;
         }
 
     }

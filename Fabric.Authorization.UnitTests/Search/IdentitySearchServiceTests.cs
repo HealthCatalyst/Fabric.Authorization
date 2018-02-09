@@ -442,7 +442,7 @@ namespace Fabric.Authorization.UnitTests.Search
                     PageNumber = 1
                 }).Result.Results.ToList();
 
-            Assert.Equal(1, results.Count);
+            Assert.Single(results);
 
             result1 = results[0];
             Assert.Equal("atlas_user", result1.SubjectId);
@@ -463,7 +463,7 @@ namespace Fabric.Authorization.UnitTests.Search
                     Filter = "brian"
                 }).Result.Results.ToList();
 
-            Assert.Equal(1, results.Count);
+            Assert.Single(results);
 
             result1 = results[0];
             Assert.Equal("atlas_user", result1.SubjectId);

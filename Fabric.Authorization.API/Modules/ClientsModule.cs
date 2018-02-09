@@ -18,18 +18,25 @@ namespace Fabric.Authorization.API.Modules
     public class ClientsModule : FabricModule<Client>
     {
         private readonly ClientService _clientService;
+        private readonly PermissionService _permissionService;
+        private readonly RoleService _roleService;
 
-        public ClientsModule(ClientService clientService, ClientValidator validator, ILogger logger, AccessService accessService) : base(
+        public ClientsModule(ClientService clientService, ClientValidator validator, ILogger logger,
+            AccessService accessService, RoleService roleService, PermissionService permissionService) : base(
             "/v1/Clients", logger, validator, accessService)
         {
             //private members
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
+            _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
+            _roleService = roleService ?? throw new ArgumentNullException(nameof(roleService));
 
             //routes and handlers
             Get("/", async _ => await GetClients().ConfigureAwait(false), null, "GetClients");
-            Get("/{clientid}", async parameters => await GetClientById(parameters).ConfigureAwait(false), null, "GetClient");
+            Get("/{clientid}", async parameters => await GetClientById(parameters).ConfigureAwait(false), null,
+                "GetClient");
             Post("/", async _ => await AddClient().ConfigureAwait(false), null, "AddClient");
-            Delete("/{clientid}", async parameters => await DeleteClient(parameters).ConfigureAwait(false), null, "DeleteClient");
+            Delete("/{clientid}", async parameters => await DeleteClient(parameters).ConfigureAwait(false), null,
+                "DeleteClient");
         }
 
         private async Task<dynamic> GetClients()
@@ -67,9 +74,21 @@ namespace Fabric.Authorization.API.Modules
                 model => model.TopLevelSecurableItem);
             var incomingClient = clientApiModel.ToClientDomainModel();
             Validate(incomingClient);
-            
-            Client client = await _clientService.AddClient(incomingClient);
-            return CreateSuccessfulPostResponse(client.ToClientApiModel());
+
+            try
+            {
+                Client client = await _clientService.AddClient(incomingClient);
+                await AddDefaultRoleAndPermissionAsync(client);
+                return CreateSuccessfulPostResponse(client.ToClientApiModel());
+            }
+            catch (AlreadyExistsException<Permission> ex)
+            {
+                return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
+            }
+            catch (IncompatiblePermissionException ex)
+            {
+                return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
+            }
         }
 
         private async Task<dynamic> DeleteClient(dynamic parameters)
@@ -86,6 +105,42 @@ namespace Fabric.Authorization.API.Modules
                 Logger.Error(ex, ex.Message, parameters.clientid);
                 return CreateFailureResponse($"The specified client with id: {parameters.clientid} was not found",
                     HttpStatusCode.NotFound);
+            }
+        }
+
+        private async Task AddDefaultRoleAndPermissionAsync(Client client)
+        {
+            try
+            {
+                var newPermission = await _permissionService.AddPermission(new Permission
+                {
+                    Name = Domain.Defaults.Authorization.AuthorizationPermissionName,
+                    Grain = Domain.Defaults.Authorization.AppGrain,
+                    SecurableItem = client.TopLevelSecurableItem.Name
+                });
+                try
+                {
+                    await _roleService.AddRole(new Role
+                    {
+                        Name = $"{client.Id}-admin",
+                        Grain = Domain.Defaults.Authorization.AppGrain,
+                        SecurableItem = client.TopLevelSecurableItem.Name,
+                        Permissions = new List<Permission> {newPermission}
+                    });
+                }
+                catch (Exception)
+                {
+                    //if we can't create the role, delete the client and the permission
+                    await _clientService.DeleteClient(client);
+                    await _permissionService.DeletePermission(newPermission);
+                    throw;
+                }
+            }
+            catch (Exception)
+            {
+                //if we can't save the permission, delete the client and rethrow the exception
+                await _clientService.DeleteClient(client);
+                throw;
             }
         }
     }

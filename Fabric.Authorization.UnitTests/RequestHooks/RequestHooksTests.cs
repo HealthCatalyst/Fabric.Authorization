@@ -42,7 +42,9 @@ namespace Fabric.Authorization.UnitTests.RequestHooks
                     clientService,
                     new Domain.Validators.ClientValidator(clientService),
                     logger,
-                    accessService));
+                    accessService,
+                    roleService,
+                    permissionService));
 
                 with.RequestStartup((_, pipelines, context) =>
                 {

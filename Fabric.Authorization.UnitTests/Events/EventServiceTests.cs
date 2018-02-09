@@ -32,7 +32,7 @@ namespace Fabric.Authorization.UnitTests.Events
             eventService.RaiseEventAsync(new EntityAuditEvent<Permission>(EventTypes.EntityCreatedEvent,
                 permission.Id.ToString(), permission));
 
-            Assert.Equal(1, events.Count);
+            Assert.Single(events);
             var evt = events.First();
             Assert.Equal(mockContextResolverService.Object.Username, evt.Username);
             Assert.Equal(mockContextResolverService.Object.ClientId, evt.ClientId);

@@ -11,6 +11,7 @@ using Fabric.Authorization.Domain.Services;
 using Moq;
 using Nancy;
 using Nancy.Testing;
+using Newtonsoft.Json;
 using Serilog;
 using Xunit;
 
@@ -45,6 +46,8 @@ namespace Fabric.Authorization.UnitTests.Permissions
                 with => with.JsonBody(permissionToPost)).Result;
 
             Assert.Equal(HttpStatusCode.BadRequest, actual.StatusCode);
+            var errorResponse = JsonConvert.DeserializeObject<Error>(actual.Body.AsString());
+            Assert.Equal(errorCount, errorResponse.Details.Length);
         }
 
         [Theory]

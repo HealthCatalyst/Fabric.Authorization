@@ -51,12 +51,13 @@ namespace Fabric.Authorization.UnitTests.Mocks
             return mockRoleStore;
         }
 
-        public static Mock<IRoleStore> SetupAddRole(this Mock<IRoleStore> mockRoleStore)
+        public static Mock<IRoleStore> SetupAddRole(this Mock<IRoleStore> mockRoleStore, List<Role> roles)
         {
             mockRoleStore.Setup(roleStore => roleStore.Add(It.IsAny<Role>()))
                 .Returns((Role r) =>
                 {
                     r.Id = Guid.NewGuid();
+                    roles.Add(r);
                     return Task.FromResult(r);
                 });
             return mockRoleStore;

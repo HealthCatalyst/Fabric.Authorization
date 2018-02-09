@@ -5,6 +5,10 @@ namespace Fabric.Authorization.Domain.Defaults
 {
     public class Authorization
     {
+        public static string AppGrain = "app";
+        public static string DosGrain = "dos";
+        public static string AuthorizationPermissionName = "manageauthorization";
+
         public IList<Grain> Grains { get; }
         public IList<Role> Roles { get; }
 
@@ -14,11 +18,11 @@ namespace Fabric.Authorization.Domain.Defaults
             {
                 new Grain
                 {
-                    Name = "app"
+                    Name = AppGrain
                 },
                 new Grain
                 {
-                    Name = "dos",
+                    Name = DosGrain,
                     IsShared = true,
                     RequiredWriteScopes = new List<string> { "fabric/authorization.dos.write" },
                     SecurableItems = new List<SecurableItem>
@@ -26,7 +30,7 @@ namespace Fabric.Authorization.Domain.Defaults
                         new SecurableItem
                         {
                             Name = "datamarts",
-                            ClientOwner = "metadata-service"
+                            ClientOwner = "dos-metadata-service"
                         }
                     }
                 }
@@ -37,13 +41,13 @@ namespace Fabric.Authorization.Domain.Defaults
                 new Role
                 {
                     Name = "dosadmin",
-                    Grain = "dos",
+                    Grain = DosGrain,
                     SecurableItem = "datamarts",
                     Permissions = new List<Permission>
                     {
                         new Permission
                         {
-                            Name = "manageauthorization",
+                            Name = AuthorizationPermissionName,
                             Grain = "dos",
                             SecurableItem = "datamarts"
                         }
