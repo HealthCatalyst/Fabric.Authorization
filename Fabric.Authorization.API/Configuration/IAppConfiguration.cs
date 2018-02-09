@@ -8,6 +8,7 @@ namespace Fabric.Authorization.API.Configuration
     {
         string ClientName { get; }
         string StorageProvider { get; }
+        string AuthorizationAdmin { get; }
         ElasticSearchSettings ElasticSearchSettings { get; }
         IdentityServerConfidentialClientSettings IdentityServerConfidentialClientSettings { get; }
         CouchDbSettings CouchDbSettings { get; }
