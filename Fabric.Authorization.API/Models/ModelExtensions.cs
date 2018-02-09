@@ -218,7 +218,8 @@ namespace Fabric.Authorization.API.Models
                 CreatedDateTimeUtc = securableItem.CreatedDateTimeUtc,
                 CreatedBy = securableItem.CreatedBy,
                 ModifiedDateTimeUtc = securableItem.ModifiedDateTimeUtc,
-                ModifiedBy = securableItem.ModifiedBy
+                ModifiedBy = securableItem.ModifiedBy,
+                ClientOwner = securableItem.ClientOwner
             };
             return securableItemApiModel;
         }

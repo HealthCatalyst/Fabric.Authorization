@@ -25,7 +25,8 @@ namespace Fabric.Authorization.Domain.Defaults
                     {
                         new SecurableItem
                         {
-                            Name = "datamarts"
+                            Name = "datamarts",
+                            ClientOwner = "metadata-service"
                         }
                     }
                 }

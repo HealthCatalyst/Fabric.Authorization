@@ -14,6 +14,8 @@ namespace Fabric.Authorization.Domain.Models
 
         public string Name { get; set; }
 
+        public string ClientOwner { get; set; }
+
         public ICollection<SecurableItem> SecurableItems { get; set; }
 
         public Grain Grain { get; set; }

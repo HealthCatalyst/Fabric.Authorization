@@ -68,7 +68,8 @@ namespace Fabric.Authorization.Domain.Services
             client.TopLevelSecurableItem = new SecurableItem
             {
                 Id = Guid.NewGuid(),
-                Name = client.Id
+                Name = client.Id,
+                ClientOwner = client.Id
             };
 
             return await _clientStore.Add(client);
