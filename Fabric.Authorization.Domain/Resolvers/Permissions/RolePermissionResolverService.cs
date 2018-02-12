@@ -14,7 +14,7 @@ namespace Fabric.Authorization.Domain.Resolvers.Permissions
 
         public RolePermissionResolverService(RoleService roleService)
         {
-            _roleService = roleService;
+            _roleService = roleService ?? throw new ArgumentNullException(nameof(roleService));
         }
 
         public async Task<PermissionResolutionResult> Resolve(PermissionResolutionRequest resolutionRequest)
