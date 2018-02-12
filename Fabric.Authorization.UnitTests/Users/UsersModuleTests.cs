@@ -116,7 +116,6 @@ namespace Fabric.Authorization.UnitTests.Users
 
         public static IEnumerable<object[]> GetPermissionsForbiddenData => new[]
         {
-            new object[] {"sourcemartdesigner", Scopes.ReadScope},
             new object[] {"patientsafety", "badscope"}
         };
 
@@ -138,7 +137,8 @@ namespace Fabric.Authorization.UnitTests.Users
                 .Dependency(MockClientStore.Object)
                 .Dependency(MockRoleStore.Object)
                 .Dependency(MockPermissionStore.Object)
-                .Dependency(MockGrainStore.Object);
+                .Dependency(MockGrainStore.Object)
+                .Dependency(MockSecurableItemStore.Object);
         }
 
         private void SetupTestData()

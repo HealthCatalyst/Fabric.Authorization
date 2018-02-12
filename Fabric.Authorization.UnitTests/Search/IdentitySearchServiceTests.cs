@@ -174,7 +174,7 @@ namespace Fabric.Authorization.UnitTests.Search
                 _userAtlasGroup
             });
 
-            _clientService = new ClientService(_mockClientStore.Create(), new Mock<IGrainStore>().Object);
+            _clientService = new ClientService(_mockClientStore.Create(), new Mock<IGrainStore>().Object, new Mock<ISecurableItemStore>().Object);
             _roleService = new RoleService(_mockRoleStore.Create(), _mockPermissionStore.Create(), _clientService);
             _groupService = new GroupService(
                 _mockGroupStore.Create(),           

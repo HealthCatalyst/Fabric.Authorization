@@ -8,6 +8,7 @@ namespace Fabric.Authorization.Domain.Defaults
         public static string AppGrain = "app";
         public static string DosGrain = "dos";
         public static string AuthorizationPermissionName = "manageauthorization";
+        public static string InstallerClientId = "fabric-installer";
 
         public IList<Grain> Grains { get; }
         public IList<Role> Roles { get; }

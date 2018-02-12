@@ -13,6 +13,7 @@ using Fabric.Authorization.Domain.Services;
 using FluentValidation;
 using Nancy;
 using Nancy.Responses.Negotiation;
+using Nancy.Security;
 using Serilog;
 
 namespace Fabric.Authorization.API.Modules
@@ -82,7 +83,7 @@ namespace Fabric.Authorization.API.Modules
                 .WithStatusCode(statusCode);
         }
 
-        protected Negotiator CreateFailureResponse(string message, HttpStatusCode statusCode)
+        public Negotiator CreateFailureResponse(string message, HttpStatusCode statusCode)
         {
             var error = ErrorFactory.CreateError<T>(message, statusCode);
             return Negotiate.WithModel(error).WithStatusCode(statusCode);
@@ -94,25 +95,26 @@ namespace Fabric.Authorization.API.Modules
             return Negotiate.WithModel(error).WithStatusCode(statusCode);
         }
 
-        protected async Task CheckAccess(
-            ClientService clientService,
+        protected async Task CheckWriteAccess(ClientService clientService,
             dynamic grain,
-            dynamic securableItem,
-            bool isWriteOperaion,
-            params Predicate<Claim>[] requiredClaims)
+            dynamic securableItem)
         {
             string grainAsString = grain.ToString();
             string securableItemAsString = securableItem.ToString();
-            var grainModel = await clientService.GetGrain(grainAsString);
-            if (grainModel != null && grainModel.IsShared)
+
+            if (HasSubjectId)
             {
-                await AccessService.CheckSharedAccess(grainModel, securableItemAsString, isWriteOperaion, this);
+                await AccessService.CheckUserAccess(grainAsString, securableItemAsString, this, AuthorizationWriteClaim);
             }
             else
             {
-                await AccessService.CheckAppAccess(ClientId, grainAsString, securableItemAsString, clientService, this,
-                    requiredClaims);
+                await AccessService.CheckAppAccess(ClientId, grainAsString, securableItemAsString, clientService, this, AuthorizationWriteClaim);
             }
+        }
+
+        protected void CheckReadAccess()
+        {
+            this.RequiresClaims(AuthorizationReadClaim);
         }
 
         protected void Validate(T model)

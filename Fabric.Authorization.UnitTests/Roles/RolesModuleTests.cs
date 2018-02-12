@@ -129,7 +129,7 @@ namespace Fabric.Authorization.UnitTests.Roles
         [Theory, MemberData(nameof(DeleteRoleForbiddenData))]
         public void DeleteRole_WrongClient_ReturnsForbidden(string cliendId)
         {
-            var existingClient = ExistingClients.First();
+            var existingClient = ExistingClients.First(c => c.Id == "patientsafety");
             var existingRole = ExistingRoles.First(r => r.SecurableItem == existingClient.Id);
             var rolesModule = CreateBrowser(new Claim(Claims.Scope, Scopes.WriteScope),
                 new Claim(Claims.ClientId, cliendId));
@@ -353,7 +353,7 @@ namespace Fabric.Authorization.UnitTests.Roles
         public static IEnumerable<object[]> AddRoleForbiddenData => new[]
         {
             new object[] {new RoleApiModel {Grain = "app", SecurableItem = "patientsafety", Name = "test"}, Scopes.ReadScope},
-            new object[] {new RoleApiModel {Grain = "app", SecurableItem = "notmyapp", Name = "test"}, Scopes.WriteScope},
+            new object[] {new RoleApiModel {Grain = "app", SecurableItem = "sourcemartdesigner", Name = "test"}, Scopes.WriteScope},
         };
 
         public static IEnumerable<object[]> DeleteRoleForbiddenData => new[]
@@ -370,8 +370,7 @@ namespace Fabric.Authorization.UnitTests.Roles
 
         public static IEnumerable<object[]> GetRolesForbiddenData => new[]
         {
-            new object[] {"badscope", "patientsafety"},
-            new object[] {Scopes.ReadScope, "sourcemartdesigner"},
+            new object[] {"badscope", "patientsafety"}
         };
 
         protected override ConfigurableBootstrapper.ConfigurableBootstrapperConfigurator ConfigureBootstrapper(ConfigurableBootstrapper configurableBootstrapper,
@@ -386,7 +385,8 @@ namespace Fabric.Authorization.UnitTests.Roles
                 .Dependency(MockPermissionStore.Object)
                 .Dependency(MockRoleStore.Object)
                 .Dependency(MockUserStore.Object)
-                .Dependency(MockGrainStore.Object);
+                .Dependency(MockGrainStore.Object)
+                .Dependency(MockSecurableItemStore.Object);
         }
     }
 }

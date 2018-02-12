@@ -71,7 +71,7 @@ namespace Fabric.Authorization.UnitTests.Permissions
         {
             new object[] {"/permissions/app/patientsafety", 200, 2},
             new object[] {"/permissions/app/patientsafety/updatepatient", 200, 1},
-            new object[] {"/permissions/app/sourcemartdesigner", 403, 0},
+            new object[] {"/permissions/app/sourcemartdesigner", 200, 1},
             new object[] {"/permissions/app", 400, 0}
         };
 
@@ -99,7 +99,8 @@ namespace Fabric.Authorization.UnitTests.Permissions
                 .Dependency(MockPermissionStore.Object)
                 .Dependency(MockRoleStore.Object)
                 .Dependency(MockGrainStore.Object)
-                .Dependency(MockUserStore.Object);
+                .Dependency(MockUserStore.Object)
+                .Dependency(MockSecurableItemStore.Object);
         }
 
         [Fact]

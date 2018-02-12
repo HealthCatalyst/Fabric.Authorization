@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
+using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.RemoteServices.Identity.Providers;
 using Fabric.Authorization.Domain.Services;
@@ -11,9 +15,12 @@ using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using Fabric.Platform.Shared.Configuration;
 using Microsoft.AspNetCore.Hosting;
 using Moq;
+using Nancy;
 using Nancy.Testing;
+using Newtonsoft.Json;
 using Serilog;
 using Serilog.Core;
+using Xunit;
 using Xunit.Sdk;
 
 namespace Fabric.Authorization.IntegrationTests
@@ -210,7 +217,65 @@ namespace Fabric.Authorization.IntegrationTests
                 with.JsonBody(new ClientApiModel { Id = id, Name = id });
             }).Wait();
         }
-        
+
+        public async Task AssociateUserToAdminRoleAsync(string user, string identityProvider, string storageProvider, string grain, string securableItem, string roleName)
+        {
+            var clientId = "fabric-installer";
+            //var user = claims.First(c => c.Type == Claims.Sub).Value;
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
+            {
+                new Claim(Claims.Scope, Scopes.ManageClientsScope),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.Scope, Scopes.ManageDosScope),
+                new Claim(Claims.ClientId, clientId)
+            }, "pwd"));
+
+            var browser = GetBrowser(principal, storageProvider);
+
+            var roleResponse = await browser.Get($"/roles/{grain}/{securableItem}/{roleName}", with =>
+            {
+                with.HttpRequest();
+            });
+            Assert.Equal(HttpStatusCode.OK, roleResponse.StatusCode);
+            var role = JsonConvert.DeserializeObject<List<RoleApiModel>>(roleResponse.Body.AsString()).First();
+            Assert.Equal(roleName, role.Name);
+
+            var groupResponse = await browser.Post("/groups", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    GroupName = roleName + Guid.NewGuid(),
+                    GroupSource = "Custom"
+                });
+            });
+            Assert.Equal(HttpStatusCode.Created, groupResponse.StatusCode);
+            var group = JsonConvert.DeserializeObject<GroupRoleApiModel>(groupResponse.Body.AsString());
+
+            var groupRoleResponse = await browser.Post($"/groups/{group.GroupName}/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    RoleId = role.Id
+                });
+            });
+            Assert.Equal(HttpStatusCode.Created, groupRoleResponse.StatusCode);
+
+            var groupUserResponse = await browser.Post($"/groups/{group.GroupName}/users", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    GroupName = group.GroupName,
+                    SubjectId = user,
+                    IdentityProvider = identityProvider
+                });
+            });
+            Assert.Equal(HttpStatusCode.Created, groupUserResponse.StatusCode);
+        }
+
         public class DisplayTestMethodNameAttribute : BeforeAfterTestAttribute
         {
             private bool _writeToConsole = false;

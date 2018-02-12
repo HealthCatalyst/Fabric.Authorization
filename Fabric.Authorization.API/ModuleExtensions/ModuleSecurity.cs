@@ -4,7 +4,6 @@ using System.Linq;
 using System.Security.Claims;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
-using Fabric.Authorization.Domain.Models;
 using Nancy;
 using Nancy.Extensions;
 using Nancy.Responses;
@@ -20,48 +19,46 @@ namespace Fabric.Authorization.API.ModuleExtensions
             module.AddBeforeHookOrExecute(RequiresOwnership<T>(doesClientOwnItem, grain, securableItem));
         }
 
-        public static void RequiresSharedAccess<T>(this NancyModule module, Grain grain, string securableItem, bool isSecurableItemChildOfGrain, bool isWriteOperation, IEnumerable<string> permissions)
+        public static void RequiresPermissionsAndClaims<T>(this NancyModule module, IEnumerable<string> permissions, string grain, string securableItem, params Predicate<Claim>[] requiredClaims)
         {
-            module.AddBeforeHookOrExecute(RequiresSharedAccess<T>(isSecurableItemChildOfGrain, grain, securableItem, isWriteOperation, permissions));
+            module.RequiresClaims(requiredClaims);
+            module.AddBeforeHookOrExecute(RequiresPermissions<T>(permissions, grain, securableItem));
         }
-
+        
         public static Func<NancyContext, Response> RequiresOwnership<T>(bool doesClientOwnItem, string grain, string securableItem)
         {
             return (context) =>
             {
                 Response response = null;
                 var clientId = context.CurrentUser?.FindFirst(Claims.ClientId)?.Value;
-                if (!doesClientOwnItem)
+                if (clientId == Domain.Defaults.Authorization.InstallerClientId)
                 {
-                    response = CreateForbiddenResponse<T>(clientId, grain, securableItem, context);
+                    return null;
                 }
-                return response;
+
+                if (doesClientOwnItem)
+                {
+                    return null;
+                }
+                return CreateForbiddenResponse<T>(clientId, grain, securableItem, context);
             };
         }
 
-        public static Func<NancyContext, Response> RequiresSharedAccess<T>(bool isSecurableItemChildOfGrain, Grain grain, string securableItem, bool isWriteOperation, IEnumerable<string> permissions)
+        public static Func<NancyContext, Response> RequiresPermissions<T>(IEnumerable<string> permissions, string grain, string securableItem)
         {
             return (context) =>
             {
                 var clientId = context.CurrentUser?.FindFirst(Claims.ClientId)?.Value;
-                if (!isSecurableItemChildOfGrain)
-                {
-                    return CreateForbiddenResponse<T>(clientId, grain.Name, securableItem, context);
-                }
-                if (!isWriteOperation)
+                if (permissions.Contains(
+                    $"{grain}/{securableItem}.{Domain.Defaults.Authorization.AuthorizationPermissionName}"))
                 {
                     return null;
                 }
-                if (context.CurrentUser.HasClaims(claim => claim.Type == Claims.Scope && grain.RequiredWriteScopes.Contains(claim.Value)) 
-                    && (permissions.Contains("dos/datamarts.manageauthorization") || clientId == "fabric-installer"))
-                {
-                    return null;
-                }
-                return CreateForbiddenResponse<T>(clientId, grain.Name, securableItem, context);
+                return CreateForbiddenResponse<T>(clientId, grain, securableItem, context);
             };
         }
 
-        private static JsonResponse CreateForbiddenResponse<T>(string clientId, string grain, string securableItem, NancyContext context)
+        public static JsonResponse CreateForbiddenResponse<T>(string clientId, string grain, string securableItem, NancyContext context)
         {
             var error = ErrorFactory.CreateError<T>($"Client: {clientId} does not have access to the requested grain/securableItem: {grain}/{securableItem} combination", HttpStatusCode.Forbidden);
             return new JsonResponse(error, new DefaultJsonSerializer(context.Environment),

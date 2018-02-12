@@ -33,6 +33,7 @@ namespace Fabric.Authorization.API.DependencyInjection
             container.Register<IGroupStore, SqlServerGroupStore>();
             container.Register<IClientStore, SqlServerClientStore>();
             container.Register<IGrainStore, SqlServerGrainStore>();
+            container.Register<ISecurableItemStore, SqlServerSecurableItemStore>();
         }
     }
 }

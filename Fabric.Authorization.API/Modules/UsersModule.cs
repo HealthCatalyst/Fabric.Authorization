@@ -71,12 +71,7 @@ namespace Fabric.Authorization.API.Modules
         {
             var userPermissionRequest = this.Bind<UserInfoRequest>();
             await SetDefaultRequest(userPermissionRequest);
-            await CheckAccess(
-                _clientService,
-                userPermissionRequest.Grain,
-                userPermissionRequest.SecurableItem,
-                false,
-                AuthorizationReadClaim);
+            CheckReadAccess();
 
             var permissionResolutionResult = await _permissionResolverService.Resolve(new PermissionResolutionRequest
             {
@@ -96,9 +91,7 @@ namespace Fabric.Authorization.API.Modules
         {
             var userPermissionRequest = this.Bind<UserInfoRequest>();
             await SetDefaultRequest(userPermissionRequest);
-            await CheckAccess(_clientService, userPermissionRequest.Grain, userPermissionRequest.SecurableItem,
-                false,
-                AuthorizationReadClaim);
+            CheckReadAccess();
 
             var permissionResolutionResult = await _permissionResolverService.Resolve(new PermissionResolutionRequest
             {
@@ -154,7 +147,7 @@ namespace Fabric.Authorization.API.Modules
 
             foreach (var perm in permissions)
             {
-                await CheckAccess(_clientService, perm.Grain, perm.SecurableItem, true, AuthorizationManageClientsClaim);
+                await CheckWriteAccess(_clientService, perm.Grain, perm.SecurableItem);
             }
 
             var allowedPermissions = permissions
@@ -204,7 +197,7 @@ namespace Fabric.Authorization.API.Modules
 
             foreach (var perm in permissions)
             {
-                await CheckAccess(_clientService, perm.Grain, perm.SecurableItem, true, AuthorizationManageClientsClaim);
+                await CheckWriteAccess(_clientService, perm.Grain, perm.SecurableItem);
             }
 
             var granularPermission = new GranularPermission
