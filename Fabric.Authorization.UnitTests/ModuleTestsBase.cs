@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
@@ -17,6 +18,7 @@ namespace Fabric.Authorization.UnitTests
         protected readonly List<Group> ExistingGroups;
         protected readonly List<Permission> ExistingPermissions;
         protected readonly List<Role> ExistingRoles;
+        protected readonly List<SecurableItem> ExistingSecurableItems;
         protected readonly Mock<IClientStore> MockClientStore;
         protected readonly Mock<IGroupStore> MockGroupStore;
         protected readonly Mock<ILogger> MockLogger;
@@ -24,6 +26,7 @@ namespace Fabric.Authorization.UnitTests
         protected readonly Mock<IRoleStore> MockRoleStore;
         protected readonly Mock<IUserStore> MockUserStore;
         protected readonly Mock<IGrainStore> MockGrainStore;
+        protected readonly Mock<ISecurableItemStore> MockSecurableItemStore;
 
         protected ModuleTestsBase()
         {
@@ -31,6 +34,7 @@ namespace Fabric.Authorization.UnitTests
             ExistingRoles = CreateRoles;
             ExistingGroups = CreateGroups;
             ExistingPermissions = CreatePermissions;
+            ExistingSecurableItems = CreateSecurableItems;
             MockLogger = new Mock<ILogger>();
             MockClientStore = new Mock<IClientStore>()
                 .SetupGetClient(ExistingClients)
@@ -49,9 +53,13 @@ namespace Fabric.Authorization.UnitTests
                 .SetupGetGroups(ExistingGroups)
                 .SetupAddGroup();
 
+            MockSecurableItemStore = new Mock<ISecurableItemStore>()
+                .SetupGetSecurabltItem(ExistingSecurableItems);
+
             MockGrainStore = new Mock<IGrainStore>();
 
             MockUserStore = new Mock<IUserStore>();
+
         }
 
         private List<Client> CreateClients => new List<Client>
@@ -75,6 +83,9 @@ namespace Fabric.Authorization.UnitTests
                 }
             }
         };
+
+        private List<SecurableItem> CreateSecurableItems => CreateClients.Select(client => client.TopLevelSecurableItem)
+            .ToList();
 
         private List<Role> CreateRoles => new List<Role>
         {

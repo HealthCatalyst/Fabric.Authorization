@@ -231,7 +231,8 @@ namespace Fabric.Authorization.UnitTests.Clients
                 .Dependency(MockGrainStore.Object)
                 .Dependency(MockRoleStore.Object)
                 .Dependency(MockPermissionStore.Object)
-                .Dependency(MockUserStore.Object);
+                .Dependency(MockUserStore.Object)
+                .Dependency(MockSecurableItemStore.Object);
         }
 
         public static IEnumerable<object[]> BadRequestData => new[]

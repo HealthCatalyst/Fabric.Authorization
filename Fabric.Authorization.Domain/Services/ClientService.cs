@@ -18,11 +18,13 @@ namespace Fabric.Authorization.Domain.Services
 
         private readonly IClientStore _clientStore;
         private readonly IGrainStore _grainStore;
+        private readonly ISecurableItemStore _securableItemStore;
 
-        public ClientService(IClientStore clientStore, IGrainStore grainStore)
+        public ClientService(IClientStore clientStore, IGrainStore grainStore, ISecurableItemStore securableItemStore)
         {
             _clientStore = clientStore ?? throw new ArgumentNullException(nameof(clientStore));
             _grainStore = grainStore ?? throw new ArgumentNullException(nameof(grainStore));
+            _securableItemStore = securableItemStore ?? throw new ArgumentNullException(nameof(securableItemStore));
         }
 
         public async Task<bool> DoesClientOwnItem(string clientId, string grain, string securableItem)
@@ -30,6 +32,12 @@ namespace Fabric.Authorization.Domain.Services
             if (string.IsNullOrEmpty(clientId))
             {
                 return false;
+            }
+
+            var item = await _securableItemStore.Get(securableItem);
+            if (item.ClientOwner == clientId)
+            {
+                return true;
             }
 
             var client = await _clientStore.Get(clientId);

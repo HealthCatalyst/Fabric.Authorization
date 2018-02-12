@@ -66,10 +66,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(createdPermission.Id, retrievedPermission.Id);
         }
 
-        [Fact]
-        public async Task AddDosPermission_Installer_SuccessAsync()
+        [Theory]
+        [InlineData("fabric-installer")]
+        [InlineData("dos-metadata-service")]
+        public async Task AddDosPermission_AllowedApp_SuccessAsync(string clientId)
         {
-            var clientId = "fabric-installer";
+            //var clientId = "fabric-installer";
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
             {
                 new Claim(Claims.Scope, Scopes.ManageClientsScope),
@@ -156,41 +158,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
             Assert.Equal("[]", permissionsAsString);
         }
-
-        [Fact]
-        public async Task AddDosPermission_MissingScope_ForbiddenAsync()
-        {
-            var user = "user" + Guid.NewGuid();
-            await AssociateUserToDosAdminRoleAsync(user);
-
-            var clientId = "clientid" + Guid.NewGuid();
-            var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
-            {
-                new Claim(Claims.Scope, Scopes.ManageClientsScope),
-                new Claim(Claims.Scope, Scopes.ReadScope),
-                new Claim(Claims.Scope, Scopes.WriteScope),
-                new Claim(Claims.ClientId, clientId),
-                new Claim(Claims.Sub, user),
-                new Claim(Claims.IdentityProvider, "Windows")
-            }, "pwd"));
-
-            var browser = _fixture.GetBrowser(principal, _storageProvider);
-
-            var permission = "permission" + Guid.NewGuid();
-            var postResponse = await browser.Post("/permissions", with =>
-            {
-                with.HttpRequest();
-                with.JsonBody(new
-                {
-                    Grain = "dos",
-                    SecurableItem = "datamarts",
-                    Name = permission
-                });
-            });
-
-            Assert.Equal(HttpStatusCode.Forbidden, postResponse.StatusCode);
-        }
-
+        
         [Fact]
         public async Task AddDosPermission_IncorrectClient_ForbiddenAsync()
         {
@@ -222,7 +190,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
-        public async Task AddDosPermission_WrongSecurable_ForbiddenAsync()
+        public async Task AddDosPermission_WrongSecurable_BadRequestAsync()
         {
             var clientId = "fabric-installer";
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
@@ -248,7 +216,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     });
                 });
 
-            Assert.Equal(HttpStatusCode.Forbidden, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
         }
 
         private async Task AssociateUserToDosAdminRoleAsync(string user)

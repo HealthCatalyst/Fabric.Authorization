@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Constants;
@@ -41,8 +42,11 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     new Claim(JwtClaimTypes.Role, Group2),
                     new Claim(JwtClaimTypes.IdentityProvider, IdentityProvider)
                 }, _securableItem));
+            
             _browser = fixture.GetBrowser(principal, storageProvider);
             fixture.CreateClient(_browser, _securableItem);
+            Task.Run(async () => await fixture.AssociateUserToAdminRoleAsync(_securableItem, IdentityProvider, storageProvider,
+                Domain.Defaults.Authorization.AppGrain, _securableItem, $"{_securableItem}-admin")).Wait();
         }
 
         [Fact]
@@ -556,7 +560,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.OK, get.StatusCode);
             var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
-            Assert.Empty(permissions.Permissions);
+            Assert.Single(permissions.Permissions);
 
             var modifyPatientPermission = new PermissionApiModel
             {
@@ -851,7 +855,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
             Assert.Contains($"app/{_securableItem}.{editPatientPermission.Name}", permissions.Permissions);
             Assert.Contains($"app/{_securableItem}.{viewPatientPermission.Name}", permissions.Permissions);
-            Assert.Equal(2, permissions.Permissions.Count());
+            Assert.Equal(3, permissions.Permissions.Count());
         }
 
         [Fact]
@@ -1136,7 +1140,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
             Assert.Contains($"app/{subjectId}.{editPatientPermission.Name}", permissions.Permissions);
             Assert.DoesNotContain($"app/{subjectId}.{viewPatientPermission.Name}", permissions.Permissions); // Denied by role
-            Assert.Single(permissions.Permissions);
+            Assert.Equal(2, permissions.Permissions.Count());
         }
 
         [Fact]
@@ -1260,7 +1264,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var permissions = get.Body.DeserializeJson<UserPermissionsApiModel>();
             Assert.DoesNotContain($"app/{_securableItem}.{editPatientPermission.Name}", permissions.Permissions);
             Assert.Contains($"app/{_securableItem}.{viewPatientPermission.Name}", permissions.Permissions);
-            Assert.Single(permissions.Permissions);
+            Assert.Equal(2, permissions.Permissions.Count());
         }
 
         [Fact]
@@ -1399,7 +1403,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Contains($"app/{subjectId}.{editPatientPermission.Name}", permissions.Permissions);
             Assert.Contains($"app/{subjectId}.{viewPatientPermission.Name}", permissions.Permissions);
             Assert.Contains($"app/{subjectId}.{modifyPatientPermission.Name}", permissions.Permissions);
-            Assert.Equal(3, permissions.Permissions.Count());
+            Assert.Equal(4, permissions.Permissions.Count());
         }
 
         [Fact]
