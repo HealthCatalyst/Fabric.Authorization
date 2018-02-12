@@ -104,7 +104,13 @@ namespace Fabric.Authorization.API.Modules
 
             if (HasSubjectId)
             {
-                await AccessService.CheckUserAccess(grainAsString, securableItemAsString, this, AuthorizationWriteClaim);
+                var grainModel = await clientService.GetGrain(grainAsString);
+                var requiredClaims = new List<Predicate<Claim>>{ AuthorizationWriteClaim };
+                if (grainModel.IsShared && grainModel.RequiredWriteScopes.Count > 0)
+                {
+                    requiredClaims.Add(c => grainModel.RequiredWriteScopes.Contains(c.Value));
+                }
+                await AccessService.CheckUserAccess(grainModel.Name, securableItemAsString, this, requiredClaims.ToArray());
             }
             else
             {

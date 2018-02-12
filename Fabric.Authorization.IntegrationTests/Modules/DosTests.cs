@@ -77,7 +77,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 new Claim(Claims.Scope, Scopes.ManageClientsScope),
                 new Claim(Claims.Scope, Scopes.ReadScope),
                 new Claim(Claims.Scope, Scopes.WriteScope),
-                new Claim(Claims.Scope, Scopes.ManageDosScope),
                 new Claim(Claims.ClientId, clientId)
             }, "pwd"));
 
@@ -158,7 +157,39 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
             Assert.Equal("[]", permissionsAsString);
         }
-        
+
+        [Fact]
+        public async Task AddDosPermission_UserInRole_MissingScope_ForbiddenAsync()
+        {
+            var user = "user" + Guid.NewGuid();
+            await AssociateUserToDosAdminRoleAsync(user);
+
+            var clientId = "clientid" + Guid.NewGuid();
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
+            {
+                new Claim(Claims.Scope, Scopes.ManageClientsScope),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.ClientId, clientId),
+                new Claim(Claims.Sub, user),
+                new Claim(Claims.IdentityProvider, "Windows")
+            }, "pwd"));
+
+            var browser = _fixture.GetBrowser(principal, _storageProvider);
+            var permission = "permission" + Guid.NewGuid();
+            var postResponse = await browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    Grain = "dos",
+                    SecurableItem = "datamarts",
+                    Name = permission
+                });
+            });
+            Assert.Equal(HttpStatusCode.Forbidden, postResponse.StatusCode);
+        }
+
         [Fact]
         public async Task AddDosPermission_IncorrectClient_ForbiddenAsync()
         {

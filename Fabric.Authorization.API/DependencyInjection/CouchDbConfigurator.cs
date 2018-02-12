@@ -49,6 +49,7 @@ namespace Fabric.Authorization.API.DependencyInjection
             container.Register<IGroupStore, CouchDbGroupStore>();
             container.Register<IClientStore, CouchDbClientStore>();
             container.Register<IGrainStore, CouchDbGrainStore>();
+            container.Register<ISecurableItemStore, CouchDbSecurableItemStore>();
         }
     }
 }
