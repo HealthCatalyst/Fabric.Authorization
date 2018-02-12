@@ -34,7 +34,7 @@ namespace Fabric.Authorization.API.Services
         public async Task CheckUserAccess<T>(string grain, string securableItemName, FabricModule<T> module, params Predicate<Claim>[] requiredClaims)
         {
             var permissions = (await GetPermissions(module, grain, securableItemName)).ToList();
-            module.RequiresPermissionsAndClaims<T>(permissions, grain, securableItemName, requiredClaims);
+            module.RequiresPermissionsAndClaims<T>(module.SubjectId, permissions, grain, securableItemName, requiredClaims);
         }
 
         public async Task CheckAppAccess<T>(string clientId, string grain, string securableItem, ClientService clientService, FabricModule<T> module, params Predicate<Claim>[] requiredClaims)
