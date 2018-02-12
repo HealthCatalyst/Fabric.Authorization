@@ -7,7 +7,6 @@ using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using Fabric.Authorization.Persistence.SqlServer.EntityModels;
 using Fabric.Authorization.Persistence.SqlServer.Extensions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Client = Fabric.Authorization.Persistence.SqlServer.EntityModels.Client;
 using Grain = Fabric.Authorization.Persistence.SqlServer.EntityModels.Grain;
 using Group = Fabric.Authorization.Persistence.SqlServer.EntityModels.Group;
@@ -105,11 +104,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlServer(ConnectionStrings.AuthorizationDatabase);
-        }
-
-        public override EntityEntry<TEntity> Entry<TEntity>(TEntity entity)
-        {
-            return base.Entry(entity);
         }
     }
 }
