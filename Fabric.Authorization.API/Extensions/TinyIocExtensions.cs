@@ -17,6 +17,7 @@ namespace Fabric.Authorization.API.Extensions
             container.Register<PermissionService, PermissionService>();
             container.Register<GroupService, GroupService>();
             container.Register<ClientService, ClientService>();
+            container.Register<GrainService, GrainService>();
             container.Register<SecurableItemService, SecurableItemService>();
             container.Register<IdentitySearchService, IdentitySearchService>();
             container.Register<IIdentityServiceProvider, IdentityServiceProvider>();
