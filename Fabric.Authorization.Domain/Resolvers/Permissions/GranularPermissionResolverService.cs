@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
@@ -15,7 +16,7 @@ namespace Fabric.Authorization.Domain.Resolvers.Permissions
 
         public GranularPermissionResolverService(PermissionService permissionService, ILogger logger)
         {
-            _permissionService = permissionService;
+            _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
             _logger = logger;
         }
 
