@@ -10,7 +10,6 @@ using Fabric.Authorization.Persistence.SqlServer.Mappers;
 using Fabric.Authorization.Persistence.SqlServer.Services;
 using Microsoft.EntityFrameworkCore;
 using Permission = Fabric.Authorization.Domain.Models.Permission;
-using User = Fabric.Authorization.Domain.Models.User;
 
 namespace Fabric.Authorization.Persistence.SqlServer.Stores
 {

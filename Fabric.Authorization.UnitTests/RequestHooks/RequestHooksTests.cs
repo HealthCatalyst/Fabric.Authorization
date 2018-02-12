@@ -26,6 +26,7 @@ namespace Fabric.Authorization.UnitTests.RequestHooks
             var logger = new Mock<ILogger>().Object;
             var mockGrantStore = new Mock<IGrainStore>().Object;
             var mockUserStore = new Mock<IUserStore>().Object;
+
             var mockPermissionStore = new Mock<IPermissionStore>().Object;
             var mockRoleStore = new Mock<IRoleStore>().Object;
             var mockSecurableItemStore = new Mock<ISecurableItemStore>().Object;
@@ -33,7 +34,7 @@ namespace Fabric.Authorization.UnitTests.RequestHooks
             var clientService = new ClientService(store, mockGrantStore, mockSecurableItemStore);
             var roleService = new RoleService(mockRoleStore, mockPermissionStore);
             var permissionService = new PermissionService(mockPermissionStore, roleService);
-            var permissionResolverService = new PermissionResolverService(roleService, permissionService, new List<IPermissionResolverService>(), logger);
+            var permissionResolverService = new PermissionResolverService(new List<IPermissionResolverService>(), logger);
             var accessService = new AccessService(permissionResolverService, userService, logger);
 
             _browser = new Browser(with =>
