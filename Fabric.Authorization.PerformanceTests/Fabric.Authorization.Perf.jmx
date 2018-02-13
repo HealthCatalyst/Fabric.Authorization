@@ -242,6 +242,13 @@
             <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
           </JSONPostProcessor>
           <hashTree/>
+          <BeanShellAssertion guiclass="BeanShellAssertionGui" testclass="BeanShellAssertion" testname="BeanShell Assertion" enabled="true">
+            <stringProp name="BeanShellAssertion.query">${__setProperty(installerAccessToken, ${installerAccessToken})};</stringProp>
+            <stringProp name="BeanShellAssertion.filename"></stringProp>
+            <stringProp name="BeanShellAssertion.parameters"></stringProp>
+            <boolProp name="BeanShellAssertion.resetInterpreter">false</boolProp>
+          </BeanShellAssertion>
+          <hashTree/>
         </hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Register Perf Test Client with Identity" enabled="true">
           <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
@@ -1288,7 +1295,7 @@ vars.put(&quot;aliceBasicAuthorization&quot;, basicAuthorization);</stringProp>
               </elementProp>
               <elementProp name="" elementType="Header">
                 <stringProp name="Header.name">Authorization</stringProp>
-                <stringProp name="Header.value">Bearer ${__property(bobAccessToken)}</stringProp>
+                <stringProp name="Header.value">Bearer ${__property(installerAccessToken)}</stringProp>
               </elementProp>
             </collectionProp>
           </HeaderManager>
@@ -1367,7 +1374,7 @@ vars.put(&quot;roleName&quot;, randomUUIDString);</stringProp>
               </elementProp>
               <elementProp name="" elementType="Header">
                 <stringProp name="Header.name">Authorization</stringProp>
-                <stringProp name="Header.value">Bearer ${__property(bobAccessToken)}</stringProp>
+                <stringProp name="Header.value">Bearer ${__property(installerAccessToken)}</stringProp>
               </elementProp>
             </collectionProp>
           </HeaderManager>
@@ -1450,7 +1457,7 @@ vars.put(&quot;permissionName&quot;, randomUUIDString);</stringProp>
               </elementProp>
               <elementProp name="" elementType="Header">
                 <stringProp name="Header.name">Authorization</stringProp>
-                <stringProp name="Header.value">Bearer ${__property(bobAccessToken)}</stringProp>
+                <stringProp name="Header.value">Bearer ${__property(installerAccessToken)}</stringProp>
               </elementProp>
             </collectionProp>
           </HeaderManager>
