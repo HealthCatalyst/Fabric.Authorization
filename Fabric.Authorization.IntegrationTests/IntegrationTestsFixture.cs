@@ -27,13 +27,12 @@ namespace Fabric.Authorization.IntegrationTests
 {
     public class IntegrationTestsFixture : IDisposable
     {
-        protected ConnectionStrings ConnectionStrings { get; }
+        public ConnectionStrings ConnectionStrings { get; set; }
         private string DatabaseNameSuffix { get; }
         public IntegrationTestsFixture()
         {
             DatabaseNameSuffix = GetDatabaseNameSuffix();
             ConnectionStrings = GetSqlServerConnection(DatabaseNameSuffix);
-            CreateSqlServerDatabase();
         }
         public Browser Browser { get; set; }
 
@@ -77,10 +76,6 @@ namespace Fabric.Authorization.IntegrationTests
 
         public IEventContextResolverService EventContextResolverService { get; set; } =
             new Mock<IEventContextResolverService>().Object;
-        
-        private static readonly string SqlServerEnvironmentVariable = "SQLSERVERSETTINGS__SERVER";
-        private static readonly string SqlServerUsernameEnvironmentVariable = "SQLSERVERSETTINGS__USERNAME";
-        private static readonly string SqlServerPasswordEnvironmentVariable = "SQLSERVERSETTINGS__PASSWORD";
 
         public DefaultPropertySettings DefaultPropertySettings = new DefaultPropertySettings
         {
@@ -96,92 +91,14 @@ namespace Fabric.Authorization.IntegrationTests
 
         private ConnectionStrings GetSqlServerConnection(string databaseNameSuffix)
         {
-            var sqlServerHost = Environment.GetEnvironmentVariable(SqlServerEnvironmentVariable) ?? ".";
-            var sqlServerSecurityString = GetSqlServerSecurityString();
             var connectionString = new ConnectionStrings
             {
-                AuthorizationDatabase = $"Server={sqlServerHost};Database=Authorization-{databaseNameSuffix};{sqlServerSecurityString};MultipleActiveResultSets=true"
+                AuthorizationDatabase = $"Authorization-{databaseNameSuffix}"
             };
 
             return connectionString;
         }
-
-        private string GetSqlServerSecurityString()
-        {
-            var sqlServerUserName = Environment.GetEnvironmentVariable(SqlServerUsernameEnvironmentVariable);
-            var sqlServerPassword = Environment.GetEnvironmentVariable(SqlServerPasswordEnvironmentVariable);
-            var securityString = "Trusted_Connection=True";
-            if (!string.IsNullOrEmpty(sqlServerUserName) && !string.IsNullOrEmpty(sqlServerPassword))
-            {
-                securityString = $"User Id={sqlServerUserName};Password={sqlServerPassword}";
-            }
-            return securityString;
-        }
-
-        private void CreateSqlServerDatabase()
-        {
-            var targetDbName = $"Authorization-{DatabaseNameSuffix}";
-           
-            var connection =
-                ConnectionStrings.AuthorizationDatabase.Replace(targetDbName, "master");
-            var file = new FileInfo("Fabric.Authorization.SqlServer_Create.sql");
-
-            var createDbScript = file.OpenText().ReadToEnd()
-                .Replace("$(DatabaseName)", targetDbName);
-
-            var splitter = new[] { "GO\r\n" };
-            var commandTexts = createDbScript.Split(splitter, StringSplitOptions.RemoveEmptyEntries);
-            int x;
-            using (var conn = new SqlConnection(connection))
-            {
-                conn.Open();
-                using (var command = new SqlCommand("query", conn))
-                {
-                    for (x = 0; x < commandTexts.Length; x++)
-                    {
-                        var commandText = commandTexts[x];
-
-                        // break if we just created the Identity DB
-                        if (commandText.StartsWith("CREATE DATABASE"))
-                        {
-                            var commandParts = commandText.Split(
-                                new[] { " ON " },
-                                StringSplitOptions.RemoveEmptyEntries);
-
-                            command.CommandText = commandParts[0];
-                            command.ExecuteNonQuery();
-                            break;
-                        }
-                    }
-                }
-            }
-
-            // establish a connection to the newly created Identity DB
-            using (var conn = new SqlConnection(ConnectionStrings.AuthorizationDatabase))
-            {
-                conn.Open();
-
-                using (var command = new SqlCommand("query", conn))
-                {
-                    for (x = x + 1; x < commandTexts.Length; x++)
-                    {
-                        var commandText = commandTexts[x];
-
-                        // skip generated SqlPackage commands and comments
-                        if (commandText.StartsWith(":") || commandText.StartsWith("/*"))
-                        {
-                            continue;
-                        }
-
-                        command.CommandText = commandText.Replace("HCFabricAuthorizationData1", "PRIMARY").Replace("HCFabricAuthorizationIndex1", "PRIMARY").TrimEnd(Environment.NewLine.ToCharArray());
-                        command.ExecuteNonQuery();
-                    }
-                }
-            }
-
-            
-        }
-
+        
         #region IDisposable implementation
 
         // Dispose() calls Dispose(true)

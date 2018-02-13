@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Constants;
+using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using Nancy;
 using Nancy.Testing;
 using Xunit;
@@ -15,8 +16,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         private readonly Browser _browser;
         private readonly string _securableItem;
 
-        public PermissionsTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory)
+        public PermissionsTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory, ConnectionStrings connectionStrings = null)
         {
+            if (connectionStrings != null)
+            {
+                fixture.ConnectionStrings = connectionStrings;
+            }
             _securableItem = "permissionprincipal" + Guid.NewGuid();
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
             {

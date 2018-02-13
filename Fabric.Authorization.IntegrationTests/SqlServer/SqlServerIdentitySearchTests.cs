@@ -7,8 +7,9 @@ namespace Fabric.Authorization.IntegrationTests.SqlServer
     [Collection("SqlServerTests")]
     public class SqlServerIdentitySearchTests : IdentitySearchTests
     {
-        public SqlServerIdentitySearchTests(IdentitySearchFixture fixture) : base(fixture)
+        public SqlServerIdentitySearchTests(IdentitySearchFixture fixture, SqlServerIntegrationTestsFixture sqlFixture) : base(fixture)
         {
+            fixture.ConnectionStrings = sqlFixture.ConnectionStrings;
             Fixture.Initialize(StorageProviders.SqlServer);
         }
     }

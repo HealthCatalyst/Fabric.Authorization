@@ -8,6 +8,7 @@ using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Models.Search;
 using Fabric.Authorization.API.RemoteServices.Identity.Models;
 using Fabric.Authorization.API.RemoteServices.Identity.Providers;
+using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using Moq;
 using Nancy;
 using Nancy.Testing;
@@ -20,8 +21,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
     {
         protected readonly IdentitySearchFixture Fixture;
 
-        public IdentitySearchTests(IdentitySearchFixture fixture)
+        public IdentitySearchTests(IdentitySearchFixture fixture, ConnectionStrings connectionStrings = null)
         {
+            if (connectionStrings != null)
+            {
+                fixture.ConnectionStrings = connectionStrings;
+            }
             Fixture = fixture;
             Fixture.Initialize(StorageProviders.InMemory);
         }
