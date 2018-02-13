@@ -13,7 +13,6 @@ using Fabric.Authorization.Domain.Resolvers.Models;
 using Fabric.Authorization.Domain.Resolvers.Permissions;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Validators;
-using IdentityModel;
 using Nancy;
 using Nancy.ModelBinding;
 using Nancy.Security;
@@ -26,14 +25,12 @@ namespace Fabric.Authorization.API.Modules
         private readonly ClientService _clientService;
         private readonly PermissionService _permissionService;
         private readonly UserService _userService;
-        private readonly RoleService _roleService;
         private readonly IPermissionResolverService _permissionResolverService;
 
         public UsersModule(
             ClientService clientService,
             PermissionService permissionService,
             UserService userService,
-            RoleService roleService,
             IPermissionResolverService permissionResolverService,
             UserValidator validator,
             AccessService accessService,
@@ -42,7 +39,6 @@ namespace Fabric.Authorization.API.Modules
             _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
-            _roleService = roleService ?? throw new ArgumentNullException(nameof(roleService));
             _permissionResolverService = permissionResolverService ?? throw new ArgumentNullException(nameof(permissionResolverService));
 
             // Get all the permissions for a user
