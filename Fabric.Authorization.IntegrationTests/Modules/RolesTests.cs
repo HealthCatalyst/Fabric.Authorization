@@ -80,6 +80,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task TestAddParentRole_SuccessAsync()
         {
             var parentRoleResponse = await _browser.Post("/roles", with =>
@@ -257,6 +258,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task Test_DeletePermissionFromRole_PermissionDoesntExist_NotFoundExceptionAsync()
         {
             var roleName = "Role1" + Guid.NewGuid();
@@ -312,6 +314,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task Test_AddPermissionToRole_PermissionDoesntExist_NotFoundExceptionAsync()
         {
             var roleName = "Role1" + Guid.NewGuid();
@@ -367,6 +370,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task Test_AddPermissionToRole_NoPermissionInBody_BadRequestExceptionAsync()
         {
             var roleName = "Role1" + Guid.NewGuid();
@@ -406,6 +410,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task Test_AddPermissionToRole_NoIdOnPermission_BadRequestExceptionAsync()
         {
             var roleName = "Role1" + Guid.NewGuid();
