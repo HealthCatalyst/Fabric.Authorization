@@ -8,10 +8,12 @@ using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.ModuleExtensions;
 using Fabric.Authorization.API.Services;
+using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
 using FluentValidation;
 using Nancy;
+using Nancy.Extensions;
 using Nancy.Responses.Negotiation;
 using Nancy.Security;
 using Serilog;
@@ -104,13 +106,17 @@ namespace Fabric.Authorization.API.Modules
 
             if (HasSubjectId)
             {
-                var grainModel = await clientService.GetGrain(grainAsString);
-                var requiredClaims = new List<Predicate<Claim>>{ AuthorizationWriteClaim };
-                if (grainModel.IsShared && grainModel.RequiredWriteScopes.Count > 0)
+                try
                 {
-                    requiredClaims.Add(c => grainModel.RequiredWriteScopes.Contains(c.Value));
+                    var requiredClaims = await GetRequiredClaims(clientService, grainAsString);
+                    await AccessService.CheckUserAccess(grainAsString, securableItemAsString, this,
+                        requiredClaims.ToArray());
                 }
-                await AccessService.CheckUserAccess(grainModel.Name, securableItemAsString, this, requiredClaims.ToArray());
+                catch (NotFoundException<Grain>)
+                {
+                    this.AddBeforeHookOrExecute((context) => AccessService.CreateFailuerResponse<Grain>(
+                        $"The requested grain: {grainAsString} does not exist.", context, HttpStatusCode.BadRequest));
+                }
             }
             else
             {
@@ -143,6 +149,17 @@ namespace Fabric.Authorization.API.Modules
         protected Predicate<Claim> GetClientIdPredicate(string clientId)
         {
             return claim => claim.Type == Claims.ClientId && claim.Value == clientId;
+        }
+
+        private async  Task<List<Predicate<Claim>>> GetRequiredClaims(ClientService clientService, string grain)
+        {
+            var grainModel = await clientService.GetGrain(grain);
+            var requiredClaims = new List<Predicate<Claim>> { AuthorizationWriteClaim };
+            if (grainModel.IsShared && grainModel.RequiredWriteScopes.Count > 0)
+            {
+                requiredClaims.Add(c => grainModel.RequiredWriteScopes.Contains(c.Value));
+            }
+            return requiredClaims;
         }
     }
 }
