@@ -70,6 +70,7 @@ namespace Fabric.Authorization.API.Modules
         private async Task<dynamic> GetUserPermissions(dynamic param)
         {
             var userPermissionRequest = this.Bind<UserInfoRequest>();
+            var isGrainEmpty = string.IsNullOrEmpty(userPermissionRequest.Grain);
             await SetDefaultRequest(userPermissionRequest);
             CheckReadAccess();
 
@@ -79,6 +80,7 @@ namespace Fabric.Authorization.API.Modules
                 IdentityProvider = param.identityProvider,
                 Grain = userPermissionRequest.Grain,
                 SecurableItem = userPermissionRequest.SecurableItem,
+                IncludeSharedPermissions = isGrainEmpty,
                 UserGroups = await _userService.GetGroupsForUser(param.subjectId, param.identityProvider)
             });
 
@@ -90,6 +92,7 @@ namespace Fabric.Authorization.API.Modules
         private async Task<dynamic> GetCurrentUserPermissions()
         {
             var userPermissionRequest = this.Bind<UserInfoRequest>();
+            var isGrainEmpty = string.IsNullOrEmpty(userPermissionRequest.Grain);
             await SetDefaultRequest(userPermissionRequest);
             CheckReadAccess();
 
@@ -99,6 +102,7 @@ namespace Fabric.Authorization.API.Modules
                 IdentityProvider = IdentityProvider,
                 Grain = userPermissionRequest.Grain,
                 SecurableItem = userPermissionRequest.SecurableItem,
+                IncludeSharedPermissions = isGrainEmpty,
                 UserGroups = await AccessService.GetGroupsForAuthenticatedUser(SubjectId, IdentityProvider, Context.CurrentUser)
             });
 
@@ -251,10 +255,14 @@ namespace Fabric.Authorization.API.Modules
         
         private async Task SetDefaultRequest(UserInfoRequest request)
         {
-            if (string.IsNullOrEmpty(request.Grain) && string.IsNullOrEmpty(request.SecurableItem))
+            if (string.IsNullOrEmpty(request.Grain))
+            {
+                request.Grain = TopLevelGrains.AppGrain;
+            }
+
+            if (string.IsNullOrEmpty(request.SecurableItem))
             {
                 var client = await _clientService.GetClient(ClientId);
-                request.Grain = TopLevelGrains.AppGrain;
                 request.SecurableItem = client.TopLevelSecurableItem.Name;
             }
         }
