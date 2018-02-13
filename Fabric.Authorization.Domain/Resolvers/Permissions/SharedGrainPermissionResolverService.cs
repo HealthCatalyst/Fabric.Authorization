@@ -20,10 +20,10 @@ namespace Fabric.Authorization.Domain.Resolvers.Permissions
 
         public async Task<PermissionResolutionResult> Resolve(PermissionResolutionRequest resolutionRequest)
         {
-            /*if (!resolutionRequest.IncludeSharedPermissions)
+            if (!resolutionRequest.IncludeSharedPermissions)
             {
                 return new PermissionResolutionResult();
-            }*/
+            }
 
             var sharedGrains = await _grainService.GetSharedGrains();
 
@@ -32,12 +32,11 @@ namespace Fabric.Authorization.Domain.Resolvers.Permissions
             {
                 foreach (var securableItem in sharedGrain.SecurableItems)
                 {
+                    // the current instance of SharedGrainPermissionResolverService will be in the _permissionResolverServices
+                    // collection, but because the PermissionResolutionRequest is being created with IncludeSharedPermissions = false,
+                    // infinite recursion will not happen
                     foreach (var permissionResolverService in _permissionResolverServices)
                     {
-                        if (permissionResolverService.GetType() == GetType())
-                        {
-                            continue;
-                        }
                         var result = await permissionResolverService.Resolve(new PermissionResolutionRequest
                         {
                             Grain = sharedGrain.Name,
