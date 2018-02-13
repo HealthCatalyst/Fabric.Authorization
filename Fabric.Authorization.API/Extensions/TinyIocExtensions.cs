@@ -25,7 +25,8 @@ namespace Fabric.Authorization.API.Extensions
             container.RegisterMultiple<IPermissionResolverService>(new List<Type>
             {
                 typeof(GranularPermissionResolverService),
-                typeof(RolePermissionResolverService)
+                typeof(RolePermissionResolverService),
+                typeof(SharedGrainPermissionResolverService)
             });
 
             container.Register<IEventService, EventService>();
