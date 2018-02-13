@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
+using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using Nancy;
 using Nancy.Testing;
 using Newtonsoft.Json;
@@ -16,8 +17,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
     {
         private readonly IntegrationTestsFixture _fixture;
         private readonly string _storageProvider;
-        public DosTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory)
+        public DosTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory, ConnectionStrings connectionStrings = null)
         {
+            if (connectionStrings != null)
+            {
+                fixture.ConnectionStrings = connectionStrings;
+            }
             _fixture = fixture;
             _storageProvider = storageProvider;
         }

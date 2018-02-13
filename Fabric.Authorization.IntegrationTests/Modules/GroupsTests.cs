@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
+using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using Nancy;
 using Nancy.Testing;
 using Xunit;
@@ -26,8 +27,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             new Claim(Claims.IdentityProvider, "idP1")
         }, "rolesprincipal"));
 
-        public GroupsTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory)
+        public GroupsTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory, ConnectionStrings connectionStrings = null)
         {
+            if (connectionStrings != null)
+            {
+                fixture.ConnectionStrings = connectionStrings;
+            }
             Browser = fixture.GetBrowser(Principal, storageProvider);
             _defaultPropertySettings = fixture.DefaultPropertySettings;
             fixture.CreateClient(Browser, "rolesprincipal");

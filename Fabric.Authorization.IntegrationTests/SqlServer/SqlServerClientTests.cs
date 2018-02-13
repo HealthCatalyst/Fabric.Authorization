@@ -8,9 +8,8 @@ namespace Fabric.Authorization.IntegrationTests.SqlServer
     [Collection("SqlServerTests")]
     public class SqlServerClientTests : ClientTests
     {
-        public SqlServerClientTests(IntegrationTestsFixture fixture) : base(fixture, StorageProviders.SqlServer)
+        public SqlServerClientTests(IntegrationTestsFixture fixture, SqlServerIntegrationTestsFixture sqlFixture) : base(fixture, StorageProviders.SqlServer, sqlFixture.ConnectionStrings)
         {
-
         }
     }
 }

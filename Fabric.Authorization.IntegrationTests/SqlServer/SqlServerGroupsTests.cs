@@ -7,7 +7,7 @@ namespace Fabric.Authorization.IntegrationTests.SqlServer
     [Collection("SqlServerTests")]
     public class SqlServerGroupsTests : GroupsTests
     {
-        public SqlServerGroupsTests(IntegrationTestsFixture fixture) : base(fixture, StorageProviders.SqlServer)
+        public SqlServerGroupsTests(IntegrationTestsFixture fixture, SqlServerIntegrationTestsFixture sqlFixture) : base(fixture, StorageProviders.SqlServer, sqlFixture.ConnectionStrings)
         {
         }
     }

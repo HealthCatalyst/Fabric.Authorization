@@ -6,6 +6,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
+using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using IdentityModel;
 using Nancy;
 using Nancy.Testing;
@@ -27,8 +28,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         private readonly Browser _browser;
         private readonly string _securableItem;
-        public UserTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory)
+        public UserTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory, ConnectionStrings connectionStrings = null)
         {
+            if (connectionStrings != null)
+            {
+                fixture.ConnectionStrings = connectionStrings;
+            }
             _securableItem = "userprincipal" + Guid.NewGuid();
             var principal = new ClaimsPrincipal(
                 new ClaimsIdentity(new List<Claim>
