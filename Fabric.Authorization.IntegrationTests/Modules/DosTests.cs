@@ -227,6 +227,38 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
+        public async Task AddDosPermission_GrainDoesNotExist_BadRequestAsync()
+        {
+            var clientId = "fabric-installer";
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
+            {
+                new Claim(Claims.Scope, Scopes.ManageClientsScope),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.Scope, Scopes.ManageDosScope),
+                new Claim(Claims.ClientId, clientId),
+                new Claim(Claims.Sub, "user1")
+            }, "pwd"));
+
+            var browser = _fixture.GetBrowser(principal, _storageProvider);
+
+            var permission = "permission" + Guid.NewGuid();
+            var postResponse = await browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    Grain = "does-not-exist",
+                    SecurableItem = "datamarts",
+                    Name = permission
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
+        }
+
+        [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task AddDosPermission_WrongSecurable_BadRequestAsync()
         {
             var clientId = "fabric-installer";
