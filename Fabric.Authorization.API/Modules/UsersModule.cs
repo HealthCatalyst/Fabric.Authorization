@@ -106,10 +106,18 @@ namespace Fabric.Authorization.API.Modules
                 UserGroups = await AccessService.GetGroupsForAuthenticatedUser(SubjectId, IdentityProvider, Context.CurrentUser)
             });
 
+            var allPermissions =
+                permissionResolutionResult.AllowedPermissions.Concat(permissionResolutionResult.DeniedPermissions);
+
+            var requestContexts = allPermissions.Select(p => new RequestContext
+            {
+                RequestedGrain = p.Grain,
+                RequestedSecurableItem = p.SecurableItem
+            }).Distinct();
+
             return new UserPermissionsApiModel
             {
-                RequestedGrain = userPermissionRequest.Grain,
-                RequestedSecurableItem = userPermissionRequest.SecurableItem,
+                RequestContexts = requestContexts,
                 Permissions = permissionResolutionResult.AllowedPermissions
                     .Except(permissionResolutionResult.DeniedPermissions)
                     .Select(p => p.ToString())

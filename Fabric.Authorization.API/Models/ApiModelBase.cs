@@ -1,8 +1,9 @@
-﻿namespace Fabric.Authorization.API.Models
+﻿using System.Collections.Generic;
+
+namespace Fabric.Authorization.API.Models
 {
     public class ApiModelBase
     {
-        public string RequestedGrain { get; set; }
-        public string RequestedSecurableItem { get; set; }
+        public IEnumerable<RequestContext> RequestContexts { get; set; }
     }
 }
