@@ -1,6 +1,7 @@
 ﻿using Fabric.Authorization.Domain.Models;
 using FluentValidation;
 using System;
+using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Services;
 
 namespace Fabric.Authorization.Domain.Validators
@@ -36,7 +37,8 @@ namespace Fabric.Authorization.Domain.Validators
 
         private bool BeUnique(string clientId)
         {
-            return !_clientService.Exists(clientId).Result;
+            var exists = Task.Run(async () => await _clientService.Exists(clientId)).Result;
+            return !exists;
         }
     }
 }

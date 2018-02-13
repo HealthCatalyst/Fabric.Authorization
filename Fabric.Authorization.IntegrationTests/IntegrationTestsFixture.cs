@@ -211,11 +211,11 @@ namespace Fabric.Authorization.IntegrationTests
         public void CreateClient(Browser browser, string clientId)
         {
             var id = clientId;
-            browser.Post("/clients", with =>
+            Task.Run(async () => await browser.Post("/clients", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new ClientApiModel { Id = id, Name = id });
-            }).Wait();
+            })).Wait();
         }
 
         public async Task AssociateUserToAdminRoleAsync(string user, string identityProvider, string storageProvider, string grain, string securableItem, string roleName)
@@ -278,7 +278,7 @@ namespace Fabric.Authorization.IntegrationTests
 
         public class DisplayTestMethodNameAttribute : BeforeAfterTestAttribute
         {
-            private bool _writeToConsole = false;
+            private bool _writeToConsole = true;
             public override void Before(MethodInfo methodUnderTest)
             {
                 if (_writeToConsole)

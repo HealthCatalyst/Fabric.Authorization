@@ -22,6 +22,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             _storageProvider = storageProvider;
         }
 
+        [IntegrationTestsFixture.DisplayTestMethodName]
         [Fact]
         public async Task AddDosPermission_UserInRole_SuccessAsync()
         {
@@ -67,6 +68,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Theory]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         [InlineData("fabric-installer")]
         [InlineData("dos-metadata-service")]
         public async Task AddDosPermission_AllowedApp_SuccessAsync(string clientId)
@@ -116,6 +118,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task AddDosPermission_UserNotInRole_ForbiddenAsync()
         {
             var sub = "sub" + Guid.NewGuid();
@@ -159,6 +162,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task AddDosPermission_UserInRole_MissingScope_ForbiddenAsync()
         {
             var user = "user" + Guid.NewGuid();
@@ -191,6 +195,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task AddDosPermission_IncorrectClient_ForbiddenAsync()
         {
             var clientId = "not-fabric-installer";
@@ -221,6 +226,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task AddDosPermission_WrongSecurable_BadRequestAsync()
         {
             var clientId = "fabric-installer";

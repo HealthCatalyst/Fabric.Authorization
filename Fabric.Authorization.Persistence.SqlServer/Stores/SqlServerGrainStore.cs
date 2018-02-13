@@ -23,7 +23,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         {
             var grain = await _authorizationDbContext.Grains
                 .Include(g => g.SecurableItems)
-                .SingleOrDefaultAsync(g => g.Name == name);
+                .SingleOrDefaultAsync(g => g.Name == name).ConfigureAwait(false);
 
             if (grain == null)
             {

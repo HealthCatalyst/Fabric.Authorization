@@ -27,6 +27,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task IdentitySearch_ClientIdDoesNotExist_NotFoundExceptionAsync()
         {
             Fixture.InitializeBrowser(new Mock<IIdentityServiceProvider>().Object);
@@ -49,6 +50,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task IdentitySearch_ClientWithoutRoles_EmptyResponseAsync()
         {
             var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
@@ -74,6 +76,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task IdentitySearch_ClientWithRolesAndNoGroups_EmptyResponseAsync()
         {
             var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
@@ -99,6 +102,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task IdentitySearch_ValidRequest_SuccessAsync()
         {
             var lastLoginDate = new DateTime(2017, 9, 15).ToUniversalTime();
@@ -160,6 +164,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task IdentitySearch_NoParams_BadRequestExceptionAsync()
         {
             Fixture.InitializeBrowser(new Mock<IIdentityServiceProvider>().Object);
