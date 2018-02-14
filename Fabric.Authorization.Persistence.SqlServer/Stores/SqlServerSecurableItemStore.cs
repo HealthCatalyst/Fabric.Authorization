@@ -20,8 +20,10 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         }
         public async Task<SecurableItem> Get(string name)
         {
-            var securableItem =  await _authorizationDbContext.SecurableItems.SingleOrDefaultAsync(
-                s => s.Name == name && s.IsDeleted == false);
+            var securableItem = await _authorizationDbContext.SecurableItems
+                .Include(s => s.Grain)
+                .SingleOrDefaultAsync(s => s.Name == name && !s.IsDeleted);
+
             if (securableItem == null)
             {
                 throw new NotFoundException<SecurableItem>();

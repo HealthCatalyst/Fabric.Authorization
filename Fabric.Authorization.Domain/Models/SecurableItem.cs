@@ -18,7 +18,7 @@ namespace Fabric.Authorization.Domain.Models
 
         public ICollection<SecurableItem> SecurableItems { get; set; }
 
-        public Grain Grain { get; set; }
+        public string Grain { get; set; }
 
         public DateTime CreatedDateTimeUtc { get; set; }
 
