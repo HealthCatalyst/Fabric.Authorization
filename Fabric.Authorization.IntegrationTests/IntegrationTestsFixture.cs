@@ -34,6 +34,8 @@ namespace Fabric.Authorization.IntegrationTests
         }
         public Browser Browser { get; set; }
 
+        public string TestHost => "http://testhost:80/v1";
+
         public Browser GetBrowser(ClaimsPrincipal principal, string storageProvider, IIdentityServiceProvider identityServiceProvider = null)
         {            
             var appConfiguration = new AppConfiguration

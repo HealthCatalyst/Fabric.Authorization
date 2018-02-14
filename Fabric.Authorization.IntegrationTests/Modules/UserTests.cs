@@ -8,6 +8,7 @@ using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using IdentityModel;
 using Nancy;
+using Nancy.Helpers;
 using Nancy.Testing;
 using Newtonsoft.Json;
 using Xunit;
@@ -54,11 +55,63 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     new Claim(JwtClaimTypes.Role, Group2),
                     new Claim(JwtClaimTypes.IdentityProvider, IdentityProvider)
                 }, _securableItem));
-            
+
+            _fixture = fixture;
             _browser = fixture.GetBrowser(principal, storageProvider);
             fixture.CreateClient(_browser, _securableItem);
             Task.Run(async () => await fixture.AssociateUserToAdminRoleAsync(_securableItem, IdentityProvider, storageProvider,
                 Domain.Defaults.Authorization.AppGrain, _securableItem, $"{_securableItem}-admin")).Wait();
+        }
+
+        [Fact]
+        public async Task AddUser_NewUser_ReturnsCreatedAsync()
+        {
+            var identityProvider = "windows";
+            var subjectId = @"domain\test.user" + Guid.NewGuid();
+            var response = await _browser.Post("/user", with =>
+            {
+                with.JsonBody(new
+                {
+                    identityProvider,
+                    subjectId
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            var user = response.Body.DeserializeJson<UserApiModel>();
+            Assert.Equal(subjectId, user.SubjectId);
+            Assert.Equal(identityProvider, user.IdentityProvider);
+            Assert.Equal($"{_fixture.TestHost}/user/{identityProvider}/{HttpUtility.UrlEncode(subjectId)}", response.Headers[HttpResponseHeaders.Location]);
+        }
+
+        [Fact]
+        public async Task AddUser_UserExists_ReturnsConflictAsync()
+        {
+            var identityProvider = "windows";
+            var subjectId = @"domain\test.user" + Guid.NewGuid();
+            var response = await _browser.Post("/user", with =>
+            {
+                with.JsonBody(new
+                {
+                    identityProvider,
+                    subjectId
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+            var duplicateResponse = await _browser.Post("/user", with =>
+            {
+                with.JsonBody(new
+                {
+                    identityProvider,
+                    subjectId
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Conflict, duplicateResponse.StatusCode);
+            var error = duplicateResponse.Body.DeserializeJson<Error>();
+            Assert.Equal($"The User {subjectId} already exists for the Identity Provider: {identityProvider}", error.Details.First().Message);
         }
 
         [Fact]
