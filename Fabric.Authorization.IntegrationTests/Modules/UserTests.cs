@@ -147,6 +147,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.Created, post.StatusCode);
 
+            // get non-authenticated user's permissions
             var get = await _browser.Get($"/user/{idP}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
@@ -156,6 +157,29 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var permissions = get.Body.DeserializeJson<IEnumerable<ResolvedPermissionApiModel>>();
             var permissionNames = permissions.Select(p => p.ToString());
             Assert.Contains($"dos/datamarts.{dosDatamartPermission.Name}", permissionNames);
+
+
+            // create a principal w/ the user created above
+            principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
+            {
+                new Claim(Claims.Scope, Scopes.ManageClientsScope),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.Sub, subjectId),
+                new Claim(Claims.IdentityProvider, idP),
+                new Claim(Claims.ClientId, _securableItem)
+            }, "pwd"));
+
+            browser = _fixture.GetBrowser(principal, _storageProvider);
+
+            get = await browser.Get("/user/permissions", with =>
+            {
+                with.HttpRequest();
+            });
+
+            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
+            var userPermissionsApiModel = get.Body.DeserializeJson<UserPermissionsApiModel>();
+            Assert.Contains($"dos/datamarts.{dosDatamartPermission.Name}", userPermissionsApiModel.Permissions);
         }
 
         [Fact]
