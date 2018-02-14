@@ -50,6 +50,12 @@ namespace Fabric.Authorization.API.Models
             return roleDomainModel;
         }
 
+        public static User ToUserDomainModel(this UserApiModel user)
+        {
+            var userDomainModel = new User(user.SubjectId, user.IdentityProvider);
+            return userDomainModel;
+        }
+
         public static UserApiModel ToUserApiModel(this User user)
         {
             var userApiModel = new UserApiModel

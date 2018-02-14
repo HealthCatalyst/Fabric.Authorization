@@ -49,6 +49,10 @@ namespace Fabric.Authorization.API.Modules
                 async _ => await GetCurrentUserPermissions().ConfigureAwait(false), null,
                 "GetCurrentUserPermissions");
 
+            Post("/", 
+                async _ => await this.AddUser().ConfigureAwait(false), null, 
+                "AddUser");
+
             Get("/{identityProvider}/{subjectId}/permissions",
                 async param => await this.GetUserPermissions(param).ConfigureAwait(false), null,
                 "GetUserPermissions");
@@ -64,6 +68,15 @@ namespace Fabric.Authorization.API.Modules
             Get("/{identityProvider}/{subjectId}/groups",
                 async _ => await GetUserGroups().ConfigureAwait(false), null,
                 "GetUserGroups");
+        }
+
+        private async Task<dynamic> AddUser()
+        {
+            this.RequiresClaims(AuthorizationWriteClaim);
+            var user = this.Bind<UserApiModel>().ToUserDomainModel();
+            Validate(user);
+            var userModel = await _userService.AddUser(user);
+            return CreateSuccessfulPostResponse($"{userModel.IdentityProvider}/{userModel.SubjectId}", userModel.ToUserApiModel());
         }
 
         private async Task<dynamic> GetUserPermissions(dynamic param)
