@@ -158,7 +158,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var permissionNames = permissions.Select(p => p.ToString());
             Assert.Contains($"dos/datamarts.{dosDatamartPermission.Name}", permissionNames);
 
-
             // create a principal w/ the user created above
             principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
             {

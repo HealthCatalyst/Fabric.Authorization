@@ -105,14 +105,22 @@ namespace Fabric.Authorization.API.Modules
                 UserGroups = await AccessService.GetGroupsForAuthenticatedUser(SubjectId, IdentityProvider, Context.CurrentUser)
             });
 
-            var allPermissions =
-                permissionResolutionResult.AllowedPermissions.Concat(permissionResolutionResult.DeniedPermissions);
-
-            var permissionRequestContexts = allPermissions.Select(p => new PermissionRequestContext
+            var rc1 = permissionResolutionResult.AllowedPermissions.Select(p => new PermissionRequestContext
             {
                 RequestedGrain = p.Grain,
                 RequestedSecurableItem = p.SecurableItem
-            }).Distinct();
+            });
+
+            rc1 = rc1.Concat(new List<PermissionRequestContext>
+            {
+                new PermissionRequestContext
+                {
+                    RequestedGrain = rc1.First().RequestedGrain,
+                    RequestedSecurableItem= rc1.First().RequestedSecurableItem
+                }
+            });
+
+            var permissionRequestContexts = rc1.Distinct(new PermissionRequestContextComparer());
 
             return new UserPermissionsApiModel
             {
