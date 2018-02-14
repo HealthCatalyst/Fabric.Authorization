@@ -99,6 +99,106 @@ namespace Fabric.Authorization.UnitTests.Users
             AssertOk(result, 3);
         }
 
+        [Theory]
+        [InlineData("test", "", "You must specify an IdentityProvider for this user")]
+        [InlineData("", "test", "You must specify a SubjectId for this user")]
+        public void AddUser_MissingData_ReturnsBadRequest(string subjectId, string identityProvider, string message)
+        {
+            var existingClient = ExistingClients.First();
+            var usersModule = CreateBrowser(
+                new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.ClientId, existingClient.Id)
+            );
+
+            var postResponse = usersModule.Post("/user", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    SubjectId = subjectId,
+                    IdentityProvider = identityProvider
+                });
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
+            var result = postResponse.Body.DeserializeJson<Error>();
+            Assert.Equal(message, result.Details.First().Message);
+        }
+
+        [Fact]
+        public void AddUser_MissingScope_ReturnsBadForbidden()
+        {
+            var existingClient = ExistingClients.First();
+            var usersModule = CreateBrowser(
+                new Claim(Claims.ClientId, existingClient.Id)
+            );
+
+            var postResponse = usersModule.Post("/user", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    SubjectId = "test",
+                    IdentityProvider = "test"
+                });
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Forbidden, postResponse.StatusCode);
+        }
+
+        [Fact]
+        public void AddUser_ExistingUser_ReturnsConflict()
+        {
+            var existingClient = ExistingClients.First();
+            var existingUser = _existingUsers.First();
+            var usersModule = CreateBrowser(
+                new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.ClientId, existingClient.Id)
+            );
+
+            var postResponse = usersModule.Post("/user", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    SubjectId = existingUser.SubjectId,
+                    IdentityProvider = existingUser.IdentityProvider
+                });
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Conflict, postResponse.StatusCode);
+            var result = postResponse.Body.DeserializeJson<Error>();
+            Assert.Equal($"The User {existingUser.SubjectId} already exists for the Identity Provider: {existingUser.IdentityProvider}", result.Details.First().Message);
+        }
+
+        [Fact]
+        public void AddUser_NewUser_ReturnsOK()
+        {
+            var existingClient = ExistingClients.First();
+            var usersModule = CreateBrowser(
+                new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.ClientId, existingClient.Id)
+            );
+            var subjectId = "user" + Guid.NewGuid();
+            var identityProvider = "Windows";
+            var postResponse = usersModule.Post("/user", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    subjectId,
+                    identityProvider
+                });
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+            var result = postResponse.Body.DeserializeJson<UserApiModel>();
+            Assert.Equal(subjectId, result.SubjectId);
+            Assert.Equal(identityProvider, result.IdentityProvider);
+            var selfLink = postResponse.Headers[HttpResponseHeaders.Location];
+            Assert.Equal($"{TestHost}/user/{identityProvider}/{subjectId}", selfLink);
+        }
+
         private void AssertOk(BrowserResponse result, int expectedCountPermissions)
         {
             Assert.Equal(HttpStatusCode.OK, result.StatusCode);

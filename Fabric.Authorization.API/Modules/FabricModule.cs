@@ -65,10 +65,17 @@ namespace Fabric.Authorization.API.Modules
         protected Negotiator CreateSuccessfulPostResponse(IIdentifiable model,
             HttpStatusCode statusCode = HttpStatusCode.Created)
         {
+            return CreateSuccessfulPostResponse(model.Identifier, model, statusCode);
+        }
+
+        protected Negotiator CreateSuccessfulPostResponse(string identifier,
+            object model,
+            HttpStatusCode statusCode = HttpStatusCode.Created)
+        {
             var uriBuilder = new UriBuilder(Request.Url.Scheme,
                 Request.Url.HostName,
                 Request.Url.Port ?? 80,
-                $"{ModulePath}/{model.Identifier}");
+                $"{ModulePath}/{identifier}");
 
             var selfLink = uriBuilder.ToString();
 

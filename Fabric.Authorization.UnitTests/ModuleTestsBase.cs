@@ -28,6 +28,8 @@ namespace Fabric.Authorization.UnitTests
         protected readonly Mock<IGrainStore> MockGrainStore;
         protected readonly Mock<ISecurableItemStore> MockSecurableItemStore;
 
+        protected readonly string TestHost = "http://testhost:80/v1";
+
         protected ModuleTestsBase()
         {
             ExistingClients = CreateClients;

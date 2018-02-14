@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
 
 namespace Fabric.Authorization.Domain.Services
@@ -17,6 +18,16 @@ namespace Fabric.Authorization.Domain.Services
         {
             var user = await _userStore.Get($"{subjectId}:{identityProvider}");
             return user != null ? user.Groups : new List<string>();
+        }
+
+        public async Task<User> AddUser(User user)
+        {
+            return await _userStore.Add(user);
+        }
+
+        public async Task<bool> Exists(string subjectId, string identityProvider)
+        {
+            return await _userStore.Exists($"{subjectId}:{identityProvider}");
         }
     }
 }
