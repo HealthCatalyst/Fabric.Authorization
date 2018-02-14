@@ -149,7 +149,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             var permissions = roles.First().Permissions;
             Assert.Single(roles.First().Permissions);
-            Assert.Equal(Domain.Defaults.Authorization.AuthorizationPermissionName, permissions.First().Name);
+            Assert.Equal(Domain.Defaults.Authorization.ManageAuthorizationPermissionName, permissions.First().Name);
         }
 
         [Theory]

@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security.Claims;
@@ -137,7 +135,8 @@ namespace Fabric.Authorization.IntegrationTests
 
         public async Task AssociateUserToAdminRoleAsync(string user, string identityProvider, string storageProvider, string grain, string securableItem, string roleName)
         {
-            var clientId = "fabric-installer";
+            var clientId = Domain.Defaults.Authorization.InstallerClientId;
+
             //var user = claims.First(c => c.Type == Claims.Sub).Value;
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
             {
@@ -185,7 +184,7 @@ namespace Fabric.Authorization.IntegrationTests
                 with.HttpRequest();
                 with.JsonBody(new
                 {
-                    GroupName = group.GroupName,
+                    group.GroupName,
                     SubjectId = user,
                     IdentityProvider = identityProvider
                 });
