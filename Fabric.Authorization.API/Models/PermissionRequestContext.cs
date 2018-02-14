@@ -13,6 +13,16 @@ namespace Fabric.Authorization.API.Models
     {
         public bool Equals(PermissionRequestContext p1, PermissionRequestContext p2)
         {
+            if (p1 == p2)
+            {
+                return true;
+            }
+
+            if (p1 == null || p2 == null)
+            {
+                return false;
+            }
+
             return string.Equals(p1.RequestedGrain, p2.RequestedGrain)
                    && string.Equals(p1.RequestedSecurableItem, p2.RequestedSecurableItem);
         }
