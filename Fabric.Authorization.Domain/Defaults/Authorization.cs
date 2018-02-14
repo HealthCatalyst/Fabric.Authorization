@@ -5,10 +5,10 @@ namespace Fabric.Authorization.Domain.Defaults
 {
     public class Authorization
     {
-        public static string AppGrain = "app";
-        public static string DosGrain = "dos";
-        public static string AuthorizationPermissionName = "manageauthorization";
-        public static string InstallerClientId = "fabric-installer";
+        public static readonly string AppGrain = "app";
+        public static readonly string DosGrain = "dos";
+        public static readonly string ManageAuthorizationPermissionName = "manageauthorization";
+        public static readonly string InstallerClientId = "fabric-installer";
 
         public IList<Grain> Grains { get; }
         public IList<Role> Roles { get; }
@@ -48,7 +48,7 @@ namespace Fabric.Authorization.Domain.Defaults
                     {
                         new Permission
                         {
-                            Name = AuthorizationPermissionName,
+                            Name = ManageAuthorizationPermissionName,
                             Grain = "dos",
                             SecurableItem = "datamarts"
                         }

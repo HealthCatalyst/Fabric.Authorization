@@ -18,16 +18,19 @@ namespace Fabric.Authorization.API.Modules
     {
         private readonly ClientService _clientService;
         private readonly PermissionService _permissionService;
+        private readonly GrainService _grainService;
 
         public PermissionsModule(
             PermissionService permissionService,
             ClientService clientService,
+            GrainService grainService,
             PermissionValidator validator,
             ILogger logger,
             AccessService accessService) : base("/v1/permissions", logger, validator, accessService)
         {
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
             _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
+            _grainService = grainService ?? throw new ArgumentNullException(nameof(grainService));
 
             Get("/{permissionId}",
                 async parameters => await this.GetPermissionById(parameters).ConfigureAwait(false),
@@ -88,7 +91,7 @@ namespace Fabric.Authorization.API.Modules
             var incomingPermission = permissionApiModel.ToPermissionDomainModel();
 
             Validate(incomingPermission);
-            await CheckWriteAccess(_clientService, permissionApiModel.Grain, permissionApiModel.SecurableItem);
+            await CheckWriteAccess(_clientService, _grainService, permissionApiModel.Grain, permissionApiModel.SecurableItem);
 
             var permission = await _permissionService.AddPermission(incomingPermission);
             return CreateSuccessfulPostResponse(permission.ToPermissionApiModel());
@@ -103,7 +106,7 @@ namespace Fabric.Authorization.API.Modules
                     return CreateFailureResponse("permissionId must be a guid.", HttpStatusCode.BadRequest);
                 }
                 var permission = await _permissionService.GetPermission(permissionId);
-                await CheckWriteAccess(_clientService, permission.Grain, permission.SecurableItem);
+                await CheckWriteAccess(_clientService, _grainService, permission.Grain, permission.SecurableItem);
                 await _permissionService.DeletePermission(permission);
                 return HttpStatusCode.NoContent;
             }

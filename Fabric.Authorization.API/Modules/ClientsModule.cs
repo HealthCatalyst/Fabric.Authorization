@@ -53,7 +53,7 @@ namespace Fabric.Authorization.API.Modules
                 string clientIdAsString = parameters.clientid.ToString();
                 this.RequiresClaims(AuthorizationReadClaim);
                 this.RequiresAnyClaim(AuthorizationManageClientsClaim, GetClientIdPredicate(clientIdAsString));
-                Client client = await _clientService.GetClient(clientIdAsString);
+                var client = await _clientService.GetClient(clientIdAsString);
                 return client.ToClientApiModel();
             }
             catch (NotFoundException<Client> ex)
@@ -77,7 +77,7 @@ namespace Fabric.Authorization.API.Modules
 
             try
             {
-                Client client = await _clientService.AddClient(incomingClient);
+                var client = await _clientService.AddClient(incomingClient);
                 await AddDefaultRoleAndPermissionAsync(client);
                 return CreateSuccessfulPostResponse(client.ToClientApiModel());
             }
@@ -114,7 +114,7 @@ namespace Fabric.Authorization.API.Modules
             {
                 var newPermission = await _permissionService.AddPermission(new Permission
                 {
-                    Name = Domain.Defaults.Authorization.AuthorizationPermissionName,
+                    Name = Domain.Defaults.Authorization.ManageAuthorizationPermissionName,
                     Grain = Domain.Defaults.Authorization.AppGrain,
                     SecurableItem = client.TopLevelSecurableItem.Name
                 });

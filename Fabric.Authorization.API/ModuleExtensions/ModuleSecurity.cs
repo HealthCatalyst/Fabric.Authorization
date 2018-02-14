@@ -50,7 +50,7 @@ namespace Fabric.Authorization.API.ModuleExtensions
             return (context) =>
             {
                 if (permissions.Contains(
-                    $"{grain}/{securableItem}.{Domain.Defaults.Authorization.AuthorizationPermissionName}"))
+                    $"{grain}/{securableItem}.{Domain.Defaults.Authorization.ManageAuthorizationPermissionName}"))
                 {
                     return null;
                 }
