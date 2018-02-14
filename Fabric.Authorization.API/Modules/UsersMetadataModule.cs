@@ -37,6 +37,52 @@ namespace Fabric.Authorization.API.Modules
             ModelCatalog.AddModels(typeof(PermissionAction));
             ModelCatalog.AddModels(typeof(PermissionRoleApiModel));
             ModelCatalog.AddModels(typeof(ResolvedPermissionApiModel));
+            ModelCatalog.AddModels(typeof(UserApiModel));
+
+            RouteDescriber.DescribeRouteWithParams(
+                "AddUser",
+                "",
+                "Adds a new user.",
+                new []
+                {
+                    new HttpResponseMetadata<UserApiModel>
+                    {
+                        Code = (int) HttpStatusCode.Created,
+                        Message = "Created"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.Forbidden,
+                        Message = "User does not have access"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.BadRequest,
+                        Message = "User object in body failed validation"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.Conflict,
+                        Message = "User with specified IdentityProvider and Subject already exists"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.UnsupportedMediaType,
+                        Message = "Content-Type header was not included in request"
+                    }
+                },
+                new[]
+                {
+                    new BodyParameter<UserApiModel>(modelCatalog)
+                    {
+                        Name = "User",
+                        Description = "The user to add"
+                    }
+                },
+                new []
+                {
+                    _usersTag
+                }).SecurityRequirement(OAuth2WriteScopeBuilder);
 
             RouteDescriber.DescribeRoute(
                 "GetCurrentUserPermissions",
