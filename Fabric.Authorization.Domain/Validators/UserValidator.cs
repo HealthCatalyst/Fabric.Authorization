@@ -39,7 +39,7 @@ namespace Fabric.Authorization.Domain.Validators
 
         private bool BeUnique(User user)
         {
-            var exists = Task.Run(async () => await _userService.Exists(user.IdentityProvider, user.SubjectId)).Result;
+            var exists = Task.Run(async () => await _userService.Exists(user.SubjectId, user.IdentityProvider)).Result;
             return !exists;
         }
     }

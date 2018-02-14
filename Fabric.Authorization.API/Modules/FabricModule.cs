@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
@@ -14,6 +15,7 @@ using Fabric.Authorization.Domain.Services;
 using FluentValidation;
 using Nancy;
 using Nancy.Extensions;
+using Nancy.Helpers;
 using Nancy.Responses.Negotiation;
 using Nancy.Security;
 using Serilog;
@@ -72,10 +74,11 @@ namespace Fabric.Authorization.API.Modules
             object model,
             HttpStatusCode statusCode = HttpStatusCode.Created)
         {
+            var encodedIdentifier = EncodeIdentifier(identifier);
             var uriBuilder = new UriBuilder(Request.Url.Scheme,
                 Request.Url.HostName,
                 Request.Url.Port ?? 80,
-                $"{ModulePath}/{identifier}");
+                $"{ModulePath}/{encodedIdentifier}");
 
             var selfLink = uriBuilder.ToString();
 
@@ -83,6 +86,18 @@ namespace Fabric.Authorization.API.Modules
                 .WithModel(model)
                 .WithStatusCode(statusCode)
                 .WithHeader(HttpResponseHeaders.Location, selfLink);
+        }
+
+        private string EncodeIdentifier(string identifier)
+        {
+            var identifierParts = identifier.Split('/');
+            var builder = new StringBuilder();
+            foreach (var identifierPart in identifierParts)
+            {
+                builder.Append(HttpUtility.UrlEncode(identifierPart));
+                builder.Append("/");
+            }
+            return builder.ToString().TrimEnd('/');
         }
 
         protected Negotiator CreateSuccessfulGetResponse<T1>(T1 model, HttpStatusCode statusCode = HttpStatusCode.OK)

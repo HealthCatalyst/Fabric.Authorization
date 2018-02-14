@@ -11,7 +11,7 @@ namespace Fabric.Authorization.UnitTests.Mocks
 {
     public static class UserStoreMockExtensions
     {
-        public static Mock<IUserStore> SetupGetUser(this Mock<IUserStore> mockUserStore, List<User> users)
+        public static Mock<IUserStore> SetupUserStore(this Mock<IUserStore> mockUserStore, List<User> users)
         {
             mockUserStore.Setup(userStore => userStore.Get(It.IsAny<string>()))
                 .Returns((string userId) =>
@@ -28,7 +28,7 @@ namespace Fabric.Authorization.UnitTests.Mocks
                 {
                     var delimiter = new[] { @":" };
                     var idParts = userId.Split(delimiter, StringSplitOptions.RemoveEmptyEntries);
-                    return Task.FromResult(users.Any(c => c.SubjectId == idParts[1] && c.IdentityProvider == idParts[0]));
+                    return Task.FromResult(users.Any(c => c.SubjectId == idParts[0] && c.IdentityProvider == idParts[1]));
                 });
 
             mockUserStore.Setup(userStore => userStore.GetAll())

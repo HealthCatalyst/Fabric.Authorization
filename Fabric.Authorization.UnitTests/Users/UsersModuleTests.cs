@@ -28,7 +28,7 @@ namespace Fabric.Authorization.UnitTests.Users
                 .SetupGroupExists(_existingGroups);
 
             _mockUserStore = new Mock<IUserStore>()
-                .SetupGetUser(_existingUsers);
+                .SetupUserStore(_existingUsers);
         }
 
         private List<Group> _existingGroups;
@@ -161,8 +161,8 @@ namespace Fabric.Authorization.UnitTests.Users
                 with.HttpRequest();
                 with.JsonBody(new
                 {
-                    SubjectId = existingUser.SubjectId,
-                    IdentityProvider = existingUser.IdentityProvider
+                    existingUser.SubjectId,
+                    existingUser.IdentityProvider
                 });
             }).Result;
 
