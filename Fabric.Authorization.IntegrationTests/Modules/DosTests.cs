@@ -78,7 +78,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("dos-metadata-service")]
         public async Task AddDosPermission_AllowedApp_SuccessAsync(string clientId)
         {
-            //var clientId = "fabric-installer";
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
             {
                 new Claim(Claims.Scope, Scopes.ManageClientsScope),

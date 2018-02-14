@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Constants;
@@ -28,13 +27,21 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         private readonly Browser _browser;
         private readonly string _securableItem;
+
+        private readonly string _storageProvider;
+        private readonly IntegrationTestsFixture _fixture;
+
         public UserTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory, ConnectionStrings connectionStrings = null)
         {
             if (connectionStrings != null)
             {
                 fixture.ConnectionStrings = connectionStrings;
             }
+
             _securableItem = "userprincipal" + Guid.NewGuid();
+            _storageProvider = storageProvider;
+            _fixture = fixture;
+
             var principal = new ClaimsPrincipal(
                 new ClaimsIdentity(new List<Claim>
                 {
@@ -52,6 +59,103 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             fixture.CreateClient(_browser, _securableItem);
             Task.Run(async () => await fixture.AssociateUserToAdminRoleAsync(_securableItem, IdentityProvider, storageProvider,
                 Domain.Defaults.Authorization.AppGrain, _securableItem, $"{_securableItem}-admin")).Wait();
+        }
+
+        [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
+        public async Task GetUserPermissions_SharedGrain_SuccessAsync()
+        {
+            var clientId = Domain.Defaults.Authorization.InstallerClientId;
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
+            {
+                new Claim(Claims.Scope, Scopes.ManageClientsScope),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.ClientId, clientId)
+            }, "pwd"));
+
+            var browser = _fixture.GetBrowser(principal, _storageProvider);
+
+            var permission = "permission" + Guid.NewGuid();
+            var post = await browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    Grain = "dos",
+                    SecurableItem = "datamarts",
+                    Name = permission
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Created, post.StatusCode);
+            var dosDatamartPermission = JsonConvert.DeserializeObject<PermissionApiModel>(post.Body.AsString());
+
+            post = await _browser.Post("/groups", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    Id = "DosGroup",
+                    GroupName = "DosGroup",
+                    GroupSource = "Custom"
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Created, post.StatusCode); 
+
+            post = await browser.Post("/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new RoleApiModel
+                {
+                    Grain = "dos",
+                    SecurableItem = "datamarts",
+                    Name = $"datamartrole-{Guid.NewGuid()}",
+                    Permissions = new List<PermissionApiModel> { dosDatamartPermission }
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Created, post.StatusCode);
+
+            var dosDatamartRole = post.Body.DeserializeJson<RoleApiModel>();
+
+            post = await browser.Post("/groups/DosGroup/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    Id = dosDatamartRole.Identifier
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Created, post.StatusCode);
+
+            var subjectId = "bob.smith";
+            var idP = "Windows";
+
+            // add user to group
+            post = await browser.Post("/groups/DosGroup/users", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    SubjectId = subjectId,
+                    IdentityProvider = idP
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Created, post.StatusCode);
+
+            var get = await _browser.Get($"/user/{idP}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+            });
+
+            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
+            var permissions = get.Body.DeserializeJson<IEnumerable<ResolvedPermissionApiModel>>();
+            var permissionNames = permissions.Select(p => p.ToString());
+            Assert.Contains($"dos/datamarts.{dosDatamartPermission.Name}", permissionNames);
         }
 
         [Fact]
@@ -765,6 +869,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             var editPatientPermission = post.Body.DeserializeJson<PermissionApiModel>();
 
+            // create roles
             var role = new RoleApiModel
             {
                 Grain = "app",
@@ -790,7 +895,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             });
 
             var editorRole = post.Body.DeserializeJson<RoleApiModel>();
-
             await _browser.Post($"/roles/{viewerRole.Id}/permissions", with =>
                 {
                     with.HttpRequest();
