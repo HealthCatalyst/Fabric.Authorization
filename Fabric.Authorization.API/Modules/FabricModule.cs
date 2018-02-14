@@ -98,6 +98,7 @@ namespace Fabric.Authorization.API.Modules
         }
 
         protected async Task CheckWriteAccess(ClientService clientService,
+            GrainService grainService,
             dynamic grain,
             dynamic securableItem)
         {
@@ -108,13 +109,13 @@ namespace Fabric.Authorization.API.Modules
             {
                 try
                 {
-                    var requiredClaims = await GetRequiredClaims(clientService, grainAsString);
+                    var requiredClaims = await GetRequiredClaims(grainService, grainAsString);
                     await AccessService.CheckUserAccess(grainAsString, securableItemAsString, this,
                         requiredClaims.ToArray());
                 }
                 catch (NotFoundException<Grain>)
                 {
-                    this.AddBeforeHookOrExecute((context) => AccessService.CreateFailuerResponse<Grain>(
+                    this.AddBeforeHookOrExecute((context) => AccessService.CreateFailureResponse<Grain>(
                         $"The requested grain: {grainAsString} does not exist.", context, HttpStatusCode.BadRequest));
                 }
             }
@@ -151,9 +152,9 @@ namespace Fabric.Authorization.API.Modules
             return claim => claim.Type == Claims.ClientId && claim.Value == clientId;
         }
 
-        private async  Task<List<Predicate<Claim>>> GetRequiredClaims(ClientService clientService, string grain)
+        private async Task<List<Predicate<Claim>>> GetRequiredClaims(GrainService grainService, string grain)
         {
-            var grainModel = await clientService.GetGrain(grain);
+            var grainModel = await grainService.GetGrain(grain);
             var requiredClaims = new List<Predicate<Claim>> { AuthorizationWriteClaim };
             if (grainModel.IsShared && grainModel.RequiredWriteScopes.Count > 0)
             {

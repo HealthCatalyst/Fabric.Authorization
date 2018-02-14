@@ -25,12 +25,14 @@ namespace Fabric.Authorization.API.Modules
         private readonly ClientService _clientService;
         private readonly PermissionService _permissionService;
         private readonly UserService _userService;
+        private readonly GrainService _grainService;
         private readonly IPermissionResolverService _permissionResolverService;
 
         public UsersModule(
             ClientService clientService,
             PermissionService permissionService,
             UserService userService,
+            GrainService grainService,
             IPermissionResolverService permissionResolverService,
             UserValidator validator,
             AccessService accessService,
@@ -39,6 +41,7 @@ namespace Fabric.Authorization.API.Modules
             _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _grainService = grainService ?? throw new ArgumentNullException(nameof(grainService));
             _permissionResolverService = permissionResolverService ?? throw new ArgumentNullException(nameof(permissionResolverService));
 
             // Get all the permissions for a user
@@ -105,7 +108,7 @@ namespace Fabric.Authorization.API.Modules
             var allPermissions =
                 permissionResolutionResult.AllowedPermissions.Concat(permissionResolutionResult.DeniedPermissions);
 
-            var requestContexts = allPermissions.Select(p => new RequestContext
+            var permissionRequestContexts = allPermissions.Select(p => new PermissionRequestContext
             {
                 RequestedGrain = p.Grain,
                 RequestedSecurableItem = p.SecurableItem
@@ -113,7 +116,7 @@ namespace Fabric.Authorization.API.Modules
 
             return new UserPermissionsApiModel
             {
-                RequestContexts = requestContexts,
+                PermissionRequestContexts = permissionRequestContexts,
                 Permissions = permissionResolutionResult.AllowedPermissions
                     .Except(permissionResolutionResult.DeniedPermissions)
                     .Select(p => p.ToString())
@@ -155,7 +158,7 @@ namespace Fabric.Authorization.API.Modules
 
             foreach (var perm in permissions)
             {
-                await CheckWriteAccess(_clientService, perm.Grain, perm.SecurableItem);
+                await CheckWriteAccess(_clientService, _grainService, perm.Grain, perm.SecurableItem);
             }
 
             var allowedPermissions = permissions
@@ -205,7 +208,7 @@ namespace Fabric.Authorization.API.Modules
 
             foreach (var perm in permissions)
             {
-                await CheckWriteAccess(_clientService, perm.Grain, perm.SecurableItem);
+                await CheckWriteAccess(_clientService, _grainService, perm.Grain, perm.SecurableItem);
             }
 
             var granularPermission = new GranularPermission

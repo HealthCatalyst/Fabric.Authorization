@@ -88,11 +88,6 @@ namespace Fabric.Authorization.Domain.Services
             await _clientStore.Delete(client);
         }
 
-        public async Task<Grain> GetGrain(string name)
-        {
-            return await _grainStore.Get(name);
-        }
-
         private static bool HasRequestedSecurableItem(SecurableItem parentSecurableItem, string grain, string securableItem)
         {
             var childSecurableItems = parentSecurableItem.SecurableItems;

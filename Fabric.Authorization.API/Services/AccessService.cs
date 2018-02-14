@@ -47,7 +47,7 @@ namespace Fabric.Authorization.API.Services
             }
             catch (NotFoundException<SecurableItem>)
             {
-                module.AddBeforeHookOrExecute((context) => CreateFailuerResponse<T>($"The securableItem: {securableItem} does not exist.",
+                module.AddBeforeHookOrExecute((context) => CreateFailureResponse<T>($"The securableItem: {securableItem} does not exist.",
                     context,
                     HttpStatusCode.BadRequest));
             }
@@ -101,7 +101,7 @@ namespace Fabric.Authorization.API.Services
             return permissions;
         }
 
-        public static JsonResponse CreateFailuerResponse<T>(string message, NancyContext context, HttpStatusCode statusCode)
+        public static JsonResponse CreateFailureResponse<T>(string message, NancyContext context, HttpStatusCode statusCode)
         {
             var error = ErrorFactory.CreateError<T>(message, statusCode);
             return new JsonResponse(error, new DefaultJsonSerializer(context.Environment),
