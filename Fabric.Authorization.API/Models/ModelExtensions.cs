@@ -221,6 +221,7 @@ namespace Fabric.Authorization.API.Models
             {
                 Id = securableItem.Id,
                 Name = securableItem.Name,
+                Grain = securableItem.Grain,
                 SecurableItems = securableItem.SecurableItems?.Select(s => s.ToSecurableItemApiModel()).ToList(),
                 CreatedDateTimeUtc = securableItem.CreatedDateTimeUtc,
                 CreatedBy = securableItem.CreatedBy,
@@ -237,6 +238,7 @@ namespace Fabric.Authorization.API.Models
             {
                 Id = securableItem.Id ?? Guid.Empty,
                 Name = securableItem.Name,
+                Grain = securableItem.Grain,
                 SecurableItems = securableItem.SecurableItems?.Select(s => s.ToSecurableItemDomainModel()).ToList(),
                 CreatedDateTimeUtc = securableItem.CreatedDateTimeUtc,
                 CreatedBy = securableItem.CreatedBy,

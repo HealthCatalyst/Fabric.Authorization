@@ -15,15 +15,26 @@ namespace Fabric.Authorization.API.Modules
 {
     public class SecurableItemsModule : FabricModule<SecurableItem>
     {
+        private readonly ClientService _clientService;
+        private readonly GrainService _grainService;
         private readonly SecurableItemService _securableItemService;
 
         public SecurableItemsModule(SecurableItemService securableItemService,
             SecurableItemValidator validator,
             AccessService accessService,
+            ClientService clientService,
+            GrainService grainService,
             ILogger logger) : base("/v1/SecurableItems", logger, validator, accessService)
         {
+            _clientService = clientService ??
+                            throw new ArgumentNullException(nameof(clientService));
+
+            _grainService = grainService ??
+                            throw new ArgumentNullException(nameof(grainService));
+
             _securableItemService = securableItemService ??
                                     throw new ArgumentNullException(nameof(securableItemService));
+
             Get("/",
                 async _ => await GetSecurableItem().ConfigureAwait(false),
                 null,
@@ -49,6 +60,7 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
+                CheckReadAccess();
                 this.RequiresClaims(AuthorizationReadClaim);
                 return (await _securableItemService.GetTopLevelSecurableItem(ClientId)).ToSecurableItemApiModel();
             }
@@ -64,7 +76,7 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
-                this.RequiresClaims(AuthorizationReadClaim);
+                CheckReadAccess();
                 if (!Guid.TryParse(parameters.securableItemId, out Guid securableItemId))
                 {
                     return CreateFailureResponse("securableItemId must be a guid.", HttpStatusCode.BadRequest);
@@ -89,8 +101,9 @@ namespace Fabric.Authorization.API.Modules
 
         private async Task<dynamic> AddSecurableItem()
         {
-            this.RequiresClaims(AuthorizationWriteClaim);
             var securableItemApiModel = SecureBind();
+            await CheckWriteAccess(_clientService, _grainService, securableItemApiModel.Grain, securableItemApiModel.Name);
+
             var incomingSecurableItem = securableItemApiModel.ToSecurableItemDomainModel();
             Validate(incomingSecurableItem);
 
@@ -124,6 +137,8 @@ namespace Fabric.Authorization.API.Modules
             }
 
             var securableItemApiModel = SecureBind();
+            await CheckWriteAccess(_clientService, _grainService, securableItemApiModel.Grain, securableItemApiModel.Name);
+
             var incomingSecurableItem = securableItemApiModel.ToSecurableItemDomainModel();
             Validate(incomingSecurableItem);
 
@@ -158,12 +173,19 @@ namespace Fabric.Authorization.API.Modules
 
         private SecurableItemApiModel SecureBind()
         {
-            return this.Bind<SecurableItemApiModel>(binderIgnore => binderIgnore.Id,
+            var securableItemApiModel = this.Bind<SecurableItemApiModel>(binderIgnore => binderIgnore.Id,
                 binderIgnore => binderIgnore.CreatedBy,
                 binderIgnore => binderIgnore.CreatedDateTimeUtc,
                 binderIgnore => binderIgnore.ModifiedDateTimeUtc,
                 binderIgnore => binderIgnore.ModifiedBy,
                 binderIgnore => binderIgnore.SecurableItems);
+
+            if (string.IsNullOrEmpty(securableItemApiModel.Grain))
+            {
+                securableItemApiModel.Grain = Domain.Defaults.Authorization.AppGrain;
+            }
+
+            return securableItemApiModel;
         }
     }
 }

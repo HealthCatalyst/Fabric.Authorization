@@ -9,6 +9,7 @@ namespace Fabric.Authorization.API.Models
         public Guid? Id { get; set; }
         public string Name { get; set; }
         public string ClientOwner { get; set; }
+        public string Grain { get; set; }
         public ICollection<SecurableItemApiModel> SecurableItems { get; set; }
         public string Identifier => Id.HasValue ? Id.ToString() : string.Empty;
         public DateTime CreatedDateTimeUtc { get; set; }
