@@ -169,6 +169,13 @@ namespace Fabric.Authorization.API.Modules
                     $"The specified securableItem with id: {parameters.securableItemId} was not found",
                     HttpStatusCode.NotFound);
             }
+            catch (BadRequestException<SecurableItem> ex)
+            {
+                Logger.Error(ex, ex.Message, parameters.securableItemId);
+                return CreateFailureResponse(
+                    ex.Message,
+                    HttpStatusCode.BadRequest);
+            }
         }
 
         private SecurableItemApiModel SecureBind()

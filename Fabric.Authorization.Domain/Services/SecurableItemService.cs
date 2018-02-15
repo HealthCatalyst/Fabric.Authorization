@@ -48,6 +48,11 @@ namespace Fabric.Authorization.Domain.Services
             var client = await _clientStore.Get(clientId);
             var parentSecurableItem = GetSecurableItemById(client.TopLevelSecurableItem, itemId);
             CheckUniqueness(parentSecurableItem, item);
+
+            if (parentSecurableItem.Grain != item.Grain)
+            {
+                throw new BadRequestException<SecurableItem>("The SecurableItem child grain must match the parent SecurableItem's grain.");
+            }
             parentSecurableItem.SecurableItems.Add(item);
             await _clientStore.Update(client);
             return item;
@@ -111,7 +116,7 @@ namespace Fabric.Authorization.Domain.Services
 
             if (childSecurableItems == null || childSecurableItems.Count == 0)
             {
-                throw new NotFoundException<SecurableItem>(itemId.ToString());
+                throw new NotFoundException<SecurableItem>($"SecurableItem {itemId} not found.");
             }
 
             var securableItem = childSecurableItems.FirstOrDefault(item => item.Id == itemId);
