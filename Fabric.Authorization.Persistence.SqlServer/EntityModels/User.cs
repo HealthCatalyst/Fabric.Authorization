@@ -27,6 +27,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
 
         public ICollection<GroupUser> GroupUsers { get; set; }
         public ICollection<UserPermission> UserPermissions { get; set; }
+
+        public ICollection<RoleUser> RoleUsers { get; set; }
         
     }
 }

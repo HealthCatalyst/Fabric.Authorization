@@ -11,6 +11,7 @@ namespace Fabric.Authorization.Domain.Models
             DeniedPermissions = new List<Permission>();
             ChildRoles = new List<Guid>();
             Groups = new List<string>();
+            Users = new List<User>();
         }
 
         public Guid Id { get; set; }
@@ -32,6 +33,8 @@ namespace Fabric.Authorization.Domain.Models
         public ICollection<Permission> Permissions { get; set; }
 
         public ICollection<Permission> DeniedPermissions { get; set; }
+
+        public ICollection<User> Users { get; set; }
 
         public DateTime CreatedDateTimeUtc { get; set; }
 

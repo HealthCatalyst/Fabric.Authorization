@@ -37,6 +37,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
         public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<GroupUser> GroupUsers { get; set; }
+        public DbSet<RoleUser> RoleUsers { get; set; }
         public DbSet<UserPermission> UserPermissions { get; set; }
 
         public async Task<int> SaveChangesAsync()
@@ -97,6 +98,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
             modelBuilder.ConfigureGroupUser();
             modelBuilder.ConfigureRolePermission();
             modelBuilder.ConfigureUserPermission();
+            modelBuilder.ConfigureRoleUser();
 
             base.OnModelCreating(modelBuilder);
         }
