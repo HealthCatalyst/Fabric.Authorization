@@ -1,5 +1,4 @@
-﻿using System;
-using Fabric.Authorization.API.Constants;
+﻿using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.IntegrationTests.Modules;
 using Xunit;
 
