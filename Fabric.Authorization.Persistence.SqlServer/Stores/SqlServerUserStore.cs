@@ -43,6 +43,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .ThenInclude(ug => ug.Group)
                 .Include(u => u.UserPermissions)
                 .ThenInclude(up => up.Permission)
+                .Include(u => u.RoleUsers)
+                .ThenInclude(u => u.Role)
                 .SingleOrDefaultAsync(u =>
                     u.IdentityProvider.Equals(idParts[1], StringComparison.OrdinalIgnoreCase)
                     && u.SubjectId.Equals(idParts[0], StringComparison.OrdinalIgnoreCase)

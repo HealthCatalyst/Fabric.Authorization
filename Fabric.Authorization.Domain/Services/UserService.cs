@@ -20,6 +20,12 @@ namespace Fabric.Authorization.Domain.Services
             return user != null ? user.Groups : new List<string>();
         }
 
+        public async Task<ICollection<Role>> GetRolesForUser(string subjectId, string identityProvider)
+        {
+            var user = await _userStore.Get($"{subjectId}:{identityProvider}");
+            return user != null ? user.Roles : new List<Role>();
+        }
+
         public async Task<User> AddUser(User user)
         {
             return await _userStore.Add(user);

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Constants;
@@ -68,6 +69,10 @@ namespace Fabric.Authorization.API.Modules
             Get("/{identityProvider}/{subjectId}/groups",
                 async _ => await GetUserGroups().ConfigureAwait(false), null,
                 "GetUserGroups");
+
+            Get("/{identityProvider/{subjectId}/roles",
+                async _ => await GetUserRoles().ConfigureAwait(false), null,
+                "GetUserRoles");
         }
 
         private async Task<dynamic> AddUser()
@@ -267,6 +272,24 @@ namespace Fabric.Authorization.API.Modules
             {
                 return CreateFailureResponse(
                     $"User with SubjectId: {groupUserRequest.SubjectId} and Identity Provider: {groupUserRequest.IdentityProvider} was not found",
+                    HttpStatusCode.NotFound);
+            }
+        }
+
+        private async Task<dynamic> GetUserRoles()
+        {
+            this.RequiresClaims(AuthorizationReadClaim);
+            var roleUserRequest = this.Bind<RoleUserRequest>();
+            try
+            {
+                var roles =
+                    await _userService.GetRolesForUser(roleUserRequest.SubjectId, roleUserRequest.IdentityProvider);
+                return roles.Select(r => r.ToRoleApiModel());
+            }
+            catch (NotFoundException<User>)
+            {
+                return CreateFailureResponse(
+                    $"User with SubjectId: {roleUserRequest.SubjectId} and Identity Provider: {roleUserRequest.IdentityProvider} was not found",
                     HttpStatusCode.NotFound);
             }
         }
