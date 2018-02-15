@@ -12,6 +12,7 @@ namespace Fabric.Authorization.Domain.Models
             IdentityProvider = identityProvider;
             Id = Identifier;
             Groups = new List<string>();
+            Roles = new List<Role>();
         }
 
         public string Id { get; set; }
@@ -27,6 +28,8 @@ namespace Fabric.Authorization.Domain.Models
         public ICollection<Permission> DeniedPermissions { get; set; }
 
         public ICollection<Permission> Permissions { get; set; }
+
+        public ICollection<Role> Roles { get; set; }
 
         public ICollection<string> Groups { get; set; }
 

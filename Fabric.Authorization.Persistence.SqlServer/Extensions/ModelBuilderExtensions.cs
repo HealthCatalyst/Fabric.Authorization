@@ -254,6 +254,10 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                 entity.HasMany(e => e.RolePermissions)
                     .WithOne(e => e.Role)
                     .HasForeignKey(e => e.RoleId);
+
+                entity.HasMany(e => e.RoleUsers)
+                    .WithOne(e => e.Role)
+                    .HasForeignKey(e => e.RoleId);
             });
         }
 
@@ -355,6 +359,10 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .WithOne(e => e.User)
                     .HasForeignKey(e => new {e.SubjectId, e.IdentityProvider});
 
+                entity.HasMany(e => e.RoleUsers)
+                    .WithOne(e => e.User)
+                    .HasForeignKey(e => new { e.SubjectId, e.IdentityProvider });
+
                 entity.HasMany(e => e.UserPermissions)
                     .WithOne(e => e.User)
                     .HasForeignKey(e => new {e.SubjectId, e.IdentityProvider});
@@ -441,6 +449,33 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                 entity.HasOne(e => e.Group)
                     .WithMany(e => e.GroupUsers)
                     .HasForeignKey(e => e.GroupId);
+
+                entity.Property(e => e.CreatedBy)
+                    .IsRequired();
+
+                entity.Property(e => e.CreatedDateTimeUtc)
+                    .HasColumnType("datetime")
+                    .IsRequired();
+
+                entity.Property(e => e.ModifiedDateTimeUtc)
+                    .HasColumnType("datetime");
+            });
+        }
+
+        public static void ConfigureRoleUser(this ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<RoleUser>(entity =>
+            {
+                entity.ToTable("RoleUsers");
+                entity.HasAlternateKey(e => new { e.SubjectId, e.IdentityProvider, e.RoleId });
+
+                entity.HasOne(e => e.User)
+                    .WithMany(e => e.RoleUsers)
+                    .HasForeignKey(e => new { e.SubjectId, e.IdentityProvider });
+
+                entity.HasOne(e => e.Role)
+                    .WithMany(e => e.RoleUsers)
+                    .HasForeignKey(e => e.RoleId);
 
                 entity.Property(e => e.CreatedBy)
                     .IsRequired();
