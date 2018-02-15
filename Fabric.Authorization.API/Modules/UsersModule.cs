@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Constants;
@@ -50,8 +49,12 @@ namespace Fabric.Authorization.API.Modules
                 async _ => await GetCurrentUserPermissions().ConfigureAwait(false), null,
                 "GetCurrentUserPermissions");
 
+            Get("/{identityProvider}/{subjectId}",
+                async param => await GetUser(param).ConfigureAwait(false), null,
+                "GetUser");
+
             Post("/", 
-                async _ => await this.AddUser().ConfigureAwait(false), null, 
+                async _ => await AddUser().ConfigureAwait(false), null, 
                 "AddUser");
 
             Get("/{identityProvider}/{subjectId}/permissions",
@@ -77,6 +80,20 @@ namespace Fabric.Authorization.API.Modules
             Post("/{identityProvider}/{subjectId}/roles",
                 async param => await AddRolesToUser(param).ConfigureAwait(false), null,
                 "AddRolesToUser");
+        }
+
+        private async Task<dynamic> GetUser(dynamic param)
+        {
+            CheckReadAccess();
+            try
+            {
+                User user = await _userService.GetUser(param.subjectId, param.identityProvider);
+                return user.ToUserApiModel();
+            }
+            catch (NotFoundException<User>)
+            {
+                return CreateFailureResponse("", HttpStatusCode.NotFound);
+            }
         }
 
         private async Task<dynamic> AddUser()
