@@ -19,6 +19,11 @@ namespace Fabric.Authorization.Domain.Services
             _roleStore = roleStore;
         }
 
+        public async Task<User> GetUser(string subjectId, string identityProvider)
+        {
+            return await _userStore.Get($"{subjectId}:{identityProvider}");
+        }
+
         public async Task<IEnumerable<string>> GetGroupsForUser(string subjectId, string identityProvider)
         {
             var user = await _userStore.Get($"{subjectId}:{identityProvider}");

@@ -163,6 +163,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.OK, addRoleToUserResponse.StatusCode);
             var updatedUser = addRoleToUserResponse.Body.DeserializeJson<UserApiModel>();
             Assert.Single(updatedUser.Roles);
+
+            var userResponse = await _browser.Get(
+                $"/user/{user.IdentityProvider}/{HttpUtility.UrlEncode(user.SubjectId)}");
+            Assert.Equal(HttpStatusCode.OK, userResponse.StatusCode);
+            var userToAssert = userResponse.Body.DeserializeJson<UserApiModel>();
+            Assert.Single(userToAssert.Roles);
         }
 
         [Fact]
