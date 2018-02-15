@@ -1,8 +1,11 @@
-﻿using Fabric.Authorization.Domain.Models;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.Domain.Stores
 {
     public interface IUserStore : IGenericStore<string, User>
     {
+        Task<User> AddRolesToUser(User user, IList<Role> roles);
     }
 }

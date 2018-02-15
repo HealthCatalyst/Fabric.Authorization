@@ -20,6 +20,11 @@ namespace Fabric.Authorization.Persistence.InMemory.Stores
             return await base.Add(model);
         }
 
+        public Task<User> AddRolesToUser(User user, IList<Role> roles)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<IEnumerable<User>> GetUsers(string subjectId = null, string identityProvider = null)
         {
             var users = Dictionary.Select(kvp => kvp.Value);

@@ -119,6 +119,14 @@ namespace Fabric.Authorization.API.Modules
             return Negotiate.WithModel(error).WithStatusCode(statusCode);
         }
 
+        protected Negotiator CreateFailureResponse(AggregateException ex, HttpStatusCode statusCode)
+        {
+            var messages = ex.InnerExceptions.Select(e => e.Message);
+            var error = ErrorFactory.CreateError<T>(messages, statusCode);
+            error.Message = ex.Message;
+            return Negotiate.WithModel(error).WithStatusCode(statusCode);
+        }
+
         protected async Task CheckWriteAccess(ClientService clientService,
             GrainService grainService,
             dynamic grain,

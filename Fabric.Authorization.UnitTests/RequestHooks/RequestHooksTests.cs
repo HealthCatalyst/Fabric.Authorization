@@ -30,7 +30,7 @@ namespace Fabric.Authorization.UnitTests.RequestHooks
             var mockPermissionStore = new Mock<IPermissionStore>().Object;
             var mockRoleStore = new Mock<IRoleStore>().Object;
             var mockSecurableItemStore = new Mock<ISecurableItemStore>().Object;
-            var userService = new UserService(mockUserStore);
+            var userService = new UserService(mockUserStore, mockRoleStore);
             var clientService = new ClientService(store, mockGrantStore, mockSecurableItemStore);
             var roleService = new RoleService(mockRoleStore, mockPermissionStore);
             var permissionService = new PermissionService(mockPermissionStore, roleService);

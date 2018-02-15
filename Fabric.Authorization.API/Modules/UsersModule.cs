@@ -73,6 +73,10 @@ namespace Fabric.Authorization.API.Modules
             Get("/{identityProvider/{subjectId}/roles",
                 async _ => await GetUserRoles().ConfigureAwait(false), null,
                 "GetUserRoles");
+
+            Post("/{identityProvider}/{subjectId}/roles",
+                async param => await AddRolesToUser(param).ConfigureAwait(false), null,
+                "AddRolesToUser");
         }
 
         private async Task<dynamic> AddUser()
@@ -291,6 +295,33 @@ namespace Fabric.Authorization.API.Modules
                 return CreateFailureResponse(
                     $"User with SubjectId: {roleUserRequest.SubjectId} and Identity Provider: {roleUserRequest.IdentityProvider} was not found",
                     HttpStatusCode.NotFound);
+            }
+        }
+
+        private async Task<dynamic> AddRolesToUser(dynamic param)
+        {
+            var apiRoles = this.Bind<List<RoleApiModel>>();
+            foreach (var roleApiModel in apiRoles)
+            {
+                await CheckWriteAccess(_clientService, _grainService, roleApiModel.Grain, roleApiModel.SecurableItem);
+            }
+            var domainRoles = apiRoles.Select(r => r.ToRoleDomainModel()).ToList();
+            try
+            {
+                User user = await _userService.AddRolesToUser(domainRoles, param.subjectId.ToString(),
+                    param.identityProvider.ToString());
+                return CreateSuccessfulPostResponse($"{user.IdentityProvider}/{user.SubjectId}", user,
+                    HttpStatusCode.OK);
+            }
+            catch (NotFoundException<User>)
+            {
+                return CreateFailureResponse(
+                    $"User with SubjectId: {param.subjectId} and Identity Provider: {param.identityProvider} was not found",
+                    HttpStatusCode.NotFound);
+            }
+            catch (AggregateException e)
+            {
+                return CreateFailureResponse(e, HttpStatusCode.BadRequest);
             }
         }
         

@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
@@ -25,6 +26,11 @@ namespace Fabric.Authorization.Persistence.CouchDb.Stores
         public override async Task<bool> Exists(string id)
         {
             return await base.Exists(FormatId(id));
+        }
+
+        public Task<User> AddRolesToUser(User user, IList<Role> roles)
+        {
+            throw new System.NotImplementedException();
         }
 
         public override async Task<User> Add(User model)
