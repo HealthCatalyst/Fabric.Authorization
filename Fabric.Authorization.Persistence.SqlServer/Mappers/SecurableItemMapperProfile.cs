@@ -8,7 +8,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Mappers
         {
             CreateMap<EntityModels.SecurableItem, Domain.Models.SecurableItem>()
                 .ForMember(x => x.Id, opt => opt.MapFrom(src => src.SecurableItemId))
-                .ForMember(x => x.Grain, opt => opt.MapFrom(src => src.Grain.Name))
                 .ForMember(x => x.SecurableItems, opt => opt.MapFrom(src => src.SecurableItems))
                 .ReverseMap()
                 .ForMember(x => x.SecurableItemId, opt => opt.MapFrom(src => src.Id))
@@ -19,6 +18,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Mappers
                 .ForMember(x => x.Client, opt => opt.Ignore())
                 .ForMember(x => x.Permissions, opt => opt.Ignore())
                 .ForMember(x => x.Roles, opt => opt.Ignore());
+
         }
     }
 }
