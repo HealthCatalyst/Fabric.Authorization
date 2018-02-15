@@ -22,6 +22,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         {
             var securableItem = await _authorizationDbContext.SecurableItems
                 .Include(s => s.Grain)
+                .Include(s => s.SecurableItems)
                 .SingleOrDefaultAsync(s => s.Name == name && !s.IsDeleted);
 
             if (securableItem == null)
