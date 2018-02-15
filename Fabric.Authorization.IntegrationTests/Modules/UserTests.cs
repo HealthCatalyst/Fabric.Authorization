@@ -115,6 +115,57 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
+        public async Task AddRolesToUser_ReturnsCreatedAsync()
+        {
+            var identityProvider = "windows";
+            var subjectId = @"domain\test.user" + Guid.NewGuid();
+            var response = await _browser.Post("/user", with =>
+            {
+                with.JsonBody(new
+                {
+                    identityProvider,
+                    subjectId
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            var user = response.Body.DeserializeJson<UserApiModel>();
+
+            var addRoleResponse = await _browser.Post("/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = _securableItem,
+                    Name = "TestRole" + Guid.NewGuid()
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Created, addRoleResponse.StatusCode);
+            var role = addRoleResponse.Body.DeserializeJson<RoleApiModel>();
+
+            var addRoleToUserResponse = await _browser.Post($"/user/{user.IdentityProvider}/{HttpUtility.UrlEncode(user.SubjectId)}/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new[]
+                {
+                    new
+                    {
+                        role.Grain,
+                        role.SecurableItem,
+                        role.Name,
+                        role.Id
+                    }
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.OK, addRoleToUserResponse.StatusCode);
+            var updatedUser = addRoleToUserResponse.Body.DeserializeJson<UserApiModel>();
+            Assert.Single(updatedUser.Roles);
+        }
+
+        [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task GetUserPermissions_SharedGrain_SuccessAsync()
         {

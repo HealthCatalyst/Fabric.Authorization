@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
 
@@ -8,10 +11,12 @@ namespace Fabric.Authorization.Domain.Services
     public class UserService
     {
         private readonly IUserStore _userStore;
+        private readonly IRoleStore _roleStore;
 
-        public UserService(IUserStore userStore)
+        public UserService(IUserStore userStore, IRoleStore roleStore)
         {
             _userStore = userStore;
+            _roleStore = roleStore;
         }
 
         public async Task<IEnumerable<string>> GetGroupsForUser(string subjectId, string identityProvider)
@@ -34,6 +39,39 @@ namespace Fabric.Authorization.Domain.Services
         public async Task<bool> Exists(string subjectId, string identityProvider)
         {
             return await _userStore.Exists($"{subjectId}:{identityProvider}");
+        }
+
+        public async Task<User> AddRolesToUser(IList<Role> rolesToAdd, string subjectId, string identityProvider)
+        {
+            var user = await _userStore.Get($"{subjectId}:{identityProvider}");
+            var grainSecurableItems = rolesToAdd.Select(r => new Tuple<string, string>(r.Grain, r.SecurableItem))
+                .Distinct();
+            var existingRoles = new List<Role>();
+            foreach (var tuple in grainSecurableItems)
+            {
+                existingRoles.AddRange(await _roleStore.GetRoles(tuple.Item1, tuple.Item2));
+            }
+
+            var exceptions = new List<Exception>();
+            foreach (var role in rolesToAdd)
+            {
+                if (existingRoles.All(r => r.Id != role.Id))
+                {
+                    exceptions.Add(new NotFoundException<Role>($"The role: {role} with Id: {role.Id} could not be found to add to the user."));
+                }
+                if (user.Roles.Any(r => r.Id == role.Id))
+                {
+                    exceptions.Add(
+                        new AlreadyExistsException<Role>(
+                            $"The role: {role} with Id: {role.Id} already exists for the user."));
+                }
+            }
+            if (exceptions.Count > 0)
+            {
+                throw new AggregateException("There was an issue adding roles to the user. Please see the inner exception(s) for details", exceptions);
+            }
+
+            return await _userStore.AddRolesToUser(user, rolesToAdd);
         }
     }
 }

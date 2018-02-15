@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
-using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
+using Fabric.Authorization.Persistence.SqlServer.EntityModels;
 using Fabric.Authorization.Persistence.SqlServer.Mappers;
 using Fabric.Authorization.Persistence.SqlServer.Services;
 using Microsoft.EntityFrameworkCore;
+using Role = Fabric.Authorization.Domain.Models.Role;
+using User = Fabric.Authorization.Domain.Models.User;
 
 namespace Fabric.Authorization.Persistence.SqlServer.Stores
 {
@@ -123,6 +125,22 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return user != null;
         }
 
+        public async Task<User> AddRolesToUser(User user, IList<Role> roles)
+        {
+            foreach (var role in roles)
+            {
+                user.Roles.Add(role);
+                _authorizationDbContext.RoleUsers.Add(new RoleUser
+                {
+                    IdentityProvider = user.IdentityProvider,
+                    SubjectId = user.SubjectId,
+                    RoleId = role.Id
+                });
+            }
+            await _authorizationDbContext.SaveChangesAsync();
+            return user;
+        }
+        
         private static string[] SplitId(string id)
         {
             var delimiter = new [] {@":"};
