@@ -22,7 +22,10 @@ namespace Fabric.Authorization.UnitTests.SecurableItems
     {
         private readonly List<Client> _existingClients;
         private readonly Mock<IClientStore> _mockClientStore;
+        private readonly Mock<ISecurableItemStore> _mockSecurableItemStore;
         private readonly Mock<ILogger> _mockLogger;
+
+        private const string ClientId = "sample-fabric-app";
 
         public SecurableItemsModuleTests()
         {
@@ -30,22 +33,28 @@ namespace Fabric.Authorization.UnitTests.SecurableItems
             {
                 new Client
                 {
-                    Id = "sample-fabric-app",
+                    Id = ClientId,
                     Name = "Sample Fabric Client Application",
                     TopLevelSecurableItem = new SecurableItem
                     {
                         Id = Guid.NewGuid(),
-                        Name = "sample-fabric-app",
+                        Grain = Domain.Defaults.Authorization.AppGrain,
+                        Name = ClientId,
+                        ClientOwner = ClientId,
                         SecurableItems = new List<SecurableItem>
                         {
                             new SecurableItem
                             {
                                 Id = Guid.NewGuid(),
+                                Grain = Domain.Defaults.Authorization.AppGrain,
+                                ClientOwner = ClientId,
                                 Name = "inner-securable-1"
                             },
                             new SecurableItem
                             {
                                 Id = Guid.NewGuid(),
+                                Grain = Domain.Defaults.Authorization.AppGrain,
+                                ClientOwner = ClientId,
                                 Name = "inner-securable-2"
                             }
                         }
@@ -56,6 +65,12 @@ namespace Fabric.Authorization.UnitTests.SecurableItems
             _mockClientStore = new Mock<IClientStore>()
                 .SetupGetClient(_existingClients)
                 .SetupAddClient();
+
+            var secItems = _existingClients.Select(c => c.TopLevelSecurableItem)
+                .Union(_existingClients.SelectMany(c => c.TopLevelSecurableItem.SecurableItems));
+
+            _mockSecurableItemStore = new Mock<ISecurableItemStore>()
+                .SetupGetSecurableItem(secItems.ToList());
 
             _mockLogger = new Mock<ILogger>();
         }
@@ -125,35 +140,18 @@ namespace Fabric.Authorization.UnitTests.SecurableItems
             Assert.Equal(HttpStatusCode.NotFound, result.StatusCode);
         }
 
-        [Fact]
-        public void AddSecurableItemByClientId_Successful()
-        {
-            var existingClient = _existingClients.First();
-            var securableItemsModule = CreateBrowser(new Claim(Claims.ClientId, existingClient.Id),
-                new Claim(Claims.Scope, Scopes.WriteScope));
-            var securableItemToPost = new SecurableItemApiModel
-            {
-                Name = "inner-securable-3"
-            };
-            var result = securableItemsModule.Post("/securableitems", with => with.JsonBody(securableItemToPost))
-                .Result;
-            Assert.Equal(HttpStatusCode.Created, result.StatusCode);
-            var newSecurableItem = result.Body.DeserializeJson<SecurableItemApiModel>();
-            Assert.Equal(securableItemToPost.Name, newSecurableItem.Name);
-            Assert.Equal(existingClient.Id, newSecurableItem.ClientOwner);
-            Assert.NotNull(newSecurableItem.Id);
-        }
-
         [Theory, MemberData(nameof(BadRequestData))]
-        public void AddSecurableItem_BadRequest(SecurableItemApiModel securableItemToPost, int errorCount, bool itemLevel)
+        public void AddSecurableItem_BadRequest(SecurableItemApiModel securableItemToPost, int errorCount,
+            bool itemLevel)
         {
             var existingClient = _existingClients.First();
-            var innerSecurable1 = existingClient.TopLevelSecurableItem.SecurableItems.First(s => s.Name == "inner-securable-1");
             var securableItemsModule = CreateBrowser(new Claim(Claims.ClientId, existingClient.Id),
                 new Claim(Claims.Scope, Scopes.WriteScope));
             var requestUrl = "/securableitems";
             if (itemLevel)
             {
+                var innerSecurable1 =
+                    existingClient.TopLevelSecurableItem.SecurableItems.First(s => s.Name == "inner-securable-1");
                 requestUrl = $"{requestUrl}/{innerSecurable1.Id}";
             }
             var result = securableItemsModule.Post(requestUrl, with => with.JsonBody(securableItemToPost)).Result;
@@ -170,18 +168,20 @@ namespace Fabric.Authorization.UnitTests.SecurableItems
         public void AddSecurableItem_ReturnsForbidden(Claim scopeClaim, Claim clientIdClaim, bool itemLevel)
         {
             var existingClient = _existingClients.First();
-            var innerSecurable1 = existingClient.TopLevelSecurableItem.SecurableItems.First(s => s.Name == "inner-securable-1");
             var requestClientIdClaim = (clientIdClaim != null && clientIdClaim.Value == "valid")
                 ? new Claim(Claims.ClientId, existingClient.Id)
                 : clientIdClaim;
             var securableItemToPost = new SecurableItemApiModel
             {
+                ClientOwner = ClientId,
                 Name = "inner-securable-3"
             };
             var securableItemsModule = CreateBrowser(scopeClaim, requestClientIdClaim);
             var requestUrl = "/securableitems";
             if (itemLevel)
             {
+                var innerSecurable1 =
+                    existingClient.TopLevelSecurableItem.SecurableItems.First(s => s.Name == "inner-securable-1");
                 requestUrl = requestUrl + $"/{innerSecurable1.Id}";
             }
             var result = securableItemsModule.Post(requestUrl, with => with.JsonBody(securableItemToPost))
@@ -193,7 +193,8 @@ namespace Fabric.Authorization.UnitTests.SecurableItems
         public void AddSecurableItem_Conflict(SecurableItemApiModel securableItemToPost, bool itemLevel)
         {
             var existingClient = _existingClients.First();
-            var innerSecurable1 = existingClient.TopLevelSecurableItem.SecurableItems.First(s => s.Name == "inner-securable-1");
+            var innerSecurable1 =
+                existingClient.TopLevelSecurableItem.SecurableItems.First(s => s.Name == "inner-securable-1");
             var securableItemsModule = CreateBrowser(new Claim(Claims.ClientId, existingClient.Id),
                 new Claim(Claims.Scope, Scopes.WriteScope));
             var requestUrl = "/securableitems";
@@ -215,6 +216,7 @@ namespace Fabric.Authorization.UnitTests.SecurableItems
                 new Claim(Claims.Scope, Scopes.WriteScope), new Claim(Claims.Scope, Scopes.ReadScope));
             var securableItemToPost = new SecurableItemApiModel
             {
+                ClientOwner = ClientId,
                 Name = "inner-securable-3"
             };
 
@@ -222,8 +224,6 @@ namespace Fabric.Authorization.UnitTests.SecurableItems
             var result = securableItemsModule.Post($"/securableitems/{innerSecurable2.Id}", with => with.JsonBody(securableItemToPost))
                 .Result;
 
-            //Assert
-            //Ensure response is correct
             Assert.Equal(HttpStatusCode.Created, result.StatusCode);
             var newSecurableItem = result.Body.DeserializeJson<SecurableItemApiModel>();
             Assert.Equal(securableItemToPost.Name, newSecurableItem.Name);
@@ -240,24 +240,23 @@ namespace Fabric.Authorization.UnitTests.SecurableItems
 
         public static IEnumerable<object[]> ConflictData => new[]
         {
-            new object[] { new SecurableItemApiModel { Name = "inner-securable-1" }, false},
-            new object[] { new SecurableItemApiModel { Name = "inner-securable-1" }, true }
+            new object[] { new SecurableItemApiModel { ClientOwner = ClientId, Name = "inner-securable-1" }, true}
         };
         
         public static IEnumerable<object[]> BadRequestData => new[]
         {
-            new object[] { new SecurableItemApiModel{ Name = null}, 1, false},
-            new object[] { new SecurableItemApiModel{ Name = string.Empty}, 1, false},            
+            new object[] { new SecurableItemApiModel{ Name = null}, 1, true},
+            new object[] { new SecurableItemApiModel{ Name = string.Empty}, 1, true},            
             new object[] { new SecurableItemApiModel{ Name = null}, 1, true},
             new object[] { new SecurableItemApiModel{ Name = string.Empty}, 1, true}            
         };
 
         public static IEnumerable<object[]> BadScopes => new[]
         {
-            new object[] { new Claim(Claims.Scope, Scopes.WriteScope), new Claim(Claims.ClientId, "invalid"), false},
-            new object[] { new Claim(Claims.Scope, Scopes.ReadScope), new Claim(Claims.ClientId, "valid"), false},
-            new object[] { new Claim(Claims.Scope, Scopes.WriteScope), null, false},
-            new object[] { null, new Claim(Claims.ClientId, "valid"), false},
+            new object[] { new Claim(Claims.Scope, Scopes.WriteScope), new Claim(Claims.ClientId, "invalid"), true},
+            new object[] { new Claim(Claims.Scope, Scopes.ReadScope), new Claim(Claims.ClientId, "valid"), true},
+            new object[] { new Claim(Claims.Scope, Scopes.WriteScope), null, true},
+            new object[] { null, new Claim(Claims.ClientId, "valid"), true},
             new object[] { new Claim(Claims.Scope, Scopes.WriteScope), new Claim(Claims.ClientId, "invalid"), true},
             new object[] { new Claim(Claims.Scope, Scopes.ReadScope), new Claim(Claims.ClientId, "valid"), true},
             new object[] { new Claim(Claims.Scope, Scopes.WriteScope), null, true},
@@ -268,6 +267,8 @@ namespace Fabric.Authorization.UnitTests.SecurableItems
             params Claim[] claims)
         {
             return base.ConfigureBootstrapper(configurableBootstrapper, claims)
+                .Dependency<ClientService>(typeof(ClientService))
+                .Dependency<GrainService>(typeof(GrainService))
                 .Dependency<SecurableItemService>(typeof(SecurableItemService))
                 .Dependency<IPermissionResolverService>(typeof(PermissionResolverService))
                 .Dependency(_mockClientStore.Object)
@@ -275,7 +276,8 @@ namespace Fabric.Authorization.UnitTests.SecurableItems
                 .Dependency(MockGrainStore.Object)
                 .Dependency(MockRoleStore.Object)
                 .Dependency(MockPermissionStore.Object)
-                .Dependency(MockUserStore.Object);
+                .Dependency(MockUserStore.Object)
+                .Dependency(_mockSecurableItemStore.Object);
         }
     }
 }
