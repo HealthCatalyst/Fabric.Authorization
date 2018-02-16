@@ -136,7 +136,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.HttpRequest();
                 with.JsonBody(new
                 {
-                    Grain = "app",
+                    Grain = Domain.Defaults.Authorization.AppGrain,
                     SecurableItem = _securableItem,
                     Name = "TestRole" + Guid.NewGuid()
                 });

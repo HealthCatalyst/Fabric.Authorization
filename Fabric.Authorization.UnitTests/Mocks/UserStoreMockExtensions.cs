@@ -41,6 +41,18 @@ namespace Fabric.Authorization.UnitTests.Mocks
                     return Task.FromResult(user);
                 });
 
+            mockUserStore.Setup(userStore => userStore.AddRolesToUser(It.IsAny<User>(), It.IsAny<IList<Role>>()))
+                .Returns((User user, IList<Role> roles) =>
+                {
+                    var existingUser = users.First(u => u.SubjectId == user.SubjectId &&
+                                                        u.IdentityProvider == user.IdentityProvider);
+                    foreach (var role in roles)
+                    {
+                        existingUser.Roles.Add(role);
+                    }
+                    return Task.FromResult(existingUser);
+                });
+
             return mockUserStore;
         }
     }

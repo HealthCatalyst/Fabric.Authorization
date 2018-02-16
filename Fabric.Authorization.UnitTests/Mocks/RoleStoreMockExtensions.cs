@@ -62,7 +62,7 @@ namespace Fabric.Authorization.UnitTests.Mocks
                 });
             return mockRoleStore;
         }
-
+        
         public static IRoleStore Create(this Mock<IRoleStore> mockRoleStore)
         {
             return mockRoleStore.Object;
