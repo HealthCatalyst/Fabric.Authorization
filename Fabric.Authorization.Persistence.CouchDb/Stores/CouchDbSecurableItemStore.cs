@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
 
@@ -14,6 +15,11 @@ namespace Fabric.Authorization.Persistence.CouchDb.Stores
                 ClientOwner = string.Empty
             };
             return Task.FromResult(item);
+        }
+
+        public Task<SecurableItem> Get(Guid id)
+        {
+            throw new NotImplementedException();
         }
     }
 }

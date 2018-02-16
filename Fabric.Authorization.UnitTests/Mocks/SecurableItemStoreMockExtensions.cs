@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
@@ -21,6 +22,18 @@ namespace Fabric.Authorization.UnitTests.Mocks
                     }
                     throw new NotFoundException<SecurableItem>();
                 });
+
+
+            mockSecurableItemStore.Setup(securableItemStore => securableItemStore.Get(It.IsAny<Guid>()))
+                .Returns((Guid id) =>
+                {
+                    if (securableItems.Any(s => s.Id == id))
+                    {
+                        return Task.FromResult(securableItems.First(s => s.Id == id));
+                    }
+                    throw new NotFoundException<SecurableItem>();
+                });
+
             return mockSecurableItemStore;
         }
 
