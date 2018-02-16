@@ -15,8 +15,8 @@ namespace Fabric.Authorization.Domain.Services
 
         public UserService(IUserStore userStore, IRoleStore roleStore)
         {
-            _userStore = userStore;
-            _roleStore = roleStore;
+            _userStore = userStore ?? throw new ArgumentNullException(nameof(userStore));
+            _roleStore = roleStore ?? throw new ArgumentNullException(nameof(roleStore));
         }
 
         public async Task<User> GetUser(string subjectId, string identityProvider)
