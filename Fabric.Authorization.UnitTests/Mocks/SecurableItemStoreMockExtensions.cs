@@ -10,7 +10,7 @@ namespace Fabric.Authorization.UnitTests.Mocks
 {
     public static class SecurableItemStoreMockExtensions
     {
-        public static Mock<ISecurableItemStore> SetupGetSecurabltItem(this Mock<ISecurableItemStore> mockSecurableItemStore, List<SecurableItem> securableItems)
+        public static Mock<ISecurableItemStore> SetupGetSecurableItem(this Mock<ISecurableItemStore> mockSecurableItemStore, List<SecurableItem> securableItems)
         {
             mockSecurableItemStore.Setup(securableItemStore => securableItemStore.Get(It.IsAny<string>()))
                 .Returns((string securableItemName) =>

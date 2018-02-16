@@ -56,7 +56,7 @@ namespace Fabric.Authorization.UnitTests
                 .SetupAddGroup();
 
             MockSecurableItemStore = new Mock<ISecurableItemStore>()
-                .SetupGetSecurabltItem(ExistingSecurableItems);
+                .SetupGetSecurableItem(ExistingSecurableItems);
 
             MockGrainStore = new Mock<IGrainStore>();
 

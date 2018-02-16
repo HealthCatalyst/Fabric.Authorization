@@ -16,7 +16,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         private readonly IAuthorizationDbContext _authorizationDbContext;
 
         public SqlServerClientStore(IAuthorizationDbContext authorizationDbContext)
-        {
+        {   
             _authorizationDbContext = authorizationDbContext;
         }
 
