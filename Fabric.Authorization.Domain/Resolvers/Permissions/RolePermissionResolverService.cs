@@ -85,7 +85,7 @@ namespace Fabric.Authorization.Domain.Resolvers.Permissions
                                   StringComparison.OrdinalIgnoreCase) &&
                               u.IdentityProvider.Equals(permissionResolutionRequest.IdentityProvider,
                                   StringComparison.OrdinalIgnoreCase))) || role.IsDeleted ||
-                   role.Permissions == null;
+                   role.Permissions == null || role.Permissions.Count == 0;
         }
 
         private static void AddResolvedPermissions(
