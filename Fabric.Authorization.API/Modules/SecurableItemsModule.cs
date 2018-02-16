@@ -45,11 +45,6 @@ namespace Fabric.Authorization.API.Modules
                 null,
                 "GetSecurableItemById");
 
-            Post("/",
-                async _ => await AddSecurableItem().ConfigureAwait(false),
-                null,
-                "AddSecurableItem");
-
             Post("/{securableItemId}",
                 async parameters => await this.AddSecurableItem(parameters).ConfigureAwait(false),
                 null,
@@ -99,35 +94,6 @@ namespace Fabric.Authorization.API.Modules
             }
         }
 
-        private async Task<dynamic> AddSecurableItem()
-        {
-            var securableItemApiModel = SecureBind();
-            await CheckWriteAccess(_clientService, _grainService, securableItemApiModel.Grain, securableItemApiModel.Name);
-
-            var incomingSecurableItem = securableItemApiModel.ToSecurableItemDomainModel();
-            Validate(incomingSecurableItem);
-
-            try
-            {
-                var securableItem = await _securableItemService.AddSecurableItem(ClientId, incomingSecurableItem);
-                return CreateSuccessfulPostResponse(securableItem.ToSecurableItemApiModel());
-            }
-            catch (NotFoundException<Client> ex)
-            {
-                Logger.Error(ex, ex.Message, ClientId);
-                return CreateFailureResponse($"The specified client with id: {ClientId} was not found",
-                    HttpStatusCode.Forbidden);
-            }
-            catch (AlreadyExistsException<SecurableItem> ex)
-            {
-                Logger.Error(ex, $"Securable item {securableItemApiModel.Name} already exists. Please provide a new name",
-                    securableItemApiModel);
-                return CreateFailureResponse(
-                    ex.Message,
-                    HttpStatusCode.Conflict);
-            }
-        }
-
         private async Task<dynamic> AddSecurableItem(dynamic parameters)
         {
             if (!Guid.TryParse(parameters.securableItemId, out Guid securableItemId))
@@ -136,13 +102,15 @@ namespace Fabric.Authorization.API.Modules
             }
 
             var securableItemApiModel = SecureBind();
-            await CheckWriteAccess(_clientService, _grainService, securableItemApiModel.Grain, securableItemApiModel.Name);
-
-            var incomingSecurableItem = securableItemApiModel.ToSecurableItemDomainModel();
-            Validate(incomingSecurableItem);
 
             try
             {
+                var parentSecurableItem = await _securableItemService.GetSecurableItem(ClientId, securableItemId);
+                await CheckWriteAccess(_clientService, _grainService, securableItemApiModel.Grain, parentSecurableItem.Name);
+
+                var incomingSecurableItem = securableItemApiModel.ToSecurableItemDomainModel();
+                Validate(incomingSecurableItem);
+
                 var securableItem =
                     await _securableItemService.AddSecurableItem(ClientId, securableItemId, incomingSecurableItem);
                 return CreateSuccessfulPostResponse(securableItem.ToSecurableItemApiModel());
