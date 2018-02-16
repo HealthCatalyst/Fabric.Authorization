@@ -99,7 +99,7 @@ namespace Fabric.Authorization.API.Modules
             }
             catch (NotFoundException<User>)
             {
-                return CreateFailureResponse("", HttpStatusCode.NotFound);
+                return CreateFailureResponse($"The user: {param.subjectId} for identity provider: {param.identityProvider} was not found.", HttpStatusCode.NotFound);
             }
         }
 
@@ -308,6 +308,13 @@ namespace Fabric.Authorization.API.Modules
         {
             this.RequiresClaims(AuthorizationReadClaim);
             var roleUserRequest = this.Bind<RoleUserRequest>();
+
+            if (string.IsNullOrEmpty(roleUserRequest.SubjectId) ||
+                string.IsNullOrEmpty(roleUserRequest.IdentityProvider))
+            {
+                return CreateFailureResponse("SubjectId or IdentityProvider was null or empty.", HttpStatusCode.BadRequest);
+            }
+
             try
             {
                 var roles =
@@ -378,12 +385,12 @@ namespace Fabric.Authorization.API.Modules
                     InvalidRoleArrayMessage, HttpStatusCode.BadRequest);
             }
 
-            if (apiRoles.Any(r => !r.Id.HasValue || r.Id.Value == Guid.Empty || string.IsNullOrEmpty(r.Grain) ||
-                                  string.IsNullOrEmpty(r.SecurableItem)))
-            {
-                var messages = apiRoles.Where(r => !r.Id.HasValue || r.Id.Value == Guid.Empty || string.IsNullOrEmpty(r.Grain) ||
-                                                   string.IsNullOrEmpty(r.SecurableItem))
-                    .Select(r => String.Format(InvalidRoleApiModelMessage, r.Name));
+            var messages = apiRoles.Where(r => !r.Id.HasValue || r.Id.Value == Guid.Empty || string.IsNullOrEmpty(r.Grain) ||
+                                               string.IsNullOrEmpty(r.SecurableItem))
+                .Select(r => String.Format(InvalidRoleApiModelMessage, r.Name)).ToList();
+
+            if (messages.Any())
+            { 
                 return await CreateFailureResponse(messages, HttpStatusCode.BadRequest);
             }
             return null;
