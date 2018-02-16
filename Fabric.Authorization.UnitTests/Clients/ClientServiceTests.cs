@@ -12,27 +12,39 @@ namespace Fabric.Authorization.UnitTests.Clients
     public class ClientServiceTests
     {
         private readonly List<SecurableItem> _securableItems;
+        private const string ClientId = "sampleapplication";
+        private readonly Client _testClient = new Client
+        {
+            Id = ClientId
+        };
+
         private readonly SecurableItem _topLevelSecurableItem = new SecurableItem
         {
             Id = Guid.NewGuid(),
-            Name = "sampleapplication",
+            Name = ClientId,
             SecurableItems = new List<SecurableItem>
             {
                 new SecurableItem
                 {
                     Id = Guid.NewGuid(),
                     Name = "ehr1",
+                    Grain = "ehr1",
+                    ClientOwner = ClientId,
                     SecurableItems = new List<SecurableItem>
                     {
                         new SecurableItem
                         {
                             Id = Guid.NewGuid(),
                             Name = "patient",
+                            Grain = "ehr1",
+                            ClientOwner = ClientId
                         },
                         new SecurableItem
                         {
                             Id = Guid.NewGuid(),
-                            Name = "diagnoses"
+                            Name = "diagnoses",
+                            Grain = "ehr1",
+                            ClientOwner = ClientId
                         }
                     }
                 },
@@ -40,26 +52,26 @@ namespace Fabric.Authorization.UnitTests.Clients
                 {
                     Id = Guid.NewGuid(),
                     Name = "ehr2",
+                    Grain = "ehr2",
+                    ClientOwner = ClientId,
                     SecurableItems = new List<SecurableItem>
                     {
                         new SecurableItem
                         {
                             Id = Guid.NewGuid(),
-                            Name = "patient"
+                            Name = "patient",
+                            Grain = "ehr2",
+                            ClientOwner = ClientId
                         },
                         new SecurableItem
                         {
                             Id = Guid.NewGuid(),
-                            Name = "observations"
+                            Name = "observations",
+                            Grain = "ehr2"
                         }
                     }
                 }
             }
-        };
-        
-        private readonly Client _testClient = new Client
-        {
-            Id = "sampleapplication"
         };
 
         public ClientServiceTests()
