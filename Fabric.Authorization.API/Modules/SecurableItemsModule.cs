@@ -130,7 +130,6 @@ namespace Fabric.Authorization.API.Modules
 
         private async Task<dynamic> AddSecurableItem(dynamic parameters)
         {
-            this.RequiresClaims(AuthorizationWriteClaim);
             if (!Guid.TryParse(parameters.securableItemId, out Guid securableItemId))
             {
                 return CreateFailureResponse("securableItemId must be a guid.", HttpStatusCode.BadRequest);

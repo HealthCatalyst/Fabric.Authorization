@@ -24,14 +24,13 @@ namespace Fabric.Authorization.UnitTests.RequestHooks
         {
             var store = new InMemoryClientStore();
             var logger = new Mock<ILogger>().Object;
-            var mockGrantStore = new Mock<IGrainStore>().Object;
             var mockUserStore = new Mock<IUserStore>().Object;
 
             var mockPermissionStore = new Mock<IPermissionStore>().Object;
             var mockRoleStore = new Mock<IRoleStore>().Object;
             var mockSecurableItemStore = new Mock<ISecurableItemStore>().Object;
             var userService = new UserService(mockUserStore, mockRoleStore);
-            var clientService = new ClientService(store, mockGrantStore, mockSecurableItemStore);
+            var clientService = new ClientService(store, mockSecurableItemStore);
             var roleService = new RoleService(mockRoleStore, mockPermissionStore);
             var permissionService = new PermissionService(mockPermissionStore, roleService);
             var permissionResolverService = new PermissionResolverService(new List<IPermissionResolverService>(), logger);
