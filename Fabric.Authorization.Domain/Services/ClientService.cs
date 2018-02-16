@@ -17,13 +17,11 @@ namespace Fabric.Authorization.Domain.Services
         };
 
         private readonly IClientStore _clientStore;
-        private readonly IGrainStore _grainStore;
         private readonly ISecurableItemStore _securableItemStore;
 
-        public ClientService(IClientStore clientStore, IGrainStore grainStore, ISecurableItemStore securableItemStore)
+        public ClientService(IClientStore clientStore, ISecurableItemStore securableItemStore)
         {
             _clientStore = clientStore ?? throw new ArgumentNullException(nameof(clientStore));
-            _grainStore = grainStore ?? throw new ArgumentNullException(nameof(grainStore));
             _securableItemStore = securableItemStore ?? throw new ArgumentNullException(nameof(securableItemStore));
         }
 
@@ -77,7 +75,8 @@ namespace Fabric.Authorization.Domain.Services
             {
                 Id = Guid.NewGuid(),
                 Name = client.Id,
-                ClientOwner = client.Id
+                ClientOwner = client.Id,
+                Grain = Defaults.Authorization.AppGrain
             };
 
             return await _clientStore.Add(client);
