@@ -59,6 +59,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             user.GroupUsers = user.GroupUsers.Where(gu => !gu.IsDeleted).ToList();
             user.UserPermissions = user.UserPermissions.Where(up => !up.IsDeleted).ToList();
+            user.RoleUsers = user.RoleUsers.Where(ru => !ru.IsDeleted).ToList();
 
             return user.ToModel();
         }

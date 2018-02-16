@@ -30,7 +30,7 @@ namespace Fabric.Authorization.Domain.Resolvers.Permissions
 
             foreach (var role in roles)
             {
-                if (!role.Groups.Any(g => groupNames.Contains(g, StringComparer.OrdinalIgnoreCase)) || role.IsDeleted || role.Permissions == null)
+                if (BypassRoleEvaluation(role, groupNames, resolutionRequest))
                 {
                     continue;
                 }
@@ -76,6 +76,14 @@ namespace Fabric.Authorization.Domain.Resolvers.Permissions
                 AllowedPermissions = allowedPermissions.Distinct(),
                 DeniedPermissions = deniedPermissions.Distinct()
             };
+        }
+
+        private static bool BypassRoleEvaluation(Role role, List<string> groupNames, PermissionResolutionRequest permissionResolutionRequest)
+        {
+            return !(role.Groups.Any(g => groupNames.Contains(g, StringComparer.OrdinalIgnoreCase)) || role.Users.Any(
+                         u => u.SubjectId == permissionResolutionRequest.SubjectId &&
+                              u.IdentityProvider == permissionResolutionRequest.IdentityProvider)) || role.IsDeleted ||
+                   role.Permissions == null;
         }
 
         private static void AddResolvedPermissions(
