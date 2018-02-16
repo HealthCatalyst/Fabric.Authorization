@@ -15,6 +15,7 @@ using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Validators;
 using Nancy;
 using Nancy.ModelBinding;
+using Nancy.Responses.Negotiation;
 using Nancy.Security;
 using Serilog;
 
@@ -27,6 +28,12 @@ namespace Fabric.Authorization.API.Modules
         private readonly UserService _userService;
         private readonly GrainService _grainService;
         private readonly IPermissionResolverService _permissionResolverService;
+
+        public static string InvalidRoleArrayMessage =
+            "No roles present in payload, please ensure you are posting an array of RoleApiModels.";
+
+        public static string InvalidRoleApiModelMessage =
+            "The role: {0} is missing an Id, Grain or SecurableItem and cannot be added";
 
         public UsersModule(
             ClientService clientService,
@@ -318,10 +325,17 @@ namespace Fabric.Authorization.API.Modules
         private async Task<dynamic> AddRolesToUser(dynamic param)
         {
             var apiRoles = this.Bind<List<RoleApiModel>>();
+            var errorResponse = await ValidateRolesToAdd(apiRoles);
+            if (errorResponse != null)
+            {
+                return errorResponse;
+            }
+
             foreach (var roleApiModel in apiRoles)
             {
                 await CheckWriteAccess(_clientService, _grainService, roleApiModel.Grain, roleApiModel.SecurableItem);
             }
+
             var domainRoles = apiRoles.Select(r => r.ToRoleDomainModel()).ToList();
             try
             {
@@ -354,6 +368,25 @@ namespace Fabric.Authorization.API.Modules
                 var client = await _clientService.GetClient(ClientId);
                 request.SecurableItem = client.TopLevelSecurableItem.Name;
             }
+        }
+
+        private async Task<Negotiator> ValidateRolesToAdd(List<RoleApiModel> apiRoles)
+        {
+            if (apiRoles.Count == 0)
+            {
+                return await CreateFailureResponse(
+                    InvalidRoleArrayMessage, HttpStatusCode.BadRequest);
+            }
+
+            if (apiRoles.Any(r => !r.Id.HasValue || r.Id.Value == Guid.Empty || string.IsNullOrEmpty(r.Grain) ||
+                                  string.IsNullOrEmpty(r.SecurableItem)))
+            {
+                var messages = apiRoles.Where(r => !r.Id.HasValue || r.Id.Value == Guid.Empty || string.IsNullOrEmpty(r.Grain) ||
+                                                   string.IsNullOrEmpty(r.SecurableItem))
+                    .Select(r => String.Format(InvalidRoleApiModelMessage, r.Name));
+                return await CreateFailureResponse(messages, HttpStatusCode.BadRequest);
+            }
+            return null;
         }
     }
 }
