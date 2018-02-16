@@ -81,8 +81,10 @@ namespace Fabric.Authorization.Domain.Resolvers.Permissions
         private static bool BypassRoleEvaluation(Role role, List<string> groupNames, PermissionResolutionRequest permissionResolutionRequest)
         {
             return !(role.Groups.Any(g => groupNames.Contains(g, StringComparer.OrdinalIgnoreCase)) || role.Users.Any(
-                         u => u.SubjectId == permissionResolutionRequest.SubjectId &&
-                              u.IdentityProvider == permissionResolutionRequest.IdentityProvider)) || role.IsDeleted ||
+                         u => u.SubjectId.Equals(permissionResolutionRequest.SubjectId,
+                                  StringComparison.OrdinalIgnoreCase) &&
+                              u.IdentityProvider.Equals(permissionResolutionRequest.IdentityProvider,
+                                  StringComparison.OrdinalIgnoreCase))) || role.IsDeleted ||
                    role.Permissions == null;
         }
 
