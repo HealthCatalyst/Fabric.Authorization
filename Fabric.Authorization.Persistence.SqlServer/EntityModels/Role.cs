@@ -52,5 +52,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
                 .Where(rp => rp.PermissionAction == PermissionAction.Deny
                              && !rp.IsDeleted)
                 .Select(rp => rp.Permission).ToList();
+
+        [NotMapped]
+        public ICollection<User> Users => RoleUsers.Where(ru => !ru.IsDeleted).Select(ru => ru.User).ToList();
     }
 }

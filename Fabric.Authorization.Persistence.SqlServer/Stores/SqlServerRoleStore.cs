@@ -144,12 +144,10 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .Include(r => r.GroupRoles)
                 .ThenInclude(gr => gr.Group)
                 .Include(r => r.SecurableItem)
-                .Include(r => r.RolePermissions)
-                .ThenInclude(r => r.Permission)
-                .Include(r => r.GroupRoles)
-                .ThenInclude(g => g.Group)
                 .Include(r => r.ParentRole)
                 .Include(r => r.ChildRoles)
+                .Include(r => r.RoleUsers)
+                .ThenInclude(ru => ru.User)
                 .Where(r => !r.IsDeleted);
 
             if (!string.IsNullOrEmpty(grain))
