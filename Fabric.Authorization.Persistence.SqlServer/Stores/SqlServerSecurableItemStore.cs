@@ -32,5 +32,20 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             return securableItem.ToModel();
         }
+
+        public async Task<SecurableItem> Get(Guid id)
+        {
+            var securableItem = await _authorizationDbContext.SecurableItems
+                .Include(s => s.Grain)
+                .Include(s => s.SecurableItems)
+                .SingleOrDefaultAsync(s => s.SecurableItemId == id && !s.IsDeleted);
+
+            if (securableItem == null)
+            {
+                throw new NotFoundException<SecurableItem>();
+            }
+
+            return securableItem.ToModel();
+        }
     }
 }
