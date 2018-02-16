@@ -33,7 +33,7 @@ namespace Fabric.Authorization.Domain.Services
             }
 
             var item = await _securableItemStore.Get(securableItem);
-            if (item.ClientOwner == clientId)
+            if (item?.ClientOwner == clientId)
             {
                 return true;
             }
