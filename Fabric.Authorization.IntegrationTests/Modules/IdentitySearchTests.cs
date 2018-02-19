@@ -165,7 +165,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal("Smith", result1.LastName);
             Assert.NotNull(result1.LastLoginDateTimeUtc);
             Assert.Equal(lastLoginDate, result1.LastLoginDateTimeUtc.Value.ToUniversalTime());
-            Assert.Equal(Fixture.UserAtlasRoleName, result1.Roles.FirstOrDefault());
+            Assert.Equal(2, result1.Roles.Count());
+            Assert.Contains(Fixture.UserAtlasRoleName, result1.Roles);
+            Assert.Contains(Fixture.ContributorAtlasRoleName, result1.Roles);
         }
 
         [Fact]
@@ -192,6 +194,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         public string UserAtlasGroupName { get; private set; }
         public string AdminAtlasRoleName { get; private set; }
         public string UserAtlasRoleName { get; private set; }
+        public string ContributorAtlasRoleName { get; private set; }
         
         private string _storageProvider;
 
@@ -203,6 +206,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             UserAtlasGroupName = $"userAtlasGroup-{DateTime.Now.Ticks}";
             AdminAtlasRoleName = $"adminAtlasRole-{DateTime.Now.Ticks}";
             UserAtlasRoleName = $"userAtlasRole-{DateTime.Now.Ticks}";
+            ContributorAtlasRoleName = $"contributorAtlas-Role-{DateTime.Now.Ticks}";
         }
 
         public void InitializeBrowser(IIdentityServiceProvider identityServiceProvider)
@@ -262,6 +266,19 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.Created, adminAtlasRoleResponse.StatusCode);
 
+            var contributorAtlasRole = await Browser.Post("/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = AtlasClientId,
+                    Name = ContributorAtlasRoleName
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Created, contributorAtlasRole.StatusCode);
+
             // create groups
             response = await Browser.Post("/groups", with =>
             {
@@ -310,18 +327,34 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
+
+            var subjectId = "atlas_user";
+            var identityProvider = "Windows";
+
             // add user to custom group
             response = await Browser.Post($"/groups/{UserAtlasGroupName}/users", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
                 {
-                    SubjectId = "atlas_user",
-                    IdentityProvider = "Windows"
+                    SubjectId = subjectId,
+                    IdentityProvider = identityProvider
                 });
             });
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            
+            //add role to user
+            response = await Browser.Post($"/user/{identityProvider}/{subjectId}/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new []
+                {
+                    contributorAtlasRole.Body.DeserializeJson<RoleApiModel>()
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
         public async Task InitializeClientWithoutRolesAsync(IIdentityServiceProvider identityServiceProvider)

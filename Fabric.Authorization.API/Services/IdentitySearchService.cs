@@ -115,7 +115,12 @@ namespace Fabric.Authorization.API.Services
                 var userGroupEntities = groupEntities.Where(g => userGroups.Contains(g.Name, StringComparer.OrdinalIgnoreCase));
 
                 // get roles for user
-                var userRoles = userGroupEntities.SelectMany(g => g.Roles).Select(r => r.Name);
+                var userRoles = userGroupEntities.SelectMany(g => g.Roles).Select(r => r.Name).ToList();
+                userRoles.AddRange(clientRoleEntities
+                    .Where(r => r.Users.Any(u => u.IdentityProvider.Equals(user.IdentityProvider, StringComparison.OrdinalIgnoreCase ) &&
+                                                 u.SubjectId.Equals(user.SubjectId, StringComparison.OrdinalIgnoreCase)))
+                    .Select(r => r.Name)
+                    .ToList());
 
                 // add user to response
                 userList.Add(new IdentitySearchResponse
