@@ -33,6 +33,11 @@ namespace Fabric.Authorization.Persistence.CouchDb.Stores
             throw new System.NotImplementedException();
         }
 
+        public Task<User> DeleteRolesFromUser(User user, IList<Role> roles)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public override async Task<User> Add(User model)
         {
             return await base.Add(FormatId(model.Id), model).ConfigureAwait(false);
