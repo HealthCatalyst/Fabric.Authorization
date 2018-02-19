@@ -73,10 +73,35 @@ namespace Fabric.Authorization.Domain.Services
             }
             if (exceptions.Count > 0)
             {
-                throw new AggregateException("There was an issue adding roles to the user. Please see the inner exception(s) for details", exceptions);
+                throw new AggregateException("There was an issue adding roles to the user. Please see the inner exception(s) for details.", exceptions);
             }
 
             return await _userStore.AddRolesToUser(user, rolesToAdd);
+        }
+
+        public async Task<User> DeleteRolesFromUser(IList<Role> rolesToDelete, string subjectId,
+            string identityProvider)
+        {
+            var user = await _userStore.Get($"{subjectId}:{identityProvider}");
+            var exceptions = new List<Exception>();
+            foreach (var role in rolesToDelete)
+            {
+                if (user.Roles.All(r => r.Id != role.Id))
+                {
+                    exceptions.Add(
+                        new NotFoundException<Role>(
+                            $"The role: {role} with Id: {role.Id} does not exit for the user: {subjectId} and could not be deleted."));
+                }
+            }
+
+            if (exceptions.Count > 0)
+            {
+                throw new AggregateException(
+                    "There was an issue deleting roles for the user. Please see the inner exception(s) for the details.",
+                    exceptions);
+            }
+
+            return await _userStore.DeleteRolesFromUser(user, rolesToDelete);
         }
     }
 }

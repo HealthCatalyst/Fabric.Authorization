@@ -141,6 +141,26 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             await _authorizationDbContext.SaveChangesAsync();
             return user;
         }
+
+        public async Task<User> DeleteRolesFromUser(User user, IList<Role> roles)
+        {
+            var roleUsers =
+                _authorizationDbContext.RoleUsers.Where(
+                    ru => ru.SubjectId.Equals(user.SubjectId, StringComparison.OrdinalIgnoreCase) &&
+                          ru.IdentityProvider.Equals(user.IdentityProvider, StringComparison.OrdinalIgnoreCase));
+            foreach (var roleUser in roleUsers)
+            {
+                var roleToRemove = roles.FirstOrDefault(r => r.Id == roleUser.RoleId);
+                if (roleToRemove != null)
+                {
+                    user.Roles.Remove(roleToRemove);
+                    roleUser.IsDeleted = true;
+                    _authorizationDbContext.RoleUsers.Update(roleUser);
+                }
+            }
+            await _authorizationDbContext.SaveChangesAsync();
+            return user;
+        }
         
         private static string[] SplitId(string id)
         {

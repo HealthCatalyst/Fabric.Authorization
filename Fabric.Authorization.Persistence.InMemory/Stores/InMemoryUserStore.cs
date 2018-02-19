@@ -25,6 +25,11 @@ namespace Fabric.Authorization.Persistence.InMemory.Stores
             throw new NotImplementedException();
         }
 
+        public Task<User> DeleteRolesFromUser(User user, IList<Role> roles)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<IEnumerable<User>> GetUsers(string subjectId = null, string identityProvider = null)
         {
             var users = Dictionary.Select(kvp => kvp.Value);

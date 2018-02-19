@@ -87,6 +87,10 @@ namespace Fabric.Authorization.API.Modules
             Post("/{identityProvider}/{subjectId}/roles",
                 async param => await AddRolesToUser(param).ConfigureAwait(false), null,
                 "AddRolesToUser");
+
+            Delete("/{identityProvider}/{subjectId}/roles",
+                async param => await DeleteRolesFromUser(param).ConfigureAwait(false), null,
+                "DeleteRolesFromUser");
         }
 
         private async Task<dynamic> GetUser(dynamic param)
@@ -332,7 +336,7 @@ namespace Fabric.Authorization.API.Modules
         private async Task<dynamic> AddRolesToUser(dynamic param)
         {
             var apiRoles = this.Bind<List<RoleApiModel>>();
-            var errorResponse = await ValidateRolesToAdd(apiRoles);
+            var errorResponse = await ValidateRoles(apiRoles);
             if (errorResponse != null)
             {
                 return errorResponse;
@@ -362,6 +366,36 @@ namespace Fabric.Authorization.API.Modules
                 return CreateFailureResponse(e, HttpStatusCode.BadRequest);
             }
         }
+
+        private async Task<dynamic> DeleteRolesFromUser(dynamic param)
+        {
+            var apiRoles = this.Bind<List<RoleApiModel>>();
+            var errorResponse = await ValidateRoles(apiRoles);
+            if(errorResponse != null)
+            {
+                return errorResponse;
+            }
+
+            foreach (var roleApiModel in apiRoles)
+            {
+                await CheckWriteAccess(_clientService, _grainService, roleApiModel.Grain, roleApiModel.SecurableItem);
+            }
+
+            var domainRoles = apiRoles.Select(r => r.ToRoleDomainModel()).ToList();
+            try
+            {
+                User user = await _userService.DeleteRolesFromUser(domainRoles, param.subjectId.ToString(),
+                    param.identityProvider.ToString());
+                return CreateSuccessfulPostResponse($"{user.IdentityProvider}/{user.SubjectId}", user,
+                    HttpStatusCode.OK);
+            }
+            catch (NotFoundException<User>)
+            {
+                return CreateFailureResponse(
+                    $"User with SubjectId: {param.subjectId} and Identity Provider: {param.identityProvider} was not found",
+                    HttpStatusCode.NotFound);
+            }
+        }
         
         private async Task SetDefaultRequest(UserInfoRequest request)
         {
@@ -377,7 +411,7 @@ namespace Fabric.Authorization.API.Modules
             }
         }
 
-        private async Task<Negotiator> ValidateRolesToAdd(List<RoleApiModel> apiRoles)
+        private async Task<Negotiator> ValidateRoles(List<RoleApiModel> apiRoles)
         {
             if (apiRoles.Count == 0)
             {
