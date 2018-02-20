@@ -83,6 +83,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 new Claim(Claims.Scope, Scopes.ManageClientsScope),
                 new Claim(Claims.Scope, Scopes.ReadScope),
                 new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.Scope, Scopes.ManageDosScope),
                 new Claim(Claims.ClientId, clientId)
             }, "pwd"));
 

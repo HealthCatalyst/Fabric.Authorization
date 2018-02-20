@@ -23,7 +23,6 @@ namespace Fabric.Authorization.UnitTests.Mocks
                     throw new NotFoundException<SecurableItem>();
                 });
 
-
             mockSecurableItemStore.Setup(securableItemStore => securableItemStore.Get(It.IsAny<Guid>()))
                 .Returns((Guid id) =>
                 {

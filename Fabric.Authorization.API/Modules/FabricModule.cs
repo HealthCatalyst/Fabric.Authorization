@@ -139,7 +139,7 @@ namespace Fabric.Authorization.API.Modules
             {
                 try
                 {
-                    var requiredClaims = await GetRequiredClaims(grainService, grainAsString);
+                    var requiredClaims = await GetRequiredWriteClaims(grainService, grainAsString);
                     await AccessService.CheckUserAccess(grainAsString, securableItemAsString, this,
                         requiredClaims.ToArray());
                 }
@@ -151,7 +151,8 @@ namespace Fabric.Authorization.API.Modules
             }
             else
             {
-                await AccessService.CheckAppAccess(ClientId, grainAsString, securableItemAsString, clientService, this, AuthorizationWriteClaim);
+                var requiredClaims = await GetRequiredWriteClaims(grainService, grainAsString);
+                await AccessService.CheckAppAccess(ClientId, grainAsString, securableItemAsString, clientService, this, requiredClaims.ToArray());
             }
         }
 
@@ -182,14 +183,20 @@ namespace Fabric.Authorization.API.Modules
             return claim => claim.Type == Claims.ClientId && claim.Value == clientId;
         }
 
-        private async Task<List<Predicate<Claim>>> GetRequiredClaims(GrainService grainService, string grain)
+        private async Task<List<Predicate<Claim>>> GetRequiredWriteClaims(GrainService grainService, string grain)
         {
             var grainModel = await grainService.GetGrain(grain);
             var requiredClaims = new List<Predicate<Claim>> { AuthorizationWriteClaim };
+            if (grainModel == null)
+            {
+                return requiredClaims;
+            }
+
             if (grainModel.IsShared && grainModel.RequiredWriteScopes.Count > 0)
             {
                 requiredClaims.Add(c => grainModel.RequiredWriteScopes.Contains(c.Value));
             }
+
             return requiredClaims;
         }
     }
