@@ -93,58 +93,7 @@ namespace Fabric.Authorization.API.Modules
             RouteDescriber.DescribeRouteWithParams(
                 "AddSecurableItem",
                 "",
-                "Add a new securable item",
-                new[]
-                {
-                    new HttpResponseMetadata<SecurableItemApiModel>
-                    {
-                        Code = (int) HttpStatusCode.Created,
-                        Message = "Created"
-                    },
-                    new HttpResponseMetadata
-                    {
-                        Code = (int) HttpStatusCode.Forbidden,
-                        Message = "Client does not have access"
-                    },
-                    new HttpResponseMetadata<Error>
-                    {
-                        Code = (int) HttpStatusCode.BadRequest,
-                        Message =
-                            "The securable item id is not a guid or the securable item failed validation"
-                    },
-                    new HttpResponseMetadata
-                    {
-                        Code = (int) HttpStatusCode.NotFound,
-                        Message = "The client was not found by client id"
-                    },
-                    new HttpResponseMetadata
-                    {
-                        Code = (int) HttpStatusCode.Conflict,
-                        Message = "The securable item with the specified id already exists"
-                    },
-                    new HttpResponseMetadata<Error>
-                    {
-                        Code = (int) HttpStatusCode.UnsupportedMediaType,
-                        Message = "Content-Type header was not included in request"
-                    }
-                },
-                new[]
-                {
-                    new BodyParameter<SecurableItemApiModel>(modelCatalog)
-                    {
-                        Name = "Securable Item",
-                        Description = "The securable item to add"
-                    }
-                },
-                new[]
-                {
-                    _securableItemsTag
-                }).SecurityRequirement(OAuth2WriteScopeBuilder);
-
-            RouteDescriber.DescribeRouteWithParams(
-                "AddSecurableItemById",
-                "",
-                "Add a new securable item by the specified securable item id",
+                "Add a new securable item to the specified securable item hierarchy",
                 new[]
                 {
                     new HttpResponseMetadata<SecurableItemApiModel>
