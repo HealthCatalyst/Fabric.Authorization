@@ -106,7 +106,7 @@ namespace Fabric.Authorization.API.Modules
             try
             {
                 var parentSecurableItem = await _securableItemService.GetSecurableItem(ClientId, securableItemId);
-                await CheckWriteAccess(_clientService, _grainService, securableItemApiModel.Grain, parentSecurableItem.Name);
+                await CheckWriteAccess(_clientService, _grainService, parentSecurableItem.Grain, parentSecurableItem.Name);
 
                 var incomingSecurableItem = securableItemApiModel.ToSecurableItemDomainModel();
                 Validate(incomingSecurableItem);
