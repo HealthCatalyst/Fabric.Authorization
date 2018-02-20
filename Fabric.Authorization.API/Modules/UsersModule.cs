@@ -361,9 +361,9 @@ namespace Fabric.Authorization.API.Modules
                     $"User with SubjectId: {param.subjectId} and Identity Provider: {param.identityProvider} was not found",
                     HttpStatusCode.NotFound);
             }
-            catch (AggregateException e)
+            catch (AggregateException ex)
             {
-                return CreateFailureResponse(e, HttpStatusCode.BadRequest);
+                return CreateFailureResponse(ex, HttpStatusCode.BadRequest);
             }
         }
 
@@ -394,6 +394,10 @@ namespace Fabric.Authorization.API.Modules
                 return CreateFailureResponse(
                     $"User with SubjectId: {param.subjectId} and Identity Provider: {param.identityProvider} was not found",
                     HttpStatusCode.NotFound);
+            }
+            catch (AggregateException ex)
+            {
+                return CreateFailureResponse(ex, HttpStatusCode.BadRequest);
             }
         }
         
