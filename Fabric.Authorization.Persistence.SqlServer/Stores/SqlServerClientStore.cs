@@ -14,24 +14,24 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
     public class SqlServerClientStore : IClientStore
     {
         private readonly IAuthorizationDbContext _authorizationDbContext;
+        private readonly IGrainStore _grainStore;
 
-        public SqlServerClientStore(IAuthorizationDbContext authorizationDbContext)
+        public SqlServerClientStore(IAuthorizationDbContext authorizationDbContext, IGrainStore grainStore)
         {   
             _authorizationDbContext = authorizationDbContext;
+            _grainStore = grainStore;
         }
 
         public async Task<Client> Add(Client model)
         {
-            EntityModels.Grain grain = null;
+            Grain grain = null;
             if (model.TopLevelSecurableItem != null)
             {
-                grain =
-                    await _authorizationDbContext.Grains.FirstOrDefaultAsync(
-                        g => g.Name == model.TopLevelSecurableItem.Grain);
+                grain = await _grainStore.Get(model.TopLevelSecurableItem.Grain);
             }
 
             var clientEntity = model.ToEntity();
-            clientEntity.TopLevelSecurableItem.GrainId = grain?.GrainId;
+            clientEntity.TopLevelSecurableItem.GrainId = grain?.Id;
 
             _authorizationDbContext.Clients.Add(clientEntity);
             await _authorizationDbContext.SaveChangesAsync();
