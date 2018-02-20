@@ -12,7 +12,7 @@ namespace Fabric.Authorization.UnitTests.SecurableItems
         [Fact]
         public void IsSecurableItemChildOfGrain_Deep_ReturnsTrue()
         {
-            var securableItemService = new SecurableItemService(new Mock<IClientStore>().Object);
+            var securableItemService = new SecurableItemService(new Mock<IClientStore>().Object, new Mock<ClientService>().Object, new Mock<ISecurableItemStore>().Object);
             var deepGrain = GetGrainWithDeepGraph();
             Assert.True(securableItemService.IsSecurableItemChildOfGrain(deepGrain, "level_one_a"));
             Assert.True(securableItemService.IsSecurableItemChildOfGrain(deepGrain, "level_one_b"));
@@ -24,7 +24,7 @@ namespace Fabric.Authorization.UnitTests.SecurableItems
         [Fact]
         public void IsSecurableItemChildOfGrain_Deep_ReturnsFalse()
         {
-            var securableItemService = new SecurableItemService(new Mock<IClientStore>().Object);
+            var securableItemService = new SecurableItemService(new Mock<IClientStore>().Object, new Mock<ClientService>().Object, new Mock<ISecurableItemStore>().Object);
             var deepGrain = GetGrainWithDeepGraph();
             Assert.False(securableItemService.IsSecurableItemChildOfGrain(deepGrain, "level_four"));
         }
