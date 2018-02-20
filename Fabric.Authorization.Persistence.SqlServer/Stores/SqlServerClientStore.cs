@@ -21,8 +21,17 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         }
 
         public async Task<Client> Add(Client model)
-        {            
+        {
+            EntityModels.Grain grain = null;
+            if (model.TopLevelSecurableItem != null)
+            {
+                grain =
+                    await _authorizationDbContext.Grains.FirstOrDefaultAsync(
+                        g => g.Name == model.TopLevelSecurableItem.Grain);
+            }
+
             var clientEntity = model.ToEntity();
+            clientEntity.TopLevelSecurableItem.GrainId = grain?.GrainId;
 
             _authorizationDbContext.Clients.Add(clientEntity);
             await _authorizationDbContext.SaveChangesAsync();

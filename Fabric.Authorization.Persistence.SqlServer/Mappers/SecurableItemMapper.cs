@@ -18,6 +18,5 @@ namespace Fabric.Authorization.Persistence.SqlServer.Mappers
         {
             Mapper.Map(model, entity);
         }
-
     }
 }
