@@ -214,6 +214,165 @@ namespace Fabric.Authorization.UnitTests.Users
         }
 
         [Fact]
+        public void DeleteRolesFromUser_UserDoesNotExist_ReturnsNotFound()
+        {
+            var existingClient = ExistingClients.First();
+            var usersModule = CreateBrowser(
+                new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.ClientId, existingClient.Id)
+            );
+            var roles = AddExistingRoles(existingClient.TopLevelSecurableItem.Name);
+            var deleteRolesFromUserResponse = usersModule.Delete($"/user/windows/nouser/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new[]
+                {
+                    roles[0]
+                });
+            }).Result;
+            Assert.Equal(HttpStatusCode.NotFound, deleteRolesFromUserResponse.StatusCode);
+        }
+
+        [Fact]
+        public void DeleteRolesFromUser_RoleDoesNotExistForUser_ReturnsBadRequest()
+        {
+            var existingClient = ExistingClients.First();
+            var usersModule = CreateBrowser(
+                new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.ClientId, existingClient.Id)
+            );
+            var user = CreateUser(usersModule);
+            var deleteRolesFromUser = usersModule.Delete(
+                $"/user/{user.IdentityProvider}/{HttpUtility.UrlEncode(user.SubjectId)}/roles",
+                with =>
+                {
+                    with.HttpRequest();
+                    with.JsonBody(new []
+                    {
+                        new { Id = Guid.NewGuid(), Grain = Domain.Defaults.Authorization.AppGrain, SecurableItem = existingClient.Id, Name = "testRole1"},
+                        new { Id = Guid.NewGuid(), Grain = Domain.Defaults.Authorization.AppGrain, SecurableItem = existingClient.Id, Name = "testRole2"}
+                    });
+                }).Result;
+
+            Assert.Equal(HttpStatusCode.BadRequest, deleteRolesFromUser.StatusCode);
+            var error = deleteRolesFromUser.Body.DeserializeJson<Error>();
+            Assert.Contains("There was an issue deleting roles for the user. Please see the inner exception(s) for the details.", error.Message);
+            Assert.Equal(2, error.Details.Length);
+        }
+
+        [Fact]
+        public void DeleteRolesFromUser_MultipleRoles_ReturnsOK()
+        {
+            var existingClient = ExistingClients.First();
+            var usersModule = CreateBrowser(
+                new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.ClientId, existingClient.Id)
+            );
+            var expectedUser = CreateUser(usersModule);
+            var newRoles = AddExistingRoles(existingClient.TopLevelSecurableItem.Name);
+            var addRolesToUserResponse = usersModule.Post($"/user/{expectedUser.IdentityProvider}/{HttpUtility.UrlEncode(expectedUser.SubjectId)}/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new[]
+                {
+                    newRoles[0], newRoles[1], newRoles[3]
+                });
+            }).Result;
+            Assert.Equal(HttpStatusCode.OK, addRolesToUserResponse.StatusCode);
+            var userWithRoles = addRolesToUserResponse.Body.DeserializeJson<UserApiModel>();
+            Assert.Equal(3, userWithRoles.Roles.Count);
+
+            var deleteRolesFromUserResponse = usersModule.Delete($"/user/{expectedUser.IdentityProvider}/{HttpUtility.UrlEncode(expectedUser.SubjectId)}/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new[]
+                {
+                    newRoles[0], newRoles[1]
+                });
+            }).Result;
+
+            Assert.Equal(HttpStatusCode.OK, deleteRolesFromUserResponse.StatusCode);
+            userWithRoles = deleteRolesFromUserResponse.Body.DeserializeJson<UserApiModel>();
+            Assert.Single(userWithRoles.Roles);
+            Assert.Equal(newRoles[3].Id, userWithRoles.Roles.First().Id);
+        }
+
+        [Fact]
+        public void DeleteRolesFromUser_EmptyRolesArray_ReturnsBadRequest()
+        {
+            var existingClient = ExistingClients.First();
+            var usersModule = CreateBrowser(
+                new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.ClientId, existingClient.Id)
+            );
+            var expectedUser = CreateUser(usersModule);
+            var roles = new List<Role>();
+            var deleteRolesFromUserResponse = usersModule.Delete($"/user/{expectedUser.IdentityProvider}/{HttpUtility.UrlEncode(expectedUser.SubjectId)}/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(roles.ToArray());
+            }).Result;
+            Assert.Equal(HttpStatusCode.BadRequest, deleteRolesFromUserResponse.StatusCode);
+            var error = deleteRolesFromUserResponse.Body.DeserializeJson<Error>();
+            Assert.Equal(UsersModule.InvalidRoleArrayMessage, error.Message);
+
+        }
+
+        [Fact]
+        public void DeleteRolesFromUser_PostSingleRole_ReturnsBadRequest()
+        {
+            var existingClient = ExistingClients.First();
+            var usersModule = CreateBrowser(
+                new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.ClientId, existingClient.Id)
+            );
+            var expectedUser = CreateUser(usersModule);
+            var deleteRolesFromUserResponse = usersModule.Delete($"/user/{expectedUser.IdentityProvider}/{HttpUtility.UrlEncode(expectedUser.SubjectId)}/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new Role
+                {
+                    Id = Guid.NewGuid(),
+                    Grain = Domain.Defaults.Authorization.AppGrain,
+                    SecurableItem = existingClient.TopLevelSecurableItem.Name,
+                    Name = "role" + Guid.NewGuid()
+                });
+            }).Result;
+            Assert.Equal(HttpStatusCode.BadRequest, deleteRolesFromUserResponse.StatusCode);
+            var error = deleteRolesFromUserResponse.Body.DeserializeJson<Error>();
+            Assert.Equal(UsersModule.InvalidRoleArrayMessage, error.Message);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetBadRoleData))]
+        public void DeleteRolesFromUser_InvalidRoleApiModel_ReturnsBadRequest(Role role)
+        {
+            var existingClient = ExistingClients.First();
+            var usersModule = CreateBrowser(
+                new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.ClientId, existingClient.Id)
+            );
+            var expectedUser = CreateUser(usersModule);
+            var deleteRolesFromUserResponse = usersModule.Delete($"/user/{expectedUser.IdentityProvider}/{HttpUtility.UrlEncode(expectedUser.SubjectId)}/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new[]
+                {
+                    role
+                });
+            }).Result;
+            Assert.Equal(HttpStatusCode.BadRequest, deleteRolesFromUserResponse.StatusCode);
+            var error = deleteRolesFromUserResponse.Body.DeserializeJson<Error>();
+            Assert.Equal(String.Format(UsersModule.InvalidRoleApiModelMessage, role.Name), error.Message);
+        }
+
+        [Fact]
         public void AddRolesToUser_UserDoesNotExist_ReturnsNotFound()
         {
             var existingClient = ExistingClients.First();
@@ -493,10 +652,18 @@ namespace Fabric.Authorization.UnitTests.Users
                 SecurableItem = "sourcemartdesigner",
                 Name = "role3" + Guid.NewGuid()
             };
+            var role4 = new Role
+            {
+                Id = Guid.NewGuid(),
+                Grain = Domain.Defaults.Authorization.AppGrain,
+                SecurableItem = securableItemName,
+                Name = "role4" + Guid.NewGuid()
+            };
             ExistingRoles.Add(role1);
             ExistingRoles.Add(role2);
             ExistingRoles.Add(role3);
-            return new List<Role>{role1, role2, role3};
+            ExistingRoles.Add(role4);
+            return new List<Role>{role1, role2, role3, role4};
         }
         private UserApiModel CreateUser(Browser usersModule)
         {

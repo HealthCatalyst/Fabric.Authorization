@@ -53,6 +53,18 @@ namespace Fabric.Authorization.UnitTests.Mocks
                     return Task.FromResult(existingUser);
                 });
 
+            mockUserStore.Setup(userStore => userStore.DeleteRolesFromUser(It.IsAny<User>(), It.IsAny<IList<Role>>()))
+                .Returns((User user, IList<Role> roles) =>
+                {
+                    var existingUser = users.First(u => u.SubjectId == user.SubjectId &&
+                                                        u.IdentityProvider == user.IdentityProvider);
+                    foreach (var role in roles)
+                    {
+                        existingUser.Roles.Remove(role);
+                    }
+                    return Task.FromResult(existingUser);
+                });
+
             return mockUserStore;
         }
     }
