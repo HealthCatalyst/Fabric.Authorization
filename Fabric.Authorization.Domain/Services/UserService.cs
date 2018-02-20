@@ -90,7 +90,7 @@ namespace Fabric.Authorization.Domain.Services
                 {
                     exceptions.Add(
                         new NotFoundException<Role>(
-                            $"The role: {role} with Id: {role.Id} does not exit for the user: {subjectId} and could not be deleted."));
+                            $"The role: {role} with Id: {role.Id} does not exist for the user: {subjectId} and could not be deleted."));
                 }
             }
 
