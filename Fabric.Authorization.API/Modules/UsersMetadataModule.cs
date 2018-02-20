@@ -38,6 +38,7 @@ namespace Fabric.Authorization.API.Modules
             ModelCatalog.AddModels(typeof(PermissionRoleApiModel));
             ModelCatalog.AddModels(typeof(ResolvedPermissionApiModel));
             ModelCatalog.AddModels(typeof(UserApiModel));
+            ModelCatalog.AddModels(typeof(List<RoleApiModel>));
 
             RouteDescriber.DescribeRouteWithParams(
                 "AddUser",
@@ -80,6 +81,96 @@ namespace Fabric.Authorization.API.Modules
                     }
                 },
                 new []
+                {
+                    _usersTag
+                }).SecurityRequirement(OAuth2WriteScopeBuilder);
+
+            RouteDescriber.DescribeRouteWithParams(
+                "AddRolesToUser",
+                "",
+                "Adds roles to an existing user.",
+                new[]
+                {
+                    new HttpResponseMetadata<UserApiModel>
+                    {
+                        Code = (int) HttpStatusCode.OK,
+                        Message = "Roles added."
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.Forbidden,
+                        Message = "User does not have access to add the specified roles."
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.BadRequest,
+                        Message = "List of roles in body failed validation"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.NotFound,
+                        Message = "Specified user does not exist"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.UnsupportedMediaType,
+                        Message = "Content-Type header was not included in request"
+                    }
+                },
+                new[]
+                {
+                    new BodyParameter<List<RoleApiModel>>(modelCatalog)
+                    {
+                        Name = "Roles",
+                        Description = "The roles to add"
+                    }
+                },
+                new[]
+                {
+                    _usersTag
+                }).SecurityRequirement(OAuth2WriteScopeBuilder);
+
+            RouteDescriber.DescribeRouteWithParams(
+                "DeleteRolesFromUser",
+                "",
+                "Deletes roles from existing user.",
+                new[]
+                {
+                    new HttpResponseMetadata<UserApiModel>
+                    {
+                        Code = (int) HttpStatusCode.OK,
+                        Message = "Roles deleted."
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.Forbidden,
+                        Message = "User does not have access to add the specified roles."
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.BadRequest,
+                        Message = "List of roles in body failed validation"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.NotFound,
+                        Message = "Specified user does not exist"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.UnsupportedMediaType,
+                        Message = "Content-Type header was not included in request"
+                    }
+                },
+                new[]
+                {
+                    new BodyParameter<List<RoleApiModel>>(modelCatalog)
+                    {
+                        Name = "Roles",
+                        Description = "The roles to delete."
+                    }
+                },
+                new[]
                 {
                     _usersTag
                 }).SecurityRequirement(OAuth2WriteScopeBuilder);
