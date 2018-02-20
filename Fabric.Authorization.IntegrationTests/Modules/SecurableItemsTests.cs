@@ -28,7 +28,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             _storageProvider = storageProvider;
         }
 
-        [Fact]
+        /*[Fact]
         public async Task AddSecurableItemWithDosGrain_ValidScopeAndPermission_SuccessAsync()
         {
             var clientId = $"client-{Guid.NewGuid()}";
@@ -61,7 +61,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             var result = await browser.Post($"/securableitems/{client.TopLevelSecurableItem.Id}", with => with.JsonBody(securableItemApiModel));
             Assert.Equal(HttpStatusCode.Created, result.StatusCode);
-        }
+        }*/
 
         [Fact]
         public void AddSecurableItemWithDosGrain_InvalidScopeAndValidPermission_Failure()
