@@ -10,16 +10,33 @@ namespace Fabric.Authorization.Domain.Services
     public class SecurableItemService
     {
         private readonly IClientStore _clientStore;
+        private readonly ClientService _clientService;
+        private readonly ISecurableItemStore _securableItemStore;
 
-        public SecurableItemService(IClientStore clientStore)
+        public SecurableItemService(IClientStore clientStore, ClientService clientService, ISecurableItemStore securableItemStore)
         {
             _clientStore = clientStore ?? throw new ArgumentNullException(nameof(clientStore));
+            _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
+            _securableItemStore = securableItemStore ?? throw new ArgumentNullException(nameof(securableItemStore));
         }
 
         public async Task<SecurableItem> GetSecurableItem(string clientId, Guid itemId)
         {
-            var topLevelSecurableItem = await this.GetTopLevelSecurableItem(clientId);
-            return GetSecurableItemById(topLevelSecurableItem, itemId);
+            try
+            {
+                var topLevelSecurableItem = await GetTopLevelSecurableItem(clientId);
+                return GetSecurableItemById(topLevelSecurableItem, itemId);
+            }
+            catch (NotFoundException<SecurableItem>)
+            {
+                var securableItem = await _securableItemStore.Get(itemId);
+                if (await _clientService.DoesClientOwnItem(clientId, securableItem.Grain, securableItem.Name))
+                {
+                    return securableItem;
+                }
+            }
+
+            throw new NotFoundException<SecurableItem>(itemId.ToString());
         }
 
         public async Task<SecurableItem> GetTopLevelSecurableItem(string clientId)
@@ -46,7 +63,7 @@ namespace Fabric.Authorization.Domain.Services
             item.Id = Guid.NewGuid();
             item.ClientOwner = clientId;
             var client = await _clientStore.Get(clientId);
-            var parentSecurableItem = GetSecurableItemById(client.TopLevelSecurableItem, itemId);
+            var parentSecurableItem = await GetSecurableItem(client.Id, itemId);
             CheckUniqueness(parentSecurableItem, item);
 
             if (parentSecurableItem.Grain != item.Grain)
