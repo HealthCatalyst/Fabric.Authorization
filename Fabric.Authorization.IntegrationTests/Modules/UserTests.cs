@@ -148,6 +148,44 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
+        public async Task GetRolesForUser_ReturnsOkAsync()
+        {
+            var identityProvider = "windows";
+            var subjectId = @"domain\test.user" + Guid.NewGuid();
+            var role = await AddUserAndRoleAsync(identityProvider, subjectId);
+
+            var addRoleToUserResponse = await _browser.Post($"/user/{identityProvider}/{HttpUtility.UrlEncode(subjectId)}/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new[]
+                {
+                    new
+                    {
+                        role.Grain,
+                        role.SecurableItem,
+                        role.Name,
+                        role.Id
+                    }
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.OK, addRoleToUserResponse.StatusCode);
+            var updatedUser = addRoleToUserResponse.Body.DeserializeJson<UserApiModel>();
+            Assert.Single(updatedUser.Roles);
+
+            var userResponse = await _browser.Get(
+                $"/user/{identityProvider}/{HttpUtility.UrlEncode(subjectId)}");
+            Assert.Equal(HttpStatusCode.OK, userResponse.StatusCode);
+            var userToAssert = userResponse.Body.DeserializeJson<UserApiModel>();
+            Assert.Single(userToAssert.Roles);
+
+            var rolesResponse =
+                await _browser.Get($"/user/{identityProvider}/{HttpUtility.UrlEncode(subjectId)}/roles");
+            Assert.Equal(HttpStatusCode.OK, rolesResponse.StatusCode);
+            Assert.Single(rolesResponse.Body.DeserializeJson<List<RoleApiModel>>());
+        }
+
+        [Fact]
         public async Task DeleteRolesFromUser_ReturnsOKAsync()
         {
             var identityProvider = "windows";
