@@ -80,7 +80,7 @@ namespace Fabric.Authorization.API.Modules
                 async _ => await GetUserGroups().ConfigureAwait(false), null,
                 "GetUserGroups");
 
-            Get("/{identityProvider/{subjectId}/roles",
+            Get("/{identityProvider}/{subjectId}/roles",
                 async _ => await GetUserRoles().ConfigureAwait(false), null,
                 "GetUserRoles");
 

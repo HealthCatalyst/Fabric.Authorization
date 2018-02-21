@@ -330,6 +330,38 @@ namespace Fabric.Authorization.API.Modules
                 {
                     _usersTag
                 }).SecurityRequirement(OAuth2ReadScopeBuilder);
+
+            RouteDescriber.DescribeRouteWithParams(
+                "GetUserRoles",
+                "",
+                "Gets the roles associated with a user",
+                new[]
+                {
+                    new HttpResponseMetadata<List<RoleApiModel>>
+                    {
+                        Code = (int) HttpStatusCode.OK,
+                        Message = "List of roles representing the roles this user has been directly associated to."
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.Forbidden,
+                        Message = "Client does not have access"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.NotFound,
+                        Message = "User was not found"
+                    }
+                },
+                new[]
+                {
+                    _identityProviderParameter,
+                    _subjectIdParameter
+                },
+                new[]
+                {
+                    _usersTag
+                }).SecurityRequirement(OAuth2ReadScopeBuilder);
         }
     }
 }

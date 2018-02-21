@@ -214,6 +214,63 @@ namespace Fabric.Authorization.UnitTests.Users
         }
 
         [Fact]
+        public void GetRolesForUser_UserDoesNotExist_ReturnsNotFound()
+        {
+            var existingClient = ExistingClients.First();
+            var usersModule = CreateBrowser(
+                new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.ClientId, existingClient.Id)
+            );
+            var getRolesForUser = usersModule.Get($"/user/windows/nouser/roles").Result;
+            Assert.Equal(HttpStatusCode.NotFound, getRolesForUser.StatusCode);
+        }
+
+        [Fact]
+        public void GetRolesForUser_UserHasNoRoles_ReturnsEmptyArray()
+        {
+            var existingClient = ExistingClients.First();
+            var usersModule = CreateBrowser(
+                new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.ClientId, existingClient.Id)
+            );
+            var user = CreateUser(usersModule);
+            var getRolesForUser = usersModule.Get($"/user/{user.IdentityProvider}/{HttpUtility.UrlEncode(user.SubjectId)}/roles").Result;
+            Assert.Equal(HttpStatusCode.OK, getRolesForUser.StatusCode);
+            Assert.Empty(getRolesForUser.Body.DeserializeJson<List<RoleApiModel>>());
+        }
+
+        [Fact]
+        public void GetRolesForUser_MultipleRoles_ReturnsOK()
+        {
+            var existingClient = ExistingClients.First();
+            var usersModule = CreateBrowser(
+                new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.ClientId, existingClient.Id)
+            );
+            var expectedUser = CreateUser(usersModule);
+            var newRoles = AddExistingRoles(existingClient.TopLevelSecurableItem.Name);
+            var addRolesToUserResponse = usersModule.Post($"/user/{expectedUser.IdentityProvider}/{HttpUtility.UrlEncode(expectedUser.SubjectId)}/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new[]
+                {
+                    newRoles[0], newRoles[1], newRoles[3]
+                });
+            }).Result;
+            Assert.Equal(HttpStatusCode.OK, addRolesToUserResponse.StatusCode);
+            var userWithRoles = addRolesToUserResponse.Body.DeserializeJson<UserApiModel>();
+            Assert.Equal(3, userWithRoles.Roles.Count);
+
+            var getRolesForUser = usersModule.Get($"/user/{expectedUser.IdentityProvider}/{HttpUtility.UrlEncode(expectedUser.SubjectId)}/roles").Result;
+
+            Assert.Equal(HttpStatusCode.OK, getRolesForUser.StatusCode);
+            Assert.Equal(3, getRolesForUser.Body.DeserializeJson<List<RoleApiModel>>().Count);
+        }
+
+        [Fact]
         public void DeleteRolesFromUser_UserDoesNotExist_ReturnsNotFound()
         {
             var existingClient = ExistingClients.First();
