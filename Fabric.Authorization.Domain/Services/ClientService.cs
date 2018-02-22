@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
 
@@ -25,6 +26,13 @@ namespace Fabric.Authorization.Domain.Services
             _securableItemStore = securableItemStore ?? throw new ArgumentNullException(nameof(securableItemStore));
         }
 
+        /// <summary>
+        /// All ownership checks should pass through this method since it first checks the ClientOwner property of the securable item first.
+        /// </summary>
+        /// <param name="clientId">Unique client ID</param>
+        /// <param name="grain">Entity grain</param>
+        /// <param name="securableItem">Entity securable item</param>
+        /// <returns>True if client owns item; otherwise false</returns>
         public async Task<bool> DoesClientOwnItem(string clientId, string grain, string securableItem)
         {
             if (string.IsNullOrEmpty(clientId))
@@ -32,18 +40,18 @@ namespace Fabric.Authorization.Domain.Services
                 return false;
             }
 
-            var item = await _securableItemStore.Get(securableItem);
-            if (item?.ClientOwner == clientId)
+            if (await IsClientOwner(clientId, securableItem))
             {
                 return true;
             }
 
             var client = await _clientStore.Get(clientId);
-            return DoesClientOwnItem(client.TopLevelSecurableItem, grain, securableItem);
+            return DoesClientOwnItem(client, grain, securableItem);
         }
-        
-        public bool DoesClientOwnItem(SecurableItem topLevelSecurableItem, string grain, string securableItem)
+
+        private bool DoesClientOwnItem(Client client, string grain, string securableItem)
         {
+            var topLevelSecurableItem = client.TopLevelSecurableItem;
             if (topLevelSecurableItem == null)
             {
                 return false;
@@ -55,6 +63,13 @@ namespace Fabric.Authorization.Domain.Services
             }
 
             return HasRequestedSecurableItem(topLevelSecurableItem, grain, securableItem);
+        }
+
+        private async Task<bool> IsClientOwner(string clientId, string securableItem)
+        {
+
+            var item = await _securableItemStore.Get(securableItem);
+            return item?.ClientOwner == clientId;
         }
 
         public async Task<IEnumerable<Client>> GetClients(bool includeDeleted = false)

@@ -416,9 +416,13 @@ namespace Fabric.Authorization.UnitTests.Search
                     SortDirection = "desc"
                 }).Result.Results.ToList();
 
-            Assert.Equal(2, results.Count);
+            Assert.Equal(3, results.Count);
 
-            var result1 = results[0];
+            var result0 = results[0];
+            Assert.Equal(IdentitySearchServiceFixture.UserAtlasGroupName, result0.Name);
+            Assert.Equal(IdentitySearchServiceFixture.UserAtlasRoleName, result0.Roles.FirstOrDefault());
+
+            var result1 = results[1];
             Assert.Equal("atlas_user", result1.SubjectId);
             Assert.Equal("Robert", result1.FirstName);
             Assert.Equal("Brian", result1.MiddleName);
@@ -427,7 +431,7 @@ namespace Fabric.Authorization.UnitTests.Search
             Assert.Equal(lastLoginDate, result1.LastLoginDateTimeUtc.Value.ToUniversalTime());
             Assert.Equal(IdentitySearchServiceFixture.UserAtlasRoleName, result1.Roles.FirstOrDefault());
 
-            var result2 = results[1];
+            var result2 = results[2];
             Assert.Equal(IdentitySearchServiceFixture.AdminAtlasGroupName, result2.Name);
             Assert.Equal(IdentitySearchServiceFixture.AdminAtlasRoleName, result2.Roles.FirstOrDefault());
 
@@ -444,14 +448,9 @@ namespace Fabric.Authorization.UnitTests.Search
 
             Assert.Single(results);
 
-            result1 = results[0];
-            Assert.Equal("atlas_user", result1.SubjectId);
-            Assert.Equal("Robert", result1.FirstName);
-            Assert.Equal("Brian", result1.MiddleName);
-            Assert.Equal("Smith", result1.LastName);
-            Assert.NotNull(result1.LastLoginDateTimeUtc);
-            Assert.Equal(lastLoginDate, result1.LastLoginDateTimeUtc.Value.ToUniversalTime());
-            Assert.Equal(IdentitySearchServiceFixture.UserAtlasRoleName, result1.Roles.FirstOrDefault());
+            result0 = results[0];
+            Assert.Equal(IdentitySearchServiceFixture.UserAtlasGroupName, result0.Name);
+            Assert.Equal(IdentitySearchServiceFixture.UserAtlasRoleName, result0.Roles.FirstOrDefault());
 
             // search + sort + filter
             results = _fixture.IdentitySearchService(mockIdentityServiceProvider.Object).Search(
@@ -465,14 +464,14 @@ namespace Fabric.Authorization.UnitTests.Search
 
             Assert.Single(results);
 
-            result1 = results[0];
-            Assert.Equal("atlas_user", result1.SubjectId);
-            Assert.Equal("Robert", result1.FirstName);
-            Assert.Equal("Brian", result1.MiddleName);
-            Assert.Equal("Smith", result1.LastName);
-            Assert.NotNull(result1.LastLoginDateTimeUtc);
-            Assert.Equal(lastLoginDate, result1.LastLoginDateTimeUtc.Value.ToUniversalTime());
-            Assert.Equal(IdentitySearchServiceFixture.UserAtlasRoleName, result1.Roles.FirstOrDefault());
+            result0 = results[0];
+            Assert.Equal("atlas_user", result0.SubjectId);
+            Assert.Equal("Robert", result0.FirstName);
+            Assert.Equal("Brian", result0.MiddleName);
+            Assert.Equal("Smith", result0.LastName);
+            Assert.NotNull(result0.LastLoginDateTimeUtc);
+            Assert.Equal(lastLoginDate, result0.LastLoginDateTimeUtc.Value.ToUniversalTime());
+            Assert.Equal(IdentitySearchServiceFixture.UserAtlasRoleName, result0.Roles.FirstOrDefault());
         }
     }
 }

@@ -87,13 +87,10 @@ namespace Fabric.Authorization.API.Services
             _logger.Debug($"groupEntities = {groupEntities.ToString(Environment.NewLine)}");
 
             var groupsMappedToClientRoles = groupEntities.Where(g => g.Roles.Any(r => clientRoleEntities.Contains(r))).ToList();
-            var nonCustomGroups =
-                groupsMappedToClientRoles.Where(g => !string.Equals(g.Source, GroupConstants.CustomSource, StringComparison.OrdinalIgnoreCase)).ToList();
-
-            _logger.Debug($"nonCustomGroups = {nonCustomGroups.ToString(Environment.NewLine)}");
+            _logger.Debug($"groupsMappedToClientRoles = {groupsMappedToClientRoles.ToString(Environment.NewLine)}");
 
             // add all non-custom groups to the response
-            searchResults.AddRange(nonCustomGroups.Select(g => new IdentitySearchResponse
+            searchResults.AddRange(groupsMappedToClientRoles.Select(g => new IdentitySearchResponse
             {
                 GroupName = g.Name,
                 Roles = g.Roles.Select(r => r.Name),

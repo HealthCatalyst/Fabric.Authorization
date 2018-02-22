@@ -54,9 +54,15 @@ namespace Fabric.Authorization.Domain.Services
 
             foreach (var role in roles)
             {
-                if (_clientService.DoesClientOwnItem(client.TopLevelSecurableItem, role.Grain, role.SecurableItem))
+                try
                 {
-                    clientRoles.Add(role);
+                    if (await _clientService.DoesClientOwnItem(client.Id, role.Grain, role.SecurableItem))
+                    {
+                        clientRoles.Add(role);
+                    }
+                }
+                catch (NotFoundException<SecurableItem>)
+                {
                 }
             }
 
@@ -140,7 +146,7 @@ namespace Fabric.Authorization.Domain.Services
             var permissionsToAdd = new List<Permission>();
             var permissions = existingPermissions.ToList();
             foreach (var permissionId in permissionIds)
-            { 
+            {
                 if (permissions.Any(p => p.Id == permissionId))
                 {
                     throw new AlreadyExistsException<Permission>(
