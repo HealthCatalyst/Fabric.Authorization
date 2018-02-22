@@ -9,7 +9,7 @@ using Swagger.ObjectModel;
 
 namespace Fabric.Authorization.API.Modules
 {
-    public class IdentitySearchMetadataModule : SearchMetadataModule
+    public class MemberSearchMetadataModule : SearchMetadataModule
     {
         private readonly Parameter _clientIdParameter = new Parameter
         {
@@ -26,25 +26,25 @@ namespace Fabric.Authorization.API.Modules
             Description = "Operations for searching Fabric.Identity"
         };
 
-        public IdentitySearchMetadataModule(ISwaggerModelCatalog modelCatalog, ISwaggerTagCatalog tagCatalog)
+        public MemberSearchMetadataModule(ISwaggerModelCatalog modelCatalog, ISwaggerTagCatalog tagCatalog)
             : base(modelCatalog, tagCatalog)
         {
             modelCatalog.AddModels(
-                typeof(IdentitySearchRequest),
-                typeof(IdentitySearchResponse));
+                typeof(MemberSearchRequest),
+                typeof(MemberSearchResponse));
 
             RouteDescriber.DescribeRouteWithParams(
                 "GetIdentities",
                 string.Empty,
-                "Searches for users and (non-custom) groups by client ID and other optional parameters.",
+                "Searches for users and groups by client ID and other optional parameters.",
                 new List<HttpResponseMetadata>
                 {
-                    new HttpResponseMetadata<IEnumerable<IdentitySearchResponse>>
+                    new HttpResponseMetadata<IEnumerable<MemberSearchResponse>>
                     {
                         Code = (int) HttpStatusCode.OK,
                         Message = "OK"
                     },
-                    new HttpResponseMetadata<IEnumerable<IdentitySearchResponse>>
+                    new HttpResponseMetadata<IEnumerable<MemberSearchResponse>>
                     {
                         Code = (int) Nancy.HttpStatusCode.PartialContent,
                         Message = "Partial success (e.g., results were found in Fabric.Authorization but the call out to Fabric.Identity failed). Properties populated by Fabric.Identity data are FirstName, MiddleName, LastName, and LastLoginDateTimeUtc."

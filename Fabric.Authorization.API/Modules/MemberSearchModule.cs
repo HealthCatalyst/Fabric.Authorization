@@ -12,21 +12,21 @@ using Serilog;
 
 namespace Fabric.Authorization.API.Modules
 {
-    public class IdentitySearchModule : SearchModule<IdentitySearchRequest>
+    public class MemberSearchModule : SearchModule<MemberSearchRequest>
     {
-        private readonly IdentitySearchService _identitySearchService;
+        private readonly MemberSearchService _memberSearchService;
 
-        public IdentitySearchModule(
-            IdentitySearchService identitySearchService,
-            IdentitySearchRequestValidator validator,
+        public MemberSearchModule(
+            MemberSearchService memberSearchService,
+            MemberSearchRequestValidator validator,
             ILogger logger,
             AccessService accessService,
-            IPropertySettings propertySettings = null) : base("/v1/identities", logger, validator, accessService,
+            IPropertySettings propertySettings = null) : base("/v1/members", logger, validator, accessService,
             propertySettings)
         {
-            _identitySearchService = identitySearchService;
+            _memberSearchService = memberSearchService;
 
-            Get("/", async _ => await GetIdentities().ConfigureAwait(false), null, "GetIdentities");
+            Get("/", async _ => await GetIdentities().ConfigureAwait(false), null, "GetMembers");
         }
 
         private async Task<dynamic> GetIdentities()
@@ -34,9 +34,9 @@ namespace Fabric.Authorization.API.Modules
             try
             {
                 this.RequiresClaims(AuthorizationReadClaim);
-                var searchRequest = this.Bind<IdentitySearchRequest>();
+                var searchRequest = this.Bind<MemberSearchRequest>();
                 Validate(searchRequest);
-                var authResponse = await _identitySearchService.Search(searchRequest);
+                var authResponse = await _memberSearchService.Search(searchRequest);
                 return CreateSuccessfulGetResponse(authResponse.Results, authResponse.HttpStatusCode);
             }
             catch (NotFoundException<Client> ex)

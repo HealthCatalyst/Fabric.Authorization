@@ -5,9 +5,9 @@ using Xunit;
 namespace Fabric.Authorization.IntegrationTests.SqlServer
 {
     [Collection("SqlServerTests")]
-    public class SqlServerIdentitySearchTests : IdentitySearchTests
+    public class SqlServerMemberSearchTests : MemberSearchTests
     {
-        public SqlServerIdentitySearchTests(IdentitySearchFixture fixture, SqlServerIntegrationTestsFixture sqlFixture) : base(fixture)
+        public SqlServerMemberSearchTests(MemberSearchFixture fixture, SqlServerIntegrationTestsFixture sqlFixture) : base(fixture)
         {
             fixture.ConnectionStrings = sqlFixture.ConnectionStrings;
             Fixture.Initialize(StorageProviders.SqlServer);

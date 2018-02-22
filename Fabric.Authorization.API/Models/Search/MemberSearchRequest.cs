@@ -1,6 +1,6 @@
 ﻿namespace Fabric.Authorization.API.Models.Search
 {
-    public class IdentitySearchRequest : SearchRequest
+    public class MemberSearchRequest : SearchRequest
     {
         public string ClientId { get; set; }
     }

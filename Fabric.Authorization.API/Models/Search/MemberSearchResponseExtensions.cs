@@ -4,10 +4,10 @@ using System.Linq;
 
 namespace Fabric.Authorization.API.Models.Search
 {
-    public static class IdentitySearchResponseExtensions
+    public static class MemberSearchResponseExtensions
     {
-        public static IOrderedEnumerable<IdentitySearchResponse> Sort(this IEnumerable<IdentitySearchResponse> results,
-            IdentitySearchRequest request)
+        public static IOrderedEnumerable<MemberSearchResponse> Sort(this IEnumerable<MemberSearchResponse> results,
+            MemberSearchRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.SortKey))
             {
@@ -50,8 +50,8 @@ namespace Fabric.Authorization.API.Models.Search
             }
         }
 
-        public static IEnumerable<IdentitySearchResponse> Filter(this IEnumerable<IdentitySearchResponse> results,
-            IdentitySearchRequest request)
+        public static IEnumerable<MemberSearchResponse> Filter(this IEnumerable<MemberSearchResponse> results,
+            MemberSearchRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.Filter))
             {

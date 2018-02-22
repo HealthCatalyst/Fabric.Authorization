@@ -6,13 +6,13 @@ using Newtonsoft.Json;
 
 namespace Fabric.Authorization.API.Models.Search
 {
-    public enum IdentitySearchResponseEntityType
+    public enum MemberSearchResponseEntityType
     {
         User,
         Group
     }
 
-    public class IdentitySearchResponse
+    public class MemberSearchResponse
     {
         public string SubjectId { get; set; }
         public string IdentityProvider { get; set; }
@@ -36,6 +36,6 @@ namespace Fabric.Authorization.API.Models.Search
     public class FabricAuthUserSearchResponse
     {
         public HttpStatusCode HttpStatusCode { get; set; }
-        public IEnumerable<IdentitySearchResponse> Results { get; set; }
+        public IEnumerable<MemberSearchResponse> Results { get; set; }
     }
 }

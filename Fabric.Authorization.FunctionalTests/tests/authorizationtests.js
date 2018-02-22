@@ -372,7 +372,7 @@ describe("authorization tests", function () {
                 }
             }
 
-            return chakram.get(baseAuthUrl + "/identities?client_id=blah", options)
+            return chakram.get(baseAuthUrl + "/members?client_id=blah", options)
                 .then(function (getResponse) {
                     expect(getResponse).to.have.status(404);
                 });
@@ -437,7 +437,7 @@ describe("authorization tests", function () {
 
             return loginUser()
                 .then(function () {
-                    return chakram.get(baseAuthUrl + "/identities?client_id=" + authClientFuncTest.id + "&sort_key=name&page_size=2",
+                    return chakram.get(baseAuthUrl + "/members?client_id=" + authClientFuncTest.id + "&sort_key=name&page_size=2",
                         options);
                 })
                 .then(function (getResponse) {

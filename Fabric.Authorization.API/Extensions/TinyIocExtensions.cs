@@ -19,7 +19,7 @@ namespace Fabric.Authorization.API.Extensions
             container.Register<ClientService, ClientService>();
             container.Register<GrainService, GrainService>();
             container.Register<SecurableItemService, SecurableItemService>();
-            container.Register<IdentitySearchService, IdentitySearchService>();
+            container.Register<MemberSearchService, MemberSearchService>();
             container.Register<IIdentityServiceProvider, IdentityServiceProvider>();
             container.Register<IPermissionResolverService, PermissionResolverService>();
             container.RegisterMultiple<IPermissionResolverService>(new List<Type>
