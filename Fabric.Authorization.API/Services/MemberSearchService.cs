@@ -12,7 +12,7 @@ using Serilog;
 
 namespace Fabric.Authorization.API.Services
 {
-    public class IdentitySearchService
+    public class MemberSearchService
     {
         private readonly ClientService _clientService;
         private readonly GroupService _groupService;
@@ -20,7 +20,7 @@ namespace Fabric.Authorization.API.Services
         private readonly RoleService _roleService;
         private readonly ILogger _logger;
 
-        public IdentitySearchService(
+        public MemberSearchService(
             ClientService clientService,
             RoleService roleService,
             GroupService groupService,
@@ -34,13 +34,13 @@ namespace Fabric.Authorization.API.Services
             _logger = logger;
         }
 
-        public async Task<FabricAuthUserSearchResponse> Search(IdentitySearchRequest request)
+        public async Task<FabricAuthUserSearchResponse> Search(MemberSearchRequest request)
         {
-            var searchResults = new List<IdentitySearchResponse>();
+            var searchResults = new List<MemberSearchResponse>();
 
             if (string.IsNullOrWhiteSpace(request.ClientId))
             {
-                throw new BadRequestException<IdentitySearchRequest>("Client ID is required.");
+                throw new BadRequestException<MemberSearchRequest>("Client ID is required.");
             }
 
             var client = await _clientService.GetClient(request.ClientId);
@@ -53,7 +53,7 @@ namespace Fabric.Authorization.API.Services
                 return new FabricAuthUserSearchResponse
                 {
                     HttpStatusCode = Nancy.HttpStatusCode.OK,
-                    Results = new List<IdentitySearchResponse>()
+                    Results = new List<MemberSearchResponse>()
                 };
             }
 
@@ -66,7 +66,7 @@ namespace Fabric.Authorization.API.Services
                 return new FabricAuthUserSearchResponse
                 {
                     HttpStatusCode = Nancy.HttpStatusCode.OK,
-                    Results = new List<IdentitySearchResponse>()
+                    Results = new List<MemberSearchResponse>()
                 };
             }
 
@@ -90,11 +90,11 @@ namespace Fabric.Authorization.API.Services
             _logger.Debug($"groupsMappedToClientRoles = {groupsMappedToClientRoles.ToString(Environment.NewLine)}");
 
             // add all non-custom groups to the response
-            searchResults.AddRange(groupsMappedToClientRoles.Select(g => new IdentitySearchResponse
+            searchResults.AddRange(groupsMappedToClientRoles.Select(g => new MemberSearchResponse
             {
                 GroupName = g.Name,
                 Roles = g.Roles.Select(r => r.Name),
-                EntityType = IdentitySearchResponseEntityType.Group.ToString()
+                EntityType = MemberSearchResponseEntityType.Group.ToString()
             }));
 
             // get all users mapped to groups in client roles
@@ -103,7 +103,7 @@ namespace Fabric.Authorization.API.Services
                 .SelectMany(g => g.Users)
                 .DistinctBy(u => u.SubjectId);
 
-            var userList = new List<IdentitySearchResponse>();
+            var userList = new List<MemberSearchResponse>();
 
             foreach (var user in users)
             {
@@ -120,12 +120,12 @@ namespace Fabric.Authorization.API.Services
                     .ToList());
 
                 // add user to response
-                userList.Add(new IdentitySearchResponse
+                userList.Add(new MemberSearchResponse
                 {
                     SubjectId = user.SubjectId,
                     IdentityProvider = user.IdentityProvider,
                     Roles = userRoles,
-                    EntityType = IdentitySearchResponseEntityType.User.ToString()
+                    EntityType = MemberSearchResponseEntityType.User.ToString()
                 });
             }
 

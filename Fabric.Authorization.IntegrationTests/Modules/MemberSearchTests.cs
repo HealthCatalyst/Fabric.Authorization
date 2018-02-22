@@ -17,11 +17,12 @@ using Xunit;
 namespace Fabric.Authorization.IntegrationTests.Modules
 {
     [Collection("InMemoryTests")]
-    public class IdentitySearchTests : IClassFixture<IdentitySearchFixture>
+    public class MemberSearchTests : IClassFixture<MemberSearchFixture>
     {
-        protected readonly IdentitySearchFixture Fixture;
+        protected readonly MemberSearchFixture Fixture;
+        private static readonly string MemberSearchRoute = "/members";
 
-        public IdentitySearchTests(IdentitySearchFixture fixture, ConnectionStrings connectionStrings = null)
+        public MemberSearchTests(MemberSearchFixture fixture, ConnectionStrings connectionStrings = null)
         {
             if (connectionStrings != null)
             {
@@ -33,12 +34,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
-        public async Task IdentitySearch_ClientIdDoesNotExist_NotFoundExceptionAsync()
+        public async Task MemberSearch_ClientIdDoesNotExist_NotFoundExceptionAsync()
         {
             Fixture.InitializeBrowser(new Mock<IIdentityServiceProvider>().Object);
 
             var result = await Fixture.Browser.Get(
-                "/identities",
+                MemberSearchRoute,
                 with =>
                     {
                         with.HttpRequest();
@@ -56,13 +57,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
-        public async Task IdentitySearch_ClientWithoutRoles_EmptyResponseAsync()
+        public async Task MemberSearch_ClientWithoutRoles_EmptyResponseAsync()
         {
             var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
             await Fixture.InitializeClientWithoutRolesAsync(mockIdentityServiceProvider.Object);
 
             var response = await Fixture.Browser.Get(
-                "/identities",
+                MemberSearchRoute,
                 with =>
                     {
                         with.HttpRequest();
@@ -76,19 +77,19 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     });
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var results = response.Body.DeserializeJson<List<IdentitySearchResponse>>();
+            var results = response.Body.DeserializeJson<List<MemberSearchResponse>>();
             Assert.Empty(results);
         }
 
         [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
-        public async Task IdentitySearch_ClientWithRolesAndNoGroups_EmptyResponseAsync()
+        public async Task MemberSearch_ClientWithRolesAndNoGroups_EmptyResponseAsync()
         {
             var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
             await Fixture.InitializeClientWithRolesAndNoGroupsAsync(mockIdentityServiceProvider.Object);
 
             var response = await Fixture.Browser.Get(
-                "/identities",
+                MemberSearchRoute,
                 with =>
                     {
                         with.HttpRequest();
@@ -102,13 +103,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     });
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var results = response.Body.DeserializeJson<List<IdentitySearchResponse>>();
+            var results = response.Body.DeserializeJson<List<MemberSearchResponse>>();
             Assert.Empty(results);
         }
 
         [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
-        public async Task IdentitySearch_ValidRequest_SuccessAsync()
+        public async Task MemberSearch_ValidRequest_SuccessAsync()
         {
             var lastLoginDate = new DateTime(2017, 9, 15).ToUniversalTime();
 
@@ -141,7 +142,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             await Fixture.InitializeSuccessDataAsync(mockIdentityServiceProvider.Object);
 
             var response = await Fixture.Browser.Get(
-                "/identities",
+                MemberSearchRoute,
                 with =>
                     {
                         with.HttpRequest();
@@ -154,7 +155,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                         with.Query("page_size", "1");
                     });
 
-            var results = response.Body.DeserializeJson<List<IdentitySearchResponse>>();
+            var results = response.Body.DeserializeJson<List<MemberSearchResponse>>();
 
             Assert.Single(results);
 
@@ -172,11 +173,11 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
-        public async Task IdentitySearch_NoParams_BadRequestExceptionAsync()
+        public async Task MemberSearch_NoParams_BadRequestExceptionAsync()
         {
             Fixture.InitializeBrowser(new Mock<IIdentityServiceProvider>().Object);
             var result = await Fixture.Browser.Get(
-                "/identities",
+                MemberSearchRoute,
                 with =>
                     {
                         with.HttpRequest();
@@ -187,7 +188,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
     }
 
-    public class IdentitySearchFixture : IntegrationTestsFixture
+    public class MemberSearchFixture : IntegrationTestsFixture
     {
         public string AtlasClientId { get; private set; }
         public string AdminAtlasGroupName { get; private set; }

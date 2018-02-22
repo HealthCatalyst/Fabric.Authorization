@@ -7,11 +7,11 @@ using FluentValidation;
 
 namespace Fabric.Authorization.API.Models.Search.Validators
 {
-    public class IdentitySearchRequestValidator : BaseSearchRequestValidator<IdentitySearchRequest>
+    public class MemberSearchRequestValidator : BaseSearchRequestValidator<MemberSearchRequest>
     {
         private static readonly string[] ValidSortKeys = {"name", "role", "lastlogin", "subjectid"};
 
-        public IdentitySearchRequestValidator()
+        public MemberSearchRequestValidator()
         {
             ConfigureRules();
         }
