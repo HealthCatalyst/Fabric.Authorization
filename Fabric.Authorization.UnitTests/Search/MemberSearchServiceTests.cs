@@ -31,6 +31,8 @@ namespace Fabric.Authorization.UnitTests.Search
         public const string UserAtlasGroupName = "userAtlasGroup";
         public const string AdminAtlasRoleName = "adminAtlasRole";
         public const string UserAtlasRoleName = "userAtlasRole";
+        public const string DosRoleName = "dosRole";
+        public const string DosGroupName = "dosGroup";
 
         private readonly Client _atlasClient = new Client
         {
@@ -87,7 +89,7 @@ namespace Fabric.Authorization.UnitTests.Search
         private readonly Mock<IClientStore> _mockClientStore = new Mock<IClientStore>();
         private readonly Mock<IGroupStore> _mockGroupStore = new Mock<IGroupStore>();
         private readonly Mock<IPermissionStore> _mockPermissionStore = new Mock<IPermissionStore>();
-        private readonly Mock<IRoleStore> _mockRoleStore = new Mock<IRoleStore>();
+        private readonly Mock<IRoleStore> _mockRoleStore = new Mock<IRoleStore>(); 
 
         private readonly Client _patientSafetyClient = new Client
         {
@@ -139,16 +141,21 @@ namespace Fabric.Authorization.UnitTests.Search
         };
 
         private readonly RoleService _roleService;
+
         private Group _adminAtlasGroup;
-
         private Role _adminAtlasRole;
-        private Group _adminPatientSafetyGroup;
 
+        private Group _adminPatientSafetyGroup;
         private Role _adminPatientSafetyRole;
+
         private Group _userAtlasGroup;
         private Role _userAtlasRole;
+
         private Group _userPatientSafetyGroup;
         private Role _userPatientSafetyRole;
+
+        private Group _dosGroup;
+        private Role _dosRole;
 
         public MemberSearchServiceFixture()
         {
@@ -161,7 +168,8 @@ namespace Fabric.Authorization.UnitTests.Search
                 _adminPatientSafetyRole,
                 _userPatientSafetyRole,
                 _adminAtlasRole,
-                _userAtlasRole
+                _userAtlasRole,
+                _dosRole
             });
 
             _mockPermissionStore.SetupGetPermissions(new List<Permission>());
@@ -171,10 +179,34 @@ namespace Fabric.Authorization.UnitTests.Search
                 _adminPatientSafetyGroup,
                 _userPatientSafetyGroup,
                 _adminAtlasGroup,
-                _userAtlasGroup
+                _userAtlasGroup,
+                _dosGroup
             });
 
-            _clientService = new ClientService(_mockClientStore.Create(), new Mock<ISecurableItemStore>().Object);
+            var dosSecurableItems = new List<SecurableItem>
+            {
+                new SecurableItem
+                {
+                    Id = Guid.NewGuid(),
+                    Grain = Domain.Defaults.Authorization.DosGrain,
+                    ClientOwner = _atlasClient.Id,
+                    Name = "datamarts"
+                }
+            };
+
+            var securableItems = new List<SecurableItem>
+                {
+                    _patientSafetyClient.TopLevelSecurableItem,
+                    _atlasClient.TopLevelSecurableItem
+                }
+                .Union(_patientSafetyClient.TopLevelSecurableItem.SecurableItems)
+                .Union(_atlasClient.TopLevelSecurableItem.SecurableItems)
+                .Union(dosSecurableItems);
+
+            var mockSecurableItemStore = new Mock<ISecurableItemStore>()
+                .SetupGetSecurableItem(securableItems.ToList());
+
+            _clientService = new ClientService(_mockClientStore.Create(), mockSecurableItemStore.Create());
             _roleService = new RoleService(_mockRoleStore.Create(), _mockPermissionStore.Create(), _clientService);
             _groupService = new GroupService(
                 _mockGroupStore.Create(),           
@@ -298,6 +330,18 @@ namespace Fabric.Authorization.UnitTests.Search
                 }
             };
 
+            _dosRole = new Role
+            {
+                Id = Guid.NewGuid(),
+                Name = DosRoleName,
+                Grain = Domain.Defaults.Authorization.DosGrain,
+                SecurableItem = "datamarts",
+                Groups = new List<string>
+                {
+                    DosGroupName
+                }
+            };
+
             _adminAtlasGroup = new Group
             {
                 Id = AdminAtlasGroupName,
@@ -346,6 +390,26 @@ namespace Fabric.Authorization.UnitTests.Search
                     }
                 },
                 Source = "Custom"
+            };
+
+            _dosGroup = new Group
+            {
+                Id = DosGroupName,
+                Name = DosGroupName,
+                Roles = new List<Role>
+                {
+                    new Role
+                    {
+                        Id = _dosRole.Id,
+                        Name = DosRoleName,
+                        Grain = Domain.Defaults.Authorization.DosGrain,
+                        SecurableItem = "datamarts",
+                        Groups = new List<string>
+                        {
+                            DosGroupName
+                        }
+                    }
+                }
             };
         }
     }
@@ -416,7 +480,7 @@ namespace Fabric.Authorization.UnitTests.Search
                     SortDirection = "desc"
                 }).Result.Results.ToList();
 
-            Assert.Equal(3, results.Count);
+            Assert.Equal(4, results.Count);
 
             var result0 = results[0];
             Assert.Equal(MemberSearchServiceFixture.UserAtlasGroupName, result0.Name);
@@ -432,8 +496,12 @@ namespace Fabric.Authorization.UnitTests.Search
             Assert.Equal(MemberSearchServiceFixture.UserAtlasRoleName, result1.Roles.FirstOrDefault());
 
             var result2 = results[2];
-            Assert.Equal(MemberSearchServiceFixture.AdminAtlasGroupName, result2.Name);
-            Assert.Equal(MemberSearchServiceFixture.AdminAtlasRoleName, result2.Roles.FirstOrDefault());
+            Assert.Equal(MemberSearchServiceFixture.DosGroupName, result2.Name);
+            Assert.Equal(MemberSearchServiceFixture.DosRoleName, result2.Roles.FirstOrDefault());
+
+            var result3 = results[3];
+            Assert.Equal(MemberSearchServiceFixture.AdminAtlasGroupName, result3.Name);
+            Assert.Equal(MemberSearchServiceFixture.AdminAtlasRoleName, result3.Roles.FirstOrDefault());
 
             // search + sort + paging
             results = _fixture.MemberSearchService(mockIdentityServiceProvider.Object).Search(
