@@ -456,12 +456,12 @@ describe("authorization tests", function () {
                     expect(bobUserResult.roles.length).to.equal(1);
                     expect(bobUserResult.roles[0]).to.equal(roleHcAdmin.Name);
 
-                    var groupNonCustomResult = results[1];
-                    expect(groupNonCustomResult.groupName).to.equal(groupNonCustom.groupName);
-                    expect(groupNonCustomResult.entityType).to.equal("Group");
-                    expect(groupNonCustomResult.roles).to.be.an("array").that.is.not.empty;
-                    expect(groupNonCustomResult.roles.length).to.equal(1);
-                    expect(groupNonCustomResult.roles[0]).to.equal(roleNonCustom.Name);
+                    var groupHcAdminResult = results[1];
+                    expect(groupHcAdminResult.groupName).to.equal(groupHcAdmin.groupName);
+                    expect(groupHcAdminResult.entityType).to.equal("Group");
+                    expect(groupHcAdminResult.roles).to.be.an("array").that.is.not.empty;
+                    expect(groupHcAdminResult.roles.length).to.equal(1);
+                    expect(groupHcAdminResult.roles[0]).to.equal(roleHcAdmin.Name);
                 });
         });
     });
