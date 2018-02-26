@@ -1,7 +1,7 @@
 #
 # Install_Authorization_Windows.ps1
 #
-
+param([switch]$noDiscoveryService)
 function Get-DiscoveryServiceUrl()
 {
     return "https://$env:computername.$($env:userdnsdomain.tolower())/DiscoveryService"
@@ -60,9 +60,9 @@ $encryptionCertificateThumbprint = $installSettings.encryptionCertificateThumbpr
 $appInsightsInstrumentationKey = $installSettings.appInsightsInstrumentationKey
 $siteName = $installSettings.siteName
 $sqlServerAddress = $installSettings.sqlServerAddress
-#$identityServerUrl = $installSettings.identityService
+$identityServerUrl = $installSettings.identityService
 $metadataDbName = $installSettings.metadataDbName
-$identityDbName = $installSettings.identityDbName
+$authorizationDbName = $installSettings.authorizationDbName
 $fabricInstallerSecret = $installSettings.fabricInstallerSecret
 $hostUrl = $installSettings.hostUrl
 $authorizationSerivceURL =  $installSettings.authorizationSerivce
@@ -145,46 +145,6 @@ try{
 
 }catch{
     Write-Error "Could not select a website." -ErrorAction Stop
-}
-
-try{
-
-    $allCerts = Get-CertsFromLocation Cert:\LocalMachine\My
-    $index = 1
-    $allCerts |
-        ForEach-Object {New-Object PSCustomObject -Property @{
-        'Index'=$index;
-        'Subject'= $_.Subject; 
-        'Name' = $_.FriendlyName; 
-        'Thumbprint' = $_.Thumbprint; 
-        'Expiration' = $_.NotAfter
-        };
-        $index ++} |
-        Format-Table Index,Name,Subject,Expiration,Thumbprint  -AutoSize
-
-    $selectionNumber = Read-Host  "Select a signing and encryption certificate by Index"
-    Write-Host ""
-    if([string]::IsNullOrEmpty($selectionNumber)){
-		Write-Error "You must select a certificate so Fabric.Identity can sign access and identity tokens." -ErrorAction Stop
-    }
-    $selectionNumberAsInt = [convert]::ToInt32($selectionNumber, 10)
-    if(($selectionNumberAsInt -gt  $allCerts.Count) -or ($selectionNumberAsInt -le 0)){
-        Write-Error "Please select a certificate with index between 1 and $($allCerts.Count)."  -ErrorAction Stop
-    }
-    $certThumbprint = Get-CertThumbprint $allCerts $selectionNumberAsInt     
-    $primarySigningCertificateThumbprint = $certThumbprint -replace '[^a-zA-Z0-9]', ''    
-    $encryptionCertificateThumbprint = $certThumbprint -replace '[^a-zA-Z0-9]', ''
-    }catch{
-        $scriptDirectory =  Get-CurrentScriptDirectory
-        Set-Location $scriptDirectory
-        Write-Error "Could not set the certificate thumbprint. Error $($_.Exception.Message)" -ErrorAction Stop        
-}
-
-try{
-    $signingCert = Get-Certificate $primarySigningCertificateThumbprint
-}catch{
-    Write-Error "Could not get signing certificate with thumbprint $primarySigningCertificateThumbprint. Please verify that the primarySigningCertificateThumbprint setting in install.config contains a valid thumbprint for a certificate in the Local Machine Personal store."
-    throw $_.Exception
 }
 
 try{
@@ -271,6 +231,17 @@ if(![string]::IsNullOrEmpty($userEnteredSqlServerAddress)){
     $sqlServerAddress = $userEnteredSqlServerAddress
 }
 
+$userEnteredAuthorizationDbName = Read-Host "Press Enter to accept the default Authorization DB Name '$($authorizationDbName)' or enter a new Authorization DB Name"
+if(![string]::IsNullOrEmpty($userEnteredAuthorizationDbName)){
+    $authorizationDbName = $userEnteredAuthorizationDbName
+}
+
+$authorizationDbConnStr = "Server=$($sqlServerAddress);Database=$($authorizationDbName);Trusted_Connection=True;MultipleActiveResultSets=True;"
+
+Invoke-Sql $authorizationDbConnStr "SELECT TOP 1 ClientId FROM Clients" | Out-Null
+Write-Success "Identity DB Connection string: $authorizationDbConnStr verified"
+Write-Host ""
+
 if(!($noDiscoveryService)){
     $userEnteredMetadataDbName = Read-Host "Press Enter to accept the default Metadata DB Name '$($metadataDbName)' or enter a new Metadata DB Name"
     if(![string]::IsNullOrEmpty($userEnteredMetadataDbName)){
@@ -315,6 +286,11 @@ New-AppPool $appName $iisUser $credential
 New-App $appName $siteName $appDirectory
 Publish-WebSite $zipPackage $appDirectory $appName
 
+Set-Location $workingDirectory
+
+Write-Host "Getting access token for installer, at URL: $identityServerUrl"
+$accessToken = Get-AccessToken $identityServerUrl "fabric-installer" "fabric/identity.manageresources" $fabricInstallerSecret
+
 #Register authorization api
 $body = @'
 {
@@ -330,8 +306,16 @@ try {
 	Write-Host "Fabric.Authorization apiSecret: $authorizationApiSecret"
 	Write-Host ""
 } catch {
-	Write-Host "Fabric.Authorization API is already registered."
-	Write-Host ""
+    $exception = $_.Exception
+    if($exception -ne $null -and $exception.Response.StatusCode.value__ -eq 409)
+    {
+	    Write-Success "Fabric.Authorization API is already registered."
+        Write-Host ""
+    }else{
+        Write-Error "Could not register Fabric.Authorization with Fabric.Identity, halting installation."
+        throw $exception
+    }
+
 }
 
 #Register Fabric.Authorization client
@@ -351,37 +335,21 @@ try{
 	Write-Host "Fabric.Authorization clientSecret: $authorizationClientSecret"
 	Write-Host ""
 } catch {
-	Write-Host "Fabric.Authorization Client is already registered."
-	Write-Host ""
-}
-
-
-#Register group fetcher client
-$body = @'
-{
-    "clientId":"fabric-group-fetcher", 
-    "clientName":"Fabric Group Fetcher", 
-    "requireConsent":"false", 
-    "allowedGrantTypes": ["client_credentials"], 
-    "allowedScopes": ["fabric/authorization.read", "fabric/authorization.write", "fabric/authorization.manageclients"]
-}
-'@
-
-#signingCert
-Write-Host "Registering Fabric.GroupFetcher."
-try{
-	$groupFetcherSecret = Add-ClientRegistration -authUrl $identityServerUrl -body $body -accessToken $accessToken
-	Write-Host "Fabric.GroupFetcher clientSecret: $groupFetcherSecret"
-	Write-Host ""
-} catch {
-	Write-Host "Fabric.GroupFetcher is already registered."
-	Write-Host ""
+    $exception = $_.Exception
+    if($exception -ne $null -and $exception.Response.StatusCode.value__ -eq 409)
+    {
+	    Write-Success "Fabric.Authorization Client is already registered."
+        Write-Host ""
+    }else{
+        Write-Error "Could not register Fabric.Authorization.Client with Fabric.Identity, halting installation."
+        throw $exception
+    }
 }
 
 #Write environment variables
 Write-Host ""
 Write-Host "Loading up environment variables..."
-$environmentVariables = @{"HostingOptions__UseInMemoryStores" = "false"}
+$environmentVariables = @{"StorageProvider" = "sqlserver"}
 
 if($clientName){
 	$environmentVariables.Add("ClientName", $clientName)
@@ -404,23 +372,27 @@ if($authorizationClientSecret){
 
 $environmentVariables.Add("IdentityServerConfidentialClientSettings__Authority", $identityServerUrl)
 
-Set-EnvironmentVariables $appDirectory $environmentVariables
+if($authorizationDbConnStr){
+    $environmentVariables.Add("ConnectionStrings__AuthorizationDatabase", $authorizationDbConnStr)
+}
+
+Set-EnvironmentVariables $appDirectory $environmentVariables | Out-Null
 Write-Host ""
 
 Set-Location $workingDirectory
 
-if($installerClientSecret){ Add-SecureInstallationSetting "common" "fabricInstallerSecret" $installerClientSecret $signingCert }
-if($encryptionCertificateThumbprint){ Add-InstallationSetting "common" "encryptionCertificateThumbprint" $encryptionCertificateThumbprint }
-if($encryptionCertificateThumbprint){ Add-InstallationSetting "authorization" "encryptionCertificateThumbprint" $encryptionCertificateThumbprint }
-if($appInsightsInstrumentationKey){ Add-InstallationSetting "authorization" "appInsightsInstrumentationKey" "$appInsightsInstrumentationKey" }
-if($sqlServerAddress){ Add-InstallationSetting "common" "sqlServerAddress" "$sqlServerAddress" }
-if($metadataDbName){ Add-InstallationSetting "common" "metadataDbName" "$metadataDbName" }
-if($identityServerUrl){ Add-InstallationSetting "common" "identityService" "$identityServerUrl" }
-if($discoveryServiceUrl) { Add-InstallationSetting "common" "discoveryService" "$discoveryServiceUrl" }
-if($authorizationSerivceURL) { Add-InstallationSetting "authorization" "authorizationSerivce" "$authorizationSerivceURL" }
-if($iisUser) { Add-InstallationSetting "authorization" "iisUser" "$iisUser" }
-if($fabricInstallerSecret) {Add-InstallationSetting "common" "fabricInstallerSecret" "$fabricInstallerSecret"}
-if($siteName) {Add-InstallationSetting "authorization" "siteName" "$siteName"}
+if($installerClientSecret){ Add-SecureInstallationSetting "common" "fabricInstallerSecret" $installerClientSecret $signingCert | Out-Null}
+if($encryptionCertificateThumbprint){ Add-InstallationSetting "common" "encryptionCertificateThumbprint" $encryptionCertificateThumbprint | Out-Null}
+if($encryptionCertificateThumbprint){ Add-InstallationSetting "authorization" "encryptionCertificateThumbprint" $encryptionCertificateThumbprint | Out-Null}
+if($appInsightsInstrumentationKey){ Add-InstallationSetting "authorization" "appInsightsInstrumentationKey" "$appInsightsInstrumentationKey" | Out-Null}
+if($sqlServerAddress){ Add-InstallationSetting "common" "sqlServerAddress" "$sqlServerAddress" | Out-Null}
+if($metadataDbName){ Add-InstallationSetting "common" "metadataDbName" "$metadataDbName" | Out-Null}
+if($identityServerUrl){ Add-InstallationSetting "common" "identityService" "$identityServerUrl" | Out-Null}
+if($discoveryServiceUrl) { Add-InstallationSetting "common" "discoveryService" "$discoveryServiceUrl" | Out-Null}
+if($authorizationSerivceURL) { Add-InstallationSetting "authorization" "authorizationSerivce" "$authorizationSerivceURL" | Out-Null}
+if($iisUser) { Add-InstallationSetting "authorization" "iisUser" "$iisUser" | Out-Null}
+if($fabricInstallerSecret) {Add-InstallationSetting "common" "fabricInstallerSecret" "$fabricInstallerSecret" | Out-Null}
+if($siteName) {Add-InstallationSetting "authorization" "siteName" "$siteName" | Out-Null}
 
 Invoke-MonitorShallow "$hostUrl/$appName"
 
