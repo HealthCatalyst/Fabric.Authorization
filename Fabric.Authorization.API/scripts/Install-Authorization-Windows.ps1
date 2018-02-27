@@ -35,6 +35,52 @@ function Add-DiscoveryRegistration($discoveryUrl, $serviceUrl, $credential)
 	}
 }
 
+function Add-DatabaseLogin($userName, $connString)
+{
+	$query = "USE master
+			If Not exists (SELECT * FROM sys.server_principals
+				WHERE sid = suser_sid(@userName))
+			BEGIN
+				print '-- creating database login'
+                DECLARE @sql nvarchar(4000)
+                set @sql = 'CREATE LOGIN ' + QUOTENAME('$userName') + ' FROM WINDOWS'
+                EXEC sp_executesql @sql
+			END"
+	Invoke-Sql $connString $query @{userName=$userName} | Out-Null
+}
+
+function Add-DatabaseUser($userName, $connString)
+{
+	$query = "IF( NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = @userName))
+			BEGIN
+				print '-- Creating user';
+				DECLARE @sql nvarchar(4000)
+                set @sql = 'CREATE USER ' + QUOTENAME('$userName') + ' FOR LOGIN ' + QUOTENAME('$userName')
+                EXEC sp_executesql @sql
+			END"
+	Invoke-Sql $connString $query @{userName=$userName} | Out-Null
+}
+
+function Add-DatabaseUserToRole($userName, $connString, $role)
+{
+	$query = "DECLARE @exists int
+			SELECT @exists = IS_ROLEMEMBER(@role, @userName) 
+			IF (@exists IS NULL OR @exists = 0)
+			BEGIN
+				print '-- Adding @role to @userName';
+				EXEC sp_addrolemember @role, @userName;
+			END"
+	Invoke-Sql $connString $query @{userName=$userName; role=$role} | Out-Null
+}
+
+function Add-DatabaseSecurity($userName, $role, $connString)
+{
+	Add-DatabaseLogin $userName $connString
+	Add-DatabaseUser $userName $connString
+	Add-DatabaseUserToRole $userName $connString $role
+	Write-Success "Database security applied successfully"
+}
+
 function Invoke-MonitorShallow($authorizationUrl)
 {
 	$url = "$authorizationUrl/_monitor/shallow"
@@ -63,6 +109,7 @@ $sqlServerAddress = $installSettings.sqlServerAddress
 $identityServerUrl = $installSettings.identityService
 $metadataDbName = $installSettings.metadataDbName
 $authorizationDbName = $installSettings.authorizationDbName
+$authorizationDatabaseRole = $installSettings.authorizationDatabaseRole
 $fabricInstallerSecret = $installSettings.fabricInstallerSecret
 $hostUrl = $installSettings.hostUrl
 $authorizationSerivceURL =  $installSettings.authorizationSerivce
@@ -285,6 +332,7 @@ Write-Host "App directory is: $appDirectory"
 New-AppPool $appName $iisUser $credential
 New-App $appName $siteName $appDirectory
 Publish-WebSite $zipPackage $appDirectory $appName
+Add-DatabaseSecurity $iisUser $authorizationDatabaseRole $authorizationDbConnStr
 
 Set-Location $workingDirectory
 
