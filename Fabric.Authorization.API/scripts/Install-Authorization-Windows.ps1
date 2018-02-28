@@ -112,7 +112,7 @@ $authorizationDbName = $installSettings.authorizationDbName
 $authorizationDatabaseRole = $installSettings.authorizationDatabaseRole
 $fabricInstallerSecret = $installSettings.fabricInstallerSecret
 $hostUrl = $installSettings.hostUrl
-$authorizationSerivceURL =  $installSettings.authorizationSerivce
+$authorizationServiceURL =  $installSettings.authorizationSerivce
 $storedIisUser = $installSettings.iisUser
 $workingDirectory = Get-CurrentScriptDirectory
 
@@ -134,10 +134,10 @@ if([string]::IsNullOrEmpty($installSettings.identityService))
 
 if([string]::IsNullOrEmpty($installSettings.authorizationSerivce))  
 {
-	$authorizationSerivceURL = "https://$env:computername.$($env:userdnsdomain.tolower())/Authorization"
+	$authorizationServiceURL = "https://$env:computername.$($env:userdnsdomain.tolower())/Authorization"
 } else
 {
-	$authorizationSerivceURL = $installSettings.authorizationSerivce
+	$authorizationServiceURL = $installSettings.authorizationSerivce
 }
 
 Write-Host ""
@@ -194,11 +194,46 @@ try{
     Write-Error "Could not select a website." -ErrorAction Stop
 }
 
-try{
-	$encryptionCert = Get-Certificate $encryptionCertificateThumbprint
-}catch{
-	Write-Host "Could not get encryption certificate with thumbprint $encryptionCertificateThumbprint. Please verify that the encryptionCertificateThumbprint setting in install.config contains a valid thumbprint for a certificate in the Local Machine Personal store. Halting installation."
-	throw $_.Exception
+if([string]::IsNullOrEmpty($encryptionCertificateThumbprint))
+{
+	try{
+
+		$allCerts = Get-CertsFromLocation Cert:\LocalMachine\My
+		$index = 1
+		$allCerts |
+			ForEach-Object {New-Object PSCustomObject -Property @{
+			'Index'=$index;
+			'Subject'= $_.Subject; 
+			'Name' = $_.FriendlyName; 
+			'Thumbprint' = $_.Thumbprint; 
+			'Expiration' = $_.NotAfter
+			};
+			$index ++} |
+			Format-Table Index,Name,Subject,Expiration,Thumbprint  -AutoSize
+
+		$selectionNumber = Read-Host  "Select an encryption certificate by Index"
+		Write-Host ""
+		if([string]::IsNullOrEmpty($selectionNumber)){
+			Write-Error "You must select a certificate so Fabric.Identity can sign access and identity tokens." -ErrorAction Stop
+		}
+		$selectionNumberAsInt = [convert]::ToInt32($selectionNumber, 10)
+		if(($selectionNumberAsInt -gt  $allCerts.Count) -or ($selectionNumberAsInt -le 0)){
+			Write-Error "Please select a certificate with index between 1 and $($allCerts.Count)."  -ErrorAction Stop
+		}
+		$certThumbprint = Get-CertThumbprint $allCerts $selectionNumberAsInt       
+		$encryptionCertificateThumbprint = $certThumbprint -replace '[^a-zA-Z0-9]', ''
+		}catch{
+			$scriptDirectory =  Get-CurrentScriptDirectory
+			Set-Location $scriptDirectory
+			Write-Error "Could not set the certificate thumbprint. Error $($_.Exception.Message)" -ErrorAction Stop        
+	}
+
+	try{
+		$encryptionCert = Get-Certificate $encryptionCertificateThumbprint
+	}catch{
+		Write-Host "Could not get encryption certificate with thumbprint $encryptionCertificateThumbprint. Please verify that the encryptionCertificateThumbprint setting in install.config contains a valid thumbprint for a certificate in the Local Machine Personal store. Halting installation."
+		throw $_.Exception
+	}
 }
 
 
@@ -223,10 +258,10 @@ if((Test-Path $zipPackage))
 }
 
 
-$userEnteredAuthorizationServiceURL = Read-Host  "Enter the URL for the Authorization Service or hit enter to accept the default [$authorizationSerivceURL]"
+$userEnteredAuthorizationServiceURL = Read-Host  "Enter the URL for the Authorization Service or hit enter to accept the default [$authorizationServiceURL]"
 Write-Host ""
 if(![string]::IsNullOrEmpty($userEnteredAuthorizationServiceURL)){   
-     $authorizationSerivceURL = $userEnteredAuthorizationServiceURL
+     $authorizationServiceURL = $userEnteredAuthorizationServiceURL
 }
 
 $userEnteredIdentityServiceURL = Read-Host  "Enter the URL for the Identity Service or hit enter to accept the default [$identityServerUrl]"
@@ -318,7 +353,7 @@ if(!($noDiscoveryService)){
 	Write-Host ""
 	Write-Host "Registering with Discovery Service."
 	Write-Host ""
-    Add-DiscoveryRegistration $discoveryServiceUrl $authorizationSerivceURL $credential
+    Add-DiscoveryRegistration $discoveryServiceUrl $authorizationServiceURL $credential
     Write-Host ""
 }
 
@@ -429,7 +464,7 @@ Write-Host ""
 
 Set-Location $workingDirectory
 
-if($installerClientSecret){ Add-SecureInstallationSetting "common" "fabricInstallerSecret" $installerClientSecret $signingCert | Out-Null}
+if($fabricInstallerSecret){ Add-SecureInstallationSetting "common" "fabricInstallerSecret" $fabricInstallerSecret $encryptionCert | Out-Null}
 if($encryptionCertificateThumbprint){ Add-InstallationSetting "common" "encryptionCertificateThumbprint" $encryptionCertificateThumbprint | Out-Null}
 if($encryptionCertificateThumbprint){ Add-InstallationSetting "authorization" "encryptionCertificateThumbprint" $encryptionCertificateThumbprint | Out-Null}
 if($appInsightsInstrumentationKey){ Add-InstallationSetting "authorization" "appInsightsInstrumentationKey" "$appInsightsInstrumentationKey" | Out-Null}
@@ -437,9 +472,9 @@ if($sqlServerAddress){ Add-InstallationSetting "common" "sqlServerAddress" "$sql
 if($metadataDbName){ Add-InstallationSetting "common" "metadataDbName" "$metadataDbName" | Out-Null}
 if($identityServerUrl){ Add-InstallationSetting "common" "identityService" "$identityServerUrl" | Out-Null}
 if($discoveryServiceUrl) { Add-InstallationSetting "common" "discoveryService" "$discoveryServiceUrl" | Out-Null}
-if($authorizationSerivceURL) { Add-InstallationSetting "authorization" "authorizationSerivce" "$authorizationSerivceURL" | Out-Null}
+if($authorizationServiceURL) { Add-InstallationSetting "authorization" "authorizationService" "$authorizationServiceURL" | Out-Null}
+if($authorizationServiceURL) { Add-InstallationSetting "common" "authorizationService" "$authorizationServiceURL" | Out-Null}
 if($iisUser) { Add-InstallationSetting "authorization" "iisUser" "$iisUser" | Out-Null}
-if($fabricInstallerSecret) {Add-InstallationSetting "common" "fabricInstallerSecret" "$fabricInstallerSecret" | Out-Null}
 if($siteName) {Add-InstallationSetting "authorization" "siteName" "$siteName" | Out-Null}
 
 Invoke-MonitorShallow "$hostUrl/$appName"
