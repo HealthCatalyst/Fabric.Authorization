@@ -464,7 +464,7 @@ Write-Host ""
 
 Set-Location $workingDirectory
 
-if($installerClientSecret){ Add-SecureInstallationSetting "common" "fabricInstallerSecret" $installerClientSecret $signingCert | Out-Null}
+if($fabricInstallerSecret){ Add-SecureInstallationSetting "common" "fabricInstallerSecret" $fabricInstallerSecret $encryptionCert | Out-Null}
 if($encryptionCertificateThumbprint){ Add-InstallationSetting "common" "encryptionCertificateThumbprint" $encryptionCertificateThumbprint | Out-Null}
 if($encryptionCertificateThumbprint){ Add-InstallationSetting "authorization" "encryptionCertificateThumbprint" $encryptionCertificateThumbprint | Out-Null}
 if($appInsightsInstrumentationKey){ Add-InstallationSetting "authorization" "appInsightsInstrumentationKey" "$appInsightsInstrumentationKey" | Out-Null}
@@ -475,7 +475,6 @@ if($discoveryServiceUrl) { Add-InstallationSetting "common" "discoveryService" "
 if($authorizationServiceURL) { Add-InstallationSetting "authorization" "authorizationService" "$authorizationServiceURL" | Out-Null}
 if($authorizationServiceURL) { Add-InstallationSetting "common" "authorizationService" "$authorizationServiceURL" | Out-Null}
 if($iisUser) { Add-InstallationSetting "authorization" "iisUser" "$iisUser" | Out-Null}
-if($fabricInstallerSecret) {Add-InstallationSetting "common" "fabricInstallerSecret" "$fabricInstallerSecret" | Out-Null}
 if($siteName) {Add-InstallationSetting "authorization" "siteName" "$siteName" | Out-Null}
 
 Invoke-MonitorShallow "$hostUrl/$appName"
