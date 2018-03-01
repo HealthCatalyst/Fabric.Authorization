@@ -26,10 +26,10 @@ namespace Fabric.Authorization.API.Modules
         {
             _memberSearchService = memberSearchService;
 
-            Get("/", async _ => await GetIdentities().ConfigureAwait(false), null, "GetMembers");
+            Get("/", async _ => await GetMembers().ConfigureAwait(false), null, "GetMembers");
         }
 
-        private async Task<dynamic> GetIdentities()
+        private async Task<dynamic> GetMembers()
         {
             try
             {
