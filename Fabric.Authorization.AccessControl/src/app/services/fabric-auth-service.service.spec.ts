@@ -1,15 +1,15 @@
 import { TestBed, inject } from '@angular/core/testing';
 
-import { FabricAuthServiceService } from './fabric-auth-service.service';
+import { FabricAuthService } from './fabric-auth-service.service';
 
 describe('FabricAuthServiceService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [FabricAuthServiceService]
+      providers: [FabricAuthService]
     });
   });
 
-  it('should be created', inject([FabricAuthServiceService], (service: FabricAuthServiceService) => {
+  it('should be created', inject([FabricAuthService], (service: FabricAuthService) => {
     expect(service).toBeTruthy();
   }));
 });
