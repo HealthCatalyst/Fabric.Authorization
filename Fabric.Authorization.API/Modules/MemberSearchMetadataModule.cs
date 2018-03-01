@@ -34,7 +34,7 @@ namespace Fabric.Authorization.API.Modules
                 typeof(MemberSearchResponse));
 
             RouteDescriber.DescribeRouteWithParams(
-                "GetIdentities",
+                "GetMembers",
                 string.Empty,
                 "Searches for users and groups by client ID and other optional parameters.",
                 new List<HttpResponseMetadata>
