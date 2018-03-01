@@ -1,7 +1,10 @@
+import { Role } from './Role';
+
 export class User {
     
     public id: string
     public groups: Array<string>;
+    public roles: Array<Role>;
     public name: string;
 
     constructor(       
