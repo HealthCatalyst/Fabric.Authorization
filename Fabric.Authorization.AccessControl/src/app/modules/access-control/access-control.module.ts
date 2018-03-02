@@ -9,6 +9,7 @@ import { FabricAuthMemberSearchService } from '../../services/fabric-auth-member
 import { FabricAuthUserService } from '../../services/fabric-auth-user.service';
 import { FabricExternalIdpSearchService } from '../../services/fabric-external-idp-search.service';
 import { httpInterceptorProviders } from '../../services/interceptors';
+
 import { MemberListComponent } from './member-list/member-list.component';
 import { MemberAddComponent } from './member-add/member-add.component';
 
