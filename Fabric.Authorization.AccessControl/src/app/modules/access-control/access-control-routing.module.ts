@@ -2,17 +2,17 @@ import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 
 
-import { UserlistComponent } from './userlist/userlist.component';
-import { UseraddComponent } from './useradd/useradd.component';
+import { MemberListComponent } from './member-list/member-list.component';
+import { MemberAddComponent } from './member-add/member-add.component';
 
 const routes: Routes = [
   {
     path: '',
-    component: UserlistComponent
+    component: MemberListComponent
   },
   {
-    path: 'adduser',
-    component: UseraddComponent
+    path: 'memberadd',
+    component: MemberAddComponent
   }
 ];
 
