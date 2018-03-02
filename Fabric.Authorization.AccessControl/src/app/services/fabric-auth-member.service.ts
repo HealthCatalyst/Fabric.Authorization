@@ -1,6 +1,6 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { FabricAuthBaseService } from './fabric-auth-base.service';
-import { Http } from '@angular/http';
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import { AuthSearchResult } from '../models/authSearchResult';
@@ -10,8 +10,8 @@ export class FabricAuthMemberService extends FabricAuthBaseService {
 
   static readonly baseMemberApiUrl = FabricAuthBaseService.authUrl + "/members";
 
-  constructor(http: Http) {
-    super(http);
+  constructor(httpClient: HttpClient) {
+    super(httpClient);
   }
 
   public searchMembers() : Observable<AuthSearchResult> {
