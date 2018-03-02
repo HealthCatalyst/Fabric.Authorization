@@ -1,15 +1,16 @@
 import { Injectable } from '@angular/core';
-import {Http, Response} from "@angular/http";
+import { Response } from "@angular/http";
 import { Observable } from 'rxjs/Rx';
 import { Exception } from '../models/exception';
 import { environment } from '../../environments/environment';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable()
 export class FabricAuthBaseService {
 
   protected static readonly authUrl = environment.fabricAuthApiUri + "/" + environment.fabricAuthApiVersionSegment;
 
-  constructor(protected http: Http) { }
+  constructor(protected httpClient: HttpClient) { }
 
   protected handleError(response: Response) {
     if (response.status >= 400) {

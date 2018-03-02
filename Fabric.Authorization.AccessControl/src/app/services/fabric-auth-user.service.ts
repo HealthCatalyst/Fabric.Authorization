@@ -1,5 +1,6 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import {Http, Response} from "@angular/http";
+import { Response } from "@angular/http";
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 
@@ -15,12 +16,12 @@ export class FabricAuthUserService extends FabricAuthBaseService {
   static readonly baseUserApiUrl = FabricAuthBaseService.authUrl + "/user";
   static readonly userRolesApiUrl = FabricAuthUserService.baseUserApiUrl + "/{identityProvider}/{subjectId}/roles";
 
-  constructor(http: Http) {
-    super(http);
+  constructor(httpClient: HttpClient) {
+    super(httpClient);
   }
 
   public getUserRoles(identityProvider: string, subjectId: string) : Observable<Role[]> {
-    return this.http
+    return this.httpClient
       .get(this.replaceUserIdSegment(FabricAuthUserService.userRolesApiUrl, identityProvider, subjectId))
       .map((response: Response) => {
         this.handleError(response);
@@ -29,7 +30,7 @@ export class FabricAuthUserService extends FabricAuthBaseService {
   }
 
   public addRolesToUser(identityProvider: string, subjectId: string, roles: Role[]) : Observable<User> {
-    return this.http
+    return this.httpClient
       .post(this.replaceUserIdSegment(FabricAuthUserService.userRolesApiUrl, identityProvider, subjectId), roles)
       .map((response: Response) => {
         this.handleError(response);
@@ -38,7 +39,7 @@ export class FabricAuthUserService extends FabricAuthBaseService {
   }
 
   public removeRolesFromUser(identityProvider: string, subjectId: string, roles: Role[]) : Observable<User> {
-    return this.http
+    return this.httpClient
       .delete(this.replaceUserIdSegment(FabricAuthUserService.userRolesApiUrl, identityProvider, subjectId))
       .map((response: Response) => {
         this.handleError(response);
