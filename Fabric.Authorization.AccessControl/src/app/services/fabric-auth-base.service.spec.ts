@@ -2,7 +2,7 @@ import { TestBed, inject } from '@angular/core/testing';
 
 import { FabricAuthBaseService } from './fabric-auth-base.service';
 
-describe('BaseService', () => {
+describe('FabricAuthBaseService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [FabricAuthBaseService]
