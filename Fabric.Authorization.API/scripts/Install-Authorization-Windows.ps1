@@ -228,12 +228,13 @@ if([string]::IsNullOrEmpty($encryptionCertificateThumbprint))
 			Write-Error "Could not set the certificate thumbprint. Error $($_.Exception.Message)" -ErrorAction Stop        
 	}
 
-	try{
-		$encryptionCert = Get-Certificate $encryptionCertificateThumbprint
-	}catch{
-		Write-Host "Could not get encryption certificate with thumbprint $encryptionCertificateThumbprint. Please verify that the encryptionCertificateThumbprint setting in install.config contains a valid thumbprint for a certificate in the Local Machine Personal store. Halting installation."
-		throw $_.Exception
-	}
+}
+
+try{
+	$encryptionCert = Get-Certificate $encryptionCertificateThumbprint
+}catch{
+	Write-Host "Could not get encryption certificate with thumbprint $encryptionCertificateThumbprint. Please verify that the encryptionCertificateThumbprint setting in install.config contains a valid thumbprint for a certificate in the Local Machine Personal store. Halting installation."
+	throw $_.Exception
 }
 
 
