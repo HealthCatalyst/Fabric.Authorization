@@ -1,5 +1,6 @@
 ﻿import { Injectable } from '@angular/core';
-import { Response, Http, Headers, RequestOptions } from '@angular/http';
+import { Response, Headers, RequestOptions } from '@angular/http';
+import { HttpClient } from '@angular/common/http';
 import { UserManager, User, Log} from 'oidc-client';
 import { Observable } from 'rxjs';
 import { log } from 'util';
@@ -11,8 +12,8 @@ export class AuthService {
   clientId: string;
   authority: string;
 
-  constructor(private http: Http) {   
-    this.clientId = 'fabric-accesscontrolsample';
+  constructor(private httpClient: HttpClient) {   
+    this.clientId = 'fabric-accesscontrol';
     this.authority = 'http://localhost:5001';
     
     var self = this;
@@ -23,7 +24,7 @@ export class AuthService {
       redirect_uri: 'http://localhost:4200/oidc-callback.html',
       post_logout_redirect_uri: 'http://localhost:4200',
       response_type: 'id_token token',
-      scope: 'openid profile fabric.profile patientapi fabric/authorization.read fabric/authorization.write fabric/identity.manageresources fabric/identity.read fabric/authorization.manageclients',  
+      scope: 'openid profile fabric.profile patientapi fabric/authorization.read fabric/authorization.write',
       silent_redirect_uri: 'http://localhost:4200/silent.html',
       automaticSilentRenew: true,    
       filterProtocolClaims: true,
@@ -111,10 +112,8 @@ export class AuthService {
   get<T>(resource: string) : Promise<T>{
     return this.getAccessToken()
     .then((token)=>{
-        let headers = new Headers({ 'Authorization': 'Bearer ' + token });
-        let options = new RequestOptions({ headers: headers });
         let requestUrl = this.authority + '/' + resource;           
-        return this.http.get(requestUrl, options)
+        return this.httpClient.get(requestUrl)
             .map((res: Response) => {                                         
             return res.json();
             })
