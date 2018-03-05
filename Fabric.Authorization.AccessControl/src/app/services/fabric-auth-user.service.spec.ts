@@ -22,4 +22,13 @@ describe('FabricAuthUserService', () => {
   it('should be created', inject([FabricAuthUserService], (service: FabricAuthUserService) => {
     expect(service).toBeTruthy();
   }));
+
+  it('can get user roles', inject([FabricAuthUserService], (service: FabricAuthUserService) => {
+
+  }));
+
+  afterEach(() => {
+    httpTestingController.verify();
+  });
+
 });

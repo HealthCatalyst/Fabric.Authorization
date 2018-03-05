@@ -21,4 +21,8 @@ describe('FabricAuthMemberSearchService', () => {
   it('should be created', inject([FabricAuthMemberSearchService], (service: FabricAuthMemberSearchService) => {
     expect(service).toBeTruthy();
   }));
+
+  afterEach(() => {
+    httpTestingController.verify();
+  });
 });

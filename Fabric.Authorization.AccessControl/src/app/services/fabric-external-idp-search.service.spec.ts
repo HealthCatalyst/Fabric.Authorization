@@ -21,4 +21,8 @@ describe('FabricExternalIdpSearchService', () => {
   it('should be created', inject([FabricExternalIdpSearchService], (service: FabricExternalIdpSearchService) => {
     expect(service).toBeTruthy();
   }));
+
+  afterEach(() => {
+    httpTestingController.verify();
+  });
 });

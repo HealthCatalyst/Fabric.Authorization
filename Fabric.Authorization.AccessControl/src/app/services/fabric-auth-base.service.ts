@@ -4,18 +4,32 @@ import { Observable } from 'rxjs/Rx';
 import { environment } from '../../environments/environment';
 
 import { Exception } from '../models/exception';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 
 @Injectable()
 export class FabricAuthBaseService {
 
-  protected static readonly authUrl = environment.fabricAuthApiUri + "/" + environment.fabricAuthApiVersionSegment;
+  protected static readonly retryCount = 3;
+  protected static readonly authUrl = `${environment.fabricAuthApiUri}/${environment.fabricAuthApiVersionSegment}`;
 
   constructor(protected httpClient: HttpClient) { }
 
-  protected handleError(response: Response) {
-    if (response.status >= 400) {
-      Observable.throw(new Exception(response.status, response.statusText));
-    }
+  /*
+    Pattern below found at https://angular.io/guide/http#error-handling.
+  */
+  protected handleError(response: HttpErrorResponse) {
+    if (response.error instanceof ErrorEvent) {
+      // A client-side or network error occurred. Handle it accordingly.
+      console.error('An error occurred:', response.error.message);
+    } else {
+      // The backend returned an unsuccessful response code.
+      // The response body may contain clues as to what went wrong,
+
+      console.error(
+        `Backend returned code ${response.status}, body was: ${response.error}`);
+    }        
+    
+    return new ErrorObservable(new Exception(response.status, response.statusText));
   }  
 }
