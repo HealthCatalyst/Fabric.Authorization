@@ -6,9 +6,15 @@ import { AppRoutingModule } from './app-routing.module';
 import { HttpClientModule } from '@angular/common/http';
 import { httpInterceptorProviders } from './services/interceptors';
 
+import { AuthService } from '../app/services/global/auth.service';
+import { LoginComponent } from './login/login.component';
+import { HomeComponent } from './home/home.component';
+
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    LoginComponent,
+    HomeComponent
   ],
   imports: [
     BrowserModule,
@@ -16,6 +22,7 @@ import { httpInterceptorProviders } from './services/interceptors';
     HttpClientModule
   ],
   providers: [
+    AuthService,
     httpInterceptorProviders
   ],
   bootstrap: [AppComponent]

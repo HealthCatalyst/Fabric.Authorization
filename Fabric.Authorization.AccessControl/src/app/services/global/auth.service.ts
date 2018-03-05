@@ -9,20 +9,22 @@ export class AuthService {
   userManager: UserManager;   
   identityClientSettings: any;
   clientId: string;
+  authority: string;
 
   constructor(private http: Http) {   
     this.clientId = 'fabric-accesscontrolsample';
+    this.authority = 'http://localhost:5001';
     
     var self = this;
 
     const clientSettings: any = {
-      authority: "http://localhost:5001",
+      authority: this.authority,
       client_id: this.clientId,
-      redirect_uri: "http://localhost:4200/oidc-callback.html",
-      post_logout_redirect_uri: "http://localhost:4200",
+      redirect_uri: 'http://localhost:4200/oidc-callback.html',
+      post_logout_redirect_uri: 'http://localhost:4200',
       response_type: 'id_token token',
-      scope: "openid profile fabric.profile patientapi fabric/authorization.read fabric/authorization.write fabric/identity.manageresources fabric/identity.read fabric/authorization.manageclients",  
-      silent_redirect_uri: "http://localhost:4200/silent.html",
+      scope: 'openid profile fabric.profile patientapi fabric/authorization.read fabric/authorization.write fabric/identity.manageresources fabric/identity.read fabric/authorization.manageclients',  
+      silent_redirect_uri: 'http://localhost:4200/silent.html',
       automaticSilentRenew: true,    
       filterProtocolClaims: true,
       loadUserInfo: true
@@ -31,15 +33,15 @@ export class AuthService {
     this.userManager = new UserManager(clientSettings);    
 
     this.userManager.events.addAccessTokenExpiring(function(){      
-      Log.debug("access token expiring");
+      Log.debug('access token expiring');
     });
 
     this.userManager.events.addSilentRenewError(function(e){
-      Log.debug("silent renew error: " + e.message);
+      Log.debug('silent renew error: ' + e.message);
     });
 
     this.userManager.events.addAccessTokenExpired(function () {
-      Log.debug("access token expired");    
+      Log.debug('access token expired');    
       //when access token expires logout the user
       self.logout();
     });  
@@ -49,7 +51,7 @@ export class AuthService {
   login() {
     var self = this;
     this.userManager.signinRedirect().then(() => {
-      Log.debug("signin redirect done");
+      Log.debug('signin redirect done');
     }).catch(err => {
       Log.debug(err);
     });
@@ -63,9 +65,9 @@ export class AuthService {
     var self = this;
     this.userManager.signinRedirectCallback().then(user => {
       if (user) {
-        Log.debug("Logged in: " + JSON.stringify(user.profile));
+        Log.debug('Logged in: ' + JSON.stringify(user.profile));
       } else {
-        Log.debug("could not log user in");
+        Log.debug('could not log user in');
       }
     }).catch(e => {
       Log.error(e);
@@ -80,11 +82,11 @@ export class AuthService {
     var self = this;
     return this.userManager.getUser().then(function (user) {
       if (user) {
-        Log.debug("signin redirect done. ");
+        Log.debug('signin redirect done. ');
         Log.debug(user.profile);
         return true;
       } else {
-        Log.debug("User is not logged in");
+        Log.debug('User is not logged in');
         return false;
       }
     });
@@ -111,7 +113,7 @@ export class AuthService {
     .then((token)=>{
         let headers = new Headers({ 'Authorization': 'Bearer ' + token });
         let options = new RequestOptions({ headers: headers });
-        let requestUrl = "http://localhost:5001" + '/' + resource;           
+        let requestUrl = this.authority + '/' + resource;           
         return this.http.get(requestUrl, options)
             .map((res: Response) => {                                         
             return res.json();
