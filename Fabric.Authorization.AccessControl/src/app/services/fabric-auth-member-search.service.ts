@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Response } from "@angular/http";
 import { Observable } from 'rxjs/Rx';
-import 'rxjs/add/operator/map';
+import { catchError, retry } from 'rxjs/operators';
 
 import { User } from '../models/user';
 import { Role } from '../models/role';
@@ -15,7 +15,7 @@ import { AuthMemberSearchRequest } from '../models/authMemberSearchRequest';
 @Injectable()
 export class FabricAuthMemberSearchService extends FabricAuthBaseService {
 
-  static readonly baseMemberApiUrl = FabricAuthBaseService.authUrl + "/members";
+  static readonly baseMemberApiUrl = `${FabricAuthBaseService.authUrl}/members`;
 
   constructor(httpClient: HttpClient) {
     super(httpClient);
@@ -47,10 +47,7 @@ export class FabricAuthMemberSearchService extends FabricAuthBaseService {
     }
 
     return this.httpClient
-      .get(FabricAuthMemberSearchService.baseMemberApiUrl, {params})
-      .map((response: Response) => {
-        this.handleError(response);
-        return response.json();
-      });      
+      .get<AuthMemberSearchResult[]>(FabricAuthMemberSearchService.baseMemberApiUrl, {params})
+      .pipe(retry(FabricAuthBaseService.retryCount), catchError(this.handleError));
   }
 }
