@@ -3,8 +3,8 @@ import { NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
 
 import { AppRoutingModule } from './app-routing.module';
-import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
-import { FabricHttpInterceptorService } from './services/interceptors/fabric-http-interceptor.service';
+import { HttpClientModule } from '@angular/common/http';
+import { httpInterceptorProviders } from './services/interceptors';
 
 @NgModule({
   declarations: [
@@ -16,11 +16,7 @@ import { FabricHttpInterceptorService } from './services/interceptors/fabric-htt
     HttpClientModule
   ],
   providers: [
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: FabricHttpInterceptorService,
-      multi: true
-    }
+    httpInterceptorProviders
   ],
   bootstrap: [AppComponent]
 })
