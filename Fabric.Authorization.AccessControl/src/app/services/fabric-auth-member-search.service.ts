@@ -6,7 +6,7 @@ import 'rxjs/add/operator/map';
 import { AuthSearchResult } from '../models/authSearchResult';
 
 @Injectable()
-export class FabricAuthMemberService extends FabricAuthBaseService {
+export class FabricAuthMemberSearchService extends FabricAuthBaseService {
 
   static readonly baseMemberApiUrl = FabricAuthBaseService.authUrl + "/members";
 
