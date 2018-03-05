@@ -7,9 +7,14 @@
     {
       "root": "src",
       "outDir": "dist",
-      "assets": [
-        "assets",
-        "favicon.ico"
+      "assets": [{
+          "glob": "**/*",
+          "input": "./assets/",
+          "output": "./assets/"
+        },
+        "favicon.ico",
+        "oidc-callback.html",
+        "silent.html"
       ],
       "index": "index.html",
       "main": "main.ts",
