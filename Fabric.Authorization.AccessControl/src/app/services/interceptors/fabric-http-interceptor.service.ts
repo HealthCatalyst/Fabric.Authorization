@@ -10,6 +10,7 @@ export class FabricHttpInterceptorService implements HttpInterceptor {
   protected static readonly ContentTypeHeader = 'application/json';
   protected static readonly AuthorizationHeader = 'Bearer ' + FabricHttpInterceptorService.AccessTokenToken;
 
+  // TODO: inject TokenService
   constructor() {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
