@@ -1,4 +1,4 @@
-export class AuthSearchResult {
+export class AuthMemberSearchResult {
 
     public subjectId: string;
     public identityProvider: string;

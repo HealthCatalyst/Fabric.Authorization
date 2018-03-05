@@ -1,9 +1,16 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { FabricAuthBaseService } from './fabric-auth-base.service';
+import { Response } from "@angular/http";
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
-import { AuthSearchResult } from '../models/authSearchResult';
+
+import { User } from '../models/user';
+import { Role } from '../models/role';
+import { Group } from '../models/group';
+import { Exception } from '../models/exception';
+import { FabricAuthBaseService } from './fabric-auth-base.service';
+import { AuthMemberSearchResult } from '../models/authMemberSearchResult';
+import { AuthMemberSearchRequest } from '../models/authMemberSearchRequest';
 
 @Injectable()
 export class FabricAuthMemberSearchService extends FabricAuthBaseService {
@@ -14,8 +21,12 @@ export class FabricAuthMemberSearchService extends FabricAuthBaseService {
     super(httpClient);
   }
 
-  public searchMembers() : Observable<AuthSearchResult> {
-    return null;
+  public searchMembers(request: AuthMemberSearchRequest) : Observable<AuthMemberSearchResult[]> {
+    return this.httpClient
+      .get(FabricAuthMemberSearchService.baseMemberApiUrl)
+      .map((response: Response) => {
+        this.handleError(response);
+        return response.json();
+      });      
   }
-
 }
