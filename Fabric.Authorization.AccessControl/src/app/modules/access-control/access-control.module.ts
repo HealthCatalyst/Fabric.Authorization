@@ -16,8 +16,7 @@ import { httpInterceptorProviders } from '../../services/interceptors';
 @NgModule({
   imports: [
     CommonModule,
-    AccessControlRoutingModule,
-    HttpClientModule
+    AccessControlRoutingModule
   ],
   declarations: [UserlistComponent, UseraddComponent],  
   providers: [
@@ -25,8 +24,7 @@ import { httpInterceptorProviders } from '../../services/interceptors';
     FabricAuthGroupService,
     FabricAuthMemberSearchService,
     FabricAuthUserService,
-    FabricExternalIdpSearchService,
-    httpInterceptorProviders
+    FabricExternalIdpSearchService
   ],
   exports:[
     UserlistComponent,
