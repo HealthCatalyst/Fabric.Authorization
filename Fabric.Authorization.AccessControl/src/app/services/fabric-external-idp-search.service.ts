@@ -4,6 +4,7 @@ import { Response } from "@angular/http";
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import { environment } from '../../environments/environment';
+
 import { IdPSearchResult } from '../models/idpSearchResult';
 
 @Injectable()
