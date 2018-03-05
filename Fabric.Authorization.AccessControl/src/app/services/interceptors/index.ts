@@ -4,5 +4,5 @@ import { FabricHttpInterceptorService } from './fabric-http-interceptor.service'
 
 /** Http interceptor providers in outside-in order */
 export const httpInterceptorProviders = [
-  { provide: HTTP_INTERCEPTORS, useClass: FabricHttpInterceptorService, multi: true },
+  { provide: HTTP_INTERCEPTORS, useClass: FabricHttpInterceptorService, multi: true }
 ];
