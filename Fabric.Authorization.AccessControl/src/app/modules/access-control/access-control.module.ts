@@ -4,7 +4,6 @@ import { CommonModule } from '@angular/common';
 import { AccessControlRoutingModule } from './access-control-routing.module';
 import { UserlistComponent } from './userlist/userlist.component';
 import { UseraddComponent } from './useradd/useradd.component';
-import { AuthserviceService } from '../../services/authservice.service';
 import { HttpClientModule } from '@angular/common/http';
 import { FabricAuthBaseService } from '../../services/fabric-auth-base.service';
 import { FabricAuthGroupService } from '../../services/fabric-auth-group.service';

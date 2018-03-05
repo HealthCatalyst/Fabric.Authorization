@@ -1,3 +1,4 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Response } from "@angular/http";
 import { Observable } from 'rxjs/Rx';
@@ -8,7 +9,6 @@ import { Role } from '../models/role';
 import { Group } from '../models/group';
 import { Exception } from '../models/exception';
 import { FabricAuthBaseService } from './fabric-auth-base.service';
-import { HttpClient } from '@angular/common/http';
 
 @Injectable()
 export class FabricAuthGroupService extends FabricAuthBaseService {

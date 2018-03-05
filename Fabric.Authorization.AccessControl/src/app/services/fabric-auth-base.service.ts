@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Response } from "@angular/http";
 import { Observable } from 'rxjs/Rx';
-import { Exception } from '../models/exception';
 import { environment } from '../../environments/environment';
+
+import { Exception } from '../models/exception';
 import { HttpClient } from '@angular/common/http';
 
 @Injectable()
