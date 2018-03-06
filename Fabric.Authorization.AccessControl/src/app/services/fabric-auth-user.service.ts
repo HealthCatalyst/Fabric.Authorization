@@ -4,10 +4,7 @@ import { Response } from "@angular/http";
 import { Observable } from 'rxjs/Rx';
 import { catchError, retry } from 'rxjs/operators';
 
-import { User } from '../models/user';
-import { Role } from '../models/role';
-import { Group } from '../models/group';
-import { Exception } from '../models/exception';
+import { Exception, Group, Role, User } from '../models';
 import { FabricAuthBaseService } from './fabric-auth-base.service';
 
 @Injectable()

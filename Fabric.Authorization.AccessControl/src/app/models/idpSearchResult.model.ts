@@ -1,4 +1,4 @@
-import { FabricPrincipal } from './fabricPrincipal';
+import { FabricPrincipal } from '../models';
 
 export class IdPSearchResult {
 

@@ -5,7 +5,7 @@ import { Observable } from 'rxjs/Rx';
 import { catchError, retry } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
-import { IdPSearchResult } from '../models/idpSearchResult';
+import { IdPSearchResult } from '../models';
 
 @Injectable()
 export class FabricExternalIdpSearchService {
