@@ -9,15 +9,10 @@
         </tr>
     </thead>
     <tbody>
-        <tr>
-            <td>Samuel Walker</td>
+        <tr *ngFor="let member of members">
+            <td>{{member}}</td>
             <td>User</td>
             <td>Reader, Writer</td>           
-        </tr>
-        <tr>
-            <td>Caridology</td>
-            <td>Directory Group</td>
-            <td>Reader</td>         
-        </tr>    
+        </tr>  
     </tbody>
 </table>
