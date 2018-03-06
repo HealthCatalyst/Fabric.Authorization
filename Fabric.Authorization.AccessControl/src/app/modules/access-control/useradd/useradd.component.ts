@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { AuthserviceService } from '../../../services/authservice.service';
 
 @Component({
   selector: 'app-useradd',
@@ -9,11 +8,7 @@ import { AuthserviceService } from '../../../services/authservice.service';
 export class UseraddComponent implements OnInit {
 
   message: string;
-
-  constructor(private authService: AuthserviceService) { 
-    this.message = this.authService.foo('user add reporting!');
-  }
-
+  
   ngOnInit() {
   }
 

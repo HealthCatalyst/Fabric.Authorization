@@ -4,10 +4,7 @@ import { Response } from "@angular/http";
 import { Observable } from 'rxjs/Rx';
 import { catchError, retry } from 'rxjs/operators';
 
-import { User } from '../models/user';
-import { Role } from '../models/role';
-import { Group } from '../models/group';
-import { Exception } from '../models/exception';
+import { Exception, Group, Role, User } from '../models';
 import { FabricAuthBaseService } from './fabric-auth-base.service';
 
 @Injectable()
@@ -15,6 +12,7 @@ export class FabricAuthGroupService extends FabricAuthBaseService {
 
   static readonly baseGroupApiUrl = `${FabricAuthBaseService.authUrl}/groups`;
   static readonly groupRolesApiUrl = `${FabricAuthGroupService.baseGroupApiUrl}/{groupName}/roles`;
+  static readonly groupUsersApiUrl = `${FabricAuthGroupService.baseGroupApiUrl}/{groupName}/users`;
 
   constructor(httpClient: HttpClient) {
     super(httpClient);
@@ -22,13 +20,13 @@ export class FabricAuthGroupService extends FabricAuthBaseService {
 
   public addUserToCustomGroup(groupName: string, user: User) : Observable<Group> {
     return this.httpClient
-      .post<Group>(this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName), user)
+      .post<Group>(this.replaceGroupNameSegment(FabricAuthGroupService.groupUsersApiUrl, groupName), user)
       .pipe(retry(FabricAuthBaseService.retryCount), catchError(this.handleError));
   }
 
   public removeUserFromCustomGroup(groupName: string, user: User) : Observable<Group> {
     return this.httpClient
-      .delete<Group>(this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName))
+      .delete<Group>(this.replaceGroupNameSegment(FabricAuthGroupService.groupUsersApiUrl, groupName))
       .pipe(retry(FabricAuthBaseService.retryCount), catchError(this.handleError));
   }
 
