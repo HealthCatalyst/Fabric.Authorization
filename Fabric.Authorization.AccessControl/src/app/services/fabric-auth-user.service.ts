@@ -19,20 +19,17 @@ export class FabricAuthUserService extends FabricAuthBaseService {
 
   public getUserRoles(identityProvider: string, subjectId: string) : Observable<Role[]> {
     return this.httpClient
-      .get<Role[]>(this.replaceUserIdSegment(FabricAuthUserService.userRolesApiUrl, identityProvider, subjectId))
-      .pipe(retry(FabricAuthBaseService.retryCount), catchError(this.handleError));
+      .get<Role[]>(this.replaceUserIdSegment(FabricAuthUserService.userRolesApiUrl, identityProvider, subjectId));
   }
 
   public addRolesToUser(identityProvider: string, subjectId: string, roles: Role[]) : Observable<User> {
     return this.httpClient
-      .post<User>(this.replaceUserIdSegment(FabricAuthUserService.userRolesApiUrl, identityProvider, subjectId), roles)
-      .pipe(retry(FabricAuthBaseService.retryCount), catchError(this.handleError));
+      .post<User>(this.replaceUserIdSegment(FabricAuthUserService.userRolesApiUrl, identityProvider, subjectId), roles);
   }
 
   public removeRolesFromUser(identityProvider: string, subjectId: string, roles: Role[]) : Observable<User> {
     return this.httpClient
-      .delete<User>(this.replaceUserIdSegment(FabricAuthUserService.userRolesApiUrl, identityProvider, subjectId))
-      .pipe(retry(FabricAuthBaseService.retryCount), catchError(this.handleError));
+      .delete<User>(this.replaceUserIdSegment(FabricAuthUserService.userRolesApiUrl, identityProvider, subjectId));
   }
 
   private replaceUserIdSegment(tokenizedUrl: string, identityProvider: string, subjectId: string): string {

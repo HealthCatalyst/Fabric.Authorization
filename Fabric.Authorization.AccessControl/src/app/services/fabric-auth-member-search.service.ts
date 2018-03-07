@@ -42,7 +42,6 @@ export class FabricAuthMemberSearchService extends FabricAuthBaseService {
     }
 
     return this.httpClient
-      .get<AuthMemberSearchResult[]>(FabricAuthMemberSearchService.baseMemberApiUrl, {params})
-      .pipe(retry(FabricAuthBaseService.retryCount), catchError(this.handleError));
+      .get<AuthMemberSearchResult[]>(FabricAuthMemberSearchService.baseMemberApiUrl, {params});
   }
 }

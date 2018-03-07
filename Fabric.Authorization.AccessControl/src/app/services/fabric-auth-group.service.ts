@@ -21,32 +21,27 @@ export class FabricAuthGroupService extends FabricAuthBaseService {
 
   public addUserToCustomGroup(groupName: string, user: User) : Observable<Group> {
     return this.httpClient
-      .post<Group>(this.replaceGroupNameSegment(FabricAuthGroupService.groupUsersApiUrl, groupName), user)
-      .pipe(retry(FabricAuthBaseService.retryCount), catchError(this.handleError));
+      .post<Group>(this.replaceGroupNameSegment(FabricAuthGroupService.groupUsersApiUrl, groupName), user);
   }
 
   public removeUserFromCustomGroup(groupName: string, user: User) : Observable<Group> {
     return this.httpClient
-      .delete<Group>(this.replaceGroupNameSegment(FabricAuthGroupService.groupUsersApiUrl, groupName))
-      .pipe(retry(FabricAuthBaseService.retryCount), catchError(this.handleError));
+      .delete<Group>(this.replaceGroupNameSegment(FabricAuthGroupService.groupUsersApiUrl, groupName));
   }
 
   public getGroupRoles(groupName: string): Observable<Role[]> {
     return this.httpClient
-      .get<Role[]>(this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName))
-      .pipe(retry(FabricAuthBaseService.retryCount), catchError(this.handleError));
+      .get<Role[]>(this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName));
   }
 
   public addRoleToGroup(groupName: string, role: Role) : Observable<Group> {
     return this.httpClient
-      .post<Group>(this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName), role)
-      .pipe(retry(FabricAuthBaseService.retryCount), catchError(this.handleError));
+      .post<Group>(this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName), role);
   }
 
   public removeRoleFromGroup(groupName: string, role: Role) : Observable<Group> {
     return this.httpClient
-      .delete<Group>(this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName))
-      .pipe(retry(FabricAuthBaseService.retryCount), catchError(this.handleError));
+      .delete<Group>(this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName));
   }
 
   private replaceGroupNameSegment(tokenizedUrl: string, groupName: string): string {
