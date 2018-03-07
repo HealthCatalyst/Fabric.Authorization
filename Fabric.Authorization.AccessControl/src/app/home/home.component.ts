@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+
 import { AuthService } from '../services/global/auth.service';
+import { AccessControlConfigService } from '../services/access-control-config.service';
 
 @Component({
   selector: 'app-home',
@@ -8,8 +10,9 @@ import { AuthService } from '../services/global/auth.service';
 })
 export class HomeComponent implements OnInit {
   profile = {}; 
+  clientId: string;
 
-  constructor(private authService: AuthService) { }
+  constructor(private authService: AuthService, private configService: AccessControlConfigService) { }
 
   ngOnInit() {
     this.authService.getUser().then(result => {
@@ -17,5 +20,6 @@ export class HomeComponent implements OnInit {
           this.profile = result.profile;
       }
     });
+    this.clientId = this.configService.clientId;
   }
 }
