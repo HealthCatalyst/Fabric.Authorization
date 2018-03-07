@@ -10,9 +10,9 @@
     </thead>
     <tbody>
         <tr *ngFor="let member of members">
-            <td>{{member}}</td>
-            <td>User</td>
-            <td>Reader, Writer</td>           
+            <td>{{member.name}}</td>
+            <td>{{member.entityType}}</td>
+            <td>{{member.roles}}</td>           
         </tr>  
     </tbody>
 </table>

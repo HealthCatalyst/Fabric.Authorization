@@ -34,15 +34,15 @@ export class AuthService {
     this.userManager = new UserManager(clientSettings);    
 
     this.userManager.events.addAccessTokenExpiring(function(){      
-      Log.debug('access token expiring');
+      console.log('access token expiring');
     });
 
     this.userManager.events.addSilentRenewError(function(e){
-      Log.debug('silent renew error: ' + e.message);
+      console.log('silent renew error: ' + e.message);
     });
 
     this.userManager.events.addAccessTokenExpired(function () {
-      Log.debug('access token expired');    
+      console.log('access token expired');    
       //when access token expires logout the user
       self.logout();
     });  
@@ -52,9 +52,9 @@ export class AuthService {
   login() {
     var self = this;
     this.userManager.signinRedirect().then(() => {
-      Log.debug('signin redirect done');
+      console.log('signin redirect done');
     }).catch(err => {
-      Log.debug(err);
+      console.error(err);
     });
   }
 
@@ -66,12 +66,12 @@ export class AuthService {
     var self = this;
     this.userManager.signinRedirectCallback().then(user => {
       if (user) {
-        Log.debug('Logged in: ' + JSON.stringify(user.profile));
+        console.log('Logged in: ' + JSON.stringify(user.profile));
       } else {
-        Log.debug('could not log user in');
+        console.log('could not log user in');
       }
     }).catch(e => {
-      Log.error(e);
+      console.error(e);
     });
   }
 
@@ -83,11 +83,11 @@ export class AuthService {
     var self = this;
     return this.userManager.getUser().then(function (user) {
       if (user) {
-        Log.debug('signin redirect done. ');
-        Log.debug(user.profile);
+        console.log('signin redirect done. ');
+        console.log(user.profile);
         return true;
       } else {
-        Log.debug('User is not logged in');
+        console.log('User is not logged in');
         return false;
       }
     });
