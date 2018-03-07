@@ -4,8 +4,7 @@ import { Observable } from 'rxjs/Rx';
 import { AccessControlConfigService } from '../../../services/access-control-config.service';
 
 import { FabricAuthMemberSearchService } from '../../../services/fabric-auth-member-search.service';
-import { AuthMemberSearchRequest } from '../../../models/authMemberSearchRequest.model'
-import { AuthMemberSearchResult } from '../../../models/authMemberSearchResult.model';
+import { AuthMemberSearchRequest, AuthMemberSearchResult } from '../../../models'
 
 @Component({
   selector: 'app-member-list',
