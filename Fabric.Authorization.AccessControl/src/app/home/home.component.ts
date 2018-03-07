@@ -14,13 +14,8 @@ export class HomeComponent implements OnInit {
   ngOnInit() {
     this.authService.getUser().then(result => {
       if (result) {
-          this.profile = result.profile;          
-          console.log(JSON.stringify(result.profile));
-          this.authService.getUser().then(function(user){
-            console.log(user.access_token);
-          });
+          this.profile = result.profile;
       }
     });
   }
-
 }

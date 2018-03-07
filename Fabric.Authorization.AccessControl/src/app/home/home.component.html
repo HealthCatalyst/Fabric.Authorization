@@ -1,1 +1,4 @@
 <h1>Hello, {{profile.name}}!</h1>
+<div *ngIf="profile">
+    <pre>{{ profile | json }}</pre>
+</div>
