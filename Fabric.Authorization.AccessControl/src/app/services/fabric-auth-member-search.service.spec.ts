@@ -2,7 +2,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed, inject } from '@angular/core/testing';
 
-import { FabricAuthMemberSearchService } from './fabric-auth-member-search.service';
+import { FabricAuthMemberSearchService } from '../services';
 
 describe('FabricAuthMemberSearchService', () => {
   let httpClient: HttpClient;

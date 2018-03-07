@@ -2,7 +2,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed, inject } from '@angular/core/testing';
 
-import { FabricExternalIdpSearchService } from './fabric-external-idp-search.service';
+import { FabricExternalIdpSearchService } from '../services';
 
 describe('FabricExternalIdpSearchService', () => {
   let httpClient: HttpClient;

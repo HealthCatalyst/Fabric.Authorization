@@ -5,7 +5,8 @@ import { Observable } from 'rxjs/Rx';
 import { catchError, retry } from 'rxjs/operators';
 
 import { Exception, Group, Role, User } from '../models';
-import { FabricAuthBaseService } from './fabric-auth-base.service';
+import { FabricAuthBaseService } from '../services';
+import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 
 @Injectable()
 export class FabricAuthGroupService extends FabricAuthBaseService {
