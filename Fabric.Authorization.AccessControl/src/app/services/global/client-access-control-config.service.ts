@@ -12,7 +12,7 @@ export class ClientAccessControlConfigService {
      return this.authService.getUser()
     .then(function(user){           
     if(user){
-         return Promise.resolve(user.access_token);
+         return user.access_token;
         }
     });
   }
