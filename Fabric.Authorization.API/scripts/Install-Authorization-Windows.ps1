@@ -480,4 +480,4 @@ if($siteName) {Add-InstallationSetting "authorization" "siteName" "$siteName" | 
 
 Invoke-MonitorShallow "$hostUrl/$appName"
 
-Write-Host "Installation complete, exiting."
+Read-Host -Prompt "Installation complete, press Enter to exit"
