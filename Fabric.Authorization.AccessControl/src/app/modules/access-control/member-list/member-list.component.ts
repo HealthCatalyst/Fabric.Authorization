@@ -1,9 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs/Rx';
 
+import { AccessControlConfigService } from '../../../services/access-control-config.service';
+
 import { FabricAuthMemberSearchService } from '../../../services/fabric-auth-member-search.service';
-import { AuthMemberSearchRequest } from '../../../models/authMemberSearchRequest';
-import { AuthMemberSearchResult } from '../../../models/authMemberSearchResult';
+import { AuthMemberSearchRequest } from '../../../models/authMemberSearchRequest.model'
+import { AuthMemberSearchResult } from '../../../models/authMemberSearchResult.model';
 
 @Component({
   selector: 'app-member-list',
@@ -14,7 +16,7 @@ export class MemberListComponent implements OnInit {
 
   members: AuthMemberSearchResult[];
 
-  constructor(private memberSearchService: FabricAuthMemberSearchService) { }
+  constructor(private memberSearchService: FabricAuthMemberSearchService, private configService: AccessControlConfigService) { }
 
   ngOnInit() {
     this.getMembers();
@@ -23,7 +25,7 @@ export class MemberListComponent implements OnInit {
   getMembers() {
     var self = this;
     var searchRequest = new AuthMemberSearchRequest();
-    searchRequest.clientId = 'fabric-angularsample';
+    searchRequest.clientId = this.configService.clientId;
 
     return this.memberSearchService.searchMembers(searchRequest)
     .subscribe(function(memberList){
