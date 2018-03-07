@@ -6,12 +6,10 @@ import { environment } from '../../environments/environment';
 import { Exception } from '../models';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
+import { AccessControlConfigService } from './access-control-config.service';
 
 @Injectable()
-export class FabricAuthBaseService {
+export class FabricBaseService {
 
-  protected static readonly retryCount = 3;
-  protected static readonly authUrl = `${environment.fabricAuthApiUri}/${environment.fabricAuthApiVersionSegment}`;
-
-  constructor(protected httpClient: HttpClient) { }
+  constructor(protected httpClient: HttpClient, protected accessControlConfigService: AccessControlConfigService) { }
 }
