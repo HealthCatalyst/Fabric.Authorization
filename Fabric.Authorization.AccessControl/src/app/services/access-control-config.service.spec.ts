@@ -1,6 +1,6 @@
 import { TestBed, inject } from '@angular/core/testing';
 
-import { AccessControlConfigService } from './access-control-config.service';
+import { AccessControlConfigService } from '../services';
 
 describe('AccessControlConfigService', () => {
   beforeEach(() => {

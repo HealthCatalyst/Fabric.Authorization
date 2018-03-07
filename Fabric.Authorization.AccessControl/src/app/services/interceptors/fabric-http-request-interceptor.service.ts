@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent } from '@angular/common/http';
 import { Observable } from 'rxjs/Rx';
 
-import { AccessControlConfigService } from '../access-control-config.service';
+import { AccessControlConfigService } from '../../services';
 
 @Injectable()
 export class FabricHttpRequestInterceptorService implements HttpInterceptor {

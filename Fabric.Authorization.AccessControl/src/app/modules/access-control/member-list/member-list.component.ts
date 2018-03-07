@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs/Rx';
 
-import { AccessControlConfigService } from '../../../services/access-control-config.service';
+import { AccessControlConfigService } from '../../../services';
 
 import { FabricAuthMemberSearchService } from '../../../services/fabric-auth-member-search.service';
 import { AuthMemberSearchRequest, AuthMemberSearchResult } from '../../../models'
