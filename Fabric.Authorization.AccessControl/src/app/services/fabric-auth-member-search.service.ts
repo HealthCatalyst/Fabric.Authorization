@@ -5,15 +5,20 @@ import { Observable } from 'rxjs/Rx';
 import { catchError, retry } from 'rxjs/operators';
 
 import { AuthMemberSearchRequest, AuthMemberSearchResult, Exception, Group, Role, User } from '../models';
-import { FabricAuthBaseService } from '../services';
+import { FabricBaseService } from './fabric-auth-base.service';
+import { AccessControlConfigService } from './access-control-config.service';
 
 @Injectable()
-export class FabricAuthMemberSearchService extends FabricAuthBaseService {
+export class FabricAuthMemberSearchService extends FabricBaseService {
 
-  static readonly baseMemberApiUrl = `${FabricAuthBaseService.authUrl}/members`;
+  private static baseMemberApiUrl;
 
-  constructor(httpClient: HttpClient) {
-    super(httpClient);
+  constructor(httpClient: HttpClient, accessControlConfigService: AccessControlConfigService) {
+    super(httpClient, accessControlConfigService);
+
+    if (!FabricAuthMemberSearchService.baseMemberApiUrl) {
+      FabricAuthMemberSearchService.baseMemberApiUrl = `${accessControlConfigService.getFabricAuthApiUrl()}/members`;
+    }
   }
 
   public searchMembers(request: AuthMemberSearchRequest) : Observable<AuthMemberSearchResult[]> {

@@ -6,11 +6,14 @@ import { catchError, retry } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 import { IdPSearchResult } from '../models';
+import { FabricBaseService } from './fabric-auth-base.service';
+import { AccessControlConfigService } from './access-control-config.service';
 
 @Injectable()
-export class FabricExternalIdpSearchService {
+export class FabricExternalIdpSearchService extends FabricBaseService {
 
-  constructor(http: HttpClient) {
+  constructor(httpClient: HttpClient, accessControlConfigService: AccessControlConfigService) {
+    super(httpClient, accessControlConfigService);
   }
 
   public searchExternalIdP() : Observable<IdPSearchResult> {

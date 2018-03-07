@@ -3,20 +3,33 @@ import { Injectable } from '@angular/core';
 import { Response } from "@angular/http";
 import { Observable } from 'rxjs/Rx';
 import { catchError, retry } from 'rxjs/operators';
-
 import { Exception, Group, Role, User } from '../models';
-import { FabricAuthBaseService } from '../services';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 
+import { FabricBaseService } from './fabric-auth-base.service';
+import { AccessControlConfigService } from './access-control-config.service';
+
 @Injectable()
-export class FabricAuthGroupService extends FabricAuthBaseService {
+export class FabricAuthGroupService extends FabricBaseService {
 
-  static readonly baseGroupApiUrl = `${FabricAuthBaseService.authUrl}/groups`;
-  static readonly groupRolesApiUrl = `${FabricAuthGroupService.baseGroupApiUrl}/{groupName}/roles`;
-  static readonly groupUsersApiUrl = `${FabricAuthGroupService.baseGroupApiUrl}/{groupName}/users`;
+  private static baseGroupApiUrl;
+  private static groupRolesApiUrl;
+  private static groupUsersApiUrl;
 
-  constructor(httpClient: HttpClient) {
-    super(httpClient);
+  constructor(httpClient: HttpClient, accessControlConfigService: AccessControlConfigService) {
+    super(httpClient, accessControlConfigService);
+
+    if (!FabricAuthGroupService.baseGroupApiUrl) {
+      FabricAuthGroupService.baseGroupApiUrl = `${accessControlConfigService.getFabricAuthApiUrl()}/groups`;
+    }
+    
+    if (!FabricAuthGroupService.groupRolesApiUrl) {
+      FabricAuthGroupService.groupRolesApiUrl = `${FabricAuthGroupService.baseGroupApiUrl}/{groupName}/roles`;
+    }
+
+    if (!FabricAuthGroupService.groupUsersApiUrl) {
+      FabricAuthGroupService.groupUsersApiUrl = `${FabricAuthGroupService.baseGroupApiUrl}/{groupName}/users`;
+    }
   }
 
   public addUserToCustomGroup(groupName: string, user: User) : Observable<Group> {

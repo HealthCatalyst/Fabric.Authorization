@@ -5,16 +5,25 @@ import { Observable } from 'rxjs/Rx';
 import { catchError, retry } from 'rxjs/operators';
 
 import { Exception, Group, Role, User } from '../models';
-import { FabricAuthBaseService } from '../services';
+import { FabricBaseService } from './fabric-auth-base.service';
+import { AccessControlConfigService } from './access-control-config.service';
 
 @Injectable()
-export class FabricAuthUserService extends FabricAuthBaseService {
+export class FabricAuthUserService extends FabricBaseService {
 
-  static readonly baseUserApiUrl = `${FabricAuthBaseService.authUrl}/user`;
-  static readonly userRolesApiUrl = `${FabricAuthUserService.baseUserApiUrl}/{identityProvider}/{subjectId}/roles`;
+  private static baseUserApiUrl;
+  private static userRolesApiUrl;
 
-  constructor(httpClient: HttpClient) {
-    super(httpClient);
+  constructor(httpClient: HttpClient, accessControlConfigService: AccessControlConfigService) {
+    super(httpClient, accessControlConfigService);
+
+    if (!FabricAuthUserService.baseUserApiUrl){
+      FabricAuthUserService.baseUserApiUrl = `${accessControlConfigService.getFabricAuthApiUrl()}/user`;
+    }
+
+    if (!FabricAuthUserService.userRolesApiUrl) {
+      FabricAuthUserService.userRolesApiUrl = `${FabricAuthUserService.baseUserApiUrl}/{identityProvider}/{subjectId}/roles`;
+    }
   }
 
   public getUserRoles(identityProvider: string, subjectId: string) : Observable<Role[]> {
