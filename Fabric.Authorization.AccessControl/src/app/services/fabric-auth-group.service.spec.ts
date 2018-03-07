@@ -7,8 +7,9 @@ import { Observable } from 'rxjs/Rx';
 import { FabricAuthGroupService } from '../services';
 import { Group, User } from '../models';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
+import { httpInterceptorProviders } from './interceptors';
 
-describe('FabricAuthGroupService', () => {
+fdescribe('FabricAuthGroupService', () => {
 
   const mockGroupUserResponse = {
     groupName: 'Group 1',
@@ -25,7 +26,7 @@ describe('FabricAuthGroupService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [ HttpClientTestingModule ],
-      providers: [ FabricAuthGroupService ]
+      providers: [ FabricAuthGroupService, httpInterceptorProviders ]
     });
   });
 
@@ -44,8 +45,7 @@ describe('FabricAuthGroupService', () => {
         user.name = 'First Last';
 
         // set up subscription to POST '/groups/Group 1/user' and service response expectations
-        let response$ = service.addUserToCustomGroup(mockGroupUserResponse.groupName, user);
-        response$.subscribe(returnedGroup => {
+        service.addUserToCustomGroup(mockGroupUserResponse.groupName, user).subscribe(returnedGroup => {
           expect(returnedGroup.groupName).toBe(mockGroupUserResponse.groupName);
           expect(returnedGroup.groupSource).toBe(mockGroupUserResponse.groupSource);
           expect(returnedGroup.users).toBeDefined();
@@ -68,7 +68,7 @@ describe('FabricAuthGroupService', () => {
     )
   );
 
-  fit('addUserToCustomGroup error (404) should be caught',
+  it('addUserToCustomGroup error should be caught',
     async(  
       inject([HttpClient, HttpTestingController, FabricAuthGroupService], (
         httpClient: HttpClient,
@@ -80,23 +80,19 @@ describe('FabricAuthGroupService', () => {
 
         // set up subscription to POST '/groups/Group 1/user' and service response expectations
         service.addUserToCustomGroup(mockGroupUserResponse.groupName, user).catch(error => {
-          console.log('caught error');
           expect(Observable.of(error)).toBeTruthy();
+          console.log('caught error = ' + JSON.stringify(error));
+          expect(error.statusCode).toBe(404);
+          expect(error.message).toBe('Group not found');
           return Observable.of(error);
         })
-        .subscribe((res: any) => {
-          console.log('here');
-          expect(res.failure.error.type).toBe('ERROR');
-        });
-
-        console.log('trigger');
+        .subscribe();
 
         // simulate response from POST '/groups/Group 1/user' and flush response
         // to trigger subscription above
         const req = httpTestingController.expectOne(`${FabricAuthGroupService.baseGroupApiUrl}/${mockGroupUserResponse.groupName}/users`);
         expect(req.request.method).toBe("POST");
-        req.error(new ErrorEvent('ERROR'));
-        //req.flush({errorMessage: ''}, {status: 404, statusText: 'Group not found'});
+        req.flush({errorMessage: ''}, {status: 404, statusText: 'Group not found'});
         
         httpTestingController.verify();
       })

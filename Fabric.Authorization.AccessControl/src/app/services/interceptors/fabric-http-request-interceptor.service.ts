@@ -5,7 +5,7 @@ import { Observable } from 'rxjs/Rx';
 import { AccessControlConfigService } from '../access-control-config.service';
 
 @Injectable()
-export class FabricHttpInterceptorService implements HttpInterceptor {
+export class FabricHttpRequestInterceptorService implements HttpInterceptor {
 
   protected static readonly AcceptHeader = 'application/json';
   protected static readonly ContentTypeHeader = 'application/json';
@@ -14,16 +14,15 @@ export class FabricHttpInterceptorService implements HttpInterceptor {
   constructor(private configService: AccessControlConfigService) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-
     var tokenObservable = Observable.fromPromise(this.configService.getAccessToken());
     return tokenObservable.flatMap(accessToken => {
   
       const modifiedRequest = req.clone(
         {
           setHeaders: {
-            'Authorization': `${FabricHttpInterceptorService.AuthorizationHeader} ${accessToken}`,
-            'Accept': FabricHttpInterceptorService.AcceptHeader,
-            'Content-Type': FabricHttpInterceptorService.ContentTypeHeader
+            'Authorization': `${FabricHttpRequestInterceptorService.AuthorizationHeader} ${accessToken}`,
+            'Accept': FabricHttpRequestInterceptorService.AcceptHeader,
+            'Content-Type': FabricHttpRequestInterceptorService.ContentTypeHeader
           }
         }
       );
