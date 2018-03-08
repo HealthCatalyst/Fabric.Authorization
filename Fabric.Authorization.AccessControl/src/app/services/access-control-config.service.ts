@@ -21,6 +21,6 @@ export class AccessControlConfigService {
   }
 
   getFabricExternalIdpSearchApiUrl() : string {
-    return `${environment.fabricAuthApiUri}/${environment.fabricAuthApiVersionSegment}`
+    return `${environment.fabricExternalIdPSearchApiUri}/${environment.fabricExternalIdPSearchApiVersionSegment}`
   }
 }
