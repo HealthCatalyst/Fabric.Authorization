@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Observable } from 'rxjs/Rx';
+import { Subscription } from 'rxjs/Rx';
 
 import { AccessControlConfigService } from '../../../services';
 
@@ -28,7 +28,6 @@ export class MemberListComponent implements OnInit {
     searchRequest.clientId = this.configService.clientId;
     searchRequest.filter = this.filterText;
     
-
     return this.memberSearchService.searchMembers(searchRequest)
     .subscribe(function(memberList){
       self.members = memberList;

@@ -1,3 +1,7 @@
-<p>
-  member-add works!
-</p>
+<div>
+  <label>
+    Name (as it appears in directory)
+  </label>
+</div>
+<input #searchTerm (keyup)="onKey(searchTerm.value)">
+<p>{{searchInput}}</p>
