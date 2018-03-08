@@ -17,6 +17,7 @@ export class AccessControlConfigService {
   }
 
   getFabricAuthApiUrl() : string {
+    console.log(`${environment.fabricAuthApiUri}/${environment.fabricAuthApiVersionSegment}`);
     return `${environment.fabricAuthApiUri}/${environment.fabricAuthApiVersionSegment}`
   }
 
