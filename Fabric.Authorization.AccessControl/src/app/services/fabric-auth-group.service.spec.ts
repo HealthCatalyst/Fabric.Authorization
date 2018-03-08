@@ -1,4 +1,4 @@
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { Pipe, PipeTransform } from '@angular/core';
 import { TestBed, inject, async } from '@angular/core/testing';
@@ -7,7 +7,7 @@ import { Observable } from 'rxjs/Rx';
 import { FabricAuthGroupService, AccessControlConfigService } from '../services';
 import { Group, User } from '../models';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
-import { httpInterceptorProviders } from './interceptors';
+import { FabricHttpErrorHandlerInterceptorService } from './interceptors/fabric-http-error-handler-interceptor.service';
 
 fdescribe('FabricAuthGroupService', () => {
 
@@ -48,7 +48,10 @@ fdescribe('FabricAuthGroupService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [ HttpClientTestingModule ],
-      providers: [ FabricAuthGroupService, httpInterceptorProviders, AccessControlConfigService ]
+      providers: [
+        FabricAuthGroupService,         
+        { provide: HTTP_INTERCEPTORS, useClass: FabricHttpErrorHandlerInterceptorService, multi: true },
+        AccessControlConfigService ]
     });
   });
 
@@ -90,7 +93,7 @@ fdescribe('FabricAuthGroupService', () => {
     )
   );
 
-  it('addUserToCustomGroup error should be caught',
+  fit('addUserToCustomGroup error should be caught',
     async(  
       inject([HttpClient, HttpTestingController, FabricAuthGroupService], (
         httpClient: HttpClient,
@@ -113,7 +116,7 @@ fdescribe('FabricAuthGroupService', () => {
         // to trigger subscription above
         const req = httpTestingController.expectOne(`${FabricAuthGroupService.baseGroupApiUrl}/${mockGroupUsersResponse.groupName}/users`);
         expect(req.request.method).toBe("POST");
-        req.flush({errorMessage: ''}, {status: 404, statusText: 'Group not found'});
+        req.flush(null, {status: 404, statusText: 'Group not found'});
         
         httpTestingController.verify();
       })
@@ -155,7 +158,7 @@ fdescribe('FabricAuthGroupService', () => {
     )
   );
 
-  it('getGroupRoles should deserialize all properties',
+  fit('getGroupRoles should deserialize all properties',
     async(  
       inject([HttpClient, HttpTestingController, FabricAuthGroupService], (
         httpClient: HttpClient,
@@ -173,13 +176,13 @@ fdescribe('FabricAuthGroupService', () => {
           let adminRole = returnedGroup.roles[0];
           expect(adminRole.name).toBe('admin');
           expect(adminRole.grain).toBe('dos');
-          expect(adminRole.securableItem).toBe('datamart1');
+          expect(adminRole.securableItem).toBe('datamart');
           expect(adminRole.parentRole).toBe('admin_parent');
 
           let superUserRole = returnedGroup.roles[1];
           expect(superUserRole.name).toBe('superuser');
           expect(superUserRole.grain).toBe('dos');
-          expect(superUserRole.securableItem).toBe('datamart2');
+          expect(superUserRole.securableItem).toBe('datamart');
           expect(superUserRole.childRoles).toBeDefined();
           expect(superUserRole.childRoles.length).toBe(2);
           expect(superUserRole.childRoles[0]).toBe('dos_child1');
