@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Response } from "@angular/http";
 import { Observable } from 'rxjs/Rx';
@@ -12,9 +12,9 @@ import { AccessControlConfigService } from './access-control-config.service';
 @Injectable()
 export class FabricAuthGroupService extends FabricBaseService {
 
-  private static baseGroupApiUrl;
-  private static groupRolesApiUrl;
-  private static groupUsersApiUrl;
+  public static baseGroupApiUrl;
+  public static groupRolesApiUrl;
+  public static groupUsersApiUrl;
 
   constructor(httpClient: HttpClient, accessControlConfigService: AccessControlConfigService) {
     super(httpClient, accessControlConfigService);
@@ -42,9 +42,19 @@ export class FabricAuthGroupService extends FabricBaseService {
       .delete<Group>(this.replaceGroupNameSegment(FabricAuthGroupService.groupUsersApiUrl, groupName));
   }
 
-  public getGroupRoles(groupName: string): Observable<Role[]> {
+  public getGroupRoles(groupName: string, grain?: string, securableItem?: string): Observable<Group> {
+    
+    let params = new HttpParams();
+    if (grain) {
+      params.set('grain', grain);
+    }
+
+    if (securableItem) {
+      params.set('securableItem', securableItem);
+    }
+
     return this.httpClient
-      .get<Role[]>(this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName));
+      .get<Group>(this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName), {params});
   }
 
   public addRoleToGroup(groupName: string, role: Role) : Observable<Group> {
