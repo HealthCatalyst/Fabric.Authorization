@@ -13,7 +13,7 @@ export class AccessControlConfigService {
   }
 
   getAccessToken() : Promise<string>{
-    return Promise.reject('');
+    return Promise.resolve('');
   }
 
   getFabricAuthApiUrl() : string {
