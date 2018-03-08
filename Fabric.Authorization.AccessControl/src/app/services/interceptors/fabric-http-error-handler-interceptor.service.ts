@@ -19,7 +19,7 @@ export class FabricHttpErrorHandlerInterceptorService {
           // The backend returned an unsuccessful response code.
           // The response body may contain clues as to what went wrong,
           console.error(
-            `Backend returned code ${response.status}, body was: ${response.error}`);
+            `Backend returned code ${response.status}, body was: ${JSON.stringify(response.error)}`);
         }
         console.log(`response.status = ${response.status}, response.statusText = ${response.statusText}`);
         return Observable.throw(new Exception(response.status, response.statusText));
