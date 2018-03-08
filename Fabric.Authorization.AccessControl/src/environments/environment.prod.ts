@@ -1,5 +1,7 @@
 export const environment = {
   production: true,
-  fabricAuthApiUri: "http://localhost:5004",
-  fabricAuthApiVersionSegment: "api/v1"
+  fabricAuthApiUri: "http://localhost:5004/api",
+  fabricAuthApiVersionSegment: "v1",
+  fabricExternalIdPSearchApiUri: "http://localhost:TBD/api",
+  fabricExternalIdPSearchApiVersionSegment: "v1"
 };
