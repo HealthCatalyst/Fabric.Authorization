@@ -6,7 +6,7 @@ import { catchError, retry } from 'rxjs/operators';
 import { Exception, Group, Role, User } from '../models';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 
-import { FabricBaseService } from './fabric-auth-base.service';
+import { FabricBaseService } from './fabric-base.service';
 import { AccessControlConfigService } from './access-control-config.service';
 
 @Injectable()

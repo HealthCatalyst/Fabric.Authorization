@@ -52,11 +52,11 @@ fdescribe('FabricAuthGroupService', () => {
     });
   });
 
-  it('should be created', inject([FabricAuthGroupService], (service: FabricAuthGroupService) => {
+  fit('should be created', inject([FabricAuthGroupService], (service: FabricAuthGroupService) => {
     expect(service).toBeTruthy();
   }));
 
-  it('addUserToCustomGroup should deserialize all properties',
+  fit('addUserToCustomGroup should deserialize all properties',
     async(  
       inject([HttpClient, HttpTestingController, FabricAuthGroupService], (
         httpClient: HttpClient,

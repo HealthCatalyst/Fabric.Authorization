@@ -6,7 +6,7 @@ import { catchError, retry } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 import { IdPSearchResult } from '../models';
-import { FabricBaseService } from './fabric-auth-base.service';
+import { FabricBaseService } from './fabric-base.service';
 import { AccessControlConfigService } from './access-control-config.service';
 
 @Injectable()
