@@ -11,8 +11,8 @@ import { AccessControlConfigService } from './access-control-config.service';
 @Injectable()
 export class FabricAuthUserService extends FabricBaseService {
 
-  private static baseUserApiUrl;
-  private static userRolesApiUrl;
+  public static baseUserApiUrl;
+  public static userRolesApiUrl;
 
   constructor(httpClient: HttpClient, accessControlConfigService: AccessControlConfigService) {
     super(httpClient, accessControlConfigService);
