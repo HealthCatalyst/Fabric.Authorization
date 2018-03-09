@@ -51,6 +51,10 @@ export class FabricAuthUserService extends FabricBaseService {
       .delete<User>(this.replaceUserIdSegment(FabricAuthUserService.userRolesApiUrl, identityProvider, subjectId));
   }
 
+  public createUser(user: User) : Observable<User>{
+    return this.httpClient.post<User>(FabricAuthUserService.baseUserApiUrl, user);
+  }
+
   private replaceUserIdSegment(tokenizedUrl: string, identityProvider: string, subjectId: string): string {
     return encodeURI(tokenizedUrl
       .replace("{identityProvider}", identityProvider)

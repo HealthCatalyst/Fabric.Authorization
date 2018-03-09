@@ -34,4 +34,8 @@ export class MemberListComponent implements OnInit {
     });
   }
 
+  removeRolesFromMember(){
+
+  }
+
 }
