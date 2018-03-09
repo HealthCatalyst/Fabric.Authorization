@@ -73,7 +73,6 @@ export class FabricAuthGroupService extends FabricBaseService {
   }
 
   private replaceGroupNameSegment(tokenizedUrl: string, groupName: string): string {
-    return tokenizedUrl
-      .replace("{groupName}", encodeURI(groupName));
+    return encodeURI(tokenizedUrl.replace("{groupName}", groupName));
   }
 }

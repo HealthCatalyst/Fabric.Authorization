@@ -11,13 +11,13 @@ import { AccessControlConfigService } from './access-control-config.service';
 @Injectable()
 export class FabricAuthMemberSearchService extends FabricBaseService {
 
-  public static baseMemberApiUrl: string;
+  public static baseMemberSearchApiUrl: string;
 
   constructor(httpClient: HttpClient, accessControlConfigService: AccessControlConfigService) {
     super(httpClient, accessControlConfigService);
 
-    if (!FabricAuthMemberSearchService.baseMemberApiUrl) {
-      FabricAuthMemberSearchService.baseMemberApiUrl = `${accessControlConfigService.getFabricAuthApiUrl()}/members`;
+    if (!FabricAuthMemberSearchService.baseMemberSearchApiUrl) {
+      FabricAuthMemberSearchService.baseMemberSearchApiUrl = `${accessControlConfigService.getFabricAuthApiUrl()}/members`;
     }
   }
 
@@ -47,6 +47,6 @@ export class FabricAuthMemberSearchService extends FabricBaseService {
     }
 
     return this.httpClient
-      .get<AuthMemberSearchResult[]>(FabricAuthMemberSearchService.baseMemberApiUrl, {params});
+      .get<AuthMemberSearchResult[]>(FabricAuthMemberSearchService.baseMemberSearchApiUrl, {params});
   }
 }

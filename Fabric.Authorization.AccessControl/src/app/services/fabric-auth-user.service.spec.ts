@@ -67,7 +67,7 @@ fdescribe('FabricAuthUserService', () => {
           assertMockUserGroupsResponse(returnedGroups);
         });
 
-        const req = httpTestingController.expectOne(`${FabricAuthUserService.baseUserApiUrl}/${idP}/${subjectId}/groups`);
+        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthUserService.baseUserApiUrl}/${idP}/${subjectId}/groups`));
         expect(req.request.method).toBe("GET");      
         req.flush(mockUserGroupsResponse, {status: 200, statusText: 'OK'});        
         httpTestingController.verify();
@@ -90,7 +90,7 @@ fdescribe('FabricAuthUserService', () => {
         })
         .subscribe();
 
-        const req = httpTestingController.expectOne(`${FabricAuthUserService.baseUserApiUrl}/${idP}/${subjectId}/groups`);
+        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthUserService.baseUserApiUrl}/${idP}/${subjectId}/groups`));
         expect(req.request.method).toBe("GET");
         req.flush(null, {status: 404, statusText: 'User not found'});        
         httpTestingController.verify();
@@ -132,7 +132,7 @@ fdescribe('FabricAuthUserService', () => {
         })
         .subscribe();
 
-        const req = httpTestingController.expectOne(`${FabricAuthUserService.baseUserApiUrl}/${idP}/${subjectId}/roles`);
+        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthUserService.baseUserApiUrl}/${idP}/${subjectId}/roles`));
         expect(req.request.method).toBe("GET");
         req.flush(null, {status: 404, statusText: 'User not found'});        
         httpTestingController.verify();
@@ -151,7 +151,7 @@ fdescribe('FabricAuthUserService', () => {
           assertMockUserResponse(returnedUser);
         });
 
-        const req = httpTestingController.expectOne(`${FabricAuthUserService.baseUserApiUrl}/${idP}/${subjectId}/roles`);
+        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthUserService.baseUserApiUrl}/${idP}/${subjectId}/roles`));
         expect(req.request.method).toBe("POST");      
         req.flush(mockUserResponse, {status: 201, statusText: 'Created'});
         httpTestingController.verify();
@@ -174,7 +174,7 @@ fdescribe('FabricAuthUserService', () => {
         })
         .subscribe();
 
-        const req = httpTestingController.expectOne(`${FabricAuthUserService.baseUserApiUrl}/${idP}/${subjectId}/roles`);
+        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthUserService.baseUserApiUrl}/${idP}/${subjectId}/roles`));
         expect(req.request.method).toBe("POST");
         req.flush(null, {status: 404, statusText: 'User not found'});        
         httpTestingController.verify();
@@ -193,7 +193,7 @@ fdescribe('FabricAuthUserService', () => {
           assertMockUserResponse(returnedUser);
         });
 
-        const req = httpTestingController.expectOne(`${FabricAuthUserService.baseUserApiUrl}/${idP}/${subjectId}/roles`);
+        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthUserService.baseUserApiUrl}/${idP}/${subjectId}/roles`));
         expect(req.request.method).toBe("DELETE");      
         req.flush(mockUserResponse, {status: 204, statusText: 'No Content'});
         httpTestingController.verify();
@@ -216,7 +216,7 @@ fdescribe('FabricAuthUserService', () => {
         })
         .subscribe();
 
-        const req = httpTestingController.expectOne(`${FabricAuthUserService.baseUserApiUrl}/${idP}/${subjectId}/roles`);
+        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthUserService.baseUserApiUrl}/${idP}/${subjectId}/roles`));
         expect(req.request.method).toBe("DELETE");
         req.flush(null, {status: 404, statusText: 'User not found'});        
         httpTestingController.verify();

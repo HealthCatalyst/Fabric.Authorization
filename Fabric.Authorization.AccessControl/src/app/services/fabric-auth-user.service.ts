@@ -52,8 +52,8 @@ export class FabricAuthUserService extends FabricBaseService {
   }
 
   private replaceUserIdSegment(tokenizedUrl: string, identityProvider: string, subjectId: string): string {
-    return tokenizedUrl
+    return encodeURI(tokenizedUrl
       .replace("{identityProvider}", identityProvider)
-      .replace("{subjectId}", encodeURI(subjectId));
+      .replace("{subjectId}", subjectId));
   }
 }
