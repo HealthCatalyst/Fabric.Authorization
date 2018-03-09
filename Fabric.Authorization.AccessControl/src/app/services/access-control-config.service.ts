@@ -5,8 +5,9 @@ import { environment } from '../../environments/environment.test';
 export class AccessControlConfigService {
 
   clientId: string;
-  fabricAuthorizationBaseUrl: string;
-  fabricIdpSearchServiceBaseUrl: string;
+  identityProvider: string;
+  grain: string;
+  securableItem: string;
 
   constructor() {
 

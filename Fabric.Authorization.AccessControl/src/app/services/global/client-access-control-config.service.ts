@@ -6,12 +6,14 @@ import { environment } from '../../../environments/environment.prod';
 @Injectable()
 export class ClientAccessControlConfigService implements AccessControlConfigService {
 
+
   constructor(private authService: AuthService) { }
 
   clientId = 'fabric-angularsample';
-  fabricAuthorizationBaseUrl = '';
-  fabricIdpSearchServiceBaseUrl = '';
-
+  identityProvider = 'windows';
+  grain: 'app';
+  securableItem: 'fabric-angularsample';
+  
   getAccessToken(){
      return this.authService.getUser()
     .then(function(user){           
