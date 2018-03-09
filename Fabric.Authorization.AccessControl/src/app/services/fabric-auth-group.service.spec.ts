@@ -55,11 +55,33 @@ fdescribe('FabricAuthGroupService', () => {
     });
   });
 
-  fit('should be created', inject([FabricAuthGroupService], (service: FabricAuthGroupService) => {
+  it('should be created', inject([FabricAuthGroupService], (service: FabricAuthGroupService) => {
     expect(service).toBeTruthy();
   }));
 
-  fit('addUserToCustomGroup should deserialize all properties',
+  it('getGroupUsers should deserialize all properties',
+    async(  
+      inject([HttpClient, HttpTestingController, FabricAuthGroupService], (
+        httpClient: HttpClient,
+        httpTestingController: HttpTestingController,
+        service: FabricAuthGroupService) => {
+
+        // set up subscription to GET '/groups/Group 1/roles' and service response expectations
+        service.getGroupUsers(mockGroupRolesResponse.groupName).subscribe(returnedGroup => {
+          assertMockGroupUsersResponse(returnedGroup);
+        });
+
+        // simulate response from GET '/groups/Dos Admin Group/roles' and flush response
+        // to trigger subscription above
+        const req = httpTestingController.expectOne(`${FabricAuthGroupService.baseGroupApiUrl}/${mockGroupRolesResponse.groupName}/users`);
+        expect(req.request.method).toBe("GET");      
+        req.flush(mockGroupUsersResponse, {status: 200, statusText: 'OK'});        
+        httpTestingController.verify();
+      })
+    )
+  );
+
+  it('addUserToCustomGroup should deserialize all properties',
     async(  
       inject([HttpClient, HttpTestingController, FabricAuthGroupService], (
         httpClient: HttpClient,
@@ -81,7 +103,7 @@ fdescribe('FabricAuthGroupService', () => {
     )
   );
 
-  fit('addUserToCustomGroup error should be caught',
+  it('addUserToCustomGroup error should be caught',
     async(  
       inject([HttpClient, HttpTestingController, FabricAuthGroupService], (
         httpClient: HttpClient,
@@ -132,7 +154,7 @@ fdescribe('FabricAuthGroupService', () => {
     )
   );
 
-  fit('getGroupRoles should deserialize all properties',
+  it('getGroupRoles should deserialize all properties',
     async(  
       inject([HttpClient, HttpTestingController, FabricAuthGroupService], (
         httpClient: HttpClient,
@@ -154,7 +176,7 @@ fdescribe('FabricAuthGroupService', () => {
     )
   );
 
-  fit('addRoleToGroup should deserialize all properties',
+  it('addRoleToGroup should deserialize all properties',
     async(  
       inject([HttpClient, HttpTestingController, FabricAuthGroupService], (
         httpClient: HttpClient,
@@ -176,7 +198,7 @@ fdescribe('FabricAuthGroupService', () => {
     )
   );
 
-  fit('removeRoleFromGroup should deserialize all properties',
+  it('removeRoleFromGroup should deserialize all properties',
     async(  
       inject([HttpClient, HttpTestingController, FabricAuthGroupService], (
         httpClient: HttpClient,
@@ -198,7 +220,7 @@ fdescribe('FabricAuthGroupService', () => {
     )
   );
 
-  function assertMockGroupRolesResponse(returnedGroup) {
+  function assertMockGroupRolesResponse(returnedGroup: Group) {
     expect(returnedGroup).toBeDefined();
     expect(returnedGroup.groupName).toBe('Dos Admin Group');
     expect(returnedGroup.groupSource).toBe('Custom');
@@ -221,7 +243,7 @@ fdescribe('FabricAuthGroupService', () => {
     expect(superUserRole.childRoles[1]).toBe('dos_child2');
   }
 
-  function assertMockGroupUsersResponse(returnedGroup) {
+  function assertMockGroupUsersResponse(returnedGroup: Group) {
     expect(returnedGroup.groupName).toBe(mockGroupUsersResponse.groupName);
     expect(returnedGroup.groupSource).toBe(mockGroupUsersResponse.groupSource);
     expect(returnedGroup.users).toBeDefined();

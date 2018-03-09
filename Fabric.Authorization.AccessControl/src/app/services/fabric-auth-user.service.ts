@@ -13,6 +13,7 @@ export class FabricAuthUserService extends FabricBaseService {
 
   public static baseUserApiUrl;
   public static userRolesApiUrl;
+  public static userGroupsApiUrl;
 
   constructor(httpClient: HttpClient, accessControlConfigService: AccessControlConfigService) {
     super(httpClient, accessControlConfigService);
@@ -24,6 +25,15 @@ export class FabricAuthUserService extends FabricBaseService {
     if (!FabricAuthUserService.userRolesApiUrl) {
       FabricAuthUserService.userRolesApiUrl = `${FabricAuthUserService.baseUserApiUrl}/{identityProvider}/{subjectId}/roles`;
     }
+
+    if (!FabricAuthUserService.userGroupsApiUrl) {
+      FabricAuthUserService.userGroupsApiUrl = `${FabricAuthUserService.baseUserApiUrl}/{identityProvider}/{subjectId}/groups`;
+    }
+  }
+
+  public getUserGroups(identityProvider: string, subjectId: string) : Observable<string[]> {
+    return this.httpClient
+      .get<string[]>(this.replaceUserIdSegment(FabricAuthUserService.userGroupsApiUrl, identityProvider, subjectId));
   }
 
   public getUserRoles(identityProvider: string, subjectId: string) : Observable<Role[]> {
