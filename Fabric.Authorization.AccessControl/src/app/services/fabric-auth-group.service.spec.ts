@@ -70,7 +70,7 @@ fdescribe('FabricAuthGroupService', () => {
           assertMockGroupUsersResponse(returnedGroup);
         });
 
-        const req = httpTestingController.expectOne(`${FabricAuthGroupService.baseGroupApiUrl}/${mockGroupRolesResponse.groupName}/users`);
+        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthGroupService.baseGroupApiUrl}/${mockGroupRolesResponse.groupName}/users`));
         expect(req.request.method).toBe("GET");      
         req.flush(mockGroupUsersResponse, {status: 200, statusText: 'OK'});        
         httpTestingController.verify();
@@ -93,7 +93,7 @@ fdescribe('FabricAuthGroupService', () => {
         })
         .subscribe();
 
-        const req = httpTestingController.expectOne(`${FabricAuthGroupService.baseGroupApiUrl}/${mockGroupUsersResponse.groupName}/users`);
+        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthGroupService.baseGroupApiUrl}/${mockGroupUsersResponse.groupName}/users`));
         expect(req.request.method).toBe("GET");
         req.flush(null, {status: 404, statusText: 'Group not found'});        
         httpTestingController.verify();
@@ -112,7 +112,7 @@ fdescribe('FabricAuthGroupService', () => {
           assertMockGroupUsersResponse(returnedGroup);
         });
 
-        const req = httpTestingController.expectOne(`${FabricAuthGroupService.baseGroupApiUrl}/${mockGroupUsersResponse.groupName}/users`);
+        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthGroupService.baseGroupApiUrl}/${mockGroupUsersResponse.groupName}/users`));
         expect(req.request.method).toBe("POST");
         req.flush(mockGroupUsersResponse, {status: 201, statusText: 'Created'});        
         httpTestingController.verify();
@@ -135,7 +135,7 @@ fdescribe('FabricAuthGroupService', () => {
         })
         .subscribe();
 
-        const req = httpTestingController.expectOne(`${FabricAuthGroupService.baseGroupApiUrl}/${mockGroupUsersResponse.groupName}/users`);
+        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthGroupService.baseGroupApiUrl}/${mockGroupUsersResponse.groupName}/users`));
         expect(req.request.method).toBe("POST");
         req.flush(null, {status: 404, statusText: 'Group not found'});        
         httpTestingController.verify();
@@ -154,7 +154,7 @@ fdescribe('FabricAuthGroupService', () => {
           assertMockGroupUsersResponse(returnedGroup);
         });
 
-        const req = httpTestingController.expectOne(`${FabricAuthGroupService.baseGroupApiUrl}/${mockGroupUsersResponse.groupName}/users`);
+        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthGroupService.baseGroupApiUrl}/${mockGroupUsersResponse.groupName}/users`));
         expect(req.request.method).toBe("DELETE");  
         req.flush(mockGroupUsersResponse, {status: 204, statusText: 'No Content'});        
         httpTestingController.verify();
@@ -177,7 +177,7 @@ fdescribe('FabricAuthGroupService', () => {
         })
         .subscribe();
 
-        const req = httpTestingController.expectOne(`${FabricAuthGroupService.baseGroupApiUrl}/${mockGroupRolesResponse.groupName}/users`);
+        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthGroupService.baseGroupApiUrl}/${mockGroupRolesResponse.groupName}/users`));
         expect(req.request.method).toBe("DELETE");
         req.flush(null, {status: 404, statusText: 'Group not found'});        
         httpTestingController.verify();
@@ -196,7 +196,7 @@ fdescribe('FabricAuthGroupService', () => {
           assertMockGroupRolesResponse(returnedGroup);
         });
 
-        const req = httpTestingController.expectOne(`${FabricAuthGroupService.baseGroupApiUrl}/${mockGroupRolesResponse.groupName}/roles`);
+        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthGroupService.baseGroupApiUrl}/${mockGroupRolesResponse.groupName}/roles`));
         expect(req.request.method).toBe("GET");      
         req.flush(mockGroupRolesResponse, {status: 200, statusText: 'OK'});        
         httpTestingController.verify();
@@ -219,7 +219,7 @@ fdescribe('FabricAuthGroupService', () => {
         })
         .subscribe();
 
-        const req = httpTestingController.expectOne(`${FabricAuthGroupService.baseGroupApiUrl}/${mockGroupRolesResponse.groupName}/roles`);
+        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthGroupService.baseGroupApiUrl}/${mockGroupRolesResponse.groupName}/roles`));
         expect(req.request.method).toBe("GET");
         req.flush(null, {status: 404, statusText: 'Group not found'});        
         httpTestingController.verify();
@@ -238,7 +238,7 @@ fdescribe('FabricAuthGroupService', () => {
           assertMockGroupRolesResponse(returnedGroup);
         });
 
-        const req = httpTestingController.expectOne(`${FabricAuthGroupService.baseGroupApiUrl}/${mockGroupRolesResponse.groupName}/roles`);
+        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthGroupService.baseGroupApiUrl}/${mockGroupRolesResponse.groupName}/roles`));
         expect(req.request.method).toBe("POST");      
         req.flush(mockGroupRolesResponse, {status: 201, statusText: 'Created'});
         httpTestingController.verify();
@@ -261,7 +261,7 @@ fdescribe('FabricAuthGroupService', () => {
         })
         .subscribe();
 
-        const req = httpTestingController.expectOne(`${FabricAuthGroupService.baseGroupApiUrl}/${mockGroupRolesResponse.groupName}/roles`);
+        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthGroupService.baseGroupApiUrl}/${mockGroupRolesResponse.groupName}/roles`));
         expect(req.request.method).toBe("POST");
         req.flush(null, {status: 404, statusText: 'Group not found'});        
         httpTestingController.verify();
@@ -280,7 +280,7 @@ fdescribe('FabricAuthGroupService', () => {
           assertMockGroupRolesResponse(returnedGroup);
         });
 
-        const req = httpTestingController.expectOne(`${FabricAuthGroupService.baseGroupApiUrl}/${mockGroupRolesResponse.groupName}/roles`);
+        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthGroupService.baseGroupApiUrl}/${mockGroupRolesResponse.groupName}/roles`));
         expect(req.request.method).toBe("DELETE");      
         req.flush(mockGroupRolesResponse, {status: 204, statusText: 'No Content'});        
         httpTestingController.verify();
@@ -303,7 +303,7 @@ fdescribe('FabricAuthGroupService', () => {
         })
         .subscribe();
 
-        const req = httpTestingController.expectOne(`${FabricAuthGroupService.baseGroupApiUrl}/${mockGroupRolesResponse.groupName}/roles`);
+        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthGroupService.baseGroupApiUrl}/${mockGroupRolesResponse.groupName}/roles`));
         expect(req.request.method).toBe("DELETE");
         req.flush(null, {status: 404, statusText: 'Group not found'});        
         httpTestingController.verify();
