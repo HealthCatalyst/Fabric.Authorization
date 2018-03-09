@@ -12,9 +12,9 @@ import { AccessControlConfigService } from './access-control-config.service';
 @Injectable()
 export class FabricAuthGroupService extends FabricBaseService {
 
-  public static baseGroupApiUrl;
-  public static groupRolesApiUrl;
-  public static groupUsersApiUrl;
+  public static baseGroupApiUrl: string;
+  public static groupRolesApiUrl: string;
+  public static groupUsersApiUrl: string;
 
   constructor(httpClient: HttpClient, accessControlConfigService: AccessControlConfigService) {
     super(httpClient, accessControlConfigService);
