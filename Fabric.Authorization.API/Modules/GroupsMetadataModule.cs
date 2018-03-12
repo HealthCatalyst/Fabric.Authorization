@@ -224,7 +224,7 @@ namespace Fabric.Authorization.API.Modules
                 "Gets roles for a group by group name",
                 new List<HttpResponseMetadata>
                 {
-                    new HttpResponseMetadata<GroupRoleApiModel>
+                    new HttpResponseMetadata<IEnumerable<RoleApiModel>>
                     {
                         Code = (int) HttpStatusCode.OK,
                         Message = "OK"
@@ -340,7 +340,7 @@ namespace Fabric.Authorization.API.Modules
                 "Gets users for a custom group by group name",
                 new List<HttpResponseMetadata>
                 {
-                    new HttpResponseMetadata<GroupUserApiModel>
+                    new HttpResponseMetadata<IEnumerable<UserApiModel>>
                     {
                         Code = (int) HttpStatusCode.OK,
                         Message = "OK"

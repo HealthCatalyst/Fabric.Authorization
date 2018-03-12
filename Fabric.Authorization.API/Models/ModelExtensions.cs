@@ -30,6 +30,13 @@ namespace Fabric.Authorization.API.Models
             return roleApiModel;
         }
 
+        public static IEnumerable<RoleApiModel> ToRoleApiModels(this IEnumerable<Role> roles, string grain, string securableItem, Func<Role, string, string, bool> groupRoleFilter)
+        {
+            return roles.Where(r => !r.IsDeleted
+                                    && groupRoleFilter(r, grain, securableItem))
+                .Select(r => r.ToRoleApiModel());
+        }
+
         public static Role ToRoleDomainModel(this RoleApiModel role)
         {
             var roleDomainModel = new Role

@@ -509,8 +509,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            var responseEntity = response.Body.DeserializeJson<GroupRoleApiModel>();
-            var roleList = responseEntity.Roles.ToList();
+            var responseEntity = response.Body.DeserializeJson<IEnumerable<RoleApiModel>>();
+            var roleList = responseEntity.ToList();
             Assert.Single(roleList);
             Assert.Equal(role1Name, roleList[0].Name);
 
@@ -530,8 +530,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            responseEntity = response.Body.DeserializeJson<GroupRoleApiModel>();
-            roleList = responseEntity.Roles.ToList();
+            responseEntity = response.Body.DeserializeJson<IEnumerable<RoleApiModel>>();
+            roleList = responseEntity.ToList();
             Assert.Single(roleList);
             Assert.Equal(role2Name, roleList[0].Name);
         }
@@ -594,8 +594,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            var responseEntity = response.Body.DeserializeJson<GroupRoleApiModel>();
-            var roleList = responseEntity.Roles.ToList();
+            var responseEntity = response.Body.DeserializeJson<IEnumerable<RoleApiModel>>();
+            var roleList = responseEntity.ToList();
             Assert.Empty(roleList);
         }
 
@@ -685,8 +685,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            var responseEntity = response.Body.DeserializeJson<GroupUserApiModel>();
-            var userList = responseEntity.Users.ToList();
+            var responseEntity = response.Body.DeserializeJson<IEnumerable<UserApiModel>>();
+            var userList = responseEntity.ToList();
             Assert.Single(userList);
             Assert.Equal(user1SubjectId, userList[0].SubjectId);
 
@@ -713,8 +713,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            responseEntity = response.Body.DeserializeJson<GroupUserApiModel>();
-            userList = responseEntity.Users.ToList();
+            responseEntity = response.Body.DeserializeJson<IEnumerable<UserApiModel>>();
+            userList = responseEntity.ToList();
             Assert.Equal(2, userList.Count);
 
             // get users for group 2
@@ -726,8 +726,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            responseEntity = response.Body.DeserializeJson<GroupUserApiModel>();
-            userList = responseEntity.Users.ToList();
+            responseEntity = response.Body.DeserializeJson<IEnumerable<UserApiModel>>();
+            userList = responseEntity.ToList();
             Assert.Single(userList);
             Assert.Equal(user2SubjectId, userList[0].SubjectId);
         }
@@ -805,8 +805,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            var responseEntity = response.Body.DeserializeJson<GroupUserApiModel>();
-            var userList = responseEntity.Users.ToList();
+            var responseEntity = response.Body.DeserializeJson<IEnumerable<UserApiModel>>();
+            var userList = responseEntity.ToList();
             Assert.Single(userList);
             Assert.Equal(subject1Id, userList[0].SubjectId);
         }
@@ -844,8 +844,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            var responseEntity = response.Body.DeserializeJson<GroupUserApiModel>();
-            var userList = responseEntity.Users.ToList();
+            var responseEntity = response.Body.DeserializeJson<IEnumerable<UserApiModel>>();
+            var userList = responseEntity.ToList();
             Assert.Empty(userList);
 
             // ensure the deletion is reflected in the user model
