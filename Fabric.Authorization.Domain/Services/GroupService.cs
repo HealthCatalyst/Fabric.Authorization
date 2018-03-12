@@ -11,7 +11,7 @@ namespace Fabric.Authorization.Domain.Services
     public class GroupService
     {
         // TODO: move this out of GroupService to another library
-        public static readonly Func<Role, string, string, bool> GroupRoleFilter = (role, grain, securableItem) =>
+        public static readonly Func<Role, string, string, bool> RoleFilter = (role, grain, securableItem) =>
         {
             var match = true;
 

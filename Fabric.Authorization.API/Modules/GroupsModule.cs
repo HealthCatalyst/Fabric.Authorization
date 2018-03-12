@@ -157,7 +157,7 @@ namespace Fabric.Authorization.API.Modules
                 this.RequiresClaims(AuthorizationReadClaim);
                 var groupRoleRequest = this.Bind<GroupRoleRequest>();
                 var group = await _groupService.GetGroup(groupRoleRequest.GroupName, ClientId);
-                return group.ToGroupRoleApiModel(groupRoleRequest, GroupService.GroupRoleFilter);
+                return group.Roles.ToRoleApiModels(groupRoleRequest.Grain, groupRoleRequest.SecurableItem, GroupService.RoleFilter);
             }
             catch (NotFoundException<Group> ex)
             {
@@ -226,7 +226,7 @@ namespace Fabric.Authorization.API.Modules
                 this.RequiresClaims(AuthorizationReadClaim);
                 var groupUserRequest = this.Bind<GroupUserRequest>();
                 var group = await _groupService.GetGroup(groupUserRequest.GroupName, ClientId);
-                return group.ToGroupUserApiModel();
+                return group.Users.Where(u => !u.IsDeleted).Select(u => u.ToUserApiModel());
             }
             catch (NotFoundException<Group> ex)
             {
