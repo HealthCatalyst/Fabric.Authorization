@@ -7,6 +7,7 @@ import {  FabricExternalIdpSearchService,
 import {  FabricPrincipal, 
           Role, 
           User,
+          Group,
           IdPSearchRequest } from '../../../models';
 
 @Component({
@@ -22,20 +23,27 @@ export class MemberAddComponent implements OnInit {
   public selectedPrincipal: FabricPrincipal;
   public roles: Array<Role>;
   public selectedRoles: Array<Role>;
+  public selectedSubjectId: string;
 
   constructor(private idpSearchService: FabricExternalIdpSearchService, 
     private roleService: FabricAuthRoleService,
     private userService: FabricAuthUserService,
     private configService: AccessControlConfigService,
     private groupService: FabricAuthGroupService
-    ) { }
+    ) {
+      this.selectedPrincipal = null;
+      this.selectedRoles = null;
+      this.selectedSubjectId = '';
+     }
 
   ngOnInit() {
+    this.getRoles();
   }
 
   onKey(searchText){
-    this.searchInput = searchText;
-
+    if(searchText.length < 2) {
+      return;
+    }
     var request = new IdPSearchRequest();
     request.searchText = searchText;
 
@@ -46,7 +54,6 @@ export class MemberAddComponent implements OnInit {
   }
 
   getRoles(){
-    //need to get roles by securable item and grain (how will we know those??)
     this.roleService.getRolesBySecurableItemAndGrain(this.grain, this.configService.clientId)
       .subscribe(roleResults => {
         this.roles = roleResults;
@@ -54,16 +61,18 @@ export class MemberAddComponent implements OnInit {
   }
 
   addMemberWithRoles(){
-    var user = new User(this.configService.identityProvider, this.selectedPrincipal.subjectId);
-
     if(this.selectedPrincipal.principalType == 'user'){
+      var user = new User(this.configService.identityProvider, this.selectedPrincipal.subjectId);
       this.userService.createUser(user)
       .subscribe(user => {
-        //add the roles to the new member
         this.userService.addRolesToUser(this.configService.identityProvider, this.selectedPrincipal.subjectId, this.selectedRoles);
       });
     }else {
-      
+      var group = new Group(this.selectedPrincipal.name, '');
+      this.groupService.createGroup(group)
+        .subscribe(newGroup => {
+          this.groupService.addRolesToGroup(newGroup.groupName, this.selectedRoles);
+        });
     }   
   }
 }
