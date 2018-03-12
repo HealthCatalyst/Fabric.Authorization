@@ -22,8 +22,8 @@ export class MemberAddComponent implements OnInit {
   public principals: Array<FabricPrincipal>;
   public selectedPrincipal: FabricPrincipal;
   public roles: Array<Role>;
-  public selectedRoles: Array<Role>;
-  public selectedSubjectId: string;
+  public selectedRoles: Array<Role>;  
+  
 
   constructor(private idpSearchService: FabricExternalIdpSearchService, 
     private roleService: FabricAuthRoleService,
@@ -31,9 +31,7 @@ export class MemberAddComponent implements OnInit {
     private configService: AccessControlConfigService,
     private groupService: FabricAuthGroupService
     ) {
-      this.selectedPrincipal = null;
-      this.selectedRoles = null;
-      this.selectedSubjectId = '';
+      this.selectedRoles = [];
      }
 
   ngOnInit() {
@@ -53,6 +51,22 @@ export class MemberAddComponent implements OnInit {
     });
   }
 
+  onPrincipalSelect(principal: FabricPrincipal){
+    this.selectedPrincipal = principal;
+  }
+
+  onRoleSelect(role: Role){
+    if(!this.roleIsSelected(role)){
+      this.selectedRoles.push(role);
+    } else{
+      this.selectedRoles = this.selectedRoles.filter(r => r.name !== role.name);
+    }
+  }
+
+  roleIsSelected(role: Role){
+    return this.selectedRoles.filter(r => r.name === role.name).length > 0;
+  }
+
   getRoles(){
     this.roleService.getRolesBySecurableItemAndGrain(this.grain, this.configService.clientId)
       .subscribe(roleResults => {
@@ -62,16 +76,16 @@ export class MemberAddComponent implements OnInit {
 
   addMemberWithRoles(){
     if(this.selectedPrincipal.principalType == 'user'){
-      var user = new User(this.configService.identityProvider, this.selectedPrincipal.subjectId);
-      this.userService.createUser(user)
-      .subscribe(user => {
-        this.userService.addRolesToUser(this.configService.identityProvider, this.selectedPrincipal.subjectId, this.selectedRoles);
-      });
+      var user = new User(this.configService.identityProvider, this.selectedPrincipal.subjectId);      
+      return this.userService.createUser(user).toPromise()
+      .then((user: User) => {
+        return this.userService.addRolesToUser(user.identityProvider, user.subjectId, this.selectedRoles).toPromise();
+      });            
     }else {
       var group = new Group(this.selectedPrincipal.name, '');
       this.groupService.createGroup(group)
         .subscribe(newGroup => {
-          this.groupService.addRolesToGroup(newGroup.groupName, this.selectedRoles);
+         this.groupService.addRolesToGroup(newGroup.groupName, this.selectedRoles);
         });
     }   
   }

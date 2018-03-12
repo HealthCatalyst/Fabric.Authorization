@@ -3,23 +3,30 @@
     Name (as it appears in directory)
   </label>
 </div>
-<form #memberAdd="ngForm">
+<div>
   <input #searchTerm (keyup)="onKey(searchTerm.value)">
-  <div *ngFor="let principal of principals">
-      <input type="radio" name="principalResult" [(ngModel)]="selectedSubjectId" >{{principal.subjectId}}
-  </div>
+  <ul class="princpals">
+      <li *ngFor="let principal of principals"
+          [class.selected]="principal === selectedPrincipal"
+          (click)="onPrincipalSelect(principal)">
+          {{principal.subjectId}}
+      </li> 
+  </ul>    
+</div>
+<div>
+  <p>{{selectedSubjectId}}</p>
+</div>
 
-  <div>
-    <p>{{selectedSubjectId}}</p>
-  </div>
+<div>  
+  <ul class="roles">
+    <li *ngFor="let role of roles"
+        [class.selected]="roleIsSelected(role)"
+        (click)="onRoleSelect(role)">
+        {{role.name}}
+    </li>
+  </ul>
+</div>
 
-  <div *ngFor="let role of roles">
-    <label>
-      <input type="checkbox"  ng-model="roleResult" ng-value="role">{{role.name}}
-    </label>
-  </div>
-
-  <div>
-    <button (click)="addMemberWithRoles()">Save</button>
-  </div>
-</form>
+<div>
+  <button (click)="addMemberWithRoles()">Save</button>
+</div>
