@@ -194,6 +194,11 @@ namespace Fabric.Authorization.API.Modules
             }
         }
 
+        private async Task<dynamic> AddRolesToGroup()
+        {
+            
+        }
+
         private async Task<dynamic> DeleteRoleFromGroup()
         {
             try

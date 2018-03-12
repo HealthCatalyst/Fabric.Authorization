@@ -25,8 +25,8 @@ export class FabricExternalIdpSearchService extends FabricBaseService {
 
   public searchExternalIdP(request: IdPSearchRequest) : Observable<IdPSearchResult> {
 
-    var params = new HttpParams();
-    params.set('searchtext', request.searchText);
+    var params = new HttpParams()
+      .set('searchtext', request.searchText);
 
     if(request.type){
       params.set('type', request.type);
