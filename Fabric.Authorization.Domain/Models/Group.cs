@@ -37,5 +37,33 @@ namespace Fabric.Authorization.Domain.Models
         {
             return $"Id = {Id}, Name = {Name}";
         }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+
+            if (this == obj)
+            {
+                return true;
+            }
+
+            var incomingGroup = obj as Group;
+
+            if (incomingGroup == null)
+            {
+                return false;
+            }
+
+            return Name == incomingGroup.Name
+                   || incomingGroup.Name.Equals(Name, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public override int GetHashCode()
+        {
+            return ToString().GetHashCode();
+        }
     }
 }

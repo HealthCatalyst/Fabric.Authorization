@@ -114,9 +114,9 @@ namespace Fabric.Authorization.Persistence.InMemory.Stores
 
         public async Task<Group> AddUserToGroup(Group group, User user)
         {
-            if (user.Groups.All(g => !string.Equals(g, group.Name, StringComparison.OrdinalIgnoreCase)))
+            if (user.Groups.All(g => !string.Equals(g.Name, group.Name, StringComparison.OrdinalIgnoreCase)))
             {
-                user.Groups.Add(group.Name);
+                user.Groups.Add(group);
             }
 
             await _userStore.Update(user);
@@ -126,9 +126,9 @@ namespace Fabric.Authorization.Persistence.InMemory.Stores
 
         public async Task<Group> DeleteUserFromGroup(Group group, User user)
         {
-            if (user.Groups.Any(g => string.Equals(g, group.Name, StringComparison.OrdinalIgnoreCase)))
+            if (user.Groups.Any(g => string.Equals(g.Name, group.Name, StringComparison.OrdinalIgnoreCase)))
             {
-                user.Groups.Remove(group.Name);
+                user.Groups.Remove(group);
             }
 
             await _userStore.Update(user);

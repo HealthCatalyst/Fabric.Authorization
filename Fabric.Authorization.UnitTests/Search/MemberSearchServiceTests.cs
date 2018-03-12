@@ -283,7 +283,7 @@ namespace Fabric.Authorization.UnitTests.Search
                 {
                     new User("patientsafety_user", "Windows")
                     {
-                        Groups = new List<string> {UserPatientSafetyGroupName}
+                        Groups = new List<Group> { new Group { Name = UserPatientSafetyGroupName } }
                     }
                 },
                 Roles = new List<Role>
@@ -372,7 +372,7 @@ namespace Fabric.Authorization.UnitTests.Search
                     {
                         SubjectId = "atlas_user",
                         IdentityProvider = "Windows",
-                        Groups = new List<string> {UserAtlasGroupName}
+                        Groups = new List<Group> { new Group { Name = UserAtlasGroupName} }
                     }
                 },
                 Roles = new List<Role>

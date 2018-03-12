@@ -24,10 +24,10 @@ namespace Fabric.Authorization.Domain.Services
             return await _userStore.Get($"{subjectId}:{identityProvider}");
         }
 
-        public async Task<IEnumerable<string>> GetGroupsForUser(string subjectId, string identityProvider)
+        public async Task<IEnumerable<Group>> GetGroupsForUser(string subjectId, string identityProvider)
         {
             var user = await _userStore.Get($"{subjectId}:{identityProvider}");
-            return user != null ? user.Groups : new List<string>();
+            return user != null ? user.Groups : new List<Group>();
         }
 
         public async Task<ICollection<Role>> GetRolesForUser(string subjectId, string identityProvider)

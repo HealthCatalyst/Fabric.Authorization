@@ -123,6 +123,9 @@ namespace Fabric.Authorization.API.Modules
             await SetDefaultRequest(userPermissionRequest);
             CheckReadAccess();
 
+            // cast is required due to dynamic inputs - otherwise the compiler thinks the return type is a dynamic
+            var groups = (await _userService.GetGroupsForUser(param.subjectId, param.identityProvider)) as IEnumerable<Group>;
+
             var permissionResolutionResult = await _permissionResolverService.Resolve(new PermissionResolutionRequest
             {
                 SubjectId = param.subjectId,
@@ -130,7 +133,7 @@ namespace Fabric.Authorization.API.Modules
                 Grain = userPermissionRequest.Grain,
                 SecurableItem = userPermissionRequest.SecurableItem,
                 IncludeSharedPermissions = isGrainEmpty,
-                UserGroups = await _userService.GetGroupsForUser(param.subjectId, param.identityProvider)
+                UserGroups = groups?.Select(g => g.Name)
             });
 
             return permissionResolutionResult.AllowedPermissions
@@ -298,7 +301,7 @@ namespace Fabric.Authorization.API.Modules
                
                 var groups =
                     await _userService.GetGroupsForUser(groupUserRequest.SubjectId, groupUserRequest.IdentityProvider);
-                return groups;
+                return groups.Select(g => g.ToGroupUserApiModel());
             }
             catch (NotFoundException<User>)
             {

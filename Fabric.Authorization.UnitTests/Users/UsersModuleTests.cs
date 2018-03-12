@@ -826,9 +826,9 @@ namespace Fabric.Authorization.UnitTests.Users
             {
                 new User("user123", "Windows")
                 {
-                    Groups = new List<string>
+                    Groups = new List<Group>
                     {
-                        customGroup.Name
+                        customGroup
                     }
                 }
             };

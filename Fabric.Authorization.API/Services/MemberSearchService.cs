@@ -108,8 +108,7 @@ namespace Fabric.Authorization.API.Services
             foreach (var user in users)
             {
                 // get groups for user
-                var userGroups = user.Groups;
-                var userGroupEntities = groupEntities.Where(g => userGroups.Contains(g.Name, StringComparer.OrdinalIgnoreCase));
+                var userGroupEntities = groupEntities.Where(g => user.Groups.Contains(g));
 
                 // get roles for user
                 var userRoles = userGroupEntities.SelectMany(g => g.Roles).Select(r => r.Name).ToList();
