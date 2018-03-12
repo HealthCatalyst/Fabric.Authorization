@@ -11,7 +11,7 @@ namespace Fabric.Authorization.Domain.Models
             SubjectId = subjectId;
             IdentityProvider = identityProvider;
             Id = Identifier;
-            Groups = new List<string>();
+            Groups = new List<Group>();
             Roles = new List<Role>();
         }
 
@@ -31,7 +31,7 @@ namespace Fabric.Authorization.Domain.Models
 
         public ICollection<Role> Roles { get; set; }
 
-        public ICollection<string> Groups { get; set; }
+        public ICollection<Group> Groups { get; set; }
 
         public bool IsDeleted { get; set; }
 

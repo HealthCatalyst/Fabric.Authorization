@@ -306,10 +306,10 @@ namespace Fabric.Authorization.API.Modules
                 "Gets custom groups for a user",
                 new[]
                 {
-                    new HttpResponseMetadata<IEnumerable<string>>
+                    new HttpResponseMetadata<IEnumerable<GroupUserApiModel>>
                     {
                         Code = (int) HttpStatusCode.OK,
-                        Message = "List of strings representing group names in which the user belongs"
+                        Message = "List of GroupUserApiModel entities representing groups in which the user belongs"
                     },
                     new HttpResponseMetadata
                     {

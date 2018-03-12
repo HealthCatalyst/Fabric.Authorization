@@ -857,7 +857,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            var groups = response.Body.DeserializeJson<string[]>();
+            var groups = response.Body.DeserializeJson<GroupUserApiModel[]>();
             Assert.Empty(groups);
         }
 
@@ -978,9 +978,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            var groupList = response.Body.DeserializeJson<string[]>();
+            var groupList = response.Body.DeserializeJson<GroupUserApiModel[]>();
             Assert.Single(groupList);
-            Assert.Equal(groupName, groupList[0]);
+            Assert.Equal(groupName, groupList[0].GroupName);
         }
 
         #endregion
