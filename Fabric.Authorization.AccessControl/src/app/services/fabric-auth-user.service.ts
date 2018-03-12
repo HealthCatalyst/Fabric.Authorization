@@ -31,9 +31,9 @@ export class FabricAuthUserService extends FabricBaseService {
     }
   }
 
-  public getUserGroups(identityProvider: string, subjectId: string) : Observable<string[]> {
+  public getUserGroups(identityProvider: string, subjectId: string) : Observable<Group[]> {
     return this.httpClient
-      .get<string[]>(this.replaceUserIdSegment(FabricAuthUserService.userGroupsApiUrl, identityProvider, subjectId));
+      .get<Group[]>(this.replaceUserIdSegment(FabricAuthUserService.userGroupsApiUrl, identityProvider, subjectId));
   }
 
   public getUserRoles(identityProvider: string, subjectId: string) : Observable<Role[]> {

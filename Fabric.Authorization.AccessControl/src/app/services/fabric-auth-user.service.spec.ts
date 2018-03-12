@@ -15,8 +15,12 @@ fdescribe('FabricAuthUserService', () => {
   const subjectId = 'sub123';
 
   const mockUserGroupsResponse = [
-    'Group 1',
-    'Group 2'
+    {
+      groupName: 'Group 1'
+    },
+    {
+      groupName: 'Group 2'
+    }
   ];
 
   const mockUserRolesResponse = [
@@ -232,10 +236,10 @@ fdescribe('FabricAuthUserService', () => {
     assertMockUserRolesResponse(returnedUser.roles);
   }
 
-  function assertMockUserGroupsResponse(returnedGroups: string[]) {
+  function assertMockUserGroupsResponse(returnedGroups: Group[]) {
     expect(returnedGroups).toBeDefined();
-    expect(returnedGroups[0]).toBe('Group 1');
-    expect(returnedGroups[1]).toBe('Group 2');
+    expect(returnedGroups[0].groupName).toBe('Group 1');
+    expect(returnedGroups[1].groupName).toBe('Group 2');
   }
 
   function assertMockUserRolesResponse(returnedRoles: Role[]) {

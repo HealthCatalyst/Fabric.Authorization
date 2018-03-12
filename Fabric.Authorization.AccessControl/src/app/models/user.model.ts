@@ -1,9 +1,9 @@
-import { Role } from '../models';
+import { Role, Group } from '../models';
 
 export class User {
     
     public id: string
-    public groups: Array<string>;
+    public groups: Array<Group>;
     public roles: Array<Role>;
     public name: string;
 
