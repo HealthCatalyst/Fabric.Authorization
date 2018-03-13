@@ -82,10 +82,10 @@ export class MemberAddComponent implements OnInit {
         return this.userService.addRolesToUser(user.identityProvider, user.subjectId, this.selectedRoles).toPromise();
       });            
     }else {
-      var group = new Group(this.selectedPrincipal.name, '');
-      this.groupService.createGroup(group)
-        .subscribe(newGroup => {
-         this.groupService.addRolesToGroup(newGroup.groupName, this.selectedRoles);
+      var group = new Group(this.selectedPrincipal.subjectId, '');
+      this.groupService.createGroup(group).toPromise()
+        .then(newGroup => {
+          this.groupService.addRolesToGroup(newGroup.groupName, this.selectedRoles).toPromise();
         });
     }   
   }
