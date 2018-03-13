@@ -189,7 +189,7 @@ namespace Fabric.Authorization.Domain.Services
                 {
                     exceptions.Add(
                         new AlreadyExistsException<Role>(
-                            $"The role: {role} with Id: {role.Id} already exists for the group."));
+                            $"The role: {role} with Id: {role.Id} already exists for group {groupName}."));
                 }
             }
             if (exceptions.Count > 0)

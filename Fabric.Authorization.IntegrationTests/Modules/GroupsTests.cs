@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
+using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using Nancy;
 using Nancy.Testing;
@@ -453,7 +454,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         }
 
-        protected async Task<Guid> SetupRoleAsync(string roleName)
+        protected async Task<Role> SetupRoleAsync(string roleName)
         {
             var response = await Browser.Post("/roles", with =>
             {
@@ -468,22 +469,29 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
-            var id = response.Body.DeserializeJson<RoleApiModel>().Id;
+            var role = response.Body.DeserializeJson<RoleApiModel>();
+            var id = role.Id;
 
             if (id == null)
                 throw new Exception("Guid not generated.");
 
-            return id.Value;
+            return role.ToRoleDomainModel();
         }
 
-        protected async Task<BrowserResponse> SetupGroupRoleMappingAsync(string groupName, string roleId)
+        protected async Task<BrowserResponse> SetupGroupRoleMappingAsync(string groupName, Role role)
         {
             var response = await Browser.Post($"/groups/{groupName}/roles", with =>
             {
                 with.HttpRequest();
-                with.JsonBody(new
+                with.JsonBody(new[]
                 {
-                    Id = roleId
+                    new
+                    {
+                        role.Grain,
+                        role.SecurableItem,
+                        role.Name,
+                        role.Id
+                    }
                 });
             });
 
@@ -497,10 +505,10 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             string group1Name = "Group1Name" + Guid.NewGuid();
             string role1Name = "Role1Name" + Guid.NewGuid();
             await SetupGroupAsync(group1Name, "Custom");
-            var roleId = await SetupRoleAsync(role1Name);
-            var response = await SetupGroupRoleMappingAsync(group1Name, roleId.ToString());
+            var role = await SetupRoleAsync(role1Name);
+            var response = await SetupGroupRoleMappingAsync(group1Name, role);
 
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             response = await Browser.Get($"/groups/{group1Name}/roles", with =>
             {
@@ -518,10 +526,10 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             string group2Name = "Group2Name" + Guid.NewGuid();
             string role2Name = "Role2Name" + Guid.NewGuid();
             await SetupGroupAsync(group2Name, "Custom");
-            roleId = await SetupRoleAsync(role2Name);
-            response = await SetupGroupRoleMappingAsync(group2Name, roleId.ToString());
+            role = await SetupRoleAsync(role2Name);
+            response = await SetupGroupRoleMappingAsync(group2Name, role);
 
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             response = await Browser.Get($"/groups/{group2Name}/roles", with =>
             {
@@ -540,8 +548,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task AddRoleToGroup_NonExistentGroup_NotFoundAsync()
         {
-            var roleId = await SetupRoleAsync("RoleName");
-            var response = await SetupGroupRoleMappingAsync("NonexistentGroup", roleId.ToString());
+            var role = await SetupRoleAsync("RoleName");
+            var response = await SetupGroupRoleMappingAsync("NonexistentGroup", role);
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
@@ -551,29 +559,29 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             string group1Name = "Group1Name" + Guid.NewGuid();            
             await SetupGroupAsync(group1Name, "Custom");
             string role1Name = "Role1Name" + Guid.NewGuid();
-            var roleId = await SetupRoleAsync(role1Name);
-            var response = await SetupGroupRoleMappingAsync(group1Name, roleId.ToString());
+            var role = await SetupRoleAsync(role1Name);
+            var response = await SetupGroupRoleMappingAsync(group1Name, role);
 
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             // attempt to set up the same mapping (the API treats this as an update to the existing
             // group-role mapping)
-            response = await SetupGroupRoleMappingAsync(group1Name, roleId.ToString());
-            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
-            Assert.Contains($"Role {role1Name} already exists for group {group1Name}", response.Body.AsString());
+            response = await SetupGroupRoleMappingAsync(group1Name, role);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Contains($"The role: {role} with Id: {role.Id} already exists for group {group1Name}", response.Body.AsString());
         }
 
         [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task DeleteRoleFromGroup_GroupExists_SuccessAsync()
-        {
+        { 
             string group1Name = "Group1Name" + Guid.NewGuid();
             await SetupGroupAsync(group1Name, "Custom");
             string role1Name = "Role1Name" + Guid.NewGuid();
-            var roleId = await SetupRoleAsync(role1Name);
-            var response = await SetupGroupRoleMappingAsync(group1Name, roleId.ToString());
+            var role = await SetupRoleAsync(role1Name);
+            var response = await SetupGroupRoleMappingAsync(group1Name, role);
 
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             // delete the mapping
             response = await Browser.Delete($"/groups/{group1Name}/roles", with =>
@@ -581,7 +589,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.HttpRequest();
                 with.JsonBody(new
                 {
-                    Id = roleId.ToString()
+                    Id = role.ToString()
                 });
             });
 
@@ -1024,16 +1032,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var roleId = role.Id.ToString();
 
             // add role to group
-            postResponse = await Browser.Post($"/groups/{groupName}/roles", with =>
-            {
-                with.HttpRequest();
-                with.JsonBody(new
-                {
-                    Id = roleId
-                });
-            });
+            postResponse = await SetupGroupRoleMappingAsync(groupName, role.ToRoleDomainModel());
 
-            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, postResponse.StatusCode);
 
             // add permission
             postResponse = await Browser.Post("/permissions", with =>
@@ -1113,16 +1114,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var roleId = role.Id.ToString();
 
             // add role to group
-            postResponse = await Browser.Post($"/groups/{groupName}/roles", with =>
-            {
-                with.HttpRequest();
-                with.JsonBody(new
-                {
-                    Id = roleId
-                });
-            });
+            postResponse = await SetupGroupRoleMappingAsync(groupName, role.ToRoleDomainModel());
 
-            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, postResponse.StatusCode);
 
             // add permission
             postResponse = await Browser.Post("/permissions", with =>
