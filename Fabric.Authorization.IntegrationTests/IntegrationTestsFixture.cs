@@ -174,12 +174,18 @@ namespace Fabric.Authorization.IntegrationTests
             var groupRoleResponse = await browser.Post($"/groups/{group.GroupName}/roles", with =>
             {
                 with.HttpRequest();
-                with.JsonBody(new
+                with.JsonBody(new[]
                 {
-                    RoleId = role.Id
+                    new
+                    {
+                        role.Grain,
+                        role.SecurableItem,
+                        role.Name,
+                        role.Id
+                    }
                 });
             });
-            Assert.Equal(HttpStatusCode.Created, groupRoleResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, groupRoleResponse.StatusCode);
 
             var groupUserResponse = await browser.Post($"/groups/{group.GroupName}/users", with =>
             {
