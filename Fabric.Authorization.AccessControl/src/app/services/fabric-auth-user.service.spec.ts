@@ -14,7 +14,7 @@ fdescribe('FabricAuthUserService', () => {
   const idP = 'ad';
   const subjectId = 'sub123';
 
-  const mockUserGroupsResponse = [
+  const mockGroupsResponse = [
     {
       groupName: 'Group 1'
     },
@@ -23,7 +23,7 @@ fdescribe('FabricAuthUserService', () => {
     }
   ];
 
-  const mockUserRolesResponse = [
+  const mockRolesResponse = [
     {
       name: 'admin',
       grain: 'dos',
@@ -46,8 +46,8 @@ fdescribe('FabricAuthUserService', () => {
     name: 'First Last',
     identityProvider: idP,
     subjectId: subjectId,
-    groups: mockUserGroupsResponse,
-    roles: mockUserRolesResponse
+    groups: mockGroupsResponse,
+    roles: mockRolesResponse
   };
 
   beforeEach(() => {
@@ -73,7 +73,7 @@ fdescribe('FabricAuthUserService', () => {
 
         const req = httpTestingController.expectOne(encodeURI(`${FabricAuthUserService.baseUserApiUrl}/${idP}/${subjectId}/groups`));
         expect(req.request.method).toBe("GET");      
-        req.flush(mockUserGroupsResponse, {status: 200, statusText: 'OK'});        
+        req.flush(mockGroupsResponse, {status: 200, statusText: 'OK'});        
         httpTestingController.verify();
       })
     )
@@ -115,7 +115,7 @@ fdescribe('FabricAuthUserService', () => {
 
         const req = httpTestingController.expectOne(`${FabricAuthUserService.baseUserApiUrl}/${idP}/${subjectId}/roles`);
         expect(req.request.method).toBe("GET");      
-        req.flush(mockUserRolesResponse, {status: 200, statusText: 'OK'});        
+        req.flush(mockRolesResponse, {status: 200, statusText: 'OK'});        
         httpTestingController.verify();
       })
     )
@@ -193,12 +193,23 @@ fdescribe('FabricAuthUserService', () => {
         httpTestingController: HttpTestingController,
         service: FabricAuthUserService) => {
 
-        service.removeRolesFromUser(idP, subjectId, null).subscribe(returnedUser => {
+        let role1 = new Role('admin', 'dos', 'datamart');
+        role1.parentRole = 'admin_parent';
+
+        let role2 = new Role('superuser', 'dos', 'datamart');
+        role2.childRoles = ['dos_child1', 'dos_child2'];
+        let rolesArray: Role[] = new Array<Role>(role1, role2);
+
+        service.removeRolesFromUser(idP, subjectId, rolesArray).subscribe(returnedUser => {
           assertMockUserResponse(returnedUser);
         });
 
         const req = httpTestingController.expectOne(encodeURI(`${FabricAuthUserService.baseUserApiUrl}/${idP}/${subjectId}/roles`));
-        expect(req.request.method).toBe("DELETE");      
+        expect(req.request.method).toBe("DELETE");
+        expect(req.request.body).toBeDefined();
+
+        let requestBody = JSON.stringify(req.request.body);
+        expect(requestBody).toBe(JSON.stringify(rolesArray));
         req.flush(mockUserResponse, {status: 204, statusText: 'No Content'});
         httpTestingController.verify();
       })
