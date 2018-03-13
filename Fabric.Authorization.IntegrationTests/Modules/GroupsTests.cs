@@ -589,7 +589,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.HttpRequest();
                 with.JsonBody(new
                 {
-                    Id = role.ToString()
+                    Id = role.Id.ToString()
                 });
             });
 
@@ -611,13 +611,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task DeleteRoleFromGroup_NonExistentGroup_NotFoundAsync()
         {            
-            var roleId = await SetupRoleAsync("RoleName" + Guid.NewGuid());
+            var role = await SetupRoleAsync("RoleName" + Guid.NewGuid());
             var response = await Browser.Delete("/groups/invalidGroup/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
                 {
-                    Id = roleId.ToString()
+                    Id = role.Id.ToString()
                 });
             });
 

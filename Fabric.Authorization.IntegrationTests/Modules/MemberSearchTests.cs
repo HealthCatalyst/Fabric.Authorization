@@ -305,28 +305,44 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
+            var adminAtlasRole = adminAtlasRoleResponse.Body.DeserializeJson<RoleApiModel>();
+
             // add role to group
             response = await Browser.Post($"/groups/{AdminAtlasGroupName}/roles", with =>
             {
                 with.HttpRequest();
-                with.JsonBody(new
+                with.JsonBody(new[]
                 {
-                    Id = adminAtlasRoleResponse.Body.DeserializeJson<RoleApiModel>().Id.ToString()
+                    new
+                    {
+                        adminAtlasRole.Grain,
+                        adminAtlasRole.SecurableItem,
+                        adminAtlasRole.Name,
+                        adminAtlasRole.Id
+                    }
                 });
             });
 
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var userAtlasRole = userAtlasRoleResponse.Body.DeserializeJson<RoleApiModel>();
 
             response = await Browser.Post($"/groups/{UserAtlasGroupName}/roles", with =>
             {
                 with.HttpRequest();
-                with.JsonBody(new
+                with.JsonBody(new[]
                 {
-                    Id = userAtlasRoleResponse.Body.DeserializeJson<RoleApiModel>().Id.ToString()
+                    new
+                    {
+                        userAtlasRole.Grain,
+                        userAtlasRole.SecurableItem,
+                        userAtlasRole.Name,
+                        userAtlasRole.Id
+                    }
                 });
             });
 
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
 
             var subjectId = "atlas_user";

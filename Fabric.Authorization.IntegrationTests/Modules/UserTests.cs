@@ -300,13 +300,19 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             post = await browser.Post("/groups/DosGroup/roles", with =>
             {
                 with.HttpRequest();
-                with.JsonBody(new
+                with.JsonBody(new[]
                 {
-                    Id = dosDatamartRole.Identifier
+                    new
+                    {
+                        dosDatamartRole.Grain,
+                        dosDatamartRole.SecurableItem,
+                        dosDatamartRole.Name,
+                        dosDatamartRole.Id
+                    }
                 });
             });
 
-            Assert.Equal(HttpStatusCode.Created, post.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, post.StatusCode);
 
             var subjectId = "bob.smith";
             var idP = "Windows";
@@ -396,19 +402,26 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
-            var roleId = response.Body.DeserializeJson<RoleApiModel>().Id;
+            var role = response.Body.DeserializeJson<RoleApiModel>();
+            var roleId = role.Id;
 
             // add role to group
             response = await _browser.Post($"/groups/{groupName}/roles", with =>
             {
                 with.HttpRequest();
-                with.JsonBody(new
+                with.JsonBody(new[]
                 {
-                    Id = roleId.ToString()
+                    new
+                    {
+                        role.Grain,
+                        role.SecurableItem,
+                        role.Name,
+                        role.Id
+                    }
                 });
             });
 
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             // add 4 permissions
             response = await _browser.Post("/permissions", with =>
@@ -1138,18 +1151,30 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             await _browser.Post($"/groups/{Group1}/roles", with =>
             {
                 with.HttpRequest();
-                with.JsonBody(new
+                with.JsonBody(new[]
                 {
-                    Id = viewerRole.Identifier
+                    new
+                    {
+                        viewerRole.Grain,
+                        viewerRole.SecurableItem,
+                        viewerRole.Name,
+                        viewerRole.Id
+                    }
                 });
             });
 
             await _browser.Post($"/groups/{Group2}/roles", with =>
             {
                 with.HttpRequest();
-                with.JsonBody(new
+                with.JsonBody(new[]
                 {
-                    Id = editorRole.Identifier
+                    new
+                    {
+                        editorRole.Grain,
+                        editorRole.SecurableItem,
+                        editorRole.Name,
+                        editorRole.Id
+                    }
                 });
             });
 
@@ -1315,9 +1340,15 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             await _browser.Post($"/groups/{group}/roles", with =>
             {
                 with.HttpRequest();
-                with.JsonBody(new
+                with.JsonBody(new[]
                 {
-                    Id = hs.Identifier
+                    new
+                    {
+                        hs.Grain,
+                        hs.SecurableItem,
+                        hs.Name,
+                        hs.Id
+                    }
                 });
             });
 
@@ -1422,18 +1453,30 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             await _browser.Post($"/groups/{Group1}/roles", with =>
             {
                 with.HttpRequest();
-                with.JsonBody(new
+                with.JsonBody(new[]
                 {
-                    Id = viewerRole.Identifier
+                    new
+                    {
+                        viewerRole.Grain,
+                        viewerRole.SecurableItem,
+                        viewerRole.Name,
+                        viewerRole.Id
+                    }
                 });
             });
 
             await _browser.Post($"/groups/{Group2}/roles", with =>
             {
                 with.HttpRequest();
-                with.JsonBody(new
+                with.JsonBody(new[]
                 {
-                    Id = editorRole.Identifier
+                    new
+                    {
+                        editorRole.Grain,
+                        editorRole.SecurableItem,
+                        editorRole.Name,
+                        editorRole.Id
+                    }
                 });
             });
 
@@ -1536,18 +1579,30 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             await _browser.Post($"/groups/{Group1}/roles", with =>
             {
                 with.HttpRequest();
-                with.JsonBody(new
+                with.JsonBody(new[]
                 {
-                    Id = viewerRole.Identifier
+                    new
+                    {
+                        viewerRole.Grain,
+                        viewerRole.SecurableItem,
+                        viewerRole.Name,
+                        viewerRole.Id
+                    }
                 });
             });
 
             await _browser.Post($"/groups/{Group2}/roles", with =>
             {
                 with.HttpRequest();
-                with.JsonBody(new
+                with.JsonBody(new[]
                 {
-                    Id = editorRole.Identifier
+                    new
+                    {
+                        editorRole.Grain,
+                        editorRole.SecurableItem,
+                        editorRole.Name,
+                        editorRole.Id
+                    }
                 });
             });
 
@@ -1660,18 +1715,30 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             await _browser.Post($"/groups/{Group1}/roles", with =>
             {
                 with.HttpRequest();
-                with.JsonBody(new
+                with.JsonBody(new[]
                 {
-                    Id = viewerRole.Identifier
+                    new
+                    {
+                        viewerRole.Grain,
+                        viewerRole.SecurableItem,
+                        viewerRole.Name,
+                        viewerRole.Id
+                    }
                 });
             });
 
             await _browser.Post($"/groups/{Group2}/roles", with =>
             {
                 with.HttpRequest();
-                with.JsonBody(new
+                with.JsonBody(new[]
                 {
-                    Id = editorRole.Identifier
+                    new
+                    {
+                        editorRole.Grain,
+                        editorRole.SecurableItem,
+                        editorRole.Name,
+                        editorRole.Id
+                    }
                 });
             });
 
@@ -1794,13 +1861,19 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var groupRoleResponse = await _browser.Post($"/groups/{group.GroupName}/roles", with =>
             {
                 with.HttpRequest();
-                with.JsonBody(new
+                with.JsonBody(new[]
                 {
-                    role.Id
+                    new
+                    {
+                        role.Grain,
+                        role.SecurableItem,
+                        role.Name,
+                        role.Id
+                    }
                 });
             });
 
-            Assert.Equal(HttpStatusCode.Created, groupRoleResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, groupRoleResponse.StatusCode);
 
             var permissionRoleResponse = await _browser.Post($"/roles/{role.Id}/permissions", with =>
             {
