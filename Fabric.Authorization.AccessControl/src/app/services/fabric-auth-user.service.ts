@@ -47,8 +47,10 @@ export class FabricAuthUserService extends FabricBaseService {
   }
 
   public removeRolesFromUser(identityProvider: string, subjectId: string, roles: Role[]) : Observable<User> {
-    return this.httpClient
-      .delete<User>(this.replaceUserIdSegment(FabricAuthUserService.userRolesApiUrl, identityProvider, subjectId));
+    return this.httpClient.request<User>(
+      'DELETE',
+      this.replaceUserIdSegment(FabricAuthUserService.userRolesApiUrl, identityProvider, subjectId),
+      {body: roles});
   }
 
   public createUser(user: User) : Observable<User>{
