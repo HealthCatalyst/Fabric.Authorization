@@ -213,5 +213,29 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             return group;
         }
+
+        public async Task<Group> AddRolesToGroup(Group group, IEnumerable<Role> rolesToAdd)
+        {
+            var groupEntity = await _authorizationDbContext.Groups.SingleOrDefaultAsync(g =>
+                g.Name.Equals(group.Name, StringComparison.OrdinalIgnoreCase)
+                && !g.IsDeleted);
+
+            if (groupEntity == null)
+            {
+                throw new NotFoundException<Group>($"Could not find {typeof(Group).Name} entity with ID {group.Name}");
+            }
+
+            foreach (var role in rolesToAdd)
+            {           
+                group.Roles.Add(role);
+                _authorizationDbContext.GroupRoles.Add(new GroupRole
+                {
+                    GroupId = groupEntity.GroupId,
+                    RoleId = role.Id
+                });
+            }
+            await _authorizationDbContext.SaveChangesAsync();
+            return group;
+        }
     }
 }

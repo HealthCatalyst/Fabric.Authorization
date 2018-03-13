@@ -154,5 +154,10 @@ namespace Fabric.Authorization.Persistence.CouchDb.Stores
             await Update(group);
             return group;
         }
+
+        public Task<Group> AddRolesToGroup(Group @group, IEnumerable<Role> rolesToAdd)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

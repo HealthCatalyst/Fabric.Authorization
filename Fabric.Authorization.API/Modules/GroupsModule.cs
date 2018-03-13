@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
@@ -19,15 +20,27 @@ namespace Fabric.Authorization.API.Modules
     public class GroupsModule : FabricModule<Group>
     {
         private readonly GroupService _groupService;
+        private readonly ClientService _clientService;
+        private readonly GrainService _grainService;
+
+        public static string InvalidRoleArrayMessage =
+            "No roles present in payload, please ensure you are posting an array of RoleApiModels.";
+
+        public static string InvalidRoleApiModelMessage =
+            "The role: {0} is missing an Id, Grain or SecurableItem and cannot be added";
 
         public GroupsModule(
             GroupService groupService,
             GroupValidator validator,
             ILogger logger,
             AccessService accessService,
+            ClientService clientService,
+            GrainService grainService,
             IPropertySettings propertySettings = null) : base("/v1/groups", logger, validator, accessService, propertySettings)
         {
             _groupService = groupService;
+            _clientService = clientService;
+            _grainService = grainService;
 
             base.Get("/{groupName}",
                 async p => await this.GetGroup(p).ConfigureAwait(false),
@@ -56,9 +69,9 @@ namespace Fabric.Authorization.API.Modules
                 "GetRolesFromGroup");
 
             Post("/{groupName}/roles",
-                async _ => await AddRoleToGroup().ConfigureAwait(false),
+                async p => await AddRolesToGroup(p).ConfigureAwait(false),
                 null,
-                "AddRoleToGroup");
+                "AddRolesToGroup");
 
             Delete("/{groupName}/roles",
                 async _ => await DeleteRoleFromGroup().ConfigureAwait(false),
@@ -165,38 +178,37 @@ namespace Fabric.Authorization.API.Modules
             }
         }
 
-        private async Task<dynamic> AddRoleToGroup()
+        private async Task<dynamic> AddRolesToGroup(dynamic parameters)
         {
+            var apiRoles = this.Bind<List<RoleApiModel>>();
+            var errorResponse = await ValidateRoles(apiRoles);
+            if (errorResponse != null)
+            {
+                return errorResponse;
+            }
+
+            foreach (var roleApiModel in apiRoles)
+            {
+                await CheckWriteAccess(_clientService, _grainService, roleApiModel.Grain, roleApiModel.SecurableItem);
+            }
+
+            var domainRoles = apiRoles.Select(r => r.ToRoleDomainModel()).ToList();
             try
             {
-                this.RequiresClaims(AuthorizationWriteClaim);
-                var groupRoleRequest = this.Bind<GroupRoleRequest>();
-                if (groupRoleRequest.Id == null && groupRoleRequest.RoleId == null)
-                {
-                    return CreateFailureResponse("Role ID is required.", HttpStatusCode.BadRequest);
-                }
-
-                var roleId = groupRoleRequest.Id ?? groupRoleRequest.RoleId;
-                var group = await _groupService.AddRoleToGroup(groupRoleRequest.GroupName, roleId.Value);
-                return CreateSuccessfulPostResponse(group.ToGroupRoleApiModel());
+                Group group = await _groupService.AddRolesToGroup(domainRoles, parameters.groupName);
+                return CreateSuccessfulPostResponse(group.Name, group,
+                    HttpStatusCode.OK);
             }
-            catch (NotFoundException<Group> ex)
+            catch (NotFoundException<Group>)
             {
-                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
+                return CreateFailureResponse(
+                    $"Group with name {parameters.groupName} was not found",
+                    HttpStatusCode.NotFound);
             }
-            catch (NotFoundException<Role> ex)
+            catch (AggregateException ex)
             {
-                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
+                return CreateFailureResponse(ex, HttpStatusCode.BadRequest);
             }
-            catch (AlreadyExistsException<Role> ex)
-            {
-                return CreateFailureResponse(ex.Message, HttpStatusCode.Conflict);
-            }
-        }
-
-        private async Task<dynamic> AddRolesToGroup()
-        {
-            
         }
 
         private async Task<dynamic> DeleteRoleFromGroup()
@@ -320,6 +332,25 @@ namespace Fabric.Authorization.API.Modules
                 return CreateFailureResponse("identityProvider is required", HttpStatusCode.BadRequest);
             }
 
+            return null;
+        }
+
+        private async Task<Negotiator> ValidateRoles(List<RoleApiModel> apiRoles)
+        {
+            if (apiRoles.Count == 0)
+            {
+                return await CreateFailureResponse(
+                    InvalidRoleArrayMessage, HttpStatusCode.BadRequest);
+            }
+
+            var messages = apiRoles.Where(r => !r.Id.HasValue || r.Id.Value == Guid.Empty || string.IsNullOrEmpty(r.Grain) ||
+                                               string.IsNullOrEmpty(r.SecurableItem))
+                .Select(r => String.Format(InvalidRoleApiModelMessage, r.Name)).ToList();
+
+            if (messages.Any())
+            {
+                return await CreateFailureResponse(messages, HttpStatusCode.BadRequest);
+            }
             return null;
         }
     }

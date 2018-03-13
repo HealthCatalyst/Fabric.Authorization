@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
@@ -134,6 +135,11 @@ namespace Fabric.Authorization.Persistence.InMemory.Stores
             await _userStore.Update(user);
             await Update(group);
             return group;
+        }
+
+        public Task<Group> AddRolesToGroup(Group @group, IEnumerable<Role> rolesToAdd)
+        {
+            throw new NotImplementedException();
         }
     }
 }

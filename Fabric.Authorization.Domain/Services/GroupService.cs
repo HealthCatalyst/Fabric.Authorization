@@ -166,5 +166,38 @@ namespace Fabric.Authorization.Domain.Services
 
             return await _groupStore.DeleteUserFromGroup(group, user);
         }
+
+        public async Task<Group> AddRolesToGroup(IList<Role> rolesToAdd, string groupName)
+        {
+            var group = await _groupStore.Get(groupName);
+            var grainSecurableItems = rolesToAdd.Select(r => new Tuple<string, string>(r.Grain, r.SecurableItem))
+                .Distinct();
+            var existingRoles = new List<Role>();
+            foreach (var tuple in grainSecurableItems)
+            {
+                existingRoles.AddRange(await _roleStore.GetRoles(tuple.Item1, tuple.Item2));
+            }
+
+            var exceptions = new List<Exception>();
+            foreach (var role in rolesToAdd)
+            {
+                if (existingRoles.All(r => r.Id != role.Id))
+                {
+                    exceptions.Add(new NotFoundException<Role>($"The role: {role} with Id: {role.Id} could not be found to add to the group."));
+                }
+                if (group.Roles.Any(r => r.Id == role.Id))
+                {
+                    exceptions.Add(
+                        new AlreadyExistsException<Role>(
+                            $"The role: {role} with Id: {role.Id} already exists for the group."));
+                }
+            }
+            if (exceptions.Count > 0)
+            {
+                throw new AggregateException("There was an issue adding roles to the group. Please see the inner exception(s) for details.", exceptions);
+            }
+
+            return await _groupStore.AddRolesToGroup(group, rolesToAdd);
+        }
     }
 }
