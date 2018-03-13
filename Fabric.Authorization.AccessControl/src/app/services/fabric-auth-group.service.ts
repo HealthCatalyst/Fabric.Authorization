@@ -43,8 +43,10 @@ export class FabricAuthGroupService extends FabricBaseService {
   }
 
   public removeUserFromCustomGroup(groupName: string, user: User) : Observable<Group> {
-    return this.httpClient
-      .delete<Group>(this.replaceGroupNameSegment(FabricAuthGroupService.groupUsersApiUrl, groupName));
+    return this.httpClient.request<Group>(
+      'DELETE',
+      this.replaceGroupNameSegment(FabricAuthGroupService.groupUsersApiUrl, groupName),
+      {body: user});
   }
 
   public getGroupRoles(groupName: string, grain?: string, securableItem?: string): Observable<Role[]> {
@@ -68,8 +70,10 @@ export class FabricAuthGroupService extends FabricBaseService {
   }
 
   public removeRoleFromGroup(groupName: string, role: Role) : Observable<Group> {
-    return this.httpClient
-      .delete<Group>(this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName));
+    return this.httpClient.request<Group>(
+      'DELETE',
+      this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName),
+      {body: role});
   }
 
   public createGroup(group: Group) : Observable<Group>{
