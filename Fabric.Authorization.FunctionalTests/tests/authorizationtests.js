@@ -269,7 +269,7 @@ describe("authorization tests", function () {
                     return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupHcViewer.groupName) + "/roles", [role[0]], authRequestOptions);
                 })
                 .then(function (postResponse) {
-                    expect(postResponse).to.have.status(201);
+                    expect(postResponse).to.have.status(200);
                 });
         });
 
@@ -286,7 +286,7 @@ describe("authorization tests", function () {
                     return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupHcEditor.groupName) + "/roles", [role[0]], authRequestOptions);
                 })
                 .then(function (postResponse) {
-                    expect(postResponse).to.have.status(201);
+                    expect(postResponse).to.have.status(200);
                 });
         });
 
@@ -303,7 +303,7 @@ describe("authorization tests", function () {
                     return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupHcAdmin.groupName) + "/roles", [role[0]], authRequestOptions);
                 })
                 .then(function (postResponse) {
-                    expect(postResponse).to.have.status(201);
+                    expect(postResponse).to.have.status(200);
                 });
         });
 
@@ -320,7 +320,7 @@ describe("authorization tests", function () {
                     return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupNonCustom.groupName) + "/roles", [role[0]], authRequestOptions);
                 })
                 .then(function (postResponse) {
-                    expect(postResponse).to.have.status(201);
+                    expect(postResponse).to.have.status(200);
                 });
         });
     });
