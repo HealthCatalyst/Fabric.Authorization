@@ -380,7 +380,7 @@ $body = @'
 {
 	"name":"authorization-api",
 	"userClaims":["name","email","role","groups"],
-	"scopes":[{"name":"fabric/authorization.read"}, {"name":"fabric/authorization.write"}, {"name":"fabric/authorization.manageclients"}]
+	"scopes":[{"name":"fabric/authorization.read"}, {"name":"fabric/authorization.write"}, {"name":"fabric/authorization.dos.write"}, {"name":"fabric/authorization.manageclients"}]
 }
 '@
 
