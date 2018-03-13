@@ -62,11 +62,6 @@ export class FabricAuthGroupService extends FabricBaseService {
       .get<Role[]>(this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName), {params});
   }
 
-  public addRoleToGroup(groupName: string, role: Role) : Observable<Group> {
-    return this.httpClient
-      .post<Group>(this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName), role);
-  }
-
   public addRolesToGroup(groupName: string, roles: Array<Role>): Observable<Group>{
     return this.httpClient
       .post<Group>(this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName), roles);

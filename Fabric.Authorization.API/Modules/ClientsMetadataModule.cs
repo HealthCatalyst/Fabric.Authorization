@@ -26,6 +26,8 @@ namespace Fabric.Authorization.API.Modules
             : base(modelCatalog, tagCatalog)
         {
             modelCatalog.AddModels(
+                typeof(Guid),
+                typeof(Guid?),
                 typeof(SecurableItemApiModel),
                 typeof(DateTime?),
                 typeof(InnerError));

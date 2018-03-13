@@ -72,6 +72,9 @@ namespace Fabric.Authorization.API.Modules
             modelCatalog.AddModels(
                 typeof(GroupRoleApiModel),
                 typeof(GroupUserApiModel),
+                typeof(PermissionApiModel),
+                typeof(PermissionAction),
+                typeof(RoleApiModel),
                 typeof(UserApiModel));
 
             RouteDescriber.DescribeRouteWithParams(
@@ -252,15 +255,15 @@ namespace Fabric.Authorization.API.Modules
                 }).SecurityRequirement(OAuth2ReadScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
-                "AddRoleToGroup",
+                "AddRolesToGroup",
                 "",
-                "Adds a role to a group",
+                "Adds a collection of roles to a group",
                 new List<HttpResponseMetadata>
                 {
                     new HttpResponseMetadata<GroupRoleApiModel>
                     {
-                        Code = (int) HttpStatusCode.Created,
-                        Message = "Created"
+                        Code = (int) HttpStatusCode.OK,
+                        Message = "Roles added to group"
                     },
                     new HttpResponseMetadata
                     {
@@ -277,10 +280,15 @@ namespace Fabric.Authorization.API.Modules
                         Code = (int) HttpStatusCode.Conflict,
                         Message = "Role with specified name already exists for the group"
                     },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.Forbidden,
+                        Message = "User does not have access to add the specified roles."
+                    },
                     new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.BadRequest,
-                        Message = "Role Id was missing."
+                        Message = "List of roles in body failed validation"
                     },
                     new HttpResponseMetadata<Error>
                     {
@@ -290,8 +298,12 @@ namespace Fabric.Authorization.API.Modules
                 },
                 new[]
                 {
-                    _groupNameParameter,
-                    _roleIdParameter
+                    _groupNameParameter,                    
+                    new BodyParameter<List<RoleApiModel>>(modelCatalog)
+                    {
+                        Name = "Roles",
+                        Description = "The roles to add"
+                    }
                 },
                 new[]
                 {

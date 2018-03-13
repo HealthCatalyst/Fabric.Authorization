@@ -4,9 +4,7 @@ export class FabricPrincipal {
     public firstName: string;
     public middleName: string;
     public lastName: string;
-    public principalType: string;
-
-    public name = `${this.firstName} ${this.middleName} ${this.lastName}`
+    public principalType: string;    
 
     constructor() { }
 }
