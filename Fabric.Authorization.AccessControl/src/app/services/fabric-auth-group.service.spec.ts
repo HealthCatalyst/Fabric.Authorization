@@ -152,12 +152,18 @@ fdescribe('FabricAuthGroupService', () => {
         httpTestingController: HttpTestingController,
         service: FabricAuthGroupService) => {
 
-        service.removeUserFromCustomGroup(groupName, null).subscribe(returnedGroup => {
+        let user = new User('idp', 'sub');
+
+        service.removeUserFromCustomGroup(groupName, user).subscribe(returnedGroup => {
           assertMockGroupResponse(returnedGroup);
         });
 
         const req = httpTestingController.expectOne(encodeURI(`${FabricAuthGroupService.baseGroupApiUrl}/${groupName}/users`));
-        expect(req.request.method).toBe("DELETE");  
+        expect(req.request.method).toBe("DELETE");
+        expect(req.request.body).toBeDefined();
+
+        let requestBody = JSON.stringify(req.request.body);
+        expect(requestBody).toBe(JSON.stringify(user));
         req.flush(mockGroupResponse, {status: 204, statusText: 'No Content'});        
         httpTestingController.verify();
       })
@@ -229,14 +235,14 @@ fdescribe('FabricAuthGroupService', () => {
     )
   );
 
-  it('addRoleToGroup should deserialize all properties',
+  it('addRolesToGroup should deserialize all properties',
     async(  
       inject([HttpClient, HttpTestingController, FabricAuthGroupService], (
         httpClient: HttpClient,
         httpTestingController: HttpTestingController,
         service: FabricAuthGroupService) => {
         
-        service.addRoleToGroup(groupName, null).subscribe(returnedGroup => {
+        service.addRolesToGroup(groupName, null).subscribe(returnedGroup => {
           assertMockGroupResponse(returnedGroup);
         });
 
@@ -248,14 +254,14 @@ fdescribe('FabricAuthGroupService', () => {
     )
   );
 
-  it('addRoleToGroup error should be caught',
+  it('addRolesToGroup error should be caught',
     async(  
       inject([HttpClient, HttpTestingController, FabricAuthGroupService], (
         httpClient: HttpClient,
         httpTestingController: HttpTestingController,
         service: FabricAuthGroupService) => {
 
-        service.addRoleToGroup(groupName, null).catch(error => {
+        service.addRolesToGroup(groupName, null).catch(error => {
           expect(Observable.of(error)).toBeTruthy();
           expect(error.statusCode).toBe(404);
           expect(error.message).toBe('Group not found');
@@ -278,12 +284,19 @@ fdescribe('FabricAuthGroupService', () => {
         httpTestingController: HttpTestingController,
         service: FabricAuthGroupService) => {
 
-        service.removeRoleFromGroup(groupName, null).subscribe(returnedGroup => {
+        let role = new Role('admin', 'dos', 'datamart');
+        role.parentRole = 'admin_parent';
+
+        service.removeRoleFromGroup(groupName, role).subscribe(returnedGroup => {
           assertMockGroupResponse(returnedGroup);
         });
 
         const req = httpTestingController.expectOne(encodeURI(`${FabricAuthGroupService.baseGroupApiUrl}/${groupName}/roles`));
-        expect(req.request.method).toBe("DELETE");      
+        expect(req.request.method).toBe("DELETE");
+        expect(req.request.body).toBeDefined();
+
+        let requestBody = JSON.stringify(req.request.body);
+        expect(requestBody).toBe(JSON.stringify(role));
         req.flush(mockGroupResponse, {status: 204, statusText: 'No Content'});        
         httpTestingController.verify();
       })
