@@ -1,0 +1,21 @@
+.selected {
+    background-color:#D3D3D3;    
+  }
+
+ul {
+    list-style-type: none;
+    padding: 0;
+    width: 15em;
+}
+
+li {
+    cursor: pointer;
+}
+
+li.selected:hover{
+    background-color:#D3D3D3;
+}
+
+li:hover{
+    background-color: #D3D3D3;
+}

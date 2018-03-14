@@ -1,6 +1,7 @@
 import { NgModule, ModuleWithProviders } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
 
 import { AccessControlRoutingModule } from './access-control-routing.module';
 import { FabricBaseService, 
@@ -18,7 +19,8 @@ import { CustomGroupAddComponent } from './custom-group-add/custom-group-add.com
 @NgModule({
   imports: [
     CommonModule,
-    AccessControlRoutingModule
+    AccessControlRoutingModule,
+    FormsModule
   ],
   declarations: [MemberListComponent, MemberAddComponent, CustomGroupAddComponent],  
   providers: [

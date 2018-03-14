@@ -17,7 +17,6 @@ import {  FabricPrincipal,
 })
 export class MemberAddComponent implements OnInit {
 
-  private grain: string = 'app';
   public searchInput: string;
   public principals: Array<FabricPrincipal>;
   public selectedPrincipal: FabricPrincipal;
@@ -42,8 +41,7 @@ export class MemberAddComponent implements OnInit {
     if(searchText.length < 2) {
       return;
     }
-    var request = new IdPSearchRequest();
-    request.searchText = searchText;
+    var request = new IdPSearchRequest(searchText);
 
     this.idpSearchService.searchExternalIdP(request)
     .subscribe(result => {
@@ -68,7 +66,7 @@ export class MemberAddComponent implements OnInit {
   }
 
   getRoles(){
-    this.roleService.getRolesBySecurableItemAndGrain(this.grain, this.configService.clientId)
+    this.roleService.getRolesBySecurableItemAndGrain(this.configService.grain, this.configService.securableItem)
       .subscribe(roleResults => {
         this.roles = roleResults;
       });
