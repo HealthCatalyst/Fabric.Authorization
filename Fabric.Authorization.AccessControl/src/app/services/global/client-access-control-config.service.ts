@@ -11,8 +11,8 @@ export class ClientAccessControlConfigService implements AccessControlConfigServ
 
   clientId = 'fabric-angularsample';
   identityProvider = 'windows';
-  grain: 'app';
-  securableItem: 'fabric-angularsample';
+  grain = 'app';
+  securableItem = 'fabric-angularsample';
   
   getAccessToken(){
      return this.authService.getUser()
