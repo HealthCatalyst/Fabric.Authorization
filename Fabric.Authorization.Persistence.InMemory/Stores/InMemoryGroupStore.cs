@@ -141,5 +141,10 @@ namespace Fabric.Authorization.Persistence.InMemory.Stores
         {
             throw new NotImplementedException();
         }
+
+        public Task<Group> AddUsersToGroup(Group @group, IEnumerable<User> usersToAdd)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
