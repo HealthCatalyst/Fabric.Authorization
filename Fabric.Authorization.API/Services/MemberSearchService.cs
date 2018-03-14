@@ -101,7 +101,11 @@ namespace Fabric.Authorization.API.Services
             var users = groupsMappedToClientRoles
                 .Where(g => g.Users != null && g.Users.Count > 0)
                 .SelectMany(g => g.Users)
-                .DistinctBy(u => u.SubjectId);
+                .DistinctBy(u => u.SubjectId)
+                .ToList();
+
+           users.AddRange(clientRoleEntities
+               .SelectMany(r => r.Users));
 
             var userList = new List<MemberSearchResponse>();
 
