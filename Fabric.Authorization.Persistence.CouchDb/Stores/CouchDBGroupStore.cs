@@ -159,5 +159,10 @@ namespace Fabric.Authorization.Persistence.CouchDb.Stores
         {
             throw new NotImplementedException();
         }
+
+        public Task<Group> AddUsersToGroup(Group @group, IEnumerable<User> usersToAdd)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

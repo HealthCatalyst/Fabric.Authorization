@@ -165,6 +165,30 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return group;
         }
 
+        public async Task<Group> AddRolesToGroup(Group group, IEnumerable<Role> rolesToAdd)
+        {
+            var groupEntity = await _authorizationDbContext.Groups.SingleOrDefaultAsync(g =>
+                g.Name.Equals(group.Name, StringComparison.OrdinalIgnoreCase)
+                && !g.IsDeleted);
+
+            if (groupEntity == null)
+            {
+                throw new NotFoundException<Group>($"Could not find {typeof(Group).Name} entity with ID {group.Name}");
+            }
+
+            foreach (var role in rolesToAdd)
+            {
+                group.Roles.Add(role);
+                _authorizationDbContext.GroupRoles.Add(new GroupRole
+                {
+                    GroupId = groupEntity.GroupId,
+                    RoleId = role.Id
+                });
+            }
+            await _authorizationDbContext.SaveChangesAsync();
+            return group;
+        }
+
         public async Task<Group> DeleteRoleFromGroup(Group group, Role role)
         {
             var groupRoleToRemove = await _authorizationDbContext.GroupRoles
@@ -196,6 +220,31 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return group;
         }
 
+        public async Task<Group> AddUsersToGroup(Group @group, IEnumerable<User> usersToAdd)
+        {
+            var groupEntity = await _authorizationDbContext.Groups.SingleOrDefaultAsync(g =>
+                g.Name.Equals(group.Name, StringComparison.OrdinalIgnoreCase)
+                && !g.IsDeleted);
+
+            if (groupEntity == null)
+            {
+                throw new NotFoundException<Group>($"Could not find {typeof(Group).Name} entity with ID {group.Name}");
+            }
+
+            foreach (var user in usersToAdd)
+            {
+                group.Users.Add(user);
+                _authorizationDbContext.GroupUsers.Add(new GroupUser
+                {
+                    GroupId = groupEntity.GroupId,
+                    IdentityProvider = user.IdentityProvider,
+                    SubjectId = user.SubjectId
+                });
+            }
+            await _authorizationDbContext.SaveChangesAsync();
+            return group;
+        }
+
         public async Task<Group> DeleteUserFromGroup(Group group, User user)
         {
             var userInGroup = await _authorizationDbContext.GroupUsers
@@ -211,30 +260,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 await _authorizationDbContext.SaveChangesAsync();
             }
 
-            return group;
-        }
-
-        public async Task<Group> AddRolesToGroup(Group group, IEnumerable<Role> rolesToAdd)
-        {
-            var groupEntity = await _authorizationDbContext.Groups.SingleOrDefaultAsync(g =>
-                g.Name.Equals(group.Name, StringComparison.OrdinalIgnoreCase)
-                && !g.IsDeleted);
-
-            if (groupEntity == null)
-            {
-                throw new NotFoundException<Group>($"Could not find {typeof(Group).Name} entity with ID {group.Name}");
-            }
-
-            foreach (var role in rolesToAdd)
-            {           
-                group.Roles.Add(role);
-                _authorizationDbContext.GroupRoles.Add(new GroupRole
-                {
-                    GroupId = groupEntity.GroupId,
-                    RoleId = role.Id
-                });
-            }
-            await _authorizationDbContext.SaveChangesAsync();
             return group;
         }
     }
