@@ -190,14 +190,17 @@ namespace Fabric.Authorization.IntegrationTests
             var groupUserResponse = await browser.Post($"/groups/{group.GroupName}/users", with =>
             {
                 with.HttpRequest();
-                with.JsonBody(new
+                with.JsonBody(new[]
                 {
-                    group.GroupName,
-                    SubjectId = user,
-                    IdentityProvider = identityProvider
+                    new
+                    {
+                        group.GroupName,
+                        SubjectId = user,
+                        IdentityProvider = identityProvider
+                    }
                 });
             });
-            Assert.Equal(HttpStatusCode.Created, groupUserResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, groupUserResponse.StatusCode);
         }
 
         public class DisplayTestMethodNameAttribute : BeforeAfterTestAttribute

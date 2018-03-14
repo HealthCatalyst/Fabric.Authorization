@@ -329,7 +329,7 @@ describe("authorization tests", function () {
         it("should return 400 when no subjectId provided", function () {
             authRequestOptions.headers.Authorization = funcTestAuthClientAccessToken;
 
-            return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupHcEditor.groupName) + "/users", { "identityProvider": "Windows" }, authRequestOptions)
+            return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupHcEditor.groupName) + "/users", [{ "identityProvider": "Windows" }], authRequestOptions)
                 .then(function (postResponse) {
                     expect(postResponse).to.have.status(400);
                 });
@@ -338,7 +338,7 @@ describe("authorization tests", function () {
         it("should return 400 when no identityProvider provided", function () {
             authRequestOptions.headers.Authorization = funcTestAuthClientAccessToken;
 
-            return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupHcEditor.groupName) + "/users", { "subjectId": "first.last@gmail.com" }, authRequestOptions)
+            return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupHcEditor.groupName) + "/users", [{ "subjectId": "first.last@gmail.com" }], authRequestOptions)
                 .then(function (postResponse) {
                     expect(postResponse).to.have.status(400);
                 });
@@ -347,7 +347,7 @@ describe("authorization tests", function () {
         it("should return 400 when associating user with non-custom group", function () {
             authRequestOptions.headers.Authorization = funcTestAuthClientAccessToken;
 
-            return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupNonCustom.groupName) + "/users", userBob, authRequestOptions)
+            return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupNonCustom.groupName) + "/users", [userBob], authRequestOptions)
                 .then(function (postResponse) {
                     expect(postResponse).to.have.status(400);
                 });
@@ -356,9 +356,9 @@ describe("authorization tests", function () {
         it("should associate user with group HC Admin", function () {
             authRequestOptions.headers.Authorization = funcTestAuthClientAccessToken;
 
-            return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupHcAdmin.groupName) + "/users", userBob, authRequestOptions)
+            return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupHcAdmin.groupName) + "/users", [userBob], authRequestOptions)
                 .then(function (postResponse) {
-                    expect(postResponse).to.have.status(201);
+                    expect(postResponse).to.have.status(200);
                 });
         });
     });

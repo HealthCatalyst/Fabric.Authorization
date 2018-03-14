@@ -663,10 +663,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
-                with.JsonBody(new
+                with.JsonBody(new[]
                 {
-                    SubjectId = subjectId,
-                    IdentityProvider = identityProvider
+                    new
+                    {
+                        SubjectId = subjectId,
+                        IdentityProvider = identityProvider
+                    }
                 });
             });
 
@@ -684,7 +687,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             await SetupGroupAsync(group1Name, "Custom");
             var response = await SetupGroupUserMappingAsync(group1Name, user1SubjectId, identityProvider);
 
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             response = await Browser.Get($"/groups/{group1Name}/users", with =>
             {
@@ -706,11 +709,11 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             // link user 2 to group 1
             response = await SetupGroupUserMappingAsync(group1Name, user2SubjectId, identityProvider);
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             // link user 2 to group 2
             response = await SetupGroupUserMappingAsync(group2Name, user2SubjectId, identityProvider);
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             // get users for group 1
             response = await Browser.Get($"/groups/{group1Name}/users", with =>
@@ -798,7 +801,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             await SetupGroupAsync(group1Name, "Custom");
             var response = await SetupGroupUserMappingAsync(group1Name, subject1Id, identityProvider);
 
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             // attempt to set up the same mapping (the API treats this as an update to the existing
             // group-user mapping)
@@ -829,7 +832,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             const string identityProvider = "idP1";
             var response = await SetupGroupUserMappingAsync(group1Name, subject1Id, identityProvider);
 
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             // delete the mapping
             response = await Browser.Delete($"/groups/{group1Name}/users", with =>
@@ -916,7 +919,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             string identityProvider = "idP1" + Guid.NewGuid();
             var response = await SetupGroupUserMappingAsync(group1Name, subject1Id, identityProvider);
 
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             // attempt to delete the mapping
             response = await Browser.Delete($"/groups/{group1Name}/users", with =>
@@ -941,7 +944,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             string identityProvider = "idP1" + Guid.NewGuid();
             var response = await SetupGroupUserMappingAsync(group1Name, subject1Id, identityProvider);
 
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             // attempt to delete the mapping
             response = await Browser.Delete($"/groups/{group1Name}/users", with =>

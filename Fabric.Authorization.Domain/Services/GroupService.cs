@@ -91,82 +91,6 @@ namespace Fabric.Authorization.Domain.Services
             return await _groupStore.Exists(id).ConfigureAwait(false);
         }
 
-        public async Task<Group> AddRoleToGroup(string groupName, Guid roleId)
-        {
-            var group = await _groupStore.Get(groupName);
-            var role = await _roleStore.Get(roleId);
-
-            if (group.Roles.Any(r => r.Id == roleId)
-                || role.Groups.Any(g => string.Equals(g, groupName, StringComparison.OrdinalIgnoreCase)))
-            {
-                throw new AlreadyExistsException<Role>($"Role {role.Name} already exists for group {group.Name}. Please provide a new role id.");
-            }
-
-            return await _groupStore.AddRoleToGroup(group, role);
-        }
-
-        public async Task<Group> DeleteRoleFromGroup(string groupName, Guid roleId)
-        {
-            var group = await _groupStore.Get(groupName);
-            var role = await _roleStore.Get(roleId);
-
-            var groupRole = group.Roles.FirstOrDefault(r => r.Id == role.Id);
-            if (groupRole != null)
-            {
-                group.Roles.Remove(groupRole);
-            }
-
-            return await _groupStore.DeleteRoleFromGroup(group, role);
-        }
-
-        public async Task<Group> AddUserToGroup(string groupName, string subjectId, string identityProvider)
-        {
-            var group = await _groupStore.Get(groupName);
-
-            //only add users to a custom group
-            if (!string.Equals(group.Source, GroupConstants.CustomSource, StringComparison.OrdinalIgnoreCase))
-            {
-                throw new BadRequestException<Group>("The group to which you are attempting to add a user is not specified as a 'Custom' group. Only 'Custom' groups allow associations with users.");
-            }
-
-            User user;
-            try
-            {
-                user = await _userStore.Get($"{subjectId}:{identityProvider}");
-            }
-            catch (NotFoundException<User>)
-            {
-                user = await _userStore.Add(new User(subjectId, identityProvider));
-            }
-
-            if (!group.Users.Any(u =>
-                string.Equals(u.SubjectId, subjectId, StringComparison.OrdinalIgnoreCase)
-                && string.Equals(u.IdentityProvider, identityProvider, StringComparison.OrdinalIgnoreCase)))
-            {
-                group.Users.Add(user);
-            }
-            else
-            {
-                throw new AlreadyExistsException<Group>($"The user {identityProvider}:{subjectId} has already been added to the group {groupName}.");
-            }
-
-            return await _groupStore.AddUserToGroup(group, user);
-        }
-
-        public async Task<Group> DeleteUserFromGroup(string groupName, string subjectId, string identityProvider)
-        {
-            var group = await _groupStore.Get(groupName);
-            var user = await _userStore.Get($"{subjectId}:{identityProvider}");
-
-            var groupUser = group.Users.FirstOrDefault(u => u.Id == user.Id);
-            if (groupUser != null)
-            {
-                group.Users.Remove(groupUser);
-            }
-
-            return await _groupStore.DeleteUserFromGroup(group, user);
-        }
-
         public async Task<Group> AddRolesToGroup(IList<Role> rolesToAdd, string groupName)
         {
             var group = await _groupStore.Get(groupName);
@@ -198,6 +122,75 @@ namespace Fabric.Authorization.Domain.Services
             }
 
             return await _groupStore.AddRolesToGroup(group, rolesToAdd);
+        }
+
+        public async Task<Group> DeleteRoleFromGroup(string groupName, Guid roleId)
+        {
+            var group = await _groupStore.Get(groupName);
+            var role = await _roleStore.Get(roleId);
+
+            var groupRole = group.Roles.FirstOrDefault(r => r.Id == role.Id);
+            if (groupRole != null)
+            {
+                group.Roles.Remove(groupRole);
+            }
+
+            return await _groupStore.DeleteRoleFromGroup(group, role);
+        }
+
+        public async Task<Group> AddUsersToGroup(string groupName, IList<User> usersToAdd)
+        {
+            var group = await _groupStore.Get(groupName);
+
+            // only add users to a custom group
+            if (!string.Equals(group.Source, GroupConstants.CustomSource, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new BadRequestException<Group>("The group to which you are attempting to add a user is not specified as a 'Custom' group. Only 'Custom' groups allow associations with users.");
+            }
+
+            var exceptions = new List<Exception>();
+            foreach (var user in usersToAdd)
+            {
+                if (!group.Users.Any(u =>
+                    string.Equals(u.SubjectId, user.SubjectId, StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(u.IdentityProvider, user.IdentityProvider, StringComparison.OrdinalIgnoreCase)))
+                {
+                    try
+                    {
+                        // check if the user exists in the DB - if not, create it
+                        await _userStore.Get($"{user.SubjectId}:{user.IdentityProvider}");
+                    }
+                    catch (NotFoundException<User>)
+                    {
+                        await _userStore.Add(new User(user.SubjectId, user.IdentityProvider));
+                    }
+                }
+                else
+                {
+                    exceptions.Add(new AlreadyExistsException<User>($"The user {user.IdentityProvider}:{user.SubjectId} has already been added to the group {groupName}."));
+                }
+            }
+
+            if (exceptions.Count > 0)
+            {
+                throw new AggregateException("There was an issue adding users to the group. Please see the inner exception(s) for details.", exceptions);
+            }
+
+            return await _groupStore.AddUsersToGroup(group, usersToAdd);
+        }
+
+        public async Task<Group> DeleteUserFromGroup(string groupName, string subjectId, string identityProvider)
+        {
+            var group = await _groupStore.Get(groupName);
+            var user = await _userStore.Get($"{subjectId}:{identityProvider}");
+
+            var groupUser = group.Users.FirstOrDefault(u => u.Id == user.Id);
+            if (groupUser != null)
+            {
+                group.Users.Remove(groupUser);
+            }
+
+            return await _groupStore.DeleteUserFromGroup(group, user);
         }
     }
 }
