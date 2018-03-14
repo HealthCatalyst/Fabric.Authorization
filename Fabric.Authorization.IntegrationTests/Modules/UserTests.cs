@@ -321,14 +321,17 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             post = await browser.Post("/groups/DosGroup/users", with =>
             {
                 with.HttpRequest();
-                with.JsonBody(new
+                with.JsonBody(new[]
                 {
-                    SubjectId = subjectId,
-                    IdentityProvider = idP
+                    new
+                    {
+                        SubjectId = subjectId,
+                        IdentityProvider = idP
+                    }
                 });
             });
 
-            Assert.Equal(HttpStatusCode.Created, post.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, post.StatusCode);
 
             // get non-authenticated user's permissions
             var get = await _browser.Get($"/user/{idP}/{subjectId}/permissions", with =>
@@ -480,14 +483,17 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             response = await _browser.Post($"/groups/{groupName}/users", with =>
             {
                 with.HttpRequest();
-                with.JsonBody(new
+                with.JsonBody(new[]
                 {
-                    SubjectId = subjectId,
-                    IdentityProvider = identityProvider
+                    new
+                    {
+                        SubjectId = subjectId,
+                        IdentityProvider = identityProvider
+                    }
                 });
             });
 
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             var permissionApiModels = new List<PermissionApiModel>
             {
@@ -1819,14 +1825,17 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var userGroupResponse = await _browser.Post($"/groups/{group.GroupName}/users", with =>
             {
                 with.HttpRequest();
-                with.JsonBody(new
+                with.JsonBody(new[]
                 {
-                    SubjectId = userName,
-                    IdentityProvider = identityProvider
+                    new
+                    {
+                        SubjectId = userName,
+                        IdentityProvider = identityProvider
+                    }
                 });
             });
 
-            Assert.Equal(HttpStatusCode.Created, userGroupResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, userGroupResponse.StatusCode);
 
             var roleName = "role1" + Guid.NewGuid();
             var roleResponse = await _browser.Post("/roles", with =>

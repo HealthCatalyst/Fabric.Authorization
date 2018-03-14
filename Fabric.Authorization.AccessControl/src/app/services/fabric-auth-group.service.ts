@@ -37,7 +37,7 @@ export class FabricAuthGroupService extends FabricBaseService {
       .get<User[]>(this.replaceGroupNameSegment(FabricAuthGroupService.groupUsersApiUrl, groupName));
   }
 
-  public addUserToCustomGroup(groupName: string, user: User) : Observable<Group> {
+  public addUsersToCustomGroup(groupName: string, user: User[]) : Observable<Group> {
     return this.httpClient
       .post<Group>(this.replaceGroupNameSegment(FabricAuthGroupService.groupUsersApiUrl, groupName), user);
   }

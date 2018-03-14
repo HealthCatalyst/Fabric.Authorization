@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Models;
+using Fabric.Authorization.API.Models.Requests;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
@@ -24,10 +25,16 @@ namespace Fabric.Authorization.API.Modules
         private readonly GrainService _grainService;
 
         public static string InvalidRoleArrayMessage =
-            "No roles present in payload, please ensure you are posting an array of RoleApiModels.";
+            "No roles present in payload; please ensure you are posting an array of RoleApiModels.";
 
         public static string InvalidRoleApiModelMessage =
             "The role: {0} is missing an Id, Grain or SecurableItem and cannot be added";
+
+        public static string InvalidGroupUserRequestArrayMessage =
+            "No users present in payload; please ensure you are posting an array of GroupUserRequest entities.";
+
+        public static string InvalidGroupUserRequestMessage =
+            "One or more entities in the GroupUserRequest array is missing a value for identityProvider and/or subjectId.";
 
         public GroupsModule(
             GroupService groupService,
@@ -85,7 +92,7 @@ namespace Fabric.Authorization.API.Modules
                 "GetUsersFromGroup");
 
             Post("/{groupName}/users",
-                async _ => await AddUserToGroup().ConfigureAwait(false),
+                async p => await AddUsersToGroup(p).ConfigureAwait(false),
                 null,
                 "AddUserToGroup");
 
@@ -251,31 +258,20 @@ namespace Fabric.Authorization.API.Modules
             }
         }
 
-        private async Task<dynamic> AddUserToGroup()
+        private async Task<dynamic> AddUsersToGroup(dynamic parameters)
         {
             try
             {
                 this.RequiresClaims(AuthorizationWriteClaim);
-                var groupUserRequest = this.Bind<GroupUserRequest>();
-                var validationResult = ValidateGroupUserRequest(groupUserRequest);
+                var userApiRequests = this.Bind<List<UserApiRequest>>();
+                var validationResult = await ValidateGroupUserRequests(userApiRequests);
                 if (validationResult != null)
                 {
                     return validationResult;
                 }
 
-                if (string.IsNullOrWhiteSpace(groupUserRequest.SubjectId))
-                {
-                    return CreateFailureResponse("subjectId is required", HttpStatusCode.BadRequest);
-                }
-
-                if (string.IsNullOrWhiteSpace(groupUserRequest.IdentityProvider))
-                {
-                    return CreateFailureResponse("identityProvider is required", HttpStatusCode.BadRequest);
-                }
-
-                var group = await _groupService.AddUserToGroup(groupUserRequest.GroupName, groupUserRequest.SubjectId,
-                    groupUserRequest.IdentityProvider);
-                return CreateSuccessfulPostResponse(group.ToGroupUserApiModel());
+                var group = await _groupService.AddUsersToGroup(parameters.GroupName, userApiRequests.Select(u => new User(u.SubjectId, u.IdentityProvider)).ToList());
+                return CreateSuccessfulPostResponse(group.Name, group, HttpStatusCode.OK);
             }
             catch (NotFoundException<Group> ex)
             {
@@ -289,9 +285,9 @@ namespace Fabric.Authorization.API.Modules
             {
                 return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
             }
-            catch (AlreadyExistsException<Group> ex)
+            catch (AggregateException ex)
             {
-                return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
+                return CreateFailureResponse(ex, HttpStatusCode.BadRequest);
             }
         }
 
@@ -327,25 +323,43 @@ namespace Fabric.Authorization.API.Modules
             {
                 return CreateFailureResponse("subjectId is required", HttpStatusCode.BadRequest);
             }
-            if (string.IsNullOrWhiteSpace(groupUserRequest.IdentityProvider))
+
+            return string.IsNullOrWhiteSpace(groupUserRequest.IdentityProvider)
+                ? CreateFailureResponse("identityProvider is required", HttpStatusCode.BadRequest)
+                : null;
+        }
+
+        private async Task<Negotiator> ValidateGroupUserRequests(IReadOnlyCollection<UserApiRequest> userApiRequests)
+        {
+            if (userApiRequests.Count == 0)
             {
-                return CreateFailureResponse("identityProvider is required", HttpStatusCode.BadRequest);
+                return await CreateFailureResponse(InvalidGroupUserRequestArrayMessage, HttpStatusCode.BadRequest);
             }
 
+            var invalidEntities = userApiRequests.Where(r =>
+                    string.IsNullOrEmpty(r.IdentityProvider)
+                    || string.IsNullOrEmpty(r.SubjectId));
+
+            if (invalidEntities.Any())
+            {
+                return await CreateFailureResponse(InvalidGroupUserRequestMessage, HttpStatusCode.BadRequest);
+            }
             return null;
         }
 
-        private async Task<Negotiator> ValidateRoles(List<RoleApiModel> apiRoles)
+        private async Task<Negotiator> ValidateRoles(IReadOnlyCollection<RoleApiModel> apiRoles)
         {
             if (apiRoles.Count == 0)
             {
-                return await CreateFailureResponse(
-                    InvalidRoleArrayMessage, HttpStatusCode.BadRequest);
+                return await CreateFailureResponse(InvalidRoleArrayMessage, HttpStatusCode.BadRequest);
             }
 
-            var messages = apiRoles.Where(r => !r.Id.HasValue || r.Id.Value == Guid.Empty || string.IsNullOrEmpty(r.Grain) ||
-                                               string.IsNullOrEmpty(r.SecurableItem))
-                .Select(r => String.Format(InvalidRoleApiModelMessage, r.Name)).ToList();
+            var messages = apiRoles.Where(r =>
+                    !r.Id.HasValue
+                    || r.Id.Value == Guid.Empty
+                    || string.IsNullOrEmpty(r.Grain)
+                    || string.IsNullOrEmpty(r.SecurableItem))
+                .Select(r => string.Format(InvalidRoleApiModelMessage, r.Name)).ToList();
 
             if (messages.Any())
             {

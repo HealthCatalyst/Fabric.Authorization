@@ -352,14 +352,17 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             response = await Browser.Post($"/groups/{UserAtlasGroupName}/users", with =>
             {
                 with.HttpRequest();
-                with.JsonBody(new
+                with.JsonBody(new[]
                 {
-                    SubjectId = subjectId,
-                    IdentityProvider = identityProvider
+                    new
+                    {
+                        SubjectId = subjectId,
+                        IdentityProvider = identityProvider
+                    }
                 });
             });
 
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             
             //add role to user
             response = await Browser.Post($"/user/{identityProvider}/{subjectId}/roles", with =>

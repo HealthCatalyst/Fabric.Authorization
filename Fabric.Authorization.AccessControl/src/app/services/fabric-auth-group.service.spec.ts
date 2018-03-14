@@ -110,7 +110,7 @@ fdescribe('FabricAuthGroupService', () => {
         httpTestingController: HttpTestingController,
         service: FabricAuthGroupService) => {
 
-        service.addUserToCustomGroup(groupName, null).subscribe(returnedGroup => {
+        service.addUsersToCustomGroup(groupName, null).subscribe(returnedGroup => {
           assertMockGroupResponse(returnedGroup);
         });
 
@@ -129,7 +129,7 @@ fdescribe('FabricAuthGroupService', () => {
         httpTestingController: HttpTestingController,
         service: FabricAuthGroupService) => {
 
-        service.addUserToCustomGroup(groupName, null).catch(error => {
+        service.addUsersToCustomGroup(groupName, null).catch(error => {
           expect(Observable.of(error)).toBeTruthy();
           expect(error.statusCode).toBe(404);
           expect(error.message).toBe('Group not found');

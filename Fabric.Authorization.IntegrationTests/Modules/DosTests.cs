@@ -346,14 +346,16 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var groupUserResponse = await browser.Post($"/groups/{group.GroupName}/users", with =>
             {
                 with.HttpRequest();
-                with.JsonBody(new
+                with.JsonBody(new[]
                 {
-                    GroupName = group.GroupName,
-                    SubjectId = user,
-                    IdentityProvider = "Windows"
+                    new
+                    {
+                        SubjectId = user,
+                        IdentityProvider = "Windows"
+                    }
                 });
             });
-            Assert.Equal(HttpStatusCode.Created, groupUserResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, groupUserResponse.StatusCode);
         }
     }
 }
