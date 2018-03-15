@@ -220,7 +220,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return group;
         }
 
-        public async Task<Group> AddUsersToGroup(Group @group, IEnumerable<User> usersToAdd)
+        public async Task<Group> AddUsersToGroup(Group group, IEnumerable<User> usersToAdd)
         {
             var groupEntity = await _authorizationDbContext.Groups.SingleOrDefaultAsync(g =>
                 g.Name.Equals(group.Name, StringComparison.OrdinalIgnoreCase)

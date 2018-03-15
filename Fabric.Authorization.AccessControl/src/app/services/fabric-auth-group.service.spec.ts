@@ -120,7 +120,6 @@ fdescribe('FabricAuthGroupService', () => {
         expect(req.request.method).toBe("POST");
 
         let requestBody = JSON.stringify(req.request.body);
-        console.log('requestBody=' + requestBody);
         expect(requestBody).toBe(JSON.stringify(userRequestArr));
         req.flush(mockGroupResponse, {status: 201, statusText: 'Created'});        
         httpTestingController.verify();
