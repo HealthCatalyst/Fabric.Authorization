@@ -105,8 +105,9 @@ namespace Fabric.Authorization.API.Services
                 .DistinctBy(u => u.SubjectId)
                 .ToList();
 
-           users.AddRange(clientRoleEntities
-               .SelectMany(r => r.Users).Distinct());
+            users.AddRange(clientRoleEntities
+                .SelectMany(r => r.Users)
+                .Where(u => !users.Select(user => user.SubjectId).Contains(u.SubjectId)));
 
             var userList = new List<MemberSearchResponse>();
 
@@ -116,13 +117,8 @@ namespace Fabric.Authorization.API.Services
                 var userGroupEntities = groupEntities.Where(g => user.Groups.Contains(g));
 
                 // get roles for user
-                var userRoles = userGroupEntities.SelectMany(g => g.Roles)
-                    //.Select(r => r.Name)
-                    .ToList();
-                userRoles.AddRange(clientRoleEntities
-                    .Where(r => r.Users.Any(u => u.IdentityProvider.Equals(user.IdentityProvider, StringComparison.OrdinalIgnoreCase ) &&
-                                                 u.SubjectId.Equals(user.SubjectId, StringComparison.OrdinalIgnoreCase)))
-                    //.Select(r => r.Name)
+                var userRoles = userGroupEntities.SelectMany(g => g.Roles).Distinct().ToList();
+                userRoles.AddRange(user.Roles.Where(r => !userRoles.Select(userRole => userRole.Id).Contains(r.Id))
                     .ToList());
 
                 // add user to response

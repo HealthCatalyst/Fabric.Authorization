@@ -268,7 +268,7 @@ namespace Fabric.Authorization.API.Modules
                     new HttpResponseMetadata
                     {
                         Code = (int) HttpStatusCode.Forbidden,
-                        Message = "Client does not have access"
+                        Message = "Client does not have access or User does not have access to add the specified roles."
                     },
                     new HttpResponseMetadata<Error>
                     {
@@ -279,12 +279,7 @@ namespace Fabric.Authorization.API.Modules
                     {
                         Code = (int) HttpStatusCode.Conflict,
                         Message = "Role with specified name already exists for the group"
-                    },
-                    new HttpResponseMetadata
-                    {
-                        Code = (int) HttpStatusCode.Forbidden,
-                        Message = "User does not have access to add the specified roles."
-                    },
+                    },                    
                     new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.BadRequest,
