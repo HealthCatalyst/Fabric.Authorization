@@ -16,7 +16,8 @@
             <tr *ngFor="let member of members">
                 <td>{{member.name}}</td>
                 <td>{{member.entityType}}</td>
-                <td>{{member.roles}}</td>           
+                <td>{{selectRoleNames(member.roles)}}</td>           
+                <button (click)="removeRolesFromMember(member)">X</button>
             </tr>  
         </tbody>
     </table>

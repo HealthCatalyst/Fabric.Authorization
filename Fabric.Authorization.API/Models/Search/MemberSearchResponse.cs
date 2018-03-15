@@ -16,7 +16,7 @@ namespace Fabric.Authorization.API.Models.Search
     {
         public string SubjectId { get; set; }
         public string IdentityProvider { get; set; }
-        public IEnumerable<string> Roles { get; set; } = new List<string>();
+        public IEnumerable<RoleApiModel> Roles { get; set; } = new List<RoleApiModel>();
         public string GroupName { get; set; }
         public string FirstName { get; set; }
         public string MiddleName { get; set; }
@@ -25,7 +25,17 @@ namespace Fabric.Authorization.API.Models.Search
         public string EntityType { get; set; }
 
         [JsonIgnore]
-        public string Name => string.IsNullOrWhiteSpace(GroupName) ? $"{FirstName} {MiddleName} {LastName}".Trim() : GroupName?.Trim();
+        public string Name => string.IsNullOrWhiteSpace(GroupName) ? GetUserName() : GroupName?.Trim();
+
+        private string GetUserName()
+        {
+            if (string.IsNullOrEmpty(FirstName))
+            {
+                return SubjectId;
+            }
+
+            return $"{FirstName} {MiddleName} {LastName}".Trim();
+        }
 
         public override string ToString()
         {

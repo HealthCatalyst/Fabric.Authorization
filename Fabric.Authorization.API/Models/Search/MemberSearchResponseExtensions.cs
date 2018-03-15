@@ -63,7 +63,7 @@ namespace Fabric.Authorization.API.Models.Search
             return results.Where(r =>
                 (!string.IsNullOrWhiteSpace(r.Name) && r.Name.ToLower().Contains(filter))
                 || (!string.IsNullOrWhiteSpace(r.SubjectId) && r.SubjectId.ToLower().Contains(filter))
-                || r.Roles.Contains(filter, StringComparer.OrdinalIgnoreCase));
+                || r.Roles.Select(role => role.Name).Contains(filter, StringComparer.OrdinalIgnoreCase));
         }
     }
 }

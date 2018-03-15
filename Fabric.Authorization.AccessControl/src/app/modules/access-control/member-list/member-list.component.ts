@@ -3,8 +3,8 @@ import { Subscription } from 'rxjs/Rx';
 
 import { AccessControlConfigService } from '../../../services';
 
-import { FabricAuthMemberSearchService } from '../../../services/fabric-auth-member-search.service';
-import { AuthMemberSearchRequest, AuthMemberSearchResult } from '../../../models'
+import { FabricAuthMemberSearchService, FabricAuthUserService } from '../../../services';
+import { AuthMemberSearchRequest, AuthMemberSearchResult, Role } from '../../../models'
 
 @Component({
   selector: 'app-member-list',
@@ -16,7 +16,9 @@ export class MemberListComponent implements OnInit {
   members: AuthMemberSearchResult[];
   filterText: string;
 
-  constructor(private memberSearchService: FabricAuthMemberSearchService, private configService: AccessControlConfigService) { }
+  constructor(private memberSearchService: FabricAuthMemberSearchService, 
+    private configService: AccessControlConfigService,
+    private userService: FabricAuthUserService) { }
 
   ngOnInit() {
     this.getMembers();
@@ -34,8 +36,15 @@ export class MemberListComponent implements OnInit {
     });
   }
 
-  removeRolesFromMember(){
+  removeRolesFromMember(member: AuthMemberSearchResult){
+    this.userService.removeRolesFromUser(member.identityProvider, member.subjectId, member.roles).toPromise();
+    return this.getMembers();
+  }
 
+  selectRoleNames(roles: Array<Role>){
+    return roles.map(function(role){
+      return role.name;
+    });
   }
 
 }
