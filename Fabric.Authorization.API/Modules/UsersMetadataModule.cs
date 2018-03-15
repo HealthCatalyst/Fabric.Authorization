@@ -39,6 +39,7 @@ namespace Fabric.Authorization.API.Modules
             ModelCatalog.AddModels(typeof(ResolvedPermissionApiModel));
             ModelCatalog.AddModels(typeof(UserApiModel));
             ModelCatalog.AddModels(typeof(List<RoleApiModel>));
+            ModelCatalog.AddModels(typeof(PermissionRequestContext));
 
             RouteDescriber.DescribeRouteWithParams(
                 "AddUser",
