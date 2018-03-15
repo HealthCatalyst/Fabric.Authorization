@@ -4,7 +4,7 @@ import { Response } from "@angular/http";
 import { Observable } from 'rxjs/Rx';
 import { catchError, retry } from 'rxjs/operators';
 
-import { AuthMemberSearchRequest, AuthMemberSearchResult, Exception, Group, Role, User } from '../models';
+import { AuthMemberSearchRequest, AuthMemberSearchResult } from '../models';
 import { FabricBaseService } from './fabric-base.service';
 import { AccessControlConfigService } from './access-control-config.service';
 
@@ -27,23 +27,23 @@ export class FabricAuthMemberSearchService extends FabricBaseService {
       .set('clientId', request.clientId);
 
     if (request.pageSize) {
-      params.set('pageSize', request.pageSize.toString());
+      params = params.set('pageSize', request.pageSize.toString());
     }
 
     if (request.pageNumber) {
-      params.set('pageNumber', request.pageNumber.toString());
+      params = params.set('pageNumber', request.pageNumber.toString());
     }
 
     if (request.sortKey) {
-      params.set('sortKey', request.sortKey);
+      params = params.set('sortKey', request.sortKey);
     }
 
     if (request.sortDirection) {
-      params.set('sortDirection', request.sortDirection);
+      params = params.set('sortDirection', request.sortDirection);
     }
 
     if (request.filter) {
-      params.set('filter', request.filter);
+      params = params.set('filter', request.filter);
     }
 
     return this.httpClient
