@@ -89,4 +89,14 @@
   <ItemGroup>
     <Build Include="Storage\HCFabricAuthorizationData1.sql" />
   </ItemGroup>
+  <ItemGroup>
+    <SqlCmdVariable Include="FabricAuthorizationDataMountPoint">
+      <DefaultValue>C:\SQLData</DefaultValue>
+      <Value>$(SqlCmdVar__1)</Value>
+    </SqlCmdVariable>
+    <SqlCmdVariable Include="FabricAuthorizationLogMountPoint">
+      <DefaultValue>C:\SQLData</DefaultValue>
+      <Value>$(SqlCmdVar__2)</Value>
+    </SqlCmdVariable>
+  </ItemGroup>
 </Project>
