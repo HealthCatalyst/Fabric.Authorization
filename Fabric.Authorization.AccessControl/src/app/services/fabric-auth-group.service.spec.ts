@@ -103,33 +103,39 @@ fdescribe('FabricAuthGroupService', () => {
     )
   );
 
-  it('addUserToCustomGroup should deserialize all properties',
+  it('addUsersToCustomGroup should deserialize all properties',
     async(  
       inject([HttpClient, HttpTestingController, FabricAuthGroupService], (
         httpClient: HttpClient,
         httpTestingController: HttpTestingController,
         service: FabricAuthGroupService) => {
 
-        service.addUsersToCustomGroup(groupName, null).subscribe(returnedGroup => {
+        let userRequest: User = new User("idp", "sub123");
+        let userRequestArr: User[] = new Array<User>(userRequest);
+        service.addUsersToCustomGroup(groupName, userRequestArr).subscribe(returnedGroup => {
           assertMockGroupResponse(returnedGroup);
         });
 
         const req = httpTestingController.expectOne(encodeURI(`${FabricAuthGroupService.baseGroupApiUrl}/${groupName}/users`));
         expect(req.request.method).toBe("POST");
+
+        let requestBody = JSON.stringify(req.request.body);
+        console.log('requestBody=' + requestBody);
+        expect(requestBody).toBe(JSON.stringify(userRequestArr));
         req.flush(mockGroupResponse, {status: 201, statusText: 'Created'});        
         httpTestingController.verify();
       })
     )
   );
 
-  it('addUserToCustomGroup error should be caught',
+  it('addUsersToCustomGroup error should be caught',
     async(  
       inject([HttpClient, HttpTestingController, FabricAuthGroupService], (
         httpClient: HttpClient,
         httpTestingController: HttpTestingController,
         service: FabricAuthGroupService) => {
 
-        service.addUsersToCustomGroup(groupName, null).catch(error => {
+        service.addUsersToCustomGroup(groupName, new Array<User>()).catch(error => {
           expect(Observable.of(error)).toBeTruthy();
           expect(error.statusCode).toBe(404);
           expect(error.message).toBe('Group not found');
