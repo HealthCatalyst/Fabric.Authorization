@@ -7,7 +7,7 @@ ALTER DATABASE [$(DatabaseName)]
 ADD LOG FILE
 (
 	NAME = [HCFabricAuthorizationLogFile1],
-	FILENAME = '$(FabricAuthorizationLogFileMountPoint)\HC$(DatabaseName)LogFile1.ldf',
+	FILENAME = '$(FabricAuthorizationLogMountPoint)\HC$(DatabaseName)LogFile1.ldf',
 	SIZE = 100 MB,
 	FILEGROWTH = 10%
 )
