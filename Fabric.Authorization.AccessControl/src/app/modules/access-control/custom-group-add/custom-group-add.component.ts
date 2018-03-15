@@ -37,6 +37,9 @@ export class CustomGroupAddComponent implements OnInit {
     }
   
     onKey(searchText){
+      if(searchText.length === 0){
+        this.users = [];
+      }
       if(searchText.length < 2) {
         return;
       }
@@ -60,6 +63,10 @@ export class CustomGroupAddComponent implements OnInit {
     userIsSelected(user: FabricPrincipal){
       return this.selectedUsers.filter(u => u.subjectId === user.subjectId).length > 0;
     }
+
+    removeUserSelection(user: User){
+      this.selectedUsers = this.selectedUsers.filter(u => u.subjectId !== user.subjectId);
+    }
   
     onRoleSelect(role: Role){
       if(!this.roleIsSelected(role)){
@@ -81,17 +88,19 @@ export class CustomGroupAddComponent implements OnInit {
     }
   
     addGroupWithUsersAndRoles(){      
-        var group = new Group(this.customGroupName, 'custom');
-        this.groupService.createGroup(group).toPromise()
-          .then(newGroup => {
-            return this.groupService.addRolesToGroup(newGroup.groupName, this.selectedRoles).toPromise();
+      var group = new Group(this.customGroupName, 'custom');
+      this.groupService.createGroup(group).toPromise()
+        .then(newGroup => {
+          return this.groupService.addRolesToGroup(newGroup.groupName, this.selectedRoles).toPromise();
+        })
+        .then(() => {
+          var identityProvider = this.configService.identityProvider;
+          var usersToSave = new Array<User>();
+          this.selectedUsers.forEach(function(user){
+          var userModel = new User(identityProvider, user.subjectId);
+            usersToSave.push(userModel);
           });
-        
-        //var user = new User(this.configService.identityProvider, this.selectedPrincipal.subjectId);      
-        // return this.userService.createUser(user).toPromise()
-        // .then((user: User) => {
-
-        // });                  
-      }    
-
+          return this.groupService.addUsersToCustomGroup(group.groupName, usersToSave).toPromise();
+        });        
+    }    
 }

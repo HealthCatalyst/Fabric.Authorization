@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Models.Search;
 using Fabric.Authorization.API.RemoteServices.Identity.Providers;
 using Fabric.Authorization.Domain.Exceptions;
@@ -93,7 +94,7 @@ namespace Fabric.Authorization.API.Services
             searchResults.AddRange(groupsMappedToClientRoles.Select(g => new MemberSearchResponse
             {
                 GroupName = g.Name,
-                Roles = g.Roles.Select(r => r.Name),
+                Roles = g.Roles.Select(r => r.ToRoleApiModel()),
                 EntityType = MemberSearchResponseEntityType.Group.ToString()
             }));
 
@@ -105,7 +106,7 @@ namespace Fabric.Authorization.API.Services
                 .ToList();
 
            users.AddRange(clientRoleEntities
-               .SelectMany(r => r.Users));
+               .SelectMany(r => r.Users).Distinct());
 
             var userList = new List<MemberSearchResponse>();
 
@@ -115,11 +116,13 @@ namespace Fabric.Authorization.API.Services
                 var userGroupEntities = groupEntities.Where(g => user.Groups.Contains(g));
 
                 // get roles for user
-                var userRoles = userGroupEntities.SelectMany(g => g.Roles).Select(r => r.Name).ToList();
+                var userRoles = userGroupEntities.SelectMany(g => g.Roles)
+                    //.Select(r => r.Name)
+                    .ToList();
                 userRoles.AddRange(clientRoleEntities
                     .Where(r => r.Users.Any(u => u.IdentityProvider.Equals(user.IdentityProvider, StringComparison.OrdinalIgnoreCase ) &&
                                                  u.SubjectId.Equals(user.SubjectId, StringComparison.OrdinalIgnoreCase)))
-                    .Select(r => r.Name)
+                    //.Select(r => r.Name)
                     .ToList());
 
                 // add user to response
@@ -127,7 +130,7 @@ namespace Fabric.Authorization.API.Services
                 {
                     SubjectId = user.SubjectId,
                     IdentityProvider = user.IdentityProvider,
-                    Roles = userRoles,
+                    Roles = userRoles.Select(r => r.ToRoleApiModel()),
                     EntityType = MemberSearchResponseEntityType.User.ToString()
                 });
             }
