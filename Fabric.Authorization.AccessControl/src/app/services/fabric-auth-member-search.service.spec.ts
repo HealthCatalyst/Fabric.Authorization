@@ -5,7 +5,7 @@ import { TestBed, inject, async } from '@angular/core/testing';
 import { Observable } from 'rxjs/Rx';
 
 import { FabricAuthMemberSearchService, AccessControlConfigService } from '../services';
-import { Group, User, Role, AuthMemberSearchRequest } from '../models';
+import { AuthMemberSearchRequest } from '../models';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { FabricHttpErrorHandlerInterceptorService } from './interceptors/fabric-http-error-handler-interceptor.service';
 
@@ -55,7 +55,7 @@ fdescribe('FabricAuthMemberSearchService', () => {
 
         let authSearchRequest = new AuthMemberSearchRequest();
         authSearchRequest.clientId = 'atlas';
-        //authSearchRequest.pageNumber = 1;
+        authSearchRequest.pageNumber = 1;
 
         service.searchMembers(authSearchRequest).subscribe(searchResults => {
           expect(searchResults).toBeDefined();
@@ -80,7 +80,7 @@ fdescribe('FabricAuthMemberSearchService', () => {
           expect(result2.entityType).toBe('group');
         });
 
-        const req = httpTestingController.expectOne(`${FabricAuthMemberSearchService.baseMemberSearchApiUrl}?clientId=atlas`);
+        const req = httpTestingController.expectOne(`${FabricAuthMemberSearchService.baseMemberSearchApiUrl}?clientId=atlas&pageNumber=1`);
         expect(req.request.method).toBe("GET");      
         req.flush(mockAuthSearchResult, {status: 200, statusText: 'OK'});
         httpTestingController.verify();

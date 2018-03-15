@@ -12,27 +12,25 @@ import { AccessControlConfigService } from './access-control-config.service';
 @Injectable()
 export class FabricExternalIdpSearchService extends FabricBaseService {
 
-  public static IdPServiceBaseUrl: string;
+  public static idPServiceBaseUrl: string;
 
   constructor(httpClient: HttpClient, accessControlConfigService: AccessControlConfigService) {
     super(httpClient, accessControlConfigService);
 
-    if(!FabricExternalIdpSearchService.IdPServiceBaseUrl){
-      FabricExternalIdpSearchService.IdPServiceBaseUrl = `${accessControlConfigService.getFabricExternalIdpSearchApiUrl()}/principals/search`;
+    if(!FabricExternalIdpSearchService.idPServiceBaseUrl){
+      FabricExternalIdpSearchService.idPServiceBaseUrl = `${accessControlConfigService.getFabricExternalIdpSearchApiUrl()}/principals/search`;
     }
-    
   }
 
   public searchExternalIdP(request: IdPSearchRequest) : Observable<IdPSearchResult> {
+    let params = new HttpParams()
+      .set('searchText', request.searchText);
 
-    var params = new HttpParams()
-      .set('searchtext', request.searchText);
-
-    if(request.type){
-      params.set('type', request.type);
+    if (request.type){
+      params = params.set('type', request.type);
     }
 
     return this.httpClient
-      .get<IdPSearchResult>(FabricExternalIdpSearchService.IdPServiceBaseUrl, {params});
+      .get<IdPSearchResult>(FabricExternalIdpSearchService.idPServiceBaseUrl, {params});
   }
 }
