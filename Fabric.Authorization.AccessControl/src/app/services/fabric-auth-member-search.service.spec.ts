@@ -5,7 +5,7 @@ import { TestBed, inject, async } from '@angular/core/testing';
 import { Observable } from 'rxjs/Rx';
 
 import { FabricAuthMemberSearchService, AccessControlConfigService } from '../services';
-import { AuthMemberSearchRequest } from '../models';
+import { AuthMemberSearchRequest, Role } from '../models';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { FabricHttpErrorHandlerInterceptorService } from './interceptors/fabric-http-error-handler-interceptor.service';
 
@@ -18,15 +18,15 @@ fdescribe('FabricAuthMemberSearchService', () => {
       firstName: 'First',
       lastName: 'Last',
       roles: [
-        'admin',
-        'superuser'
+        new Role('admin', 'app', 'foo'),
+        new Role('superuser', 'app', 'foo')
       ],
       entityType: "user"
     },
     {
       groupName: 'Group 1',
       roles: [
-        'viewer'
+        new Role('viewer','app','foo')
       ],
       entityType: 'group'
     }
@@ -68,15 +68,15 @@ fdescribe('FabricAuthMemberSearchService', () => {
           expect(result1.lastName).toBe('Last');
           expect(result1.roles).toBeDefined();
           expect(result1.roles.length).toBe(2);
-          expect(result1.roles[0]).toBe('admin');
-          expect(result1.roles[1]).toBe('superuser');
+          expect(result1.roles[0]).toEqual(new Role('admin', 'app', 'foo'))
+          expect(result1.roles[1]).toEqual(new Role('superuser', 'app', 'foo'));
           expect(result1.entityType).toBe('user');
 
           let result2 = searchResults[1];
           expect(result2.groupName).toBe('Group 1');
           expect(result2.roles).toBeDefined();
           expect(result2.roles.length).toBe(1);
-          expect(result2.roles[0]).toBe('viewer');
+          expect(result2.roles[0]).toEqual(new Role('viewer', 'app', 'foo'));
           expect(result2.entityType).toBe('group');
         });
 
