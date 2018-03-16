@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
+using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Persistence.SqlServer.EntityModels;
 using Fabric.Authorization.Persistence.SqlServer.Mappers;
@@ -200,6 +201,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 throw new NotFoundException<Role>($"No role mappings found for group {group.Name} with the supplied role IDs");
             }
 
+            var missingRoleMappings = new List<Guid>();
+
             foreach (var groupRole in groupRolesToRemove)
             {
                 // remove the role from the domain model
@@ -207,7 +210,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
                 if (roleToRemove == null)
                 {
-                    throw new NotFoundException<Role>($"No role mapping found for group {group.Name} with role ID {groupRole.RoleId}");
+                    missingRoleMappings.Add(groupRole.RoleId);
                 }
 
                 group.Roles.Remove(roleToRemove);
@@ -215,6 +218,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 // mark the many-to-many DB entity as deleted
                 groupRole.IsDeleted = true;
                 _authorizationDbContext.GroupRoles.Update(groupRole);
+            }
+
+            if (missingRoleMappings.Any())
+            {
+                throw new NotFoundException<Role>($"No role mapping(s) found for group {group.Name} with the following role IDs: {missingRoleMappings.ToString(", ")}");
             }
 
             await _authorizationDbContext.SaveChangesAsync();
