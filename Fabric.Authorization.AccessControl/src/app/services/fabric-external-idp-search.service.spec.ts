@@ -48,8 +48,7 @@ fdescribe('FabricExternalIdpSearchService', () => {
         httpTestingController: HttpTestingController,
         service: FabricExternalIdpSearchService) => {
 
-        let searchRequest = new IdPSearchRequest();
-        searchRequest.searchText = 'sub';
+        let searchRequest = new IdPSearchRequest('sub');
         searchRequest.type = 'user';
 
         service.searchExternalIdP(searchRequest).subscribe(searchResult => {
