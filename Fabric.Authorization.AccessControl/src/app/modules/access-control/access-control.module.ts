@@ -17,6 +17,7 @@ import {
 import { MemberListComponent } from './member-list/member-list.component';
 import { MemberAddComponent } from './member-add/member-add.component';
 import { CustomGroupAddComponent } from './custom-group-add/custom-group-add.component';
+import { MemberEditComponent } from './member-edit/member-edit.component';
 
 @NgModule({
   imports: [
