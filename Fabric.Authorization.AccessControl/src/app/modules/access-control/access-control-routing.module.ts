@@ -5,6 +5,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { MemberListComponent } from './member-list/member-list.component';
 import { MemberAddComponent } from './member-add/member-add.component';
 import { CustomGroupAddComponent } from './custom-group-add/custom-group-add.component';
+import { MemberEditComponent } from './member-edit/member-edit.component';
 
 const routes: Routes = [
   {
@@ -18,7 +19,12 @@ const routes: Routes = [
   {
     path: 'customgroupadd',
     component: CustomGroupAddComponent
+  },
+  {
+    path: 'memberedit/:id',
+    component: MemberEditComponent
   }
+
 ];
 
 @NgModule({
