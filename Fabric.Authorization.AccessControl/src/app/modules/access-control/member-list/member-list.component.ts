@@ -3,7 +3,9 @@ import { Subscription } from 'rxjs/Rx';
 
 import { AccessControlConfigService } from '../../../services';
 
-import { FabricAuthMemberSearchService, FabricAuthUserService } from '../../../services';
+import { FabricAuthMemberSearchService, 
+        FabricAuthUserService,
+        FabricAuthGroupService } from '../../../services';
 import { AuthMemberSearchRequest, AuthMemberSearchResult, Role } from '../../../models'
 
 @Component({
@@ -18,7 +20,8 @@ export class MemberListComponent implements OnInit {
 
   constructor(private memberSearchService: FabricAuthMemberSearchService, 
     private configService: AccessControlConfigService,
-    private userService: FabricAuthUserService) { }
+    private userService: FabricAuthUserService,
+    private groupService: FabricAuthGroupService) { }
 
   ngOnInit() {
     this.getMembers();
@@ -44,7 +47,11 @@ export class MemberListComponent implements OnInit {
         return this.getMembers();
       });      
     } else{
-      
+      this.groupService.removeRolesFromGroup(member.groupName, member.roles)
+      .toPromise()
+      .then(() =>{
+        return this.getMembers();
+      });
     }
   }
 

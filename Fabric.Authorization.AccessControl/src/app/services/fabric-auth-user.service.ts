@@ -31,6 +31,11 @@ export class FabricAuthUserService extends FabricBaseService {
     }
   }
 
+  public getUser(identityProvider: string, subjectId: string) : Observable<User>{    
+    return this.httpClient
+      .get<User>(encodeURI(`${FabricAuthUserService.baseUserApiUrl}/${identityProvider}/${subjectId}`));
+  }
+
   public getUserGroups(identityProvider: string, subjectId: string) : Observable<Group[]> {
     return this.httpClient
       .get<Group[]>(this.replaceUserIdSegment(FabricAuthUserService.userGroupsApiUrl, identityProvider, subjectId));
