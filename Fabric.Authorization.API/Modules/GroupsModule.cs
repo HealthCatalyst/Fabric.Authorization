@@ -81,9 +81,9 @@ namespace Fabric.Authorization.API.Modules
                 "AddRolesToGroup");
 
             Delete("/{groupName}/roles",
-                async _ => await DeleteRoleFromGroup().ConfigureAwait(false),
+                async p => await DeleteRolesFromGroup(p).ConfigureAwait(false),
                 null,
-                "DeleteRoleFromGroup");
+                "DeleteRolesFromGroup");
 
             // (custom) group->user mappings
             Get("/{groupName}/users",
@@ -218,19 +218,18 @@ namespace Fabric.Authorization.API.Modules
             }
         }
 
-        private async Task<dynamic> DeleteRoleFromGroup()
+        private async Task<dynamic> DeleteRolesFromGroup(dynamic parameters)
         {
             try
             {
                 this.RequiresClaims(AuthorizationWriteClaim);
-                var groupRoleRequest = this.Bind<GroupRoleRequest>();
-                if (groupRoleRequest.Id == null && groupRoleRequest.RoleId == null)
+                var roleIds = this.Bind<List<RoleIdentifierApiRequest>>();
+                if (roleIds == null || roleIds.Count == 0)
                 {
-                    return CreateFailureResponse("Role ID is required.", HttpStatusCode.BadRequest);
+                    return CreateFailureResponse("At least 1 role ID is required.", HttpStatusCode.BadRequest);
                 }
 
-                var roleId = groupRoleRequest.Id ?? groupRoleRequest.RoleId;
-                var group = await _groupService.DeleteRoleFromGroup(groupRoleRequest.GroupName, roleId.Value);
+                var group = (await _groupService.DeleteRolesFromGroup(parameters.GroupName, roleIds.Select(r => r.RoleId))) as Group;
                 return CreateSuccessfulPostResponse(group.ToGroupRoleApiModel(), HttpStatusCode.OK);
             }
             catch (NotFoundException<Group> ex)
@@ -263,7 +262,7 @@ namespace Fabric.Authorization.API.Modules
             try
             {
                 this.RequiresClaims(AuthorizationWriteClaim);
-                var userApiRequests = this.Bind<List<UserApiRequest>>();
+                var userApiRequests = this.Bind<List<UserIdentifierApiRequest>>();
                 var validationResult = await ValidateGroupUserRequests(userApiRequests);
                 if (validationResult != null)
                 {
@@ -329,7 +328,7 @@ namespace Fabric.Authorization.API.Modules
                 : null;
         }
 
-        private async Task<Negotiator> ValidateGroupUserRequests(IReadOnlyCollection<UserApiRequest> userApiRequests)
+        private async Task<Negotiator> ValidateGroupUserRequests(IReadOnlyCollection<UserIdentifierApiRequest> userApiRequests)
         {
             if (userApiRequests.Count == 0)
             {
