@@ -14,7 +14,7 @@ namespace Fabric.Authorization.API.Modules
         private Response GetSwaggerUrl()
         {
             return Response.AsRedirect(
-                $"{Request.Url.SiteBase}/swagger/index.html?url={Request.Url.SiteBase}/docs/swagger.json");
+                $"swagger/index.html?url=docs/swagger.json");
         }
     }
 }

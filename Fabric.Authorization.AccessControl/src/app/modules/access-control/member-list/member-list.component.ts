@@ -36,9 +36,16 @@ export class MemberListComponent implements OnInit {
     });
   }
 
-  removeRolesFromMember(member: AuthMemberSearchResult){
-    this.userService.removeRolesFromUser(member.identityProvider, member.subjectId, member.roles).toPromise();
-    return this.getMembers();
+  removeRolesFromMember(member: AuthMemberSearchResult) {
+    if(member.entityType === 'user'){
+      this.userService.removeRolesFromUser(member.identityProvider, member.subjectId, member.roles)
+      .toPromise()
+      .then(() =>{
+        return this.getMembers();
+      });      
+    } else{
+      
+    }
   }
 
   selectRoleNames(roles: Array<Role>){
