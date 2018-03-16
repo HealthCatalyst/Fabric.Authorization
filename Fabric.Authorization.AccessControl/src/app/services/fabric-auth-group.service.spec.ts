@@ -282,7 +282,7 @@ fdescribe('FabricAuthGroupService', () => {
     )
   );
 
-  it('removeRoleFromGroup should deserialize all properties',
+  it('removeRolesFromGroup should deserialize all properties',
     async(  
       inject([HttpClient, HttpTestingController, FabricAuthGroupService], (
         httpClient: HttpClient,
@@ -292,7 +292,9 @@ fdescribe('FabricAuthGroupService', () => {
         let role = new Role('admin', 'dos', 'datamart');
         role.parentRole = 'admin_parent';
 
-        service.removeRoleFromGroup(groupName, role).subscribe(returnedGroup => {
+        var roleArr = new Array<Role>(role);
+
+        service.removeRolesFromGroup(groupName, roleArr).subscribe(returnedGroup => {
           assertMockGroupResponse(returnedGroup);
         });
 
@@ -301,21 +303,26 @@ fdescribe('FabricAuthGroupService', () => {
         expect(req.request.body).toBeDefined();
 
         let requestBody = JSON.stringify(req.request.body);
-        expect(requestBody).toBe(JSON.stringify(role));
+        expect(requestBody).toBe(JSON.stringify(roleArr.map(function(r) {
+          return {
+            roleId: r.id
+          };
+        })));
+        
         req.flush(mockGroupResponse, {status: 204, statusText: 'No Content'});        
         httpTestingController.verify();
       })
     )
   );
 
-  it('removeRoleFromGroup error should be caught',
+  it('removeRolesFromGroup error should be caught',
     async(  
       inject([HttpClient, HttpTestingController, FabricAuthGroupService], (
         httpClient: HttpClient,
         httpTestingController: HttpTestingController,
         service: FabricAuthGroupService) => {
 
-        service.removeRoleFromGroup(groupName, null).catch(error => {
+        service.removeRolesFromGroup(groupName, new Array<Role>()).catch(error => {
           expect(Observable.of(error)).toBeTruthy();
           expect(error.statusCode).toBe(404);
           expect(error.message).toBe('Group not found');

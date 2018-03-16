@@ -119,16 +119,9 @@ namespace Fabric.Authorization.Persistence.CouchDb.Stores
             return group;
         }
 
-        public async Task<Group> DeleteRoleFromGroup(Group group, Role role)
-        {        
-            if (role.Groups.Any(g => string.Equals(g, group.Name, StringComparison.OrdinalIgnoreCase)))
-            {
-                role.Groups.Remove(group.Name);
-            }
-
-            await _roleStore.Update(role);
-            await Update(group);
-            return group;
+        public Task<Group> DeleteRolesFromGroup(Group group, IEnumerable<Guid> roleIds)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<Group> AddUserToGroup(Group group, User user)

@@ -573,11 +573,11 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
-        public async Task DeleteRoleFromGroup_GroupExists_SuccessAsync()
+        public async Task DeleteRolesFromGroup_GroupExists_SuccessAsync()
         { 
-            string group1Name = "Group1Name" + Guid.NewGuid();
+            var group1Name = "Group1Name" + Guid.NewGuid();
             await SetupGroupAsync(group1Name, "Custom");
-            string role1Name = "Role1Name" + Guid.NewGuid();
+            var role1Name = "Role1Name" + Guid.NewGuid();
             var role = await SetupRoleAsync(role1Name);
             var response = await SetupGroupRoleMappingAsync(group1Name, role);
 
@@ -587,9 +587,12 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             response = await Browser.Delete($"/groups/{group1Name}/roles", with =>
             {
                 with.HttpRequest();
-                with.JsonBody(new
+                with.JsonBody(new[]
                 {
-                    Id = role.Id.ToString()
+                    new
+                    {
+                        RoleId = role.Id.ToString()
+                    }
                 });
             });
 
@@ -609,15 +612,18 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
-        public async Task DeleteRoleFromGroup_NonExistentGroup_NotFoundAsync()
+        public async Task DeleteRolesFromGroup_NonExistentGroup_NotFoundAsync()
         {            
             var role = await SetupRoleAsync("RoleName" + Guid.NewGuid());
             var response = await Browser.Delete("/groups/invalidGroup/roles", with =>
             {
                 with.HttpRequest();
-                with.JsonBody(new
+                with.JsonBody(new[]
                 {
-                    Id = role.Id.ToString()
+                    new
+                    {
+                        RoleId = role.Id.ToString()
+                    }
                 });
             });
 
@@ -626,15 +632,18 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
-        public async Task DeleteRoleFromGroup_NonExistentGroupRoleMapping_NotFoundAsync()
+        public async Task DeleteRolesFromGroup_NonExistentGroupRoleMapping_NotFoundAsync()
         {
             await SetupGroupAsync("Group1Name", "Custom");
             var response = await Browser.Delete("/groups/Group1Name/roles", with =>
             {
                 with.HttpRequest();
-                with.JsonBody(new
+                with.JsonBody(new[]
                 {
-                    Id = Guid.NewGuid().ToString()
+                    new
+                    {
+                        RoleId = Guid.NewGuid().ToString()
+                    }
                 });
             });
 

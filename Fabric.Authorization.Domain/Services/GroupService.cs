@@ -124,18 +124,10 @@ namespace Fabric.Authorization.Domain.Services
             return await _groupStore.AddRolesToGroup(group, rolesToAdd);
         }
 
-        public async Task<Group> DeleteRoleFromGroup(string groupName, Guid roleId)
+        public async Task<Group> DeleteRolesFromGroup(string groupName, IEnumerable<Guid> roleIdsToDelete)
         {
             var group = await _groupStore.Get(groupName);
-            var role = await _roleStore.Get(roleId);
-
-            var groupRole = group.Roles.FirstOrDefault(r => r.Id == role.Id);
-            if (groupRole != null)
-            {
-                group.Roles.Remove(groupRole);
-            }
-
-            return await _groupStore.DeleteRoleFromGroup(group, role);
+            return await _groupStore.DeleteRolesFromGroup(group, roleIdsToDelete);
         }
 
         public async Task<Group> AddUsersToGroup(string groupName, IList<User> usersToAdd)

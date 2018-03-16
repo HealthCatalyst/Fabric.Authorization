@@ -189,19 +189,35 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return group;
         }
 
-        public async Task<Group> DeleteRoleFromGroup(Group group, Role role)
+        public async Task<Group> DeleteRolesFromGroup(Group group, IEnumerable<Guid> roleIdsToDelete)
         {
-            var groupRoleToRemove = await _authorizationDbContext.GroupRoles
-                .SingleOrDefaultAsync(gr => gr.RoleId.Equals(role.Id) &&
-                                            gr.GroupId == Guid.Parse(group.Id));
+            var groupRolesToRemove = _authorizationDbContext.GroupRoles
+                .Where(gr => roleIdsToDelete.Contains(gr.RoleId) &&
+                             gr.GroupId == Guid.Parse(group.Id)).ToList();
 
-            if (groupRoleToRemove != null)
+            if (groupRolesToRemove.Count == 0)
             {
-                groupRoleToRemove.IsDeleted = true;
-                _authorizationDbContext.GroupRoles.Update(groupRoleToRemove);
-                await _authorizationDbContext.SaveChangesAsync();
+                throw new NotFoundException<Role>($"No role mappings found for group {group.Name} with the supplied role IDs");
             }
 
+            foreach (var groupRole in groupRolesToRemove)
+            {
+                // remove the role from the domain model
+                var roleToRemove = group.Roles.FirstOrDefault(r => r.Id == groupRole.RoleId);
+
+                if (roleToRemove == null)
+                {
+                    throw new NotFoundException<Role>($"No role mapping found for group {group.Name} with role ID {groupRole.RoleId}");
+                }
+
+                group.Roles.Remove(roleToRemove);
+
+                // mark the many-to-many DB entity as deleted
+                groupRole.IsDeleted = true;
+                _authorizationDbContext.GroupRoles.Update(groupRole);
+            }
+
+            await _authorizationDbContext.SaveChangesAsync();
             return group;
         }
 

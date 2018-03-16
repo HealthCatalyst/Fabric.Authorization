@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Fabric.Authorization.API.Models;
+using Fabric.Authorization.API.Models.Requests;
 using Nancy;
 using Nancy.Swagger;
 using Nancy.Swagger.Services;
@@ -29,15 +30,6 @@ namespace Fabric.Authorization.API.Modules
         };
 
         private readonly Tag _groupsTag = new Tag { Name = "Groups", Description = "Operations for managing groups" };
-
-        private readonly Parameter _roleIdParameter = new Parameter
-        {
-            Name = "Id",
-            Description = "Role ID (GUID)",
-            Type = "string",
-            Required = true,
-            In = ParameterIn.Body
-        };
 
         private readonly Parameter _securableItemParameter = new Parameter
         {
@@ -75,7 +67,9 @@ namespace Fabric.Authorization.API.Modules
                 typeof(PermissionApiModel),
                 typeof(PermissionAction),
                 typeof(RoleApiModel),
-                typeof(UserApiModel));
+                typeof(UserApiModel),
+                typeof(UserIdentifierApiRequest),
+                typeof(RoleIdentifierApiRequest));
 
             RouteDescriber.DescribeRouteWithParams(
                 "AddGroup",
@@ -306,9 +300,9 @@ namespace Fabric.Authorization.API.Modules
                 }).SecurityRequirement(OAuth2WriteScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
-                "DeleteRoleFromGroup",
+                "DeleteRolesFromGroup",
                 "",
-                "Deletes a role from a group",
+                "Deletes 1 or more roles from a group",
                 new List<HttpResponseMetadata>
                 {
                     new HttpResponseMetadata<GroupRoleApiModel>
@@ -330,7 +324,11 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupNameParameter,
-                    _roleIdParameter
+                    new BodyParameter<List<RoleIdentifierApiRequest>>(modelCatalog)
+                    {
+                        Name = "Roles",
+                        Description = "The roles to delete"
+                    }
                 },
                 new[]
                 {
@@ -373,9 +371,9 @@ namespace Fabric.Authorization.API.Modules
                 }).SecurityRequirement(OAuth2ReadScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
-                "AddUserToGroup",
+                "AddUsersToGroup",
                 "1) This operation is only valid for custom groups. 2) The user specified by SubjectId parameter will be added silently if not found.",
-                "Adds a user to a group.",
+                "Adds 1 or more users to a group.",
                 new List<HttpResponseMetadata>
                 {
                     new HttpResponseMetadata<GroupUserApiModel>
@@ -413,8 +411,11 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupNameParameter,
-                    _subjectIdParameter,
-                    _identityProviderParameter
+                    new BodyParameter<List<UserIdentifierApiRequest>>(modelCatalog)
+                    {
+                        Name = "Users",
+                        Description = "The users to add"
+                    }
                 },
                 new[]
                 {

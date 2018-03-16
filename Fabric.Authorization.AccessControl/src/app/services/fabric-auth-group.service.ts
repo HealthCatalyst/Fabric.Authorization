@@ -74,11 +74,19 @@ export class FabricAuthGroupService extends FabricBaseService {
       .post<Group>(this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName), roles);
   }
 
-  public removeRoleFromGroup(groupName: string, role: Role) : Observable<Group> {
+  public removeRolesFromGroup(groupName: string, roles: Role[]) : Observable<Group> {
+    
     return this.httpClient.request<Group>(
       'DELETE',
       this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName),
-      {body: role});
+      {
+        body: roles.map(function(r) {
+          return {
+            roleId: r.id
+          };
+        })
+      }
+    );
   }
 
   public createGroup(group: Group) : Observable<Group>{
