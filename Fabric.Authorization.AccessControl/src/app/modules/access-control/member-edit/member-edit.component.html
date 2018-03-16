@@ -1,0 +1,25 @@
+<div>
+    <label>Name:</label>
+    <span>{{subjectId}}</span>
+    <span>{{identityProvider}}</span>
+  </div>
+  <div>
+    <p>Assigned Roles:</p>  
+    <table >            
+        <tbody>
+            <tr *ngFor="let role of roles">                    
+                <td>{{role.name}}</td>                    
+                <button (click)="removeRole(role)">X</button>
+            </tr>  
+        </tbody>
+    </table>
+  </div>
+  <div>
+    <p>Roles to Assign:</p>  
+    <ul class="roles">
+        <li *ngFor="let role of assignableRoles">
+            {{role.name}}
+        </li>
+    </ul>
+    </div>  
+  
