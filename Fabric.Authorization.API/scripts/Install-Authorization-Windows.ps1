@@ -12,6 +12,14 @@ function Get-IdentityServiceUrl()
     return "https://$env:computername.$($env:userdnsdomain.tolower())/Identity"
 }
 
+function Get-Headers($accessToken){
+    $headers = @{"Accept" = "application/json"}
+    if($accessToken){
+        $headers.Add("Authorization", "Bearer $accessToken")
+    }
+    return $headers
+}
+
 function Add-DiscoveryRegistration($discoveryUrl, $serviceUrl, $credential)
 {	
     $registrationBody = @{
@@ -81,6 +89,165 @@ function Add-DatabaseSecurity($userName, $role, $connString)
 	Write-Success "Database security applied successfully"
 }
 
+function Invoke-Get($url, $accessToken)
+{
+    $headers = Get-Headers -accessToken $accessToken
+        
+    $getResponse = Invoke-RestMethod -Method Get -Uri $url -Headers $headers
+    return $getResponse
+}
+
+function Invoke-Post($url, $body, $accessToken)
+{
+    $headers = Get-Headers -accessToken $accessToken
+
+    if(!($body -is [String])){
+        $body = (ConvertTo-Json $body)
+    }
+    
+    $postResponse = Invoke-RestMethod -Method Post -Uri $url -Body $body -ContentType "application/json" -Headers $headers
+    Write-Success "    Success."
+    Write-Host ""
+    return $postResponse
+}
+
+function Get-Role($name, $grain, $securableItem, $authorizationServiceUrl, $accessToken){
+    $url = "$authorizationServiceUrl/roles/$grain/$securableItem/$name"
+    $role = Invoke-Get -url $url -accessToken $accessToken
+    return $role
+}
+
+function Add-Group($authUrl, $name, $source, $accessToken){
+    $url = "$authUrl/groups"
+    $body = @{
+        id = "$name"
+        groupName = "$name"
+        groupSource = "$source"
+    }
+    return Invoke-Post $url $body $accessToken
+}
+
+function Add-User($authUrl, $name, $accessToken){
+    Write-Host "Adding User"
+    $url = "$authUrl/user"
+    $body = @{
+        subjectId = "$name"
+        identityProvider = "Windows"
+    }
+    return Invoke-Post $url $body $accessToken
+}
+
+function Add-RoleToUser($role, $user, $connString){
+    $query = "INSERT INTO RoleUsers
+              (CreatedBy, CreatedDateTimeUtc, RoleId, IdentityProvider, IsDeleted, SubjectId)
+              VALUES('fabric-installer', GetUtcDate(), @roleId, @identityProvider, 0, @subjectId)"
+
+    $roleId = $role.Id
+    $identityProvider = $user.identityProvider
+    $subjectId = $user.subjectId
+    Invoke-Sql $connString $query @{roleId=$roleId; identityProvider=$identityProvider; subjectId=$subjectId} | Out-Null
+}
+
+function Add-RoleToGroup($role, $group, $connString){
+    $query = "INSERT INTO GroupRoles
+              (CreatedBy, CreatedDateTimeUtc, GroupId, IsDeleted, RoleId)
+              VALUES('fabric-installer', GetUtcDate(), @groupId, 0, @roleId)"
+
+    $roleId = $role.Id
+    $groupId = $group.Id
+    Invoke-Sql $connString $query @{groupId=$groupId; roleId=$roleId;} | Out-Null
+}
+
+function Get-PrincipalContext($domain){
+    [System.Reflection.Assembly]::LoadWithPartialName("System.DirectoryServices.AccountManagement") | Out-Null
+    $ct = [System.DirectoryServices.AccountManagement.ContextType]::Domain 
+    $pc = New-Object System.DirectoryServices.AccountManagement.PrincipalContext -ArgumentList $ct, $domain
+    return $pc
+}
+
+function Test-IsUser($samAccountName, $domain){
+    $isUser = $false
+    $pc = Get-PrincipalContext -domain $domain
+    $user = [System.DirectoryServices.AccountManagement.UserPrincipal]::FindByIdentity($pc, $samAccountName)
+    if($user -ne $null){
+        $isUser = $true
+    }
+    return $isUser
+}
+
+function Test-IsGroup($samAccountName, $domain){
+    $isGroup = $false
+    $pc = Get-PrincipalContext -domain $domain
+    $group = [System.DirectoryServices.AccountManagement.GroupPrincipal]::FindByIdentity($pc, $samAccountName)
+    if($group -ne $null){
+        $isGroup = $true
+    }
+    return $isGroup
+}
+
+function Get-SamAccountFromAccountName($accountName){
+    $accountNameParts = $accountName.Split('\')
+    if($accountNameParts.Count -ne 2){
+        Write-Error "Please enter an account in the form DOMAIN\account. Halting installation." -ErrorAction Stop
+    }
+    $samAccountName = $accountNameParts[1]
+    return $samAccountName
+}
+
+function Add-AccountToDosAdminRole($accountName, $domain, $authorizationServiceURL, $accessToken, $connString){
+    $samAccountName = Get-SamAccountFromAccountName -accountName $accountName
+    $role = Get-Role -name "dosadmin" -grain "dos" -securableItem "datamarts" -authorizationServiceUrl $authorizationServiceUrl -accessToken $accessToken
+    if(Test-IsUser -samAccountName $samAccountName -domain $domain){
+        try{
+            $user = Add-User -authUrl $authorizationServiceUrl -name $accountName -accessToken $accessToken
+            Add-RoleToUser -role $role -user $user -connString $connString
+        }catch{
+            $exception = $_.Exception
+            if($exception -ne $null -and $exception.Response -ne $null -and $exception.Response.StatusCode.value__ -eq 409)
+            {
+                Write-Success "    User: $accountName has already been registered as dosadmin with Fabric.Authorization"
+                Write-Host ""
+            }else{
+                if($exception.Response -ne $null){
+                    $error = Get-ErrorFromResponse -response $exception.Response
+                    Write-Error "    There was an error updating the resource: $error. Halting installation."
+                }
+                throw $exception
+            }
+        }
+    }elseif(Test-IsGroup -samAccountName $samAccountName -domain $domain){
+        try{
+            $group = Add-Group -authUrl $authorizationServiceUrl -name $accountName -source "Windows" -accessToken $accessToken
+            Add-RoleToGroup -role $role -group $group -connString $connString
+        }catch{
+            $exception = $_.Exception
+            if($exception -ne $null -and $exception.Response -ne $null -and $exception.Response.StatusCode.value__ -eq 409)
+            {
+                Write-Success "    Group: $accountName has already been registered as dosadmin with Fabric.Authorization"
+                Write-Host ""
+            }else{
+                if($exception.Response -ne $null){
+                    $error = Get-ErrorFromResponse -response $exception.Response
+                    Write-Error "    There was an error updating the resource: $error. Halting installation."
+                }
+                throw $exception
+            }
+        }
+    }else{
+        Write-Error "$samAccountName is not a valid principal in the $domain domain. Please enter a valid account. Halting installation." -ErrorAction Stop
+    }
+}
+
+function Get-ErrorFromResponse($response)
+{
+    $result = $response.GetResponseStream()
+    $reader = New-Object System.IO.StreamReader($result)
+    $reader.BaseStream.Position = 0
+    $reader.DiscardBufferedData()
+    $responseBody = $reader.ReadToEnd();
+    return $responseBody
+}
+
 function Invoke-MonitorShallow($authorizationUrl)
 {
 	$url = "$authorizationUrl/_monitor/shallow"
@@ -114,6 +281,8 @@ $fabricInstallerSecret = $installSettings.fabricInstallerSecret
 $hostUrl = $installSettings.hostUrl
 $authorizationServiceURL =  $installSettings.authorizationSerivce
 $storedIisUser = $installSettings.iisUser
+$adminAccount = $installSettings.adminAccount
+$currentUserDomain = $env:userdnsdomain
 $workingDirectory = Get-CurrentScriptDirectory
 
 if([string]::IsNullOrEmpty($installSettings.discoveryService))  
@@ -325,6 +494,25 @@ Invoke-Sql $authorizationDbConnStr "SELECT TOP 1 ClientId FROM Clients" | Out-Nu
 Write-Success "Identity DB Connection string: $authorizationDbConnStr verified"
 Write-Host ""
 
+$userEnteredDomain = Read-Host "Press Enter to accept the default domain '$($currentUserDomain)' that the user/group who will administrate dos is a member or, or enter a new domain" 
+Write-Host ""
+
+if(![string]::IsNullOrEmpty($userEnteredDomain)){
+    $currentUserDomain = $userEnteredDomain
+}
+
+$userEnteredAdminAccount = Read-Host "Press Enter to accept the default admin account '$($adminAccount)' for the user/group who will administrate dos or, or enter a new account" 
+Write-Host ""
+
+if(![string]::IsNullOrEmpty($userEnteredAdminAccount)){
+    $adminAccount = $userEnteredAdminAccount
+}
+
+$samAccountName = Get-SamAccountFromAccountName -accountName $adminAccount
+if((!(Test-IsGroup -samAccountName $samAccountName -domain $currentUserDomain)) -and (!(Test-IsUser -samAccountName $samAccountName -domain $currentUserDomain))){
+    Write-Error "$samAccountName is not a valid principal in the $currentUserDomain domain. Please enter a valid account. Halting installation." -ErrorAction Stop
+}
+
 if(!($noDiscoveryService)){
     $userEnteredMetadataDbName = Read-Host "Press Enter to accept the default Metadata DB Name '$($metadataDbName)' or enter a new Metadata DB Name"
     if(![string]::IsNullOrEmpty($userEnteredMetadataDbName)){
@@ -354,7 +542,7 @@ if(!($noDiscoveryService)){
 	Write-Host ""
 	Write-Host "Registering with Discovery Service."
 	Write-Host ""
-    Add-DiscoveryRegistration $discoveryServiceUrl $authorizationServiceURL $credential
+    Add-DiscoveryRegistration $discoveryServiceUrl "$authorizationServiceURL/v1" $credential
     Write-Host ""
 }
 
@@ -429,6 +617,10 @@ try{
         throw $exception
     }
 }
+
+Write-Host "Setting up Admin account."
+$accessToken = Get-AccessToken $identityServerUrl "fabric-installer" "fabric/authorization.read fabric/authorization.write fabric/authorization.dos.write fabric/authorization.manageclients" $fabricInstallerSecret
+Add-AccountToDosAdminRole -accountName $adminAccount -domain $currentUserDomain -authorizationServiceURL "$authorizationServiceURL/v1" -accessToken $accessToken -connString $authorizationDbConnStr
 
 #Write environment variables
 Write-Host ""
