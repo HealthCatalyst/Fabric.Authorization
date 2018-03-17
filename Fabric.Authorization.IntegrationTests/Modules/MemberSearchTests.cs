@@ -186,8 +186,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal("Smith", result1.LastName);
             Assert.NotNull(result1.LastLoginDateTimeUtc);
             Assert.Equal(lastLoginDate, result1.LastLoginDateTimeUtc.Value.ToUniversalTime());
-            Assert.Equal(2, result1.Roles.Count());
-            Assert.Contains(Fixture.UserAtlasRoleName, result1.Roles.Select(r => r.Name));
+            Assert.Single(result1.Roles);
             Assert.Contains(Fixture.ContributorAtlasRoleName, result1.Roles.Select(r => r.Name));
 
             var result2 = results[1];

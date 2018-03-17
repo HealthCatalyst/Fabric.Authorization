@@ -90,7 +90,7 @@ namespace Fabric.Authorization.API.Services
             var groupsMappedToClientRoles = groupEntities.Where(g => g.Roles.Any(r => clientRoleEntities.Contains(r))).ToList();
             _logger.Debug($"groupsMappedToClientRoles = {groupsMappedToClientRoles.ToString(Environment.NewLine)}");
 
-            // add all non-custom groups to the response
+            // add groups to the response
             searchResults.AddRange(groupsMappedToClientRoles.Select(g => new MemberSearchResponse
             {
                 GroupName = g.Name,
@@ -98,35 +98,18 @@ namespace Fabric.Authorization.API.Services
                 EntityType = MemberSearchResponseEntityType.Group.ToString()
             }));
 
-            // get all users mapped to groups in client roles
-            var users = groupsMappedToClientRoles
-                .Where(g => g.Users != null && g.Users.Count > 0)
-                .SelectMany(g => g.Users)
-                .DistinctBy(u => u.SubjectId)
-                .ToList();
-
-            users.AddRange(clientRoleEntities
-                .SelectMany(r => r.Users)
-                .Where(u => !users.Select(user => user.SubjectId).Contains(u.SubjectId)));
-
+            // get users directly mapped to client roles
+            var users = clientRoleEntities.SelectMany(r => r.Users).Distinct(new UserComparer());
             var userList = new List<MemberSearchResponse>();
 
             foreach (var user in users)
             {
-                // get groups for user
-                var userGroupEntities = groupEntities.Where(g => user.Groups.Contains(g));
-
-                // get roles for user
-                var userRoles = userGroupEntities.SelectMany(g => g.Roles).Distinct().ToList();
-                userRoles.AddRange(user.Roles.Where(r => !userRoles.Select(userRole => userRole.Id).Contains(r.Id))
-                    .ToList());
-
                 // add user to response
                 userList.Add(new MemberSearchResponse
                 {
                     SubjectId = user.SubjectId,
                     IdentityProvider = user.IdentityProvider,
-                    Roles = userRoles.Select(r => r.ToRoleApiModel()),
+                    Roles = user.Roles.Select(r => r.ToRoleApiModel()),
                     EntityType = MemberSearchResponseEntityType.User.ToString()
                 });
             }
