@@ -1,24 +1,34 @@
 <div>
-    <button routerLink="/accesscontrol/memberadd">Directory Group or User</button>
-    <button routerLink="/accesscontrol/customgroupadd">Custom Group</button>
+    <button hc-button color="primary" [hcPopover]="options" popperPlacement="bottom" aria-hidden="true">
+      Add&nbsp;
+      <hc-icon class="btn-icon-right" fontSet="fa" fontIcon="fa-angle-down" icon-sm aria-hidden="true"></hc-icon>
+    </button>
+
+    <hc-popover-content #options>
+      <ul class="list-options">
+        <li><a routerLink="/accesscontrol/memberadd">Directory Group or User</a></li>
+        <li><a routerLink="/accesscontrol/customgroupadd">Custom Group</a></li>
+      </ul>
+
+    </hc-popover-content>
 </div>
 
 <div>
-    <table >
+    <table class="hc-table">
         <thead>
             <tr>
                 <th>Name</th>
                 <th>Type</th>
-                <th>Roles</th>           
+                <th>Roles</th>
             </tr>
         </thead>
         <tbody>
             <tr *ngFor="let member of members">
-                <td>{{member.name}}</td>
+                <td>{{member.firstName}} {{member.lastName}}</td>
                 <td>{{member.entityType}}</td>
-                <td>{{selectRoleNames(member.roles)}}</td>           
+                <td>{{selectRoleNames(member.roles)}}</td>
                 <button (click)="removeRolesFromMember(member)">X</button>
-            </tr>  
+            </tr>
         </tbody>
     </table>
 </div>
