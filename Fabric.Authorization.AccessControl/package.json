@@ -22,9 +22,13 @@
     "@angular/platform-browser": "^5.2.7",
     "@angular/platform-browser-dynamic": "^5.2.7",
     "@angular/router": "^5.2.7",
+    "@healthcatalyst/cashmere": "file:../../Fabric.Cashmere/lib/dist/healthcatalyst-cashmere-0.0.3.tgz",
     "core-js": "^2.4.1",
+    "font-awesome": "^4.7.0",
     "oidc-client": "^1.4.1",
+    "popper.js": "^1.14.1",
     "rxjs": "^5.5.2",
+    "typeface-open-sans": "0.0.54",
     "zone.js": "^0.8.14"
   },
   "devDependencies": {
