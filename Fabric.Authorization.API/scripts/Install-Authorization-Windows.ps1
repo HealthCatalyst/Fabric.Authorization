@@ -501,7 +501,12 @@ if(![string]::IsNullOrEmpty($userEnteredDomain)){
     $currentUserDomain = $userEnteredDomain
 }
 
-$userEnteredAdminAccount = Read-Host "Press Enter to accept the default admin account '$($adminAccount)' for the user/group who will administrate dos or, or enter a new account" 
+if([string]::IsNullOrEmpty($adminAccount)){
+    $userEnteredAdminAccount = Read-Host "Please enter the user/group account for dos administration in the format [DOMAIN\user]"
+}else{
+    $userEnteredAdminAccount = Read-Host "Press Enter to accept the default admin account '$($adminAccount)' for the user/group who will administrate dos or, or enter a new account"
+}
+
 Write-Host ""
 
 if(![string]::IsNullOrEmpty($userEnteredAdminAccount)){
@@ -509,7 +514,12 @@ if(![string]::IsNullOrEmpty($userEnteredAdminAccount)){
 }
 
 $samAccountName = Get-SamAccountFromAccountName -accountName $adminAccount
-if((!(Test-IsGroup -samAccountName $samAccountName -domain $currentUserDomain)) -and (!(Test-IsUser -samAccountName $samAccountName -domain $currentUserDomain))){
+$adminAccountIsUser = $false
+if(Test-IsUser -samAccountName $samAccountName -domain $currentUserDomain){
+    $adminAccountIsUser = $true
+}elseif(Test-IsGroup -samAccountName $samAccountName -domain $currentUserDomain){
+    $adminAccountIsUser = $false
+}else{
     Write-Error "$samAccountName is not a valid principal in the $currentUserDomain domain. Please enter a valid account. Halting installation." -ErrorAction Stop
 }
 
@@ -652,6 +662,21 @@ if($authorizationDbConnStr){
     $environmentVariables.Add("ConnectionStrings__AuthorizationDatabase", $authorizationDbConnStr)
 }
 
+if($adminAccount){
+    $environmentVariables.Add("AdminAccount__Name", $adminAccount)
+}
+
+if($adminAccountIsUser){
+    $environmentVariables.Add("AdminAccount__Type", "user")
+}else{
+    $environmentVariables.Add("AdminAccount__Type", "group")
+}
+
+if($authorizationApiSecret){
+    $encryptedSecret = Get-EncryptedString $encryptionCert $authorizationApiSecret
+    $environmentVariables.Add("IdentityServerApiSettings__ApiSecret", $encryptedSecret)
+}
+
 Set-EnvironmentVariables $appDirectory $environmentVariables | Out-Null
 Write-Host ""
 
@@ -669,6 +694,8 @@ if($authorizationServiceURL) { Add-InstallationSetting "authorization" "authoriz
 if($authorizationServiceURL) { Add-InstallationSetting "common" "authorizationService" "$authorizationServiceURL" | Out-Null}
 if($iisUser) { Add-InstallationSetting "authorization" "iisUser" "$iisUser" | Out-Null}
 if($siteName) {Add-InstallationSetting "authorization" "siteName" "$siteName" | Out-Null}
+if($adminAccount) {Add-InstallationSetting "authorization" "adminAccount" "$adminAccount" | Out-Null}
+
 
 Invoke-MonitorShallow "$hostUrl/$appName"
 
