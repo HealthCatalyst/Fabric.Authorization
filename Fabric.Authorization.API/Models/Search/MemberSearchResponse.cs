@@ -29,12 +29,9 @@ namespace Fabric.Authorization.API.Models.Search
 
         private string GetUserName()
         {
-            if (string.IsNullOrEmpty(FirstName))
-            {
-                return SubjectId;
-            }
-
-            return $"{FirstName} {MiddleName} {LastName}".Trim();
+            return string.IsNullOrEmpty(FirstName)
+                ? SubjectId
+                : $"{FirstName} {MiddleName} {LastName}".Trim();
         }
 
         public override string ToString()
