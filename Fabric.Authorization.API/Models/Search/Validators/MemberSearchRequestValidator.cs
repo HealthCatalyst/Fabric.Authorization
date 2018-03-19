@@ -18,9 +18,8 @@ namespace Fabric.Authorization.API.Models.Search.Validators
 
         private void ConfigureRules()
         {
-            RuleFor(request => request.ClientId)
-                .NotEmpty()
-                .WithMessage("Please specify client_id for searching.")
+            RuleFor(request => request).Must(DoesContainRequiredFields)
+                .WithMessage("Please specify 'client_id' OR 'grain' (for shared grain searches) but NOT both.")
                 .WithState(c => ValidationEnums.ValidationState.MissingRequiredField);
 
             RuleFor(request => request.SortKey)
@@ -34,6 +33,13 @@ namespace Fabric.Authorization.API.Models.Search.Validators
                                        ValidSortDirections.Contains(sortDirection, StringComparer.OrdinalIgnoreCase))
                 .WithMessage($"sort_dir must be one of the following values: {ValidSortDirections}")
                 .WithState(c => ValidationEnums.ValidationState.InvalidFieldValue);
+        }
+
+        private static bool DoesContainRequiredFields(MemberSearchRequest searchRequest)
+        {
+            var missingClientId = string.IsNullOrEmpty(searchRequest.ClientId);
+            var missingGrain = string.IsNullOrEmpty(searchRequest.Grain);
+            return missingClientId ^ missingGrain;
         }
     }
 }

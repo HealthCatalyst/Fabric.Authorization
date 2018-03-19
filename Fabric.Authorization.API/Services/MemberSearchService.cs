@@ -44,12 +44,13 @@ namespace Fabric.Authorization.API.Services
                 throw new BadRequestException<MemberSearchRequest>("Client ID is required.");
             }
 
-            var client = await _clientService.GetClient(request.ClientId);
-            var clientRoles = await _roleService.GetRoles(client);
+            var rolesToSearch = !string.IsNullOrEmpty(request.ClientId)
+                ? await _roleService.GetRoles(await _clientService.GetClient(request.ClientId))
+                : await _roleService.GetRoles(request.Grain, request.SecurableItem);
 
-            var clientRoleEntities = clientRoles.ToList();
-            _logger.Debug($"clientRoles = {clientRoleEntities.ToString(Environment.NewLine)}");
-            if (clientRoleEntities.Count == 0)
+            var roleEntities = rolesToSearch.ToList();
+            _logger.Debug($"clientRoles = {roleEntities.ToString(Environment.NewLine)}");
+            if (roleEntities.Count == 0)
             {
                 return new FabricAuthUserSearchResponse
                 {
@@ -59,7 +60,7 @@ namespace Fabric.Authorization.API.Services
             }
 
             // get all groups tied to clientRoles
-            var groupIds = clientRoleEntities.SelectMany(r => r.Groups).Distinct().ToList();
+            var groupIds = roleEntities.SelectMany(r => r.Groups).Distinct().ToList();
             _logger.Debug($"groupIds = {groupIds.ToString(Environment.NewLine)}");
 
             if (groupIds.Count == 0)
@@ -87,7 +88,7 @@ namespace Fabric.Authorization.API.Services
 
             _logger.Debug($"groupEntities = {groupEntities.ToString(Environment.NewLine)}");
 
-            var groupsMappedToClientRoles = groupEntities.Where(g => g.Roles.Any(r => clientRoleEntities.Contains(r))).ToList();
+            var groupsMappedToClientRoles = groupEntities.Where(g => g.Roles.Any(r => roleEntities.Contains(r))).ToList();
             _logger.Debug($"groupsMappedToClientRoles = {groupsMappedToClientRoles.ToString(Environment.NewLine)}");
 
             // add groups to the response
@@ -99,7 +100,7 @@ namespace Fabric.Authorization.API.Services
             }));
 
             // get users directly mapped to client roles
-            var users = clientRoleEntities.SelectMany(r => r.Users).Distinct(new UserComparer());
+            var users = roleEntities.SelectMany(r => r.Users).Distinct(new UserComparer());
             var userList = new List<MemberSearchResponse>();
 
             foreach (var user in users)
@@ -109,7 +110,7 @@ namespace Fabric.Authorization.API.Services
                 {
                     SubjectId = user.SubjectId,
                     IdentityProvider = user.IdentityProvider,
-                    Roles = user.Roles.Select(r => r.ToRoleApiModel()),
+                    Roles = user.Roles.Intersect(roleEntities).Select(r => r.ToRoleApiModel()),
                     EntityType = MemberSearchResponseEntityType.User.ToString()
                 });
             }
