@@ -194,7 +194,7 @@ function Get-SamAccountFromAccountName($accountName){
     return $samAccountName
 }
 
-function Add-AccountToDosAdminRole($accountName, $domain, $authorizationServiceURL, $accessToken, $connString){
+function Add-AccountToDosAdminRole($accountName, $domain, $authorizationServiceUrl, $accessToken, $connString){
     $samAccountName = Get-SamAccountFromAccountName -accountName $accountName
     $role = Get-Role -name "dosadmin" -grain "dos" -securableItem "datamarts" -authorizationServiceUrl $authorizationServiceUrl -accessToken $accessToken
     if(Test-IsUser -samAccountName $samAccountName -domain $domain){
@@ -279,7 +279,7 @@ $authorizationDbName = $installSettings.authorizationDbName
 $authorizationDatabaseRole = $installSettings.authorizationDatabaseRole
 $fabricInstallerSecret = $installSettings.fabricInstallerSecret
 $hostUrl = $installSettings.hostUrl
-$authorizationServiceURL =  $installSettings.authorizationSerivce
+$authorizationServiceUrl =  $installSettings.authorizationSerivce
 $storedIisUser = $installSettings.iisUser
 $adminAccount = $installSettings.adminAccount
 $currentUserDomain = $env:userdnsdomain
@@ -303,10 +303,10 @@ if([string]::IsNullOrEmpty($installSettings.identityService))
 
 if([string]::IsNullOrEmpty($installSettings.authorizationSerivce))  
 {
-	$authorizationServiceURL = "https://$env:computername.$($env:userdnsdomain.tolower())/Authorization"
+	$authorizationServiceUrl = "https://$env:computername.$($env:userdnsdomain.tolower())/Authorization"
 } else
 {
-	$authorizationServiceURL = $installSettings.authorizationSerivce
+	$authorizationServiceUrl = $installSettings.authorizationSerivce
 }
 
 Write-Host ""
@@ -428,16 +428,25 @@ if((Test-Path $zipPackage))
 }
 
 
-$userEnteredAuthorizationServiceURL = Read-Host  "Enter the URL for the Authorization Service or hit enter to accept the default [$authorizationServiceURL]"
+$userEnteredAuthorizationServiceUrl = Read-Host  "Enter the URL for the Authorization Service or hit enter to accept the default [$authorizationServiceUrl]"
 Write-Host ""
-if(![string]::IsNullOrEmpty($userEnteredAuthorizationServiceURL)){   
-     $authorizationServiceURL = $userEnteredAuthorizationServiceURL
+if(![string]::IsNullOrEmpty($userEnteredAuthorizationServiceUrl)){   
+     $authorizationServiceUrl = $userEnteredAuthorizationServiceUrl
 }
 
-$userEnteredIdentityServiceURL = Read-Host  "Enter the URL for the Identity Service or hit enter to accept the default [$identityServerUrl]"
+$userEnteredIdentityServiceUrl = Read-Host  "Enter the URL for the Identity Service or hit enter to accept the default [$identityServerUrl]"
 Write-Host ""
-if(![string]::IsNullOrEmpty($userEnteredIdentityServiceURL)){   
-     $identityServerUrl = $userEnteredIdentityServiceURL
+if(![string]::IsNullOrEmpty($userEnteredIdentityServiceUrl)){   
+     $identityServerUrl = $userEnteredIdentityServiceUrl
+}
+
+if(!($noDiscoveryService)){
+    $userEnteredDiscoveryServiceUrl = Read-Host "Press Enter to accept the default DiscoveryService URL [$discoveryServiceUrl] or enter a new URL"
+    Write-Host ""
+    if(![string]::IsNullOrEmpty($userEnteredDiscoveryServiceUrl)){   
+         $discoveryServiceUrl = $userEnteredDiscoveryServiceUrl
+    }
+
 }
 
 
@@ -494,7 +503,19 @@ Invoke-Sql $authorizationDbConnStr "SELECT TOP 1 ClientId FROM Clients" | Out-Nu
 Write-Success "Identity DB Connection string: $authorizationDbConnStr verified"
 Write-Host ""
 
-$userEnteredDomain = Read-Host "Press Enter to accept the default domain '$($currentUserDomain)' that the user/group who will administrate dos is a member or, or enter a new domain" 
+if(!($noDiscoveryService)){
+    $userEnteredMetadataDbName = Read-Host "Press Enter to accept the default Metadata DB Name '$($metadataDbName)' or enter a new Metadata DB Name"
+    if(![string]::IsNullOrEmpty($userEnteredMetadataDbName)){
+        $metadataDbName = $userEnteredMetadataDbName
+    }
+
+    $metadataConnStr = "Server=$($sqlServerAddress);Database=$($metadataDbName);Trusted_Connection=True;MultipleActiveResultSets=True;"
+    Invoke-Sql $metadataConnStr "SELECT TOP 1 RoleID FROM CatalystAdmin.RoleBASE" | Out-Null
+    Write-Success "Metadata DB Connection string: $metadataConnStr verified"
+    Write-Host ""
+}
+
+$userEnteredDomain = Read-Host "Press Enter to accept the default domain '$($currentUserDomain)' that the user/group who will administrate dos is a member or enter a new domain" 
 Write-Host ""
 
 if(![string]::IsNullOrEmpty($userEnteredDomain)){
@@ -504,7 +525,7 @@ if(![string]::IsNullOrEmpty($userEnteredDomain)){
 if([string]::IsNullOrEmpty($adminAccount)){
     $userEnteredAdminAccount = Read-Host "Please enter the user/group account for dos administration in the format [DOMAIN\user]"
 }else{
-    $userEnteredAdminAccount = Read-Host "Press Enter to accept the default admin account '$($adminAccount)' for the user/group who will administrate dos or, or enter a new account"
+    $userEnteredAdminAccount = Read-Host "Press Enter to accept the default admin account '$($adminAccount)' for the user/group who will administrate dos or enter a new account"
 }
 
 Write-Host ""
@@ -523,26 +544,11 @@ if(Test-IsUser -samAccountName $samAccountName -domain $currentUserDomain){
     Write-Error "$samAccountName is not a valid principal in the $currentUserDomain domain. Please enter a valid account. Halting installation." -ErrorAction Stop
 }
 
-if(!($noDiscoveryService)){
-    $userEnteredMetadataDbName = Read-Host "Press Enter to accept the default Metadata DB Name '$($metadataDbName)' or enter a new Metadata DB Name"
-    if(![string]::IsNullOrEmpty($userEnteredMetadataDbName)){
-        $metadataDbName = $userEnteredMetadataDbName
-    }
 
-    $metadataConnStr = "Server=$($sqlServerAddress);Database=$($metadataDbName);Trusted_Connection=True;MultipleActiveResultSets=True;"
-    Invoke-Sql $metadataConnStr "SELECT TOP 1 RoleID FROM CatalystAdmin.RoleBASE" | Out-Null
-    Write-Success "Metadata DB Connection string: $metadataConnStr verified"
-    Write-Host ""
-}
+Write-Host ""
+Write-Host "Prerequisite checks complete...installing."
+Write-Host ""
 
-if(!($noDiscoveryService)){
-    $userEnteredDiscoveryServiceUrl = Read-Host "Press Enter to accept the default DiscoveryService URL [$discoveryServiceUrl] or enter a new URL"
-    Write-Host ""
-    if(![string]::IsNullOrEmpty($userEnteredDiscoveryServiceUrl)){   
-         $discoveryServiceUrl = $userEnteredDiscoveryServiceUrl
-    }
-
-}
 
 if(!($noDiscoveryService)){
     Write-Host ""
@@ -552,13 +558,9 @@ if(!($noDiscoveryService)){
 	Write-Host ""
 	Write-Host "Registering with Discovery Service."
 	Write-Host ""
-    Add-DiscoveryRegistration $discoveryServiceUrl "$authorizationServiceURL/v1" $credential
+    Add-DiscoveryRegistration $discoveryServiceUrl "$authorizationServiceUrl/v1" $credential
     Write-Host ""
 }
-
-Write-Host ""
-Write-Host "Prerequisite checks complete...installing."
-Write-Host ""
 
 $appDirectory = "$webroot\$appName"
 New-AppRoot $appDirectory $iisUser
@@ -630,7 +632,7 @@ try{
 
 Write-Host "Setting up Admin account."
 $accessToken = Get-AccessToken $identityServerUrl "fabric-installer" "fabric/authorization.read fabric/authorization.write fabric/authorization.dos.write fabric/authorization.manageclients" $fabricInstallerSecret
-Add-AccountToDosAdminRole -accountName $adminAccount -domain $currentUserDomain -authorizationServiceURL "$authorizationServiceURL/v1" -accessToken $accessToken -connString $authorizationDbConnStr
+Add-AccountToDosAdminRole -accountName $adminAccount -domain $currentUserDomain -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken -connString $authorizationDbConnStr
 
 #Write environment variables
 Write-Host ""
@@ -690,8 +692,8 @@ if($sqlServerAddress){ Add-InstallationSetting "common" "sqlServerAddress" "$sql
 if($metadataDbName){ Add-InstallationSetting "common" "metadataDbName" "$metadataDbName" | Out-Null}
 if($identityServerUrl){ Add-InstallationSetting "common" "identityService" "$identityServerUrl" | Out-Null}
 if($discoveryServiceUrl) { Add-InstallationSetting "common" "discoveryService" "$discoveryServiceUrl" | Out-Null}
-if($authorizationServiceURL) { Add-InstallationSetting "authorization" "authorizationService" "$authorizationServiceURL" | Out-Null}
-if($authorizationServiceURL) { Add-InstallationSetting "common" "authorizationService" "$authorizationServiceURL" | Out-Null}
+if($authorizationServiceUrl) { Add-InstallationSetting "authorization" "authorizationService" "$authorizationServiceUrl" | Out-Null}
+if($authorizationServiceUrl) { Add-InstallationSetting "common" "authorizationService" "$authorizationServiceUrl" | Out-Null}
 if($iisUser) { Add-InstallationSetting "authorization" "iisUser" "$iisUser" | Out-Null}
 if($siteName) {Add-InstallationSetting "authorization" "siteName" "$siteName" | Out-Null}
 if($adminAccount) {Add-InstallationSetting "authorization" "adminAccount" "$adminAccount" | Out-Null}
