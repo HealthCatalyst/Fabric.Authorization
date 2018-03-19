@@ -36,7 +36,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task MemberSearch_ClientIdDoesNotExist_NotFoundExceptionAsync()
         {
-            Fixture.InitializeBrowser(new Mock<IIdentityServiceProvider>().Object);
+            Fixture.InitializeAtlasBrowser(new Mock<IIdentityServiceProvider>().Object);
 
             var result = await Fixture.Browser.Get(
                 MemberSearchRoute,
@@ -204,7 +204,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task MemberSearch_NoParams_BadRequestExceptionAsync()
         {
-            Fixture.InitializeBrowser(new Mock<IIdentityServiceProvider>().Object);
+            Fixture.InitializeAtlasBrowser(new Mock<IIdentityServiceProvider>().Object);
             var result = await Fixture.Browser.Get(
                 MemberSearchRoute,
                 with =>
@@ -219,6 +219,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
     public class MemberSearchFixture : IntegrationTestsFixture
     {
+        public string PatientSafetyClientId { get; private set; }
+        public string AdminPatientSafetyRoleName { get; private set; }
+
         public string AtlasClientId { get; private set; }
         public string AdminAtlasGroupName { get; private set; }
         public string UserAtlasGroupName { get; private set; }
@@ -242,10 +245,14 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             ContributorAtlasRoleName = $"contributorAtlas-Role-{DateTime.Now.Ticks}";
             AtlasUserNoGroupName = "atlas_user_no_group";
             AtlasUserName = "atlas_user";
+
+            PatientSafetyClientId = $"patientsafety-{DateTime.Now.Ticks}";
+            AdminPatientSafetyRoleName = $"adminPatientSafety-{DateTime.Now.Ticks}";
+
             IdentityProvider = "Windows";
         }
 
-        public void InitializeBrowser(IIdentityServiceProvider identityServiceProvider)
+        public void InitializeAtlasBrowser(IIdentityServiceProvider identityServiceProvider)
         {
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
             {
@@ -258,9 +265,22 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Browser = GetBrowser(principal, _storageProvider, identityServiceProvider);
         }
 
+        private Browser InitializePatientSafetyBrowser(IIdentityServiceProvider identityServiceProvider)
+        {
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
+            {
+                new Claim(Claims.Scope, Scopes.ManageClientsScope),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.ClientId, PatientSafetyClientId),
+                new Claim(Claims.IdentityProvider, "idP1")
+            }, "rolesprincipal"));
+            return GetBrowser(principal, _storageProvider, identityServiceProvider);
+        }
+
         public async Task InitializeSuccessDataAsync(IIdentityServiceProvider identityServiceProvider)
         {
-            InitializeBrowser(identityServiceProvider);
+            InitializeAtlasBrowser(identityServiceProvider);
 
             // create the Atlas client
             var response = await Browser.Post("/clients", with =>
@@ -270,6 +290,20 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 {
                     Id = AtlasClientId,
                     Name = AtlasClientId
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+            // create the Patient Safety client
+            var browser = InitializePatientSafetyBrowser(identityServiceProvider);
+            response = await browser.Post("/clients", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    Id = PatientSafetyClientId,
+                    Name = PatientSafetyClientId
                 });
             });
 
@@ -314,6 +348,19 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             });
 
             Assert.Equal(HttpStatusCode.Created, contributorAtlasRole.StatusCode);
+
+            var adminPatientSafetyRole = await browser.Post("/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = PatientSafetyClientId,
+                    Name = AdminPatientSafetyRoleName
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Created, adminPatientSafetyRole.StatusCode);
 
             // create groups
             response = await Browser.Post("/groups", with =>
@@ -388,7 +435,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     new
                     {
                         SubjectId = AtlasUserName,
-                        IdentityProvider = IdentityProvider
+                        IdentityProvider
                     }
                 });
             });
@@ -407,14 +454,26 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
+            // add a second role to the user (role is tied to a different client)
+            response = await browser.Post($"/user/{IdentityProvider}/{AtlasUserName}/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new[]
+                {
+                    adminPatientSafetyRole.Body.DeserializeJson<RoleApiModel>()
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
             //add user with role but no group 
-            response = await Browser.Post($"/user/", with =>
+            response = await Browser.Post("/user/", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
                 {
                     SubjectId = AtlasUserNoGroupName,
-                    IdentityProvider = IdentityProvider
+                    IdentityProvider
                 });
             });
 
@@ -435,7 +494,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         public async Task InitializeClientWithoutRolesAsync(IIdentityServiceProvider identityServiceProvider)
         {
-            InitializeBrowser(identityServiceProvider);
+            InitializeAtlasBrowser(identityServiceProvider);
 
             // create the Atlas client
             var response = await Browser.Post("/clients", with =>
@@ -453,7 +512,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         public async Task InitializeClientWithRolesAndNoGroupsAsync(IIdentityServiceProvider identityServiceProvider)
         {
-            InitializeBrowser(identityServiceProvider);
+            InitializeAtlasBrowser(identityServiceProvider);
 
             // create the Atlas client
             var response = await Browser.Post("/clients", with =>
