@@ -55,6 +55,7 @@ namespace Fabric.Authorization.API.Services
             // add groups to the response
             searchResults.AddRange(groupEntities.Select(g => new MemberSearchResponse
             {
+                SubjectId = g.Name,
                 GroupName = g.Name,
                 Roles = g.Roles.Select(r => r.ToRoleApiModel()),
                 EntityType = string.Equals(g.Source, GroupConstants.CustomSource, StringComparison.OrdinalIgnoreCase)
