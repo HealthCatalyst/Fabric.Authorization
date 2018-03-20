@@ -84,7 +84,6 @@ namespace Fabric.Authorization.UnitTests.Search
         };
 
         private readonly ClientService _clientService;
-        private readonly GroupService _groupService;
 
         private readonly Mock<IClientStore> _mockClientStore = new Mock<IClientStore>();
         private readonly Mock<IGroupStore> _mockGroupStore = new Mock<IGroupStore>();
@@ -208,11 +207,6 @@ namespace Fabric.Authorization.UnitTests.Search
 
             _clientService = new ClientService(_mockClientStore.Create(), mockSecurableItemStore.Create());
             _roleService = new RoleService(_mockRoleStore.Create(), _mockPermissionStore.Create(), _clientService);
-            _groupService = new GroupService(
-                _mockGroupStore.Create(),           
-                _mockRoleStore.Create(),
-                new Mock<IUserStore>().Object,
-                _roleService);
         }
 
         private void InitializeData()
@@ -224,7 +218,7 @@ namespace Fabric.Authorization.UnitTests.Search
         public MemberSearchService MemberSearchService(IIdentityServiceProvider identityServiceProvider)
         {
             var memberSearchService =
-                new MemberSearchService(_clientService, _roleService, _groupService, identityServiceProvider, new Mock<ILogger>().Object);
+                new MemberSearchService(_clientService, _roleService, identityServiceProvider, new Mock<ILogger>().Object);
             return memberSearchService;
         }
 
@@ -236,9 +230,12 @@ namespace Fabric.Authorization.UnitTests.Search
                 Name = AdminPatientSafetyRoleName,
                 Grain = "app",
                 SecurableItem = "patientsafety",
-                Groups = new List<string>
+                Groups = new List<Group>
                 {
-                    AdminPatientSafetyGroupName
+                    new Group
+                    {
+                        Name = AdminPatientSafetyGroupName
+                    }
                 }
             };
 
@@ -248,9 +245,12 @@ namespace Fabric.Authorization.UnitTests.Search
                 Name = UserPatientSafetyRoleName,
                 Grain = "patientsafety",
                 SecurableItem = "patient",
-                Groups = new List<string>
+                Groups = new List<Group>
                 {
-                    UserPatientSafetyGroupName
+                    new Group
+                    {
+                        Name = UserPatientSafetyGroupName
+                    }
                 }
             };
 
@@ -266,9 +266,12 @@ namespace Fabric.Authorization.UnitTests.Search
                         Name = AdminPatientSafetyRoleName,
                         Grain = "app",
                         SecurableItem = "patientsafety",
-                        Groups = new List<string>
+                        Groups = new List<Group>
                         {
-                            AdminPatientSafetyGroupName
+                            new Group
+                            {
+                                Name = AdminPatientSafetyGroupName
+                            }
                         }
                     }
                 },
@@ -294,9 +297,12 @@ namespace Fabric.Authorization.UnitTests.Search
                         Name = UserPatientSafetyRoleName,
                         Grain = "patientsafety",
                         SecurableItem = "patient",
-                        Groups = new List<string>
+                        Groups = new List<Group>
                         {
-                            UserPatientSafetyGroupName
+                            new Group
+                            {
+                                Name = UserPatientSafetyGroupName
+                            }
                         }
                     }
                 },
@@ -306,49 +312,13 @@ namespace Fabric.Authorization.UnitTests.Search
 
         private void InitializeAtlasData()
         {
+
             _adminAtlasRole = new Role
             {
                 Id = Guid.NewGuid(),
                 Name = AdminAtlasRoleName,
                 Grain = "app",
-                SecurableItem = "atlas",
-                Groups = new List<string>
-                {
-                    AdminAtlasGroupName
-                }
-            };
-
-            _userAtlasRole = new Role
-            {
-                Id = Guid.NewGuid(),
-                Name = UserAtlasRoleName,
-                Grain = "atlas",
-                SecurableItem = "atlas-si2",
-                Groups = new List<string>
-                {
-                    UserAtlasGroupName
-                },
-                Users = new List<User>
-                {
-                    new User("atlas_user", "Windows")
-                    {
-                        SubjectId = "atlas_user",
-                        IdentityProvider = "Windows",
-                        Groups = new List<Group> { new Group { Name = UserAtlasGroupName} }
-                    }
-                }
-            };
-
-            _dosRole = new Role
-            {
-                Id = Guid.NewGuid(),
-                Name = DosRoleName,
-                Grain = Domain.Defaults.Authorization.DosGrain,
-                SecurableItem = "datamarts",
-                Groups = new List<string>
-                {
-                    DosGroupName
-                }
+                SecurableItem = "atlas"
             };
 
             _adminAtlasGroup = new Group
@@ -357,16 +327,24 @@ namespace Fabric.Authorization.UnitTests.Search
                 Name = AdminAtlasGroupName,
                 Roles = new List<Role>
                 {
-                    new Role
+                    _adminAtlasRole
+                }
+            };
+
+            _adminAtlasRole.Groups = new List<Group> {_adminAtlasGroup};
+
+            _userAtlasRole = new Role
+            {
+                Id = Guid.NewGuid(),
+                Name = UserAtlasRoleName,
+                Grain = "atlas",
+                SecurableItem = "atlas-si2",
+                Users = new List<User>
+                {
+                    new User("atlas_user", "Windows")
                     {
-                        Id = _adminAtlasRole.Id,
-                        Name = AdminAtlasRoleName,
-                        Grain = "app",
-                        SecurableItem = "atlas",
-                        Groups = new List<string>
-                        {
-                            AdminAtlasGroupName
-                        }
+                        SubjectId = "atlas_user",
+                        IdentityProvider = "Windows"
                     }
                 }
             };
@@ -377,19 +355,20 @@ namespace Fabric.Authorization.UnitTests.Search
                 Name = UserAtlasGroupName,
                 Roles = new List<Role>
                 {
-                    new Role
-                    {
-                        Id = _userAtlasRole.Id,
-                        Name = UserAtlasRoleName,
-                        Grain = "atlas",
-                        SecurableItem = "atlas-si2",
-                        Groups = new List<string>
-                        {
-                            UserAtlasGroupName
-                        }
-                    }
+                    _userAtlasRole
                 },
                 Source = "Custom"
+            };
+
+            _userAtlasRole.Groups = new List<Group> {_userAtlasGroup};
+            _userAtlasRole.Users.First().Groups = new List<Group> {_userAtlasGroup};
+
+            _dosRole = new Role
+            {
+                Id = Guid.NewGuid(),
+                Name = DosRoleName,
+                Grain = Domain.Defaults.Authorization.DosGrain,
+                SecurableItem = "datamarts"
             };
 
             _dosGroup = new Group
@@ -398,18 +377,13 @@ namespace Fabric.Authorization.UnitTests.Search
                 Name = DosGroupName,
                 Roles = new List<Role>
                 {
-                    new Role
-                    {
-                        Id = _dosRole.Id,
-                        Name = DosRoleName,
-                        Grain = Domain.Defaults.Authorization.DosGrain,
-                        SecurableItem = "datamarts",
-                        Groups = new List<string>
-                        {
-                            DosGroupName
-                        }
-                    }
+                    _dosRole
                 }
+            };
+
+            _dosRole.Groups = new List<Group>
+            {
+                _dosGroup
             };
         }
     }
@@ -423,16 +397,6 @@ namespace Fabric.Authorization.UnitTests.Search
         }
 
         private readonly MemberSearchServiceFixture _fixture;
-
-        [Fact]
-        public async Task MemberSearch_ClientIdMissing_BadRequestExceptionAsync()
-        {
-            var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
-            var identitySearchService = _fixture.MemberSearchService(mockIdentityServiceProvider.Object);
-
-            await Assert.ThrowsAsync<BadRequestException<MemberSearchRequest>>(
-                () => identitySearchService.Search(new MemberSearchRequest()));
-        }
 
         [Fact]
         public async Task MemberSearch_ClientIdDoesNotExist_NotFoundExceptionAsync()

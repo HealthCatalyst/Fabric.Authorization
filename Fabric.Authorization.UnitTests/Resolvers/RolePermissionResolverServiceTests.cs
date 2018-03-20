@@ -20,7 +20,14 @@ namespace Fabric.Authorization.UnitTests.Resolvers
         {
             var securableItem = "testapp";
             var subjectId = "testuser";
-            var groups = new List<string> {"contributor"};
+            var groups = new List<Group>
+            {
+                new Group
+                {
+                    Name = "contributor"
+                }
+            };
+
             var roles = CreateRoles(securableItem, subjectId, groups);
             var mockPermissionStore = new Mock<IPermissionStore>().Object;
             var mockRoleStore = new Mock<IRoleStore>()
@@ -34,13 +41,13 @@ namespace Fabric.Authorization.UnitTests.Resolvers
                 IdentityProvider = "Windows",
                 SecurableItem = securableItem,
                 SubjectId = subjectId,
-                UserGroups = groups,
+                UserGroups = groups.Select(g => g.Name),
                 IncludeSharedPermissions = false
             });
             Assert.Equal(2, resolutionResult.AllowedPermissions.Count());
         }
 
-        private List<Role> CreateRoles(string securableItem, string subjectId, IList<string> groups)
+        private List<Role> CreateRoles(string securableItem, string subjectId, IList<Group> groups)
         {
             var roles = new List<Role>
             {
@@ -110,7 +117,13 @@ namespace Fabric.Authorization.UnitTests.Resolvers
                     Name = "owner",
                     SecurableItem = securableItem,
                     Grain = Domain.Defaults.Authorization.AppGrain,
-                    Groups = new List<string> {"admins"},
+                    Groups = new List<Group>
+                    {
+                        new Group
+                        {
+                            Name = "admins"
+                        }
+                    }, 
                     Permissions = new List<Permission>
                     {
                         new Permission

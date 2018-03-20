@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
@@ -25,5 +27,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
 
         public ICollection<GroupRole> GroupRoles{ get; set; }
         public ICollection<GroupUser> GroupUsers { get; set; }
+
+        [NotMapped]
+        public ICollection<Role> Roles => GroupRoles.Where(gr => !gr.IsDeleted).Select(gr => gr.Role).ToList();
+
+        [NotMapped]
+        public ICollection<User> Users => GroupUsers.Where(gu => !gu.IsDeleted).Select(gu => gu.User).ToList();
     }
 }
