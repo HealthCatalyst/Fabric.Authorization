@@ -6,7 +6,8 @@ import { Role,
          User } from '../../../models';
 import { FabricAuthUserService,
         AccessControlConfigService,
-        FabricAuthRoleService } from '../../../services';
+        FabricAuthRoleService,
+        FabricAuthGroupService } from '../../../services';
     
 
 @Component({
@@ -26,7 +27,8 @@ export class MemberEditComponent implements OnInit {
               private router: Router,
               private userService: FabricAuthUserService,
               private configService: AccessControlConfigService,
-              private roleService: FabricAuthRoleService) { }
+              private roleService: FabricAuthRoleService,
+              private groupService: FabricAuthGroupService) { }
 
   ngOnInit() {
     this.subjectId = this.route.snapshot.paramMap.get('subjectid');
