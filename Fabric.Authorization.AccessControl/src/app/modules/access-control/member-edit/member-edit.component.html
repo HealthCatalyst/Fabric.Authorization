@@ -17,9 +17,13 @@
   <div>
     <p>Roles to Assign:</p>  
     <ul class="roles">
-        <li *ngFor="let role of assignableRoles">
+        <li *ngFor="let role of assignableRoles"
+            [class.selected]="roleIsSelected(role)"
+            (click)="onRoleSelect(role)">
             {{role.name}}
         </li>
     </ul>
     </div>  
-  
+    <div>    
+        <button (click)="addRoles()">Save</button>
+    </div>

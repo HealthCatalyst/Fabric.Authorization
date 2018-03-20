@@ -20,7 +20,7 @@ export class MemberEditComponent implements OnInit {
   public assignableRoles: Array<Role> = [];
   public subjectId: string = '';
   public identityProvider: string = '';
-  
+  public rolesToAssign: Array<Role> = [];
 
   constructor( private route: ActivatedRoute,
               private router: Router,
@@ -32,6 +32,10 @@ export class MemberEditComponent implements OnInit {
     this.subjectId = this.route.snapshot.paramMap.get('subjectid');
     this.identityProvider = this.route.snapshot.paramMap.get('idprovider');
 
+    return this.getUserRoles();
+  }
+
+  getUserRoles(){
     return this.userService.getUserRoles(this.identityProvider, this.subjectId)
     .toPromise()
     .then((roles) => {     
@@ -57,6 +61,25 @@ export class MemberEditComponent implements OnInit {
       let existingRoleNames = this.roles.map(r => r.name);
       this.assignableRoles = roles.filter(r => existingRoleNames.indexOf(r.name) === -1);
     });
+  }
+
+  onRoleSelect(role: Role){
+    if(!this.roleIsSelected(role)){
+      this.rolesToAssign.push(role);
+    } else{
+      this.rolesToAssign = this.rolesToAssign.filter(r => r.name !== role.name);
+    }
+  }
+
+  roleIsSelected(role: Role){
+    return this.rolesToAssign.filter(r => r.name === role.name).length > 0;
+  }
+
+  addRoles(){
+    var self = this;
+    return this.userService.addRolesToUser(this.identityProvider, this.subjectId, this.rolesToAssign)
+    .toPromise()
+    .then(self.getUserRoles);
   }
 
   private removeMemberRole(role: Role){
