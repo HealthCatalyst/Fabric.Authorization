@@ -6,4 +6,6 @@ export class AuthMemberSearchRequest {
     public sortKey: string;
     public sortDirection: string;
     public clientId: string;
+    public grain: string;
+    public securableItem: string;
 }
