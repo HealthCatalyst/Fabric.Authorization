@@ -466,8 +466,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
         {
             modelBuilder.Entity<RoleUser>(entity =>
             {
-                entity.ToTable("RoleUsers");
-                entity.HasAlternateKey(e => new { e.SubjectId, e.IdentityProvider, e.RoleId });
+                entity.ToTable("RoleUsers");               
 
                 entity.HasOne(e => e.User)
                     .WithMany(e => e.RoleUsers)

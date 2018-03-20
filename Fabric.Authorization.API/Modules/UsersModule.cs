@@ -355,7 +355,7 @@ namespace Fabric.Authorization.API.Modules
             {
                 User user = await _userService.AddRolesToUser(domainRoles, param.subjectId.ToString(),
                     param.identityProvider.ToString());
-                return CreateSuccessfulPostResponse($"{user.IdentityProvider}/{user.SubjectId}", user,
+                return CreateSuccessfulPostResponse($"{user.IdentityProvider}/{user.SubjectId}", user.ToUserApiModel(),
                     HttpStatusCode.OK);
             }
             catch (NotFoundException<User>)
@@ -389,7 +389,7 @@ namespace Fabric.Authorization.API.Modules
             {
                 User user = await _userService.DeleteRolesFromUser(domainRoles, param.subjectId.ToString(),
                     param.identityProvider.ToString());
-                return CreateSuccessfulPostResponse($"{user.IdentityProvider}/{user.SubjectId}", user,
+                return CreateSuccessfulPostResponse($"{user.IdentityProvider}/{user.SubjectId}", user.ToUserApiModel(),
                     HttpStatusCode.OK);
             }
             catch (NotFoundException<User>)

@@ -69,7 +69,7 @@ namespace Fabric.Authorization.API.Models
             {
                 SubjectId = user.SubjectId,
                 IdentityProvider = user.IdentityProvider,
-                Groups = user.Groups.Select(g => g.Name),
+                Groups = user.Groups.Select(g => g.Name).ToList(),
                 Roles = user.Roles?.Where(r => !r.IsDeleted).Select(r => r.ToRoleApiModel()).ToList()
             };
 
