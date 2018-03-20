@@ -108,17 +108,6 @@ namespace Fabric.Authorization.Persistence.CouchDb.Stores
             return $"{DocumentKeyPrefix}{FormatId(id)}{IdDelimiter}";
         }
 
-        public async Task<Group> AddRoleToGroup(Group group, Role role)
-        {
-            group.Roles.Add(role);
-            role.Groups.Add(group.Name);
-
-            await _roleStore.Update(role);
-            await Update(group);
-
-            return group;
-        }
-
         public Task<Group> DeleteRolesFromGroup(Group group, IEnumerable<Guid> roleIds)
         {
             throw new NotImplementedException();

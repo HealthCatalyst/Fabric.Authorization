@@ -90,17 +90,6 @@ namespace Fabric.Authorization.Persistence.InMemory.Stores
             return await base.Exists(formattedId) && !Dictionary[formattedId].IsDeleted;
         }
 
-        public async Task<Group> AddRoleToGroup(Group group, Role role)
-        {
-            group.Roles.Add(role);
-            role.Groups.Add(group.Name);
-
-            await _roleStore.Update(role);
-            await Update(group);
-
-            return group;
-        }
-
         public Task<Group> DeleteRolesFromGroup(Group group, IEnumerable<Guid> roleIdsToDelete)
         {
             throw new NotImplementedException();

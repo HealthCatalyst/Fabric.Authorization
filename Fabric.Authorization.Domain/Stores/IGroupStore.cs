@@ -7,7 +7,6 @@ namespace Fabric.Authorization.Domain.Stores
 {
     public interface IGroupStore : IGenericStore<string, Group>
     {
-        Task<Group> AddRoleToGroup(Group group, Role role);
         Task<Group> AddRolesToGroup(Group group, IEnumerable<Role> rolesToAdd);
         Task<Group> DeleteRolesFromGroup(Group group, IEnumerable<Guid> roleIdsToDelete);
         Task<Group> AddUserToGroup(Group group, User user);
