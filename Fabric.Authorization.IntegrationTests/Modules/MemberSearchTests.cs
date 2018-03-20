@@ -203,11 +203,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         {
             var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
             mockIdentityServiceProvider
-                .Setup(m => m.Search(clientId, new List<string>
-                {
-                    $"{Fixture.AtlasUserName}:{Fixture.IdentityProvider}",
-                    $"{Fixture.AtlasUserNoGroupName}:{Fixture.IdentityProvider}"
-                })).ReturnsAsync(
+                .Setup(m => m.Search(clientId, It.IsAny<IEnumerable<string>>())).ReturnsAsync(
                     () => new FabricIdentityUserResponse
                     {
                         HttpStatusCode = System.Net.HttpStatusCode.OK,
