@@ -10,7 +10,7 @@ namespace Fabric.Authorization.Domain.Models
             Permissions = new List<Permission>();
             DeniedPermissions = new List<Permission>();
             ChildRoles = new List<Guid>();
-            Groups = new List<string>();
+            Groups = new List<Group>();
             Users = new List<User>();
         }
 
@@ -26,7 +26,7 @@ namespace Fabric.Authorization.Domain.Models
 
         public Guid? ParentRole { get; set; }
 
-        public ICollection<string> Groups { get; set; }
+        public ICollection<Group> Groups { get; set; }
         
         public ICollection<Guid> ChildRoles { get; set; }
 

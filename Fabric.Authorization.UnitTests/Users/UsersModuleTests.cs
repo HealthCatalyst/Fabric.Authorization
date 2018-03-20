@@ -861,10 +861,10 @@ namespace Fabric.Authorization.UnitTests.Users
             contributorGroup.Roles.Add(contributorRole);
             customGroup.Roles.Add(customGroupRole);
 
-            adminRole.Groups.Add(adminGroup.Identifier);
-            contributorRole.Groups.Add(adminGroup.Identifier);
-            contributorRole.Groups.Add(contributorGroup.Identifier);
-            customGroupRole.Groups.Add(customGroup.Identifier);
+            adminRole.Groups.Add(adminGroup);
+            contributorRole.Groups.Add(adminGroup);
+            contributorRole.Groups.Add(contributorGroup);
+            customGroupRole.Groups.Add(customGroup);
 
             var manageUsersPermission =
                 ExistingPermissions.First(p => p.Grain == adminRole.Grain
