@@ -109,13 +109,101 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
-        public async Task MemberSearch_ValidRequest_SuccessAsync()
+        public async Task MemberSearch_MissingRequiredRequestParameters_BadRequestExceptionAsync()
+        {
+            Fixture.InitializeAtlasBrowser(new Mock<IIdentityServiceProvider>().Object);
+
+            var result = await Fixture.Browser.Get(
+                MemberSearchRoute,
+                with =>
+                {
+                    with.HttpRequest();
+                    with.Header("Accept", "application/json");
+                });
+
+            Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
+        }
+
+        [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
+        public async Task MemberSearch_BadRequestParameters_BadRequestExceptionAsync()
+        {
+            Fixture.InitializeAtlasBrowser(new Mock<IIdentityServiceProvider>().Object);
+
+            var result = await Fixture.Browser.Get(
+                MemberSearchRoute,
+                with =>
+                {
+                    with.HttpRequest();
+                    with.Header("Accept", "application/json");
+                    with.Query("client_id", Fixture.AtlasClientId);
+                    with.Query("grain", "app");
+                });
+
+            Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
+        }
+
+        [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
+        public async Task MemberSearch_ValidClientIdRequest_SuccessAsync()
         {
             var lastLoginDate = new DateTime(2017, 9, 15).ToUniversalTime();
 
+            var mockIdentityServiceProvider = CreateIdentityServiceProviderMock(Fixture.AtlasClientId, lastLoginDate);
+            await Fixture.InitializeSuccessDataAsync(mockIdentityServiceProvider);
+
+            var response = await Fixture.Browser.Get(
+                MemberSearchRoute,
+                with =>
+                {
+                    with.HttpRequest();
+                    with.Header("Accept", "application/json");
+                    with.Query("client_id", Fixture.AtlasClientId);
+                    with.Query("sort_key", "name");
+                    with.Query("sort_dir", "desc");
+                    with.Query("filter", "brian");
+                    with.Query("page_number", "1");
+                    with.Query("page_size", "2");
+                });
+
+            var results = response.Body.DeserializeJson<List<MemberSearchResponse>>();
+            AssertValidRequest(results, lastLoginDate);
+        }
+
+        [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
+        public async Task MemberSearch_ValidGrainSecurableItemRequest_SuccessAsync()
+        {
+            var lastLoginDate = new DateTime(2017, 9, 15).ToUniversalTime();
+
+            var mockIdentityServiceProvider = CreateIdentityServiceProviderMock(null, lastLoginDate);
+            await Fixture.InitializeSuccessDataAsync(mockIdentityServiceProvider);
+
+            // test grain/securable_item QS parameters
+            var response = await Fixture.Browser.Get(
+                MemberSearchRoute,
+                with =>
+                {
+                    with.HttpRequest();
+                    with.Header("Accept", "application/json");
+                    with.Query("grain", "app");
+                    with.Query("securable_item", Fixture.AtlasClientId);
+                    with.Query("sort_key", "name");
+                    with.Query("sort_dir", "desc");
+                    with.Query("filter", "brian");
+                    with.Query("page_number", "1");
+                    with.Query("page_size", "2");
+                });
+
+            var results = response.Body.DeserializeJson<List<MemberSearchResponse>>();
+            AssertValidRequest(results, lastLoginDate);
+        }
+
+        private IIdentityServiceProvider CreateIdentityServiceProviderMock(string clientId, DateTime? lastLoginDate)
+        {
             var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
             mockIdentityServiceProvider
-                .Setup(m => m.Search(Fixture.AtlasClientId, new List<string>
+                .Setup(m => m.Search(clientId, new List<string>
                 {
                     $"{Fixture.AtlasUserName}:{Fixture.IdentityProvider}",
                     $"{Fixture.AtlasUserNoGroupName}:{Fixture.IdentityProvider}"
@@ -159,24 +247,11 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                         }
                     });
 
-            await Fixture.InitializeSuccessDataAsync(mockIdentityServiceProvider.Object);
+            return mockIdentityServiceProvider.Object;
+        }
 
-            var response = await Fixture.Browser.Get(
-                MemberSearchRoute,
-                with =>
-                    {
-                        with.HttpRequest();
-                        with.Header("Accept", "application/json");
-                        with.Query("client_id", Fixture.AtlasClientId);
-                        with.Query("sort_key", "name");
-                        with.Query("sort_dir", "desc");
-                        with.Query("filter", "brian");
-                        with.Query("page_number", "1");
-                        with.Query("page_size", "2");
-                    });
-
-            var results = response.Body.DeserializeJson<List<MemberSearchResponse>>();
-
+        private void AssertValidRequest(IReadOnlyList<MemberSearchResponse> results, DateTime? lastLoginDate)
+        {
             Assert.Equal(2, results.Count);
 
             var result1 = results[0];
@@ -243,8 +318,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             AdminAtlasRoleName = $"adminAtlasRole-{DateTime.Now.Ticks}";
             UserAtlasRoleName = $"userAtlasRole-{DateTime.Now.Ticks}";
             ContributorAtlasRoleName = $"contributorAtlas-Role-{DateTime.Now.Ticks}";
-            AtlasUserNoGroupName = "atlas_user_no_group";
-            AtlasUserName = "atlas_user";
+            AtlasUserNoGroupName = $"atlas_user_no_group-{DateTime.Now.Ticks}";
+            AtlasUserName = $"atlas_user-{DateTime.Now.Ticks}";
 
             PatientSafetyClientId = $"patientsafety-{DateTime.Now.Ticks}";
             AdminPatientSafetyRoleName = $"adminPatientSafety-{DateTime.Now.Ticks}";
