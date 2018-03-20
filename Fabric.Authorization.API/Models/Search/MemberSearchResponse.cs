@@ -9,7 +9,8 @@ namespace Fabric.Authorization.API.Models.Search
     public enum MemberSearchResponseEntityType
     {
         User,
-        Group
+        DirectoryGroup,
+        CustomGroup
     }
 
     public class MemberSearchResponse
