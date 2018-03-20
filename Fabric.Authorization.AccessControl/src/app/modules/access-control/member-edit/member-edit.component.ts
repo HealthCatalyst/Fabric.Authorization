@@ -44,14 +44,13 @@ export class MemberEditComponent implements OnInit {
     });
   }
 
-  removeRole(role: Role){
-    var self = this;
+  removeRole(role: Role){    
     this.roles = this.removeMemberRole(role);
     let rolesToRemove: Array<Role> = [];
     rolesToRemove.push(role);
     return this.userService.removeRolesFromUser(this.identityProvider, this.subjectId, rolesToRemove)
     .toPromise()
-    .then(self.getRolesToAssign);
+    .then(() => this.getRolesToAssign());
   }
 
   getRolesToAssign(){
@@ -75,11 +74,10 @@ export class MemberEditComponent implements OnInit {
     return this.rolesToAssign.filter(r => r.name === role.name).length > 0;
   }
 
-  addRoles(){
-    var self = this;
+  addRoles(){    
     return this.userService.addRolesToUser(this.identityProvider, this.subjectId, this.rolesToAssign)
     .toPromise()
-    .then(self.getUserRoles);
+    .then(() => this.getUserRoles());
   }
 
   private removeMemberRole(role: Role){
