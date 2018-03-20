@@ -151,21 +151,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return group != null;
         }
 
-        public async Task<Group> AddRoleToGroup(Group group, Role role)
-        {           
-            var groupRole = new GroupRole
-            {
-                GroupId = Guid.Parse(group.Id),
-                RoleId = role.Id
-            };
-            group.Roles.Add(role);
-
-            _authorizationDbContext.GroupRoles.Add(groupRole);
-            await _authorizationDbContext.SaveChangesAsync();
-            
-            return group;
-        }
-
         public async Task<Group> AddRolesToGroup(Group group, IEnumerable<Role> rolesToAdd)
         {
             var groupEntity = await _authorizationDbContext.Groups.SingleOrDefaultAsync(g =>
