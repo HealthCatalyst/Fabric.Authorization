@@ -1,7 +1,5 @@
 #!/bin/bash
 
-docker stop authz-functional-sqlserver
-docker rm authz-functional-sqlserver
 docker stop authz-functional-authorization
 docker rm authz-functional-authorization
 docker stop authz-functional-identity
