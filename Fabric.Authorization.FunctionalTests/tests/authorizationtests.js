@@ -448,14 +448,14 @@ describe("authorization tests", function () {
 
                     var groupHcAdminResult = results[0];
                     expect(groupHcAdminResult.groupName).to.equal(groupHcAdmin.groupName);
-                    expect(groupHcAdminResult.entityType).to.equal("Group");
+                    expect(groupHcAdminResult.entityType).to.equal("CustomGroup");
                     expect(groupHcAdminResult.roles).to.be.an("array").that.is.not.empty;
                     expect(groupHcAdminResult.roles.length).to.equal(1);
                     expect(groupHcAdminResult.roles[0].name).to.equal(roleHcAdmin.Name);
 
                     var groupHcEditorResult = results[1];
                     expect(groupHcEditorResult.groupName).to.equal(groupHcEditor.groupName);
-                    expect(groupHcEditorResult.entityType).to.equal("Group");
+                    expect(groupHcEditorResult.entityType).to.equal("CustomGroup");
                     expect(groupHcEditorResult.roles).to.be.an("array").that.is.not.empty;
                     expect(groupHcEditorResult.roles.length).to.equal(1);
                     expect(groupHcEditorResult.roles[0].name).to.equal(roleHcEditor.Name);
