@@ -57,7 +57,7 @@ namespace Fabric.Authorization.API.Services
             {
                 SubjectId = g.Name,
                 GroupName = g.Name,
-                Roles = g.Roles.Select(r => r.ToRoleApiModel()),
+                Roles = g.Roles.Select(r => r.ToRoleApiModel()).ToList(),
                 EntityType = string.Equals(g.Source, GroupConstants.CustomSource, StringComparison.OrdinalIgnoreCase)
                     ? MemberSearchResponseEntityType.CustomGroup.ToString()
                     : MemberSearchResponseEntityType.DirectoryGroup.ToString()
@@ -74,7 +74,7 @@ namespace Fabric.Authorization.API.Services
                 {
                     SubjectId = user.SubjectId,
                     IdentityProvider = user.IdentityProvider,
-                    Roles = user.Roles.Intersect(roleEntities).Select(r => r.ToRoleApiModel()),
+                    Roles = user.Roles.Intersect(roleEntities).Select(r => r.ToRoleApiModel()).ToList(),
                     EntityType = MemberSearchResponseEntityType.User.ToString()
                 });
             }

@@ -74,8 +74,18 @@ export class MemberAddComponent implements OnInit {
 
   addMemberWithRoles(){
     if(this.selectedPrincipal.principalType == 'user'){
+      
       var user = new User(this.configService.identityProvider, this.selectedPrincipal.subjectId);      
-      return this.userService.createUser(user).toPromise()
+      return this.userService.getUser(this.configService.identityProvider, this.selectedPrincipal.subjectId)
+      .toPromise()
+      .then((userResult) => {        
+          return userResult;                
+      })
+      .catch((err) => {
+        if(err.statusCode === 404){
+          return this.userService.createUser(user).toPromise();
+        }
+      })      
       .then((user: User) => {
         return this.userService.addRolesToUser(user.identityProvider, user.subjectId, this.selectedRoles).toPromise();
       });            
@@ -86,5 +96,5 @@ export class MemberAddComponent implements OnInit {
           this.groupService.addRolesToGroup(newGroup.groupName, this.selectedRoles).toPromise();
         });
     }   
-  }
+  }  
 }

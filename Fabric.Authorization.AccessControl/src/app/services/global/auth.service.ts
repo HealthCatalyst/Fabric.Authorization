@@ -14,7 +14,7 @@ export class AuthService {
 
   constructor(private httpClient: HttpClient) {   
     this.clientId = 'fabric-accesscontrol';
-    this.authority = 'http://localhost:5001';
+    this.authority = 'http://localhost/identity';
     
     var self = this;
 
@@ -24,7 +24,7 @@ export class AuthService {
       redirect_uri: 'http://localhost:4200/oidc-callback.html',
       post_logout_redirect_uri: 'http://localhost:4200',
       response_type: 'id_token token',
-      scope: 'openid profile fabric.profile patientapi fabric/authorization.read fabric/authorization.write fabric/idprovider.searchusers',
+      scope: 'openid profile fabric.profile fabric/authorization.read fabric/authorization.write fabric/idprovider.searchusers fabric/authorization.dos.write',
       silent_redirect_uri: 'http://localhost:4200/silent.html',
       automaticSilentRenew: true,    
       filterProtocolClaims: true,

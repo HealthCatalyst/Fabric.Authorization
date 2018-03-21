@@ -15,8 +15,7 @@ import { AuthMemberSearchRequest, AuthMemberSearchResult, Role } from '../../../
 })
 export class MemberListComponent implements OnInit {
 
-  members: AuthMemberSearchResult[];
-  filterText: string;
+  members: AuthMemberSearchResult[];  
 
   constructor(private memberSearchService: FabricAuthMemberSearchService, 
     private configService: AccessControlConfigService,
@@ -30,8 +29,8 @@ export class MemberListComponent implements OnInit {
   getMembers() {
     var self = this;
     var searchRequest = new AuthMemberSearchRequest();
-    searchRequest.clientId = this.configService.clientId;
-    searchRequest.filter = this.filterText;
+    searchRequest.grain = this.configService.grain;
+    searchRequest.securableItem = this.configService.securableItem;
     
     return this.memberSearchService.searchMembers(searchRequest)
     .subscribe(function(memberList){
