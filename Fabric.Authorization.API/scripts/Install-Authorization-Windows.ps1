@@ -630,10 +630,6 @@ try{
     }
 }
 
-Write-Host "Setting up Admin account."
-$accessToken = Get-AccessToken $identityServerUrl "fabric-installer" "fabric/authorization.read fabric/authorization.write fabric/authorization.dos.write fabric/authorization.manageclients" $fabricInstallerSecret
-Add-AccountToDosAdminRole -accountName $adminAccount -domain $currentUserDomain -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken -connString $authorizationDbConnStr
-
 #Write environment variables
 Write-Host ""
 Write-Host "Loading up environment variables..."
@@ -681,6 +677,10 @@ if($authorizationApiSecret){
 
 Set-EnvironmentVariables $appDirectory $environmentVariables | Out-Null
 Write-Host ""
+
+Write-Host "Setting up Admin account."
+$accessToken = Get-AccessToken $identityServerUrl "fabric-installer" "fabric/authorization.read fabric/authorization.write fabric/authorization.dos.write fabric/authorization.manageclients" $fabricInstallerSecret
+Add-AccountToDosAdminRole -accountName $adminAccount -domain $currentUserDomain -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken -connString $authorizationDbConnStr
 
 Set-Location $workingDirectory
 
