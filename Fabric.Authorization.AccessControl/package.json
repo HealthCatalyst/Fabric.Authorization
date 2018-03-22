@@ -22,7 +22,7 @@
     "@angular/platform-browser": "^5.2.7",
     "@angular/platform-browser-dynamic": "^5.2.7",
     "@angular/router": "^5.2.7",
-    "@healthcatalyst/cashmere": "file:../../Fabric.Cashmere/lib/dist/healthcatalyst-cashmere-0.0.3.tgz",
+    "@healthcatalyst/cashmere": "0.0.4",
     "core-js": "^2.4.1",
     "font-awesome": "^4.7.0",
     "oidc-client": "^1.4.1",
