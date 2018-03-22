@@ -11,6 +11,7 @@ export class AuthMemberSearchResult {
     public lastName: string;
     public lastLoginDateTimeUtc: string | Date;
     public entityType: string;
+    public name: string;
 
     constructor() { }
 }
