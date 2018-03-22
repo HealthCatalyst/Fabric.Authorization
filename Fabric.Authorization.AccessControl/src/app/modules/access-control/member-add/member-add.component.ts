@@ -78,10 +78,10 @@ export class MemberAddComponent implements OnInit {
       var user = new User(this.configService.identityProvider, this.selectedPrincipal.subjectId);      
       return this.userService.getUser(this.configService.identityProvider, this.selectedPrincipal.subjectId)
       .toPromise()
-      .then((userResult) => {        
+      .then((userResult: User) => {        
           return userResult;                
       })
-      .catch((err) => {
+      .catch(err => {
         if(err.statusCode === 404){
           return this.userService.createUser(user).toPromise();
         }
@@ -91,8 +91,17 @@ export class MemberAddComponent implements OnInit {
       });            
     }else {
       var group = new Group(this.selectedPrincipal.subjectId, '');
-      this.groupService.createGroup(group).toPromise()
-        .then(newGroup => {
+      return this.groupService.getGroup(group.groupName)
+      .toPromise()
+      .then((groupResult: Group) =>{
+        return groupResult;
+      })
+      .catch(err => {
+        if(err.statusCode == 404){
+          return  this.groupService.createGroup(group).toPromise()
+        }
+      })
+      .then((newGroup: Group) => {
           this.groupService.addRolesToGroup(newGroup.groupName, this.selectedRoles).toPromise();
         });
     }   

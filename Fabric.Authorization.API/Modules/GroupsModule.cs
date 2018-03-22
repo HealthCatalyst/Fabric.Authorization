@@ -75,6 +75,11 @@ namespace Fabric.Authorization.API.Modules
                 null,
                 "GetRolesFromGroup");
 
+            Get("/{groupName}/{grain}/{securableItem}/roles",
+                async p => await GetRolesForGroup(p).ConfigureAwait(false),
+                null,
+                "GetRolesForGroup");
+
             Post("/{groupName}/roles",
                 async p => await AddRolesToGroup(p).ConfigureAwait(false),
                 null,
@@ -100,6 +105,23 @@ namespace Fabric.Authorization.API.Modules
                 async _ => await DeleteUserFromGroup().ConfigureAwait(false),
                 null,
                 "DeleteUserFromGroup");
+        }
+
+        private async Task<dynamic> GetRolesForGroup(dynamic p)
+        {
+            try
+            {
+                this.RequiresClaims(AuthorizationReadClaim);
+                string groupName = p.groupName;
+                string grain = p.grain;
+                string securableItem = p.securableItem;
+                var group = await _groupService.GetGroup(groupName);
+                return group.Roles.ToRoleApiModels(grain, securableItem, GroupService.RoleFilter);
+            }
+            catch (NotFoundException<Group> ex)
+            {
+                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
+            }
         }
 
         private async Task<dynamic> GetGroup(dynamic parameters)

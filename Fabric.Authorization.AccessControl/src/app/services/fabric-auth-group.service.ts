@@ -32,6 +32,11 @@ export class FabricAuthGroupService extends FabricBaseService {
     }
   }
 
+  public getGroup(groupName: string): Observable<Group>{
+    return this.httpClient
+    .get<Group>(encodeURI(`${FabricAuthGroupService.baseGroupApiUrl}/${groupName}`));
+  }
+
   public getGroupUsers(groupName: string) : Observable<User[]> {
     return this.httpClient
       .get<User[]>(this.replaceGroupNameSegment(FabricAuthGroupService.groupUsersApiUrl, groupName));
@@ -54,19 +59,10 @@ export class FabricAuthGroupService extends FabricBaseService {
       {body: user});
   }
 
-  public getGroupRoles(groupName: string, grain?: string, securableItem?: string): Observable<Role[]> {
-    
-    let params = new HttpParams();
-    if (grain) {
-      params.set('grain', grain);
-    }
-
-    if (securableItem) {
-      params.set('securableItem', securableItem);
-    }
+  public getGroupRoles(groupName: string, grain: string, securableItem: string): Observable<Role[]> {
 
     return this.httpClient
-      .get<Role[]>(this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName), {params});
+      .get<Role[]>(encodeURI(`${FabricAuthGroupService.baseGroupApiUrl}/${groupName}/${grain}/${securableItem}/roles`));
   }
 
   public addRolesToGroup(groupName: string, roles: Array<Role>): Observable<Group>{

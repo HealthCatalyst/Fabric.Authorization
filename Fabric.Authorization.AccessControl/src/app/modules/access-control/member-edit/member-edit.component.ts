@@ -22,6 +22,7 @@ export class MemberEditComponent implements OnInit {
   public subjectId: string = '';
   public identityProvider: string = '';
   public rolesToAssign: Array<Role> = [];
+  public entityType: string; 
 
   constructor( private route: ActivatedRoute,
               private router: Router,
@@ -32,27 +33,45 @@ export class MemberEditComponent implements OnInit {
 
   ngOnInit() {
     this.subjectId = this.route.snapshot.paramMap.get('subjectid');
-    this.identityProvider = this.route.snapshot.paramMap.get('idprovider');
+    this.entityType = this.route.snapshot.paramMap.get('type');
+    this.identityProvider = this.configService.identityProvider;
 
-    return this.getUserRoles();
+    return this.getMemberRoles();
   }
 
-  getUserRoles(){
-    return this.userService.getUserRoles(this.identityProvider, this.subjectId)
-    .toPromise()
-    .then((roles) => {     
-      this.roles = roles;
-      return this.getRolesToAssign();
-    });
+  getMemberRoles(){
+    if(this.entityType === 'user'){
+      return this.userService.getUserRoles(this.identityProvider, this.subjectId)
+      .toPromise()
+      .then((roles) => {     
+        this.roles = roles;
+        return this.getRolesToAssign();
+      });
+    }else{
+      return this.groupService.getGroupRoles(this.subjectId, this.configService.grain, this.configService.securableItem)
+        .toPromise()
+        .then((roles) => {
+          this.roles = roles;
+          return this.getRolesToAssign();
+        })
+    }    
   }
 
   removeRole(role: Role){    
     this.roles = this.removeMemberRole(role);
     let rolesToRemove: Array<Role> = [];
     rolesToRemove.push(role);
-    return this.userService.removeRolesFromUser(this.identityProvider, this.subjectId, rolesToRemove)
-    .toPromise()
-    .then(() => this.getRolesToAssign());
+
+    if(this.entityType == 'user'){
+      return this.userService.removeRolesFromUser(this.identityProvider, this.subjectId, rolesToRemove)
+      .toPromise()
+      .then(() => this.getRolesToAssign());
+    }else{
+      return this.groupService.removeRolesFromGroup(this.subjectId, rolesToRemove)
+      .toPromise()
+      .then(() => this.getRolesToAssign());
+    }
+    
   }
 
   getRolesToAssign(){
@@ -77,9 +96,16 @@ export class MemberEditComponent implements OnInit {
   }
 
   addRoles(){    
-    return this.userService.addRolesToUser(this.identityProvider, this.subjectId, this.rolesToAssign)
+    if(this.entityType === 'user'){
+      return this.userService.addRolesToUser(this.identityProvider, this.subjectId, this.rolesToAssign)
     .toPromise()
-    .then(() => this.getUserRoles());
+    .then(() => this.getMemberRoles());
+    }else{
+      return this.groupService.addRolesToGroup(this.subjectId, this.rolesToAssign)
+      .toPromise()
+      .then(() => this.getMemberRoles())
+    }
+    
   }
 
   private removeMemberRole(role: Role){
