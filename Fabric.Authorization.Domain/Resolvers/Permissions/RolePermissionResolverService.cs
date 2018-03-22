@@ -78,9 +78,9 @@ namespace Fabric.Authorization.Domain.Resolvers.Permissions
             };
         }
 
-        private static bool BypassRoleEvaluation(Role role, List<string> groupNames, PermissionResolutionRequest permissionResolutionRequest)
+        private static bool BypassRoleEvaluation(Role role, IReadOnlyCollection<string> groupNames, PermissionResolutionRequest permissionResolutionRequest)
         {
-            return !(role.Groups.Any(g => groupNames.Contains(g, StringComparer.OrdinalIgnoreCase)) || role.Users.Any(
+            return !(role.Groups.Any(g => groupNames.Contains(g.Name, StringComparer.OrdinalIgnoreCase)) || role.Users.Any(
                          u => u.SubjectId.Equals(permissionResolutionRequest.SubjectId,
                                   StringComparison.OrdinalIgnoreCase) &&
                               u.IdentityProvider.Equals(permissionResolutionRequest.IdentityProvider,

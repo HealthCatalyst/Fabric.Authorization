@@ -203,7 +203,7 @@ namespace Fabric.Authorization.API.Modules
             try
             {
                 Group group = await _groupService.AddRolesToGroup(domainRoles, parameters.groupName);
-                return CreateSuccessfulPostResponse(group.Name, group,
+                return CreateSuccessfulPostResponse(group.Name, group.ToGroupRoleApiModel(),
                     HttpStatusCode.OK);
             }
             catch (NotFoundException<Group>)
@@ -229,7 +229,7 @@ namespace Fabric.Authorization.API.Modules
                     return CreateFailureResponse("At least 1 role ID is required.", HttpStatusCode.BadRequest);
                 }
 
-                var group = (await _groupService.DeleteRolesFromGroup(parameters.GroupName, roleIds.Select(r => r.RoleId))) as Group;
+                Group group = await _groupService.DeleteRolesFromGroup(parameters.GroupName, roleIds.Select(r => r.RoleId));
                 return CreateSuccessfulPostResponse(group.ToGroupRoleApiModel(), HttpStatusCode.OK);
             }
             catch (NotFoundException<Group> ex)
@@ -269,8 +269,8 @@ namespace Fabric.Authorization.API.Modules
                     return validationResult;
                 }
 
-                var group = await _groupService.AddUsersToGroup(parameters.GroupName, userApiRequests.Select(u => new User(u.SubjectId, u.IdentityProvider)).ToList());
-                return CreateSuccessfulPostResponse(group.Name, group, HttpStatusCode.OK);
+                Group group = await _groupService.AddUsersToGroup(parameters.GroupName, userApiRequests.Select(u => new User(u.SubjectId, u.IdentityProvider)).ToList());
+                return CreateSuccessfulPostResponse(group.Name, group.ToGroupUserApiModel(), HttpStatusCode.OK);
             }
             catch (NotFoundException<Group> ex)
             {

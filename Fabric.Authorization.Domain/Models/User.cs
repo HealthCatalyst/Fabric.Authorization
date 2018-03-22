@@ -43,4 +43,31 @@ namespace Fabric.Authorization.Domain.Models
 
         public string ModifiedBy { get; set; }
     }
+
+    public class UserComparer : IEqualityComparer<User>
+    {
+        public bool Equals(User p1, User p2)
+        {
+            if (p1 == p2)
+            {
+                return true;
+            }
+
+            if (p1 == null || p2 == null)
+            {
+                return false;
+            }
+
+            return string.Equals(p1.SubjectId, p2.SubjectId, StringComparison.OrdinalIgnoreCase)
+                   && string.Equals(p1.IdentityProvider, p2.IdentityProvider, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public int GetHashCode(User user)
+        {
+            var hash = 13;
+            hash = (hash * 7) + user.SubjectId.GetHashCode();
+            hash = (hash * 7) + user.IdentityProvider.GetHashCode();
+            return hash;
+        }
+    }
 }

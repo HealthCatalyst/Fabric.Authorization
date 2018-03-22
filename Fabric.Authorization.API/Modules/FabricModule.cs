@@ -164,12 +164,14 @@ namespace Fabric.Authorization.API.Modules
         protected void Validate(T model)
         {
             var validationResults = Validator.Validate(model);
-            if (!validationResults.IsValid)
+            if (validationResults.IsValid)
             {
-                Logger.Information("Validation failed for model: {@model}. ValidationResults: {@validationResults}.",
-                    model, validationResults);
-                this.CreateValidationFailureResponse<T>(validationResults);
+                return;
             }
+
+            Logger.Information("Validation failed for model: {@model}. ValidationResults: {@validationResults}.",
+                model, validationResults);
+            this.CreateValidationFailureResponse<T>(validationResults);
         }
 
         public string SubjectId => Context.CurrentUser.Claims.First(c => c.Type == Claims.Sub).Value;

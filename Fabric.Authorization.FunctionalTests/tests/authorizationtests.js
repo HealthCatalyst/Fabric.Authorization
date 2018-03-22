@@ -379,7 +379,7 @@ describe("authorization tests", function () {
         });
 
         it("should return 200 and results with valid request", function () {
-            this.timeout(10000);
+            this.timeout(20000);
 
             function loginUser() {
                 //setup custom phantomJS capability
@@ -446,22 +446,19 @@ describe("authorization tests", function () {
                     expect(results).to.be.an("array").that.is.not.empty;
                     expect(results.length).to.equal(2);
 
-                    var bobUserResult = results[0];
-                    expect(bobUserResult.firstName).to.equal("Bob");
-                    expect(bobUserResult.lastName).to.equal("Smith");
-                    expect(bobUserResult.subjectId).to.equal("88421113");
-                    expect(bobUserResult.identityProvider).to.equal("test");
-                    expect(bobUserResult.entityType).to.equal("User");
-                    expect(bobUserResult.roles).to.be.an("array").that.is.not.empty;
-                    expect(bobUserResult.roles.length).to.equal(1);
-                    expect(bobUserResult.roles[0]).to.equal(roleHcAdmin.Name);
-
-                    var groupHcAdminResult = results[1];
+                    var groupHcAdminResult = results[0];
                     expect(groupHcAdminResult.groupName).to.equal(groupHcAdmin.groupName);
-                    expect(groupHcAdminResult.entityType).to.equal("Group");
+                    expect(groupHcAdminResult.entityType).to.equal("CustomGroup");
                     expect(groupHcAdminResult.roles).to.be.an("array").that.is.not.empty;
                     expect(groupHcAdminResult.roles.length).to.equal(1);
-                    expect(groupHcAdminResult.roles[0]).to.equal(roleHcAdmin.Name);
+                    expect(groupHcAdminResult.roles[0].name).to.equal(roleHcAdmin.Name);
+
+                    var groupHcEditorResult = results[1];
+                    expect(groupHcEditorResult.groupName).to.equal(groupHcEditor.groupName);
+                    expect(groupHcEditorResult.entityType).to.equal("CustomGroup");
+                    expect(groupHcEditorResult.roles).to.be.an("array").that.is.not.empty;
+                    expect(groupHcEditorResult.roles.length).to.equal(1);
+                    expect(groupHcEditorResult.roles[0].name).to.equal(roleHcEditor.Name);
                 });
         });
     });

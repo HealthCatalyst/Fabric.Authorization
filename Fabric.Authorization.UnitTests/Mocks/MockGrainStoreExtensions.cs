@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
@@ -20,6 +19,7 @@ namespace Fabric.Authorization.UnitTests.Mocks
                     {
                         return Task.FromResult(grains.First(g => g.Name == grainName && !g.IsDeleted));
                     }
+
                     throw new NotFoundException<Grain>();
                 });
 

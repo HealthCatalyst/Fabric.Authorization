@@ -23,8 +23,19 @@ export class FabricAuthMemberSearchService extends FabricBaseService {
 
   public searchMembers(request: AuthMemberSearchRequest) : Observable<AuthMemberSearchResult[]> {
 
-    let params = new HttpParams()
-      .set('clientId', request.clientId);
+    let params = new HttpParams();
+
+    if (request.clientId) {
+      params = params.set('clientId', request.clientId);
+    }
+
+    if (request.grain) {
+      params = params.set('grain', request.grain);
+    }
+
+    if (request.securableItem) {
+      params = params.set('securableItem', request.securableItem);
+    }
 
     if (request.pageSize) {
       params = params.set('pageSize', request.pageSize.toString());

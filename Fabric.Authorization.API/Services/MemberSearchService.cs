@@ -5,10 +5,8 @@ using System.Threading.Tasks;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Models.Search;
 using Fabric.Authorization.API.RemoteServices.Identity.Providers;
-using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
-using Nancy.Extensions;
 using Serilog;
 
 namespace Fabric.Authorization.API.Services
@@ -16,7 +14,6 @@ namespace Fabric.Authorization.API.Services
     public class MemberSearchService
     {
         private readonly ClientService _clientService;
-        private readonly GroupService _groupService;
         private readonly IIdentityServiceProvider _identityServiceProvider;
         private readonly RoleService _roleService;
         private readonly ILogger _logger;
@@ -24,13 +21,11 @@ namespace Fabric.Authorization.API.Services
         public MemberSearchService(
             ClientService clientService,
             RoleService roleService,
-            GroupService groupService,
             IIdentityServiceProvider identityServiceProvider,
             ILogger logger)
         {
             _clientService = clientService;
             _roleService = roleService;
-            _groupService = groupService;
             _identityServiceProvider = identityServiceProvider;
             _logger = logger;
         }
@@ -39,17 +34,13 @@ namespace Fabric.Authorization.API.Services
         {
             var searchResults = new List<MemberSearchResponse>();
 
-            if (string.IsNullOrWhiteSpace(request.ClientId))
-            {
-                throw new BadRequestException<MemberSearchRequest>("Client ID is required.");
-            }
+            var rolesToSearch = !string.IsNullOrEmpty(request.ClientId)
+                ? await _roleService.GetRoles(await _clientService.GetClient(request.ClientId))
+                : await _roleService.GetRoles(request.Grain, request.SecurableItem);
 
-            var client = await _clientService.GetClient(request.ClientId);
-            var clientRoles = await _roleService.GetRoles(client);
-
-            var clientRoleEntities = clientRoles.ToList();
-            _logger.Debug($"clientRoles = {clientRoleEntities.ToString(Environment.NewLine)}");
-            if (clientRoleEntities.Count == 0)
+            var roleEntities = rolesToSearch.ToList();
+            _logger.Debug($"roleEntities = {roleEntities.ToString(Environment.NewLine)}");
+            if (roleEntities.Count == 0)
             {
                 return new FabricAuthUserSearchResponse
                 {
@@ -58,75 +49,32 @@ namespace Fabric.Authorization.API.Services
                 };
             }
 
-            // get all groups tied to clientRoles
-            var groupIds = clientRoleEntities.SelectMany(r => r.Groups).Distinct().ToList();
-            _logger.Debug($"groupIds = {groupIds.ToString(Environment.NewLine)}");
-
-            if (groupIds.Count == 0)
-            {
-                return new FabricAuthUserSearchResponse
-                {
-                    HttpStatusCode = Nancy.HttpStatusCode.OK,
-                    Results = new List<MemberSearchResponse>()
-                };
-            }
-
-            var groupEntities = new List<Group>();
-            foreach (var groupId in groupIds)
-            {
-                try
-                {
-                    var group = await _groupService.GetGroup(groupId, request.ClientId);
-                    groupEntities.Add(group);
-                }
-                catch (NotFoundException<Group> ex)
-                {
-                    _logger.Error($"{ex.Message} (Group is mapped to at least 1 valid role)");
-                }
-            }
-
+            var groupEntities = roleEntities.SelectMany(r => r.Groups).ToList();
             _logger.Debug($"groupEntities = {groupEntities.ToString(Environment.NewLine)}");
 
-            var groupsMappedToClientRoles = groupEntities.Where(g => g.Roles.Any(r => clientRoleEntities.Contains(r))).ToList();
-            _logger.Debug($"groupsMappedToClientRoles = {groupsMappedToClientRoles.ToString(Environment.NewLine)}");
-
-            // add all non-custom groups to the response
-            searchResults.AddRange(groupsMappedToClientRoles.Select(g => new MemberSearchResponse
+            // add groups to the response
+            searchResults.AddRange(groupEntities.Select(g => new MemberSearchResponse
             {
+                SubjectId = g.Name,
                 GroupName = g.Name,
                 Roles = g.Roles.Select(r => r.ToRoleApiModel()),
-                EntityType = MemberSearchResponseEntityType.Group.ToString()
+                EntityType = string.Equals(g.Source, GroupConstants.CustomSource, StringComparison.OrdinalIgnoreCase)
+                    ? MemberSearchResponseEntityType.CustomGroup.ToString()
+                    : MemberSearchResponseEntityType.DirectoryGroup.ToString()
             }));
 
-            // get all users mapped to groups in client roles
-            var users = groupsMappedToClientRoles
-                .Where(g => g.Users != null && g.Users.Count > 0)
-                .SelectMany(g => g.Users)
-                .DistinctBy(u => u.SubjectId)
-                .ToList();
-
-            users.AddRange(clientRoleEntities
-                .SelectMany(r => r.Users)
-                .Where(u => !users.Select(user => user.SubjectId).Contains(u.SubjectId)));
-
+            // get users directly mapped to client roles
+            var users = roleEntities.SelectMany(r => r.Users).Distinct(new UserComparer());
             var userList = new List<MemberSearchResponse>();
 
             foreach (var user in users)
             {
-                // get groups for user
-                var userGroupEntities = groupEntities.Where(g => user.Groups.Contains(g));
-
-                // get roles for user
-                var userRoles = userGroupEntities.SelectMany(g => g.Roles).Distinct().ToList();
-                userRoles.AddRange(user.Roles.Where(r => !userRoles.Select(userRole => userRole.Id).Contains(r.Id))
-                    .ToList());
-
                 // add user to response
                 userList.Add(new MemberSearchResponse
                 {
                     SubjectId = user.SubjectId,
                     IdentityProvider = user.IdentityProvider,
-                    Roles = userRoles.Select(r => r.ToRoleApiModel()),
+                    Roles = user.Roles.Intersect(roleEntities).Select(r => r.ToRoleApiModel()),
                     EntityType = MemberSearchResponseEntityType.User.ToString()
                 });
             }
