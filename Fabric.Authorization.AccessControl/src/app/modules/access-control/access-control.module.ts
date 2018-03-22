@@ -32,7 +32,8 @@ import { MemberEditComponent } from './member-edit/member-edit.component';
   declarations: [
     MemberListComponent,
     MemberAddComponent,
-    CustomGroupAddComponent
+    CustomGroupAddComponent,
+    MemberEditComponent
   ],
   providers: [
     FabricBaseService,
