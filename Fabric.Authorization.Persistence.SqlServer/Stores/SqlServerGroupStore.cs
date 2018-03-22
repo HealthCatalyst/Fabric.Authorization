@@ -56,6 +56,10 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .ThenInclude(gu => gu.User)
                 .ThenInclude(u => u.UserPermissions)
                 .ThenInclude(up => up.Permission)
+                .Include(g => g.GroupRoles)
+                .ThenInclude(gr => gr.Role)
+                .ThenInclude(r => r.SecurableItem)
+                .AsNoTracking()
                 .SingleOrDefaultAsync(g => g.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
                                            && !g.IsDeleted);
 

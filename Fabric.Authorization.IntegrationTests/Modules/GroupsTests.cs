@@ -662,6 +662,28 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
+        [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
+        public async Task GetRolesForGroup_UseNameGrainAndSecurableItem_SuccessAsync()
+        {
+
+            string group1Name = "Group1Name" + Guid.NewGuid();
+            string role1Name = "Role1Name" + Guid.NewGuid();
+            await SetupGroupAsync(group1Name, "Custom");
+            var role = await SetupRoleAsync(role1Name);
+            var response = await SetupGroupRoleMappingAsync(group1Name, role);
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            response = await Browser.Get($"/groups/{group1Name}/{role.Grain}/{role.SecurableItem}/roles", with =>
+            {
+                with.HttpRequest();
+            });
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var responseEntity = response.Body.DeserializeJson<IEnumerable<RoleApiModel>>();
+        }
+
         #endregion
 
         #region User->Group Mapping Tests 

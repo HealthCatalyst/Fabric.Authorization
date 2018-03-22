@@ -52,7 +52,7 @@ namespace Fabric.Authorization.Domain.Services
 
         public async Task<Group> GetGroup(string id, string clientId)
         {
-            var group = await _groupStore.Get(id);
+            var group = await _groupStore.Get(id);             
             var clientRoles = (await _roleService.GetRoles(clientId)).ToList();
             group.Roles = clientRoles.Intersect(group.Roles).ToList();
             return group;
@@ -122,6 +122,11 @@ namespace Fabric.Authorization.Domain.Services
             }
 
             return await _groupStore.AddRolesToGroup(group, rolesToAdd);
+        }
+
+        public async Task<Group> GetGroup(string groupName)
+        {
+            return await _groupStore.Get(groupName);
         }
 
         public async Task<Group> DeleteRolesFromGroup(string groupName, IEnumerable<Guid> roleIdsToDelete)

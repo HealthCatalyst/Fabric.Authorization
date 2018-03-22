@@ -9,7 +9,7 @@ export class ClientAccessControlConfigService implements AccessControlConfigServ
 
   constructor(private authService: AuthService) { }
 
-  clientId = 'fabric-angularsample';
+  clientId = '';
   identityProvider = 'windows';
   grain = 'dos';
   securableItem = 'datamarts';

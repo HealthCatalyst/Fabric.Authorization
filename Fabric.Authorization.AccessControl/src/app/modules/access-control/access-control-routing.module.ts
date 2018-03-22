@@ -21,7 +21,7 @@ const routes: Routes = [
     component: CustomGroupAddComponent
   },
   {
-    path: 'memberedit/:idprovider/:subjectid',
+    path: 'memberedit/:subjectid/:type',
     component: MemberEditComponent
   }
 
