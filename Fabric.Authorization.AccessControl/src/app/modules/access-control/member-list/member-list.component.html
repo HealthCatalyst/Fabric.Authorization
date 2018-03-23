@@ -24,7 +24,7 @@
         </thead>
         <tbody>
             <tr *ngFor="let member of members">
-                <td><a [routerLink]="['/accesscontrol/memberedit', member.subjectId, member.entityType]">{{member.name}}</a></td>
+                <td><a (click)="goToMemberEdit(member)">{{member.name}}</a></td>
                 <td>{{member.entityType}}</td>
                 <td>{{selectRoleNames(member.roles)}}</td>
                 <button (click)="removeRolesFromMember(member)">X</button>

@@ -1,12 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs/Rx';
+import { Router} from '@angular/router';
 
-import { AccessControlConfigService } from '../../../services';
 
-import { FabricAuthMemberSearchService, 
+import { AccessControlConfigService,
+        FabricAuthMemberSearchService, 
         FabricAuthUserService,
         FabricAuthGroupService } from '../../../services';
-import { AuthMemberSearchRequest, AuthMemberSearchResult, Role } from '../../../models'
+import { AuthMemberSearchRequest, 
+        AuthMemberSearchResult, 
+        Role, 
+        FabricPrincipal } from '../../../models'
 
 @Component({
   selector: 'app-member-list',
@@ -20,7 +24,8 @@ export class MemberListComponent implements OnInit {
   constructor(private memberSearchService: FabricAuthMemberSearchService, 
     private configService: AccessControlConfigService,
     private userService: FabricAuthUserService,
-    private groupService: FabricAuthGroupService) { }
+    private groupService: FabricAuthGroupService,
+    private router: Router) { }
 
   ngOnInit() {
     this.getMembers();
@@ -60,4 +65,11 @@ export class MemberListComponent implements OnInit {
     });
   }
 
+  goToMemberEdit(member: AuthMemberSearchResult){    
+    if(member.entityType !== 'CustomGroup'){
+      this.router.navigate(['/accesscontrol/memberedit', member.subjectId, member.entityType ]);
+    } else{
+      this.router.navigate(['/accesscontrol/customgroupedit', member.subjectId ]);
+    }    
+  }
 }
