@@ -1,3 +1,70 @@
-<p>
-  custom-group-edit works!
-</p>
+<div>
+  <h2>Custom Group Name</h2>
+   <span>{{groupName}}</span>
+</div>
+
+<div>
+  <h3>Associate Users</h3>
+  <input #searchTerm (keyup)="onKey(searchTerm.value)">
+  <ul class="users">
+      <li *ngFor="let user of usersToAssign"
+          [class.selected]="userIsSelected(user)"
+          (click)="onUserSelect(user)">
+          {{user.subjectId}}
+      </li> 
+  </ul>    
+</div>
+<div>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>           
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let user of selectedUsers">
+                <td>{{user.subjectId}}</td>
+                <button (click)="removeUserSelection(user)">X</button>
+            </tr>  
+        </tbody>
+    </table>
+</div>
+<div>
+  <h3>Associated Users</h3>
+  <table>
+    <thead>
+        <tr>
+            <th>Name</th>           
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let user of users">
+            <td>{{user.subjectId}}</td>
+            <button (click)="removeUserFromGroup(user)">X</button>
+        </tr>  
+    </tbody>
+</table>
+</div>
+<div>  
+  <h3>Assigned Roles</h3>
+  <ul class="roles">
+    <li *ngFor="let role of roles"
+        [class.selected]="roleIsSelected(role)"
+        (click)="onRoleSelect(role)">
+        {{role.name}}
+    </li>
+  </ul>
+</div>
+<div>
+  <h3>Roles to Assign:</h3>  
+  <ul class="roles">
+      <li *ngFor="let role of assignableRoles"
+          [class.selected]="roleIsSelected(role)"
+          (click)="onRoleSelect(role)">
+          {{role.name}}
+      </li>
+  </ul>
+  </div> 
+<div>    
+  <button (click)="updateGroup()">Save</button>
+</div>
