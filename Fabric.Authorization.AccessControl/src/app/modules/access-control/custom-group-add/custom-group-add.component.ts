@@ -44,7 +44,7 @@ export class CustomGroupAddComponent implements OnInit {
         return;
       }
       var request = new IdPSearchRequest(searchText);      
-      request.type = 'users';
+      request.type = 'user';
   
       this.idpSearchService.searchExternalIdP(request)
       .subscribe(result => {
