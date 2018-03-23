@@ -130,18 +130,27 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task<User> AddRolesToUser(User user, IList<Role> roles)
         {
-            foreach (var role in roles)
-            {                
-                user.Roles.Add(role);
-                _authorizationDbContext.RoleUsers.Add(new RoleUser
+            try
+            {
+                foreach (var role in roles)
                 {
-                    IdentityProvider = user.IdentityProvider,
-                    SubjectId = user.SubjectId,
-                    RoleId = role.Id
-                });
+                    user.Roles.Add(role);
+                    _authorizationDbContext.RoleUsers.Add(new RoleUser
+                    {
+                        IdentityProvider = user.IdentityProvider,
+                        SubjectId = user.SubjectId,
+                        RoleId = role.Id
+                    });
+                }
+
+                await _authorizationDbContext.SaveChangesAsync();
+                return user;
             }
-            await _authorizationDbContext.SaveChangesAsync();
-            return user;
+            catch (Exception ex)
+            {
+                Console.WriteLine($"error adding role to user: {ex.Message}. Base Exception Message: {ex.GetBaseException().Message}");
+                throw;
+            }
         }
 
         public async Task<User> DeleteRolesFromUser(User user, IList<Role> roles)
