@@ -18,6 +18,7 @@ import { MemberListComponent } from './member-list/member-list.component';
 import { MemberAddComponent } from './member-add/member-add.component';
 import { CustomGroupAddComponent } from './custom-group-add/custom-group-add.component';
 import { MemberEditComponent } from './member-edit/member-edit.component';
+import { CustomGroupEditComponent } from './custom-group-edit/custom-group-edit.component';
 
 @NgModule({
   imports: [
@@ -33,7 +34,8 @@ import { MemberEditComponent } from './member-edit/member-edit.component';
     MemberListComponent,
     MemberAddComponent,
     CustomGroupAddComponent,
-    MemberEditComponent
+    MemberEditComponent,
+    CustomGroupEditComponent
   ],
   providers: [
     FabricBaseService,
