@@ -562,7 +562,7 @@ if(!($noDiscoveryService)){
     Write-Host ""
 }
 
-$appDirectory = "$webroot\$appName"
+$appDirectory = [System.IO.Path]::Combine($webroot, $appName)
 New-AppRoot $appDirectory $iisUser
 Write-Host "App directory is: $appDirectory"
 New-AppPool $appName $iisUser $credential
