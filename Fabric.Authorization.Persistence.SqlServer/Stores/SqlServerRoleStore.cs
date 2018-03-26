@@ -144,6 +144,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .Include(r => r.GroupRoles)
                 .ThenInclude(gr => gr.Group)
                 .ThenInclude(g => g.GroupRoles)
+                .ThenInclude(gr => gr.Role)
                 .Include(r => r.SecurableItem)
                 .Include(r => r.ParentRole)
                 .Include(r => r.ChildRoles)

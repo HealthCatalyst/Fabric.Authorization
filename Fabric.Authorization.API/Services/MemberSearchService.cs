@@ -49,7 +49,7 @@ namespace Fabric.Authorization.API.Services
                 };
             }
 
-            var groupEntities = roleEntities.SelectMany(r => r.Groups).ToList();
+            var groupEntities = roleEntities.SelectMany(r => r.Groups).Distinct().ToList();
             _logger.Debug($"groupEntities = {groupEntities.ToString(Environment.NewLine)}");
 
             // add groups to the response

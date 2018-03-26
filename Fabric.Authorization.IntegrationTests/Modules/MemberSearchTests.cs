@@ -199,6 +199,40 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             AssertValidRequest(results, lastLoginDate);
         }
 
+        [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
+        public async Task MemberSearch_ValidRequest_GroupWithMultipleRoles_SuccessAsync()
+        {
+            var groupName = Fixture.UserAtlasGroupName;
+
+            var lastLoginDate = new DateTime(2017, 9, 15).ToUniversalTime();
+
+            var mockIdentityServiceProvider = CreateIdentityServiceProviderMock(null, lastLoginDate);
+            await Fixture.InitializeSuccessDataAsync(mockIdentityServiceProvider);
+
+            // test grain/securable_item QS parameters
+            var response = await Fixture.Browser.Get(
+                MemberSearchRoute,
+                with =>
+                {
+                    with.HttpRequest();
+                    with.Header("Accept", "application/json");
+                    with.Query("grain", "app");
+                    with.Query("securable_item", Fixture.AtlasClientId);
+                    with.Query("filter", groupName);
+                });
+
+            var results = response.Body.DeserializeJson<List<MemberSearchResponse>>();
+            Assert.Single(results);
+
+            //ensure the group has two roles 
+            var result = results.First();
+            Assert.Equal(groupName, result.Name);
+            Assert.Equal(MemberSearchResponseEntityType.CustomGroup.ToString(), result.EntityType);
+            Assert.Equal(2, result.Roles.Count());
+
+        }
+
         private IIdentityServiceProvider CreateIdentityServiceProviderMock(string clientId, DateTime? lastLoginDate)
         {
             var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
@@ -285,7 +319,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     });
 
             Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
-        }        
+        }
     }
 
     public class MemberSearchFixture : IntegrationTestsFixture
@@ -407,7 +441,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.Created, adminAtlasRoleResponse.StatusCode);
 
-            var contributorAtlasRole = await Browser.Post("/roles", with =>
+            var contributorAtlasRoleResponse = await Browser.Post("/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -418,7 +452,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 });
             });
 
-            Assert.Equal(HttpStatusCode.Created, contributorAtlasRole.StatusCode);
+            Assert.Equal(HttpStatusCode.Created, contributorAtlasRoleResponse.StatusCode);
 
             var adminPatientSafetyRole = await browser.Post("/roles", with =>
             {
@@ -497,6 +531,26 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
+            var contributorAtlasRole = contributorAtlasRoleResponse.Body.DeserializeJson<RoleApiModel>();
+
+            //add second role to the group
+            response = await Browser.Post($"/groups/{UserAtlasGroupName}/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new[]
+                {
+                    new
+                    {
+                        contributorAtlasRole.Grain,
+                        contributorAtlasRole.SecurableItem,
+                        contributorAtlasRole.Name,
+                        contributorAtlasRole.Id
+                    }
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
             // add user to custom group
             response = await Browser.Post($"/groups/{UserAtlasGroupName}/users", with =>
             {
@@ -519,7 +573,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.HttpRequest();
                 with.JsonBody(new []
                 {
-                    contributorAtlasRole.Body.DeserializeJson<RoleApiModel>()
+                    contributorAtlasRoleResponse.Body.DeserializeJson<RoleApiModel>()
                 });
             });
 
@@ -556,7 +610,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.HttpRequest();
                 with.JsonBody(new[]
                 {
-                    contributorAtlasRole.Body.DeserializeJson<RoleApiModel>()
+                    contributorAtlasRoleResponse.Body.DeserializeJson<RoleApiModel>()
                 });
             });
 
