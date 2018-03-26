@@ -10,7 +10,8 @@ import { AccessControlConfigService } from './access-control-config.service';
 
 @Injectable()
 export class FabricAuthMemberSearchService extends FabricBaseService {
-  public static baseMemberSearchApiUrl: string;
+
+  public static baseMemberSearchApiUrl = '';
 
   constructor(
     httpClient: HttpClient,
