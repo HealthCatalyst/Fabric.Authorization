@@ -11,7 +11,8 @@ import { AccessControlConfigService } from './access-control-config.service';
 
 @Injectable()
 export class FabricExternalIdpSearchService extends FabricBaseService {
-  public static idPServiceBaseUrl: string;
+
+  public static idPServiceBaseUrl = '';
 
   constructor(
     httpClient: HttpClient,
