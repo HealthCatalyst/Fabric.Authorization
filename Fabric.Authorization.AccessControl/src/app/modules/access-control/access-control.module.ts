@@ -18,7 +18,8 @@ import {
   FabricAuthMemberSearchService,
   FabricAuthUserService,
   FabricExternalIdpSearchService,
-  FabricAuthRoleService
+  FabricAuthRoleService,
+  AccessControlConfigService
 } from '../../services';
 
 import { MemberListComponent } from './member-list/member-list.component';
@@ -55,6 +56,6 @@ import { CustomGroupEditComponent } from './custom-group-edit/custom-group-edit.
     FabricExternalIdpSearchService,
     FabricAuthRoleService
   ],
-  exports: []
+  exports: [AccessControlConfigService]
 })
 export class AccessControlModule {}
