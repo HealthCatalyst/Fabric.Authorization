@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Response } from "@angular/http";
-import { Observable } from 'rxjs/Rx';
+import { Response } from '@angular/http';
+import { Observable } from 'rxjs/Observable';
 import { catchError, retry } from 'rxjs/operators';
 
 import { AuthMemberSearchRequest, AuthMemberSearchResult } from '../models';
@@ -10,10 +10,12 @@ import { AccessControlConfigService } from './access-control-config.service';
 
 @Injectable()
 export class FabricAuthMemberSearchService extends FabricBaseService {
-
   public static baseMemberSearchApiUrl: string;
 
-  constructor(httpClient: HttpClient, accessControlConfigService: AccessControlConfigService) {
+  constructor(
+    httpClient: HttpClient,
+    accessControlConfigService: AccessControlConfigService
+  ) {
     super(httpClient, accessControlConfigService);
 
     if (!FabricAuthMemberSearchService.baseMemberSearchApiUrl) {
@@ -21,8 +23,9 @@ export class FabricAuthMemberSearchService extends FabricBaseService {
     }
   }
 
-  public searchMembers(request: AuthMemberSearchRequest) : Observable<AuthMemberSearchResult[]> {
-
+  public searchMembers(
+    request: AuthMemberSearchRequest
+  ): Observable<AuthMemberSearchResult[]> {
     let params = new HttpParams();
 
     if (request.clientId) {
@@ -57,7 +60,9 @@ export class FabricAuthMemberSearchService extends FabricBaseService {
       params = params.set('filter', request.filter);
     }
 
-    return this.httpClient
-      .get<AuthMemberSearchResult[]>(FabricAuthMemberSearchService.baseMemberSearchApiUrl, {params});
+    return this.httpClient.get<AuthMemberSearchResult[]>(
+      FabricAuthMemberSearchService.baseMemberSearchApiUrl,
+      { params }
+    );
   }
 }

@@ -6,12 +6,13 @@ describe('CustomGroupAddComponent', () => {
   let component: CustomGroupAddComponent;
   let fixture: ComponentFixture<CustomGroupAddComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ CustomGroupAddComponent ]
+  beforeEach(
+    async(() => {
+      TestBed.configureTestingModule({
+        declarations: [CustomGroupAddComponent]
+      }).compileComponents();
     })
-    .compileComponents();
-  }));
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(CustomGroupAddComponent);

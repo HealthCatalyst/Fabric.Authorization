@@ -9,7 +9,13 @@ describe('FabricHttpRequestInterceptorService', () => {
     });
   });
 
-  it('should be created', inject([FabricHttpRequestInterceptorService], (service: FabricHttpRequestInterceptorService) => {
-    expect(service).toBeTruthy();
-  }));
+  it(
+    'should be created',
+    inject(
+      [FabricHttpRequestInterceptorService],
+      (service: FabricHttpRequestInterceptorService) => {
+        expect(service).toBeTruthy();
+      }
+    )
+  );
 });

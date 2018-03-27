@@ -9,7 +9,10 @@ describe('FabricAuthRoleService', () => {
     });
   });
 
-  it('should be created', inject([FabricAuthRoleService], (service: FabricAuthRoleService) => {
-    expect(service).toBeTruthy();
-  }));
+  it(
+    'should be created',
+    inject([FabricAuthRoleService], (service: FabricAuthRoleService) => {
+      expect(service).toBeTruthy();
+    })
+  );
 });

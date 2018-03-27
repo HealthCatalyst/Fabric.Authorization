@@ -3,25 +3,26 @@ import { environment } from '../../environments/environment.test';
 
 @Injectable()
 export class AccessControlConfigService {
-
   clientId: string;
   identityProvider: string;
   grain: string;
   securableItem: string;
 
-  constructor() {
+  constructor() {}
 
-  }
-
-  getAccessToken() : Promise<string>{
+  getAccessToken(): Promise<string> {
     return Promise.resolve('');
   }
 
-  getFabricAuthApiUrl() : string {
-    return `${environment.fabricAuthApiUri}/${environment.fabricAuthApiVersionSegment}`
+  getFabricAuthApiUrl(): string {
+    return `${environment.fabricAuthApiUri}/${
+      environment.fabricAuthApiVersionSegment
+    }`;
   }
 
-  getFabricExternalIdpSearchApiUrl() : string {
-    return `${environment.fabricExternalIdPSearchApiUri}/${environment.fabricExternalIdPSearchApiVersionSegment}`
+  getFabricExternalIdpSearchApiUrl(): string {
+    return `${environment.fabricExternalIdPSearchApiUri}/${
+      environment.fabricExternalIdPSearchApiVersionSegment
+    }`;
   }
 }

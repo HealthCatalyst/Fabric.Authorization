@@ -1,8 +1,17 @@
-import { HttpClient, HttpErrorResponse, HttpHeaders, HTTP_INTERCEPTORS } from '@angular/common/http';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import {
+  HttpClient,
+  HttpErrorResponse,
+  HttpHeaders,
+  HTTP_INTERCEPTORS
+} from '@angular/common/http';
+import {
+  HttpClientTestingModule,
+  HttpTestingController
+} from '@angular/common/http/testing';
 import { Pipe, PipeTransform } from '@angular/core';
 import { TestBed, inject, async } from '@angular/core/testing';
-import { Observable } from 'rxjs/Rx';
+import { Observable } from 'rxjs/Observable';
+import 'rxjs/add/observable/of';
 
 import { FabricAuthUserService, AccessControlConfigService } from '../services';
 import { Group, User, Role } from '../models';
@@ -10,7 +19,6 @@ import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { FabricHttpErrorHandlerInterceptorService } from './interceptors/fabric-http-error-handler-interceptor.service';
 
 fdescribe('FabricAuthUserService', () => {
-
   const idP = 'ad';
   const subjectId = 'sub123';
 
@@ -34,10 +42,7 @@ fdescribe('FabricAuthUserService', () => {
       name: 'superuser',
       grain: 'dos',
       securableItem: 'datamart',
-      childRoles: [
-        'dos_child1',
-        'dos_child2'
-      ]
+      childRoles: ['dos_child1', 'dos_child2']
     }
   ];
 
@@ -52,190 +57,286 @@ fdescribe('FabricAuthUserService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [ HttpClientTestingModule ],
+      imports: [HttpClientTestingModule],
       providers: [
-        FabricAuthUserService,         
-        { provide: HTTP_INTERCEPTORS, useClass: FabricHttpErrorHandlerInterceptorService, multi: true },
-        AccessControlConfigService ]
+        FabricAuthUserService,
+        {
+          provide: HTTP_INTERCEPTORS,
+          useClass: FabricHttpErrorHandlerInterceptorService,
+          multi: true
+        },
+        AccessControlConfigService
+      ]
     });
   });
 
-  it('getUserGroups should deserialize all properties',
-    async(  
-      inject([HttpClient, HttpTestingController, FabricAuthUserService], (
-        httpClient: HttpClient,
-        httpTestingController: HttpTestingController,
-        service: FabricAuthUserService) => {
+  it(
+    'getUserGroups should deserialize all properties',
+    async(
+      inject(
+        [HttpClient, HttpTestingController, FabricAuthUserService],
+        (
+          httpClient: HttpClient,
+          httpTestingController: HttpTestingController,
+          service: FabricAuthUserService
+        ) => {
+          service.getUserGroups(idP, subjectId).subscribe(returnedGroups => {
+            assertMockUserGroupsResponse(returnedGroups);
+          });
 
-        service.getUserGroups(idP, subjectId).subscribe(returnedGroups => {
-          assertMockUserGroupsResponse(returnedGroups);
-        });
-
-        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthUserService.baseUserApiUrl}/${idP}/${subjectId}/groups`));
-        expect(req.request.method).toBe("GET");      
-        req.flush(mockGroupsResponse, {status: 200, statusText: 'OK'});        
-        httpTestingController.verify();
-      })
+          const req = httpTestingController.expectOne(
+            encodeURI(
+              `${
+                FabricAuthUserService.baseUserApiUrl
+              }/${idP}/${subjectId}/groups`
+            )
+          );
+          expect(req.request.method).toBe('GET');
+          req.flush(mockGroupsResponse, { status: 200, statusText: 'OK' });
+          httpTestingController.verify();
+        }
+      )
     )
   );
 
-  it('getUserGroups error should be caught',
-    async(  
-      inject([HttpClient, HttpTestingController, FabricAuthUserService], (
-        httpClient: HttpClient,
-        httpTestingController: HttpTestingController,
-        service: FabricAuthUserService) => {
+  it(
+    'getUserGroups error should be caught',
+    async(
+      inject(
+        [HttpClient, HttpTestingController, FabricAuthUserService],
+        (
+          httpClient: HttpClient,
+          httpTestingController: HttpTestingController,
+          service: FabricAuthUserService
+        ) => {
+          service
+            .getUserGroups(idP, subjectId)
+            .catch(error => {
+              expect(Observable.of(error)).toBeTruthy();
+              expect(error.statusCode).toBe(404);
+              expect(error.message).toBe('User not found');
+              return Observable.of(error);
+            })
+            .subscribe();
 
-        service.getUserGroups(idP, subjectId).catch(error => {
-          expect(Observable.of(error)).toBeTruthy();
-          expect(error.statusCode).toBe(404);
-          expect(error.message).toBe('User not found');
-          return Observable.of(error);
-        })
-        .subscribe();
-
-        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthUserService.baseUserApiUrl}/${idP}/${subjectId}/groups`));
-        expect(req.request.method).toBe("GET");
-        req.flush(null, {status: 404, statusText: 'User not found'});        
-        httpTestingController.verify();
-      })
+          const req = httpTestingController.expectOne(
+            encodeURI(
+              `${
+                FabricAuthUserService.baseUserApiUrl
+              }/${idP}/${subjectId}/groups`
+            )
+          );
+          expect(req.request.method).toBe('GET');
+          req.flush(null, { status: 404, statusText: 'User not found' });
+          httpTestingController.verify();
+        }
+      )
     )
   );
 
-  it('getUserRoles should deserialize all properties',
-    async(  
-      inject([HttpClient, HttpTestingController, FabricAuthUserService], (
-        httpClient: HttpClient,
-        httpTestingController: HttpTestingController,
-        service: FabricAuthUserService) => {
+  it(
+    'getUserRoles should deserialize all properties',
+    async(
+      inject(
+        [HttpClient, HttpTestingController, FabricAuthUserService],
+        (
+          httpClient: HttpClient,
+          httpTestingController: HttpTestingController,
+          service: FabricAuthUserService
+        ) => {
+          service.getUserRoles(idP, subjectId).subscribe(returnedRoles => {
+            assertMockUserRolesResponse(returnedRoles);
+          });
 
-        service.getUserRoles(idP, subjectId).subscribe(returnedRoles => {
-          assertMockUserRolesResponse(returnedRoles);
-        });
-
-        const req = httpTestingController.expectOne(`${FabricAuthUserService.baseUserApiUrl}/${idP}/${subjectId}/roles`);
-        expect(req.request.method).toBe("GET");      
-        req.flush(mockRolesResponse, {status: 200, statusText: 'OK'});        
-        httpTestingController.verify();
-      })
+          const req = httpTestingController.expectOne(
+            `${FabricAuthUserService.baseUserApiUrl}/${idP}/${subjectId}/roles`
+          );
+          expect(req.request.method).toBe('GET');
+          req.flush(mockRolesResponse, { status: 200, statusText: 'OK' });
+          httpTestingController.verify();
+        }
+      )
     )
   );
 
-  it('getUserRoles error should be caught',
-    async(  
-      inject([HttpClient, HttpTestingController, FabricAuthUserService], (
-        httpClient: HttpClient,
-        httpTestingController: HttpTestingController,
-        service: FabricAuthUserService) => {
+  it(
+    'getUserRoles error should be caught',
+    async(
+      inject(
+        [HttpClient, HttpTestingController, FabricAuthUserService],
+        (
+          httpClient: HttpClient,
+          httpTestingController: HttpTestingController,
+          service: FabricAuthUserService
+        ) => {
+          service
+            .getUserRoles(idP, subjectId)
+            .catch(error => {
+              expect(Observable.of(error)).toBeTruthy();
+              expect(error.statusCode).toBe(404);
+              expect(error.message).toBe('User not found');
+              return Observable.of(error);
+            })
+            .subscribe();
 
-        service.getUserRoles(idP, subjectId).catch(error => {
-          expect(Observable.of(error)).toBeTruthy();
-          expect(error.statusCode).toBe(404);
-          expect(error.message).toBe('User not found');
-          return Observable.of(error);
-        })
-        .subscribe();
-
-        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthUserService.baseUserApiUrl}/${idP}/${subjectId}/roles`));
-        expect(req.request.method).toBe("GET");
-        req.flush(null, {status: 404, statusText: 'User not found'});        
-        httpTestingController.verify();
-      })
+          const req = httpTestingController.expectOne(
+            encodeURI(
+              `${
+                FabricAuthUserService.baseUserApiUrl
+              }/${idP}/${subjectId}/roles`
+            )
+          );
+          expect(req.request.method).toBe('GET');
+          req.flush(null, { status: 404, statusText: 'User not found' });
+          httpTestingController.verify();
+        }
+      )
     )
   );
 
-  it('addRolesToUser should deserialize all properties',
-    async(  
-      inject([HttpClient, HttpTestingController, FabricAuthUserService], (
-        httpClient: HttpClient,
-        httpTestingController: HttpTestingController,
-        service: FabricAuthUserService) => {
+  it(
+    'addRolesToUser should deserialize all properties',
+    async(
+      inject(
+        [HttpClient, HttpTestingController, FabricAuthUserService],
+        (
+          httpClient: HttpClient,
+          httpTestingController: HttpTestingController,
+          service: FabricAuthUserService
+        ) => {
+          service
+            .addRolesToUser(idP, subjectId, null)
+            .subscribe(returnedUser => {
+              assertMockUserResponse(returnedUser);
+            });
 
-        service.addRolesToUser(idP, subjectId, null).subscribe(returnedUser => {
-          assertMockUserResponse(returnedUser);
-        });
-
-        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthUserService.baseUserApiUrl}/${idP}/${subjectId}/roles`));
-        expect(req.request.method).toBe("POST");      
-        req.flush(mockUserResponse, {status: 201, statusText: 'Created'});
-        httpTestingController.verify();
-      })
+          const req = httpTestingController.expectOne(
+            encodeURI(
+              `${
+                FabricAuthUserService.baseUserApiUrl
+              }/${idP}/${subjectId}/roles`
+            )
+          );
+          expect(req.request.method).toBe('POST');
+          req.flush(mockUserResponse, { status: 201, statusText: 'Created' });
+          httpTestingController.verify();
+        }
+      )
     )
   );
 
-  it('addRolesToUser error should be caught',
-    async(  
-      inject([HttpClient, HttpTestingController, FabricAuthUserService], (
-        httpClient: HttpClient,
-        httpTestingController: HttpTestingController,
-        service: FabricAuthUserService) => {
+  it(
+    'addRolesToUser error should be caught',
+    async(
+      inject(
+        [HttpClient, HttpTestingController, FabricAuthUserService],
+        (
+          httpClient: HttpClient,
+          httpTestingController: HttpTestingController,
+          service: FabricAuthUserService
+        ) => {
+          service
+            .addRolesToUser(idP, subjectId, null)
+            .catch(error => {
+              expect(Observable.of(error)).toBeTruthy();
+              expect(error.statusCode).toBe(404);
+              expect(error.message).toBe('User not found');
+              return Observable.of(error);
+            })
+            .subscribe();
 
-        service.addRolesToUser(idP, subjectId, null).catch(error => {
-          expect(Observable.of(error)).toBeTruthy();
-          expect(error.statusCode).toBe(404);
-          expect(error.message).toBe('User not found');
-          return Observable.of(error);
-        })
-        .subscribe();
-
-        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthUserService.baseUserApiUrl}/${idP}/${subjectId}/roles`));
-        expect(req.request.method).toBe("POST");
-        req.flush(null, {status: 404, statusText: 'User not found'});        
-        httpTestingController.verify();
-      })
+          const req = httpTestingController.expectOne(
+            encodeURI(
+              `${
+                FabricAuthUserService.baseUserApiUrl
+              }/${idP}/${subjectId}/roles`
+            )
+          );
+          expect(req.request.method).toBe('POST');
+          req.flush(null, { status: 404, statusText: 'User not found' });
+          httpTestingController.verify();
+        }
+      )
     )
   );
 
-  it('removeRolesFromUser should deserialize all properties',
-    async(  
-      inject([HttpClient, HttpTestingController, FabricAuthUserService], (
-        httpClient: HttpClient,
-        httpTestingController: HttpTestingController,
-        service: FabricAuthUserService) => {
+  it(
+    'removeRolesFromUser should deserialize all properties',
+    async(
+      inject(
+        [HttpClient, HttpTestingController, FabricAuthUserService],
+        (
+          httpClient: HttpClient,
+          httpTestingController: HttpTestingController,
+          service: FabricAuthUserService
+        ) => {
+          const role1 = new Role('admin', 'dos', 'datamart');
+          role1.parentRole = 'admin_parent';
 
-        let role1 = new Role('admin', 'dos', 'datamart');
-        role1.parentRole = 'admin_parent';
+          const role2 = new Role('superuser', 'dos', 'datamart');
+          role2.childRoles = ['dos_child1', 'dos_child2'];
+          const rolesArray: Role[] = new Array<Role>(role1, role2);
 
-        let role2 = new Role('superuser', 'dos', 'datamart');
-        role2.childRoles = ['dos_child1', 'dos_child2'];
-        let rolesArray: Role[] = new Array<Role>(role1, role2);
+          service
+            .removeRolesFromUser(idP, subjectId, rolesArray)
+            .subscribe(returnedUser => {
+              assertMockUserResponse(returnedUser);
+            });
 
-        service.removeRolesFromUser(idP, subjectId, rolesArray).subscribe(returnedUser => {
-          assertMockUserResponse(returnedUser);
-        });
+          const req = httpTestingController.expectOne(
+            encodeURI(
+              `${
+                FabricAuthUserService.baseUserApiUrl
+              }/${idP}/${subjectId}/roles`
+            )
+          );
+          expect(req.request.method).toBe('DELETE');
+          expect(req.request.body).toBeDefined();
 
-        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthUserService.baseUserApiUrl}/${idP}/${subjectId}/roles`));
-        expect(req.request.method).toBe("DELETE");
-        expect(req.request.body).toBeDefined();
-
-        let requestBody = JSON.stringify(req.request.body);
-        expect(requestBody).toBe(JSON.stringify(rolesArray));
-        req.flush(mockUserResponse, {status: 204, statusText: 'No Content'});
-        httpTestingController.verify();
-      })
+          const requestBody = JSON.stringify(req.request.body);
+          expect(requestBody).toBe(JSON.stringify(rolesArray));
+          req.flush(mockUserResponse, {
+            status: 204,
+            statusText: 'No Content'
+          });
+          httpTestingController.verify();
+        }
+      )
     )
   );
 
-  it('removeRolesFromUser error should be caught',
-    async(  
-      inject([HttpClient, HttpTestingController, FabricAuthUserService], (
-        httpClient: HttpClient,
-        httpTestingController: HttpTestingController,
-        service: FabricAuthUserService) => {
+  it(
+    'removeRolesFromUser error should be caught',
+    async(
+      inject(
+        [HttpClient, HttpTestingController, FabricAuthUserService],
+        (
+          httpClient: HttpClient,
+          httpTestingController: HttpTestingController,
+          service: FabricAuthUserService
+        ) => {
+          service
+            .removeRolesFromUser(idP, subjectId, null)
+            .catch(error => {
+              expect(Observable.of(error)).toBeTruthy();
+              expect(error.statusCode).toBe(404);
+              expect(error.message).toBe('User not found');
+              return Observable.of(error);
+            })
+            .subscribe();
 
-        service.removeRolesFromUser(idP, subjectId, null).catch(error => {
-          expect(Observable.of(error)).toBeTruthy();
-          expect(error.statusCode).toBe(404);
-          expect(error.message).toBe('User not found');
-          return Observable.of(error);
-        })
-        .subscribe();
-
-        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthUserService.baseUserApiUrl}/${idP}/${subjectId}/roles`));
-        expect(req.request.method).toBe("DELETE");
-        req.flush(null, {status: 404, statusText: 'User not found'});        
-        httpTestingController.verify();
-      })
+          const req = httpTestingController.expectOne(
+            encodeURI(
+              `${
+                FabricAuthUserService.baseUserApiUrl
+              }/${idP}/${subjectId}/roles`
+            )
+          );
+          expect(req.request.method).toBe('DELETE');
+          req.flush(null, { status: 404, statusText: 'User not found' });
+          httpTestingController.verify();
+        }
+      )
     )
   );
 
@@ -257,13 +358,13 @@ fdescribe('FabricAuthUserService', () => {
     expect(returnedRoles).toBeDefined();
     expect(returnedRoles.length).toBe(2);
 
-    let adminRole = returnedRoles[0];
+    const adminRole = returnedRoles[0];
     expect(adminRole.name).toBe('admin');
     expect(adminRole.grain).toBe('dos');
     expect(adminRole.securableItem).toBe('datamart');
     expect(adminRole.parentRole).toBe('admin_parent');
 
-    let superUserRole = returnedRoles[1];
+    const superUserRole = returnedRoles[1];
     expect(superUserRole.name).toBe('superuser');
     expect(superUserRole.grain).toBe('dos');
     expect(superUserRole.securableItem).toBe('datamart');

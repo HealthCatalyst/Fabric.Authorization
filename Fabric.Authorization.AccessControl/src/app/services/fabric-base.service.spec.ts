@@ -9,7 +9,10 @@ describe('FabricAuthBaseService', () => {
     });
   });
 
-  it('should be created', inject([FabricBaseService], (service: FabricBaseService) => {
-    expect(service).toBeTruthy();
-  }));
+  it(
+    'should be created',
+    inject([FabricBaseService], (service: FabricBaseService) => {
+      expect(service).toBeTruthy();
+    })
+  );
 });
