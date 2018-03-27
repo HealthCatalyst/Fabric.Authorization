@@ -9,7 +9,13 @@ describe('AccessControlConfigService', () => {
     });
   });
 
-  it('should be created', inject([AccessControlConfigService], (service: AccessControlConfigService) => {
-    expect(service).toBeTruthy();
-  }));
+  it(
+    'should be created',
+    inject(
+      [AccessControlConfigService],
+      (service: AccessControlConfigService) => {
+        expect(service).toBeTruthy();
+      }
+    )
+  );
 });

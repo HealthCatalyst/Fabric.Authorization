@@ -6,12 +6,13 @@ describe('MemberEditComponent', () => {
   let component: MemberEditComponent;
   let fixture: ComponentFixture<MemberEditComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ MemberEditComponent ]
+  beforeEach(
+    async(() => {
+      TestBed.configureTestingModule({
+        declarations: [MemberEditComponent]
+      }).compileComponents();
     })
-    .compileComponents();
-  }));
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(MemberEditComponent);

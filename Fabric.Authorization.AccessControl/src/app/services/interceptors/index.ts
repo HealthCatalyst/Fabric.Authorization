@@ -5,6 +5,14 @@ import { FabricHttpErrorHandlerInterceptorService } from './fabric-http-error-ha
 
 /** Http interceptor providers in outside-in order */
 export const httpInterceptorProviders = [
-  { provide: HTTP_INTERCEPTORS, useClass: FabricHttpRequestInterceptorService, multi: true },
-  { provide: HTTP_INTERCEPTORS, useClass: FabricHttpErrorHandlerInterceptorService, multi: true }
+  {
+    provide: HTTP_INTERCEPTORS,
+    useClass: FabricHttpRequestInterceptorService,
+    multi: true
+  },
+  {
+    provide: HTTP_INTERCEPTORS,
+    useClass: FabricHttpErrorHandlerInterceptorService,
+    multi: true
+  }
 ];

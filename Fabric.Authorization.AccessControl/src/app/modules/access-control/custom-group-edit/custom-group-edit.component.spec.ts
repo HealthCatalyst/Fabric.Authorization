@@ -6,12 +6,13 @@ describe('CustomGroupEditComponent', () => {
   let component: CustomGroupEditComponent;
   let fixture: ComponentFixture<CustomGroupEditComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ CustomGroupEditComponent ]
+  beforeEach(
+    async(() => {
+      TestBed.configureTestingModule({
+        declarations: [CustomGroupEditComponent]
+      }).compileComponents();
     })
-    .compileComponents();
-  }));
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(CustomGroupEditComponent);

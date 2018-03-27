@@ -1,78 +1,111 @@
-import { HttpClient, HttpErrorResponse, HttpHeaders, HTTP_INTERCEPTORS } from '@angular/common/http';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import {
+  HttpClient,
+  HttpErrorResponse,
+  HttpHeaders,
+  HTTP_INTERCEPTORS
+} from '@angular/common/http';
+import {
+  HttpClientTestingModule,
+  HttpTestingController
+} from '@angular/common/http/testing';
 import { TestBed, inject, async } from '@angular/core/testing';
-import { Observable } from 'rxjs/Rx';
+import { Observable } from 'rxjs/Observable';
 
-import { FabricExternalIdpSearchService, AccessControlConfigService } from '../services';
+import {
+  FabricExternalIdpSearchService,
+  AccessControlConfigService
+} from '../services';
 import { IdPSearchRequest } from '../models';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { FabricHttpErrorHandlerInterceptorService } from './interceptors/fabric-http-error-handler-interceptor.service';
 
 fdescribe('FabricExternalIdpSearchService', () => {
-
   const mockExternalIdpSearchResult = {
     resultCount: 2,
     principals: [
-    {
-      subjectId: 'sub123',
-      firstName: 'First_1',
-      lastName: 'Last_1',
-      principalType: 'user'
-    },
-    {
-      subjectId: 'sub456',
-      firstName: 'First_2',
-      lastName: 'Last_2',
-      principalType: 'user'
-    }]
+      {
+        subjectId: 'sub123',
+        firstName: 'First_1',
+        lastName: 'Last_1',
+        principalType: 'user'
+      },
+      {
+        subjectId: 'sub456',
+        firstName: 'First_2',
+        lastName: 'Last_2',
+        principalType: 'user'
+      }
+    ]
   };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [ HttpClientTestingModule ],
+      imports: [HttpClientTestingModule],
       providers: [
-        FabricExternalIdpSearchService,         
-        { provide: HTTP_INTERCEPTORS, useClass: FabricHttpErrorHandlerInterceptorService, multi: true },
-        AccessControlConfigService ]
+        FabricExternalIdpSearchService,
+        {
+          provide: HTTP_INTERCEPTORS,
+          useClass: FabricHttpErrorHandlerInterceptorService,
+          multi: true
+        },
+        AccessControlConfigService
+      ]
     });
   });
 
-  it('should be created', inject([FabricExternalIdpSearchService], (service: FabricExternalIdpSearchService) => {
-    expect(service).toBeTruthy();
-  }));
+  it(
+    'should be created',
+    inject(
+      [FabricExternalIdpSearchService],
+      (service: FabricExternalIdpSearchService) => {
+        expect(service).toBeTruthy();
+      }
+    )
+  );
 
-  it('searchExternalIdP should deserialize all properties',
-    async(  
-      inject([HttpClient, HttpTestingController, FabricExternalIdpSearchService], (
-        httpClient: HttpClient,
-        httpTestingController: HttpTestingController,
-        service: FabricExternalIdpSearchService) => {
+  it(
+    'searchExternalIdP should deserialize all properties',
+    async(
+      inject(
+        [HttpClient, HttpTestingController, FabricExternalIdpSearchService],
+        (
+          httpClient: HttpClient,
+          httpTestingController: HttpTestingController,
+          service: FabricExternalIdpSearchService
+        ) => {
+          const searchRequest = new IdPSearchRequest('sub');
+          searchRequest.type = 'user';
 
-        let searchRequest = new IdPSearchRequest('sub');
-        searchRequest.type = 'user';
+          service.searchExternalIdP(searchRequest).subscribe(searchResult => {
+            expect(searchResult).toBeDefined();
+            expect(searchResult.principals.length).toBe(2);
 
-        service.searchExternalIdP(searchRequest).subscribe(searchResult => {
-          expect(searchResult).toBeDefined();
-          expect(searchResult.principals.length).toBe(2);
+            const result1 = searchResult.principals[0];
+            expect(result1.subjectId).toBe('sub123');
+            expect(result1.firstName).toBe('First_1');
+            expect(result1.lastName).toBe('Last_1');
+            expect(result1.principalType).toBe('user');
 
-          let result1 = searchResult.principals[0];
-          expect(result1.subjectId).toBe('sub123');
-          expect(result1.firstName).toBe('First_1');
-          expect(result1.lastName).toBe('Last_1');
-          expect(result1.principalType).toBe('user');
+            const result2 = searchResult.principals[1];
+            expect(result2.subjectId).toBe('sub456');
+            expect(result2.firstName).toBe('First_2');
+            expect(result2.lastName).toBe('Last_2');
+            expect(result2.principalType).toBe('user');
+          });
 
-          let result2 = searchResult.principals[1];
-          expect(result2.subjectId).toBe('sub456');
-          expect(result2.firstName).toBe('First_2');
-          expect(result2.lastName).toBe('Last_2');
-          expect(result2.principalType).toBe('user');
-        });
-
-        const req = httpTestingController.expectOne(`${FabricExternalIdpSearchService.idPServiceBaseUrl}?searchText=sub&type=user`);
-        expect(req.request.method).toBe("GET");
-        req.flush(mockExternalIdpSearchResult, {status: 200, statusText: 'OK'});
-        httpTestingController.verify();
-      })
+          const req = httpTestingController.expectOne(
+            `${
+              FabricExternalIdpSearchService.idPServiceBaseUrl
+            }?searchText=sub&type=user`
+          );
+          expect(req.request.method).toBe('GET');
+          req.flush(mockExternalIdpSearchResult, {
+            status: 200,
+            statusText: 'OK'
+          });
+          httpTestingController.verify();
+        }
+      )
     )
   );
 });

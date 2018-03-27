@@ -8,27 +8,31 @@ import { AccessControlConfigService } from './access-control-config.service';
 
 @Injectable()
 export class FabricAuthRoleService extends FabricBaseService {
-
   public static BaseRoleApiUrl;
-  
 
-  constructor(httpClient: HttpClient, accessControlConfigService: AccessControlConfigService) {
+  constructor(
+    httpClient: HttpClient,
+    accessControlConfigService: AccessControlConfigService
+  ) {
     super(httpClient, accessControlConfigService);
 
-    if(!FabricAuthRoleService.BaseRoleApiUrl){
+    if (!FabricAuthRoleService.BaseRoleApiUrl) {
       FabricAuthRoleService.BaseRoleApiUrl = `${accessControlConfigService.getFabricAuthApiUrl()}/roles`;
     }
-    
   }
 
-  getRolesBySecurableItemAndGrain(grain: string, securableItem: string) : Observable<Role[]> {
-
-    let url = this.getRolesBySecurableItemSegment(grain, securableItem);
-    return this.httpClient
-      .get<Role[]>(url);
+  getRolesBySecurableItemAndGrain(
+    grain: string,
+    securableItem: string
+  ): Observable<Role[]> {
+    const url = this.getRolesBySecurableItemSegment(grain, securableItem);
+    return this.httpClient.get<Role[]>(url);
   }
 
-  private getRolesBySecurableItemSegment(grain:string, securableItem: string) : string {
-    return  `${FabricAuthRoleService.BaseRoleApiUrl}/${grain}/${securableItem}`; 
+  private getRolesBySecurableItemSegment(
+    grain: string,
+    securableItem: string
+  ): string {
+    return `${FabricAuthRoleService.BaseRoleApiUrl}/${grain}/${securableItem}`;
   }
 }

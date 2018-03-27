@@ -9,15 +9,18 @@ import { AccessControlConfigService } from '../services/access-control-config.se
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit {
-  profile = {}; 
+  profile = {};
   clientId: string;
 
-  constructor(private authService: AuthService, private configService: AccessControlConfigService) { }
+  constructor(
+    private authService: AuthService,
+    private configService: AccessControlConfigService
+  ) {}
 
   ngOnInit() {
     this.authService.getUser().then(result => {
       if (result) {
-          this.profile = result.profile;
+        this.profile = result.profile;
       }
     });
     this.clientId = this.configService.clientId;

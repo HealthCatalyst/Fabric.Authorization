@@ -17,23 +17,16 @@ import { LogoutComponent } from './logout/logout.component';
 import { ButtonModule } from '@healthcatalyst/cashmere';
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    LoginComponent,
-    HomeComponent,
-    LogoutComponent
-  ],
-  imports: [
-    BrowserModule,
-    AppRoutingModule,
-    HttpClientModule,
-    ButtonModule
-  ],
+  declarations: [AppComponent, LoginComponent, HomeComponent, LogoutComponent],
+  imports: [BrowserModule, AppRoutingModule, HttpClientModule, ButtonModule],
   providers: [
     AuthService,
     httpInterceptorProviders,
-    { provide: AccessControlConfigService, useClass: ClientAccessControlConfigService }
+    {
+      provide: AccessControlConfigService,
+      useClass: ClientAccessControlConfigService
+    }
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {}

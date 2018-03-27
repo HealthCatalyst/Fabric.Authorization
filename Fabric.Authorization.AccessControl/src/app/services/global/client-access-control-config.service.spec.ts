@@ -9,7 +9,13 @@ describe('ClientAccessControlConfigService', () => {
     });
   });
 
-  it('should be created', inject([ClientAccessControlConfigService], (service: ClientAccessControlConfigService) => {
-    expect(service).toBeTruthy();
-  }));
+  it(
+    'should be created',
+    inject(
+      [ClientAccessControlConfigService],
+      (service: ClientAccessControlConfigService) => {
+        expect(service).toBeTruthy();
+      }
+    )
+  );
 });

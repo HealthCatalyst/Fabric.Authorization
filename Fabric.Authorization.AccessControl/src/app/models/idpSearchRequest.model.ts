@@ -1,6 +1,5 @@
 export class IdPSearchRequest {
-    
-    public type: string;
+  public type: string;
 
-    constructor(public searchText: string) { }
+  constructor(public searchText: string) {}
 }
