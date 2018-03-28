@@ -17,6 +17,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
         public int Id { get; set; }
         public Guid GroupId { get; set; }
         public string Name { get; set; }
+        public string DisplayName { get; set; }
+        public string Description { get; set; }
         public string Source { get; set; }
 
         public DateTime CreatedDateTimeUtc { get; set; }

@@ -15,6 +15,10 @@ namespace Fabric.Authorization.Domain.Models
 
         public string Name { get; set; }
 
+        public string DisplayName { get; set; }
+
+        public string Description { get; set; }
+
         public ICollection<Role> Roles { get; set; }
 
         public ICollection<User> Users { get; set; }
@@ -35,7 +39,7 @@ namespace Fabric.Authorization.Domain.Models
 
         public override string ToString()
         {
-            return $"Id = {Id}, Name = {Name}";
+            return $"Id = {Id}, Name = {Name}, DisplayName = {DisplayName}";
         }
 
         public override bool Equals(object obj)
