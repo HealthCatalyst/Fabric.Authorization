@@ -56,6 +56,6 @@ import { CustomGroupEditComponent } from './custom-group-edit/custom-group-edit.
     FabricExternalIdpSearchService,
     FabricAuthRoleService
   ],
-  exports: [AccessControlConfigService]
+  exports: []
 })
-export class AccessControlModule {}
+export class AccessControlModule { }
