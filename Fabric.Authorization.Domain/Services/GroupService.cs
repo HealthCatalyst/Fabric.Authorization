@@ -50,6 +50,19 @@ namespace Fabric.Authorization.Domain.Services
             return await _groupStore.Add(group);
         }
 
+        public async Task<Group> UpdateGroup(Group group)
+        {
+            try
+            {
+                await _groupStore.Update(group);
+                return group;
+            }
+            catch (NotFoundException<Group> e)
+            {
+                throw new NotFoundException<Group>(e.Message);
+            }
+        }
+
         public async Task<Group> GetGroup(string id, string clientId)
         {
             var group = await _groupStore.Get(id);             

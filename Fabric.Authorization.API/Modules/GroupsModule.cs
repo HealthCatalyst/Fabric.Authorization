@@ -64,6 +64,11 @@ namespace Fabric.Authorization.API.Modules
                 null,
                 "UpdateGroups");
 
+            Patch("/{groupName}",
+                async parameters => await this.UpdateGroup(parameters).ConfigureAwait(false),
+                null,
+                "UpdateGroup");
+
             base.Delete("/{groupName}",
                 async p => await this.DeleteGroup(p).ConfigureAwait(false),
                 null,
@@ -138,21 +143,6 @@ namespace Fabric.Authorization.API.Modules
             }
         }
 
-        private async Task<dynamic> DeleteGroup(dynamic parameters)
-        {
-            try
-            {
-                this.RequiresClaims(AuthorizationWriteClaim);
-                Group group = await _groupService.GetGroup(parameters.groupName, ClientId);
-                await _groupService.DeleteGroup(group);
-                return HttpStatusCode.NoContent;
-            }
-            catch (NotFoundException<Group> ex)
-            {
-                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
-            }
-        }
-
         private async Task<dynamic> AddGroup()
         {
             this.RequiresClaims(AuthorizationWriteClaim);
@@ -174,6 +164,43 @@ namespace Fabric.Authorization.API.Modules
             catch (AlreadyExistsException<Group> ex)
             {
                 return CreateFailureResponse(ex.Message, HttpStatusCode.Conflict);
+            }
+        }
+
+        private async Task<dynamic> UpdateGroup(dynamic parameters)
+        {
+            this.RequiresClaims(AuthorizationWriteClaim);
+
+            try
+            {
+                var groupPatchApiRequest = this.Bind<GroupPatchApiRequest>();
+
+                var existingGroup = (Group) await _groupService.GetGroup(parameters.groupName);
+                existingGroup.DisplayName = groupPatchApiRequest.DisplayName;
+                existingGroup.Description = groupPatchApiRequest.Description;
+
+                var group = await _groupService.UpdateGroup(existingGroup);
+                return CreateSuccessfulPatchResponse(group.ToGroupRoleApiModel());
+            }
+            catch (NotFoundException<Group> ex)
+            {
+                Logger.Error(ex, ex.Message, parameters.groupName);
+                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
+            }
+        }
+
+        private async Task<dynamic> DeleteGroup(dynamic parameters)
+        {
+            try
+            {
+                this.RequiresClaims(AuthorizationWriteClaim);
+                Group group = await _groupService.GetGroup(parameters.groupName, ClientId);
+                await _groupService.DeleteGroup(group);
+                return HttpStatusCode.NoContent;
+            }
+            catch (NotFoundException<Group> ex)
+            {
+                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
             }
         }
 

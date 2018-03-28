@@ -32,11 +32,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 throw new AlreadyExistsException<Group>($"Group {model.Name} already exists. Please use a different GroupName.");
             }
 
-            /*if (!string.IsNullOrEmpty(model.Id))
-            {
-                throw new BadRequestException<Group>("Id is generated internally and cannot be supplied by the caller.");
-            }*/
-
             model.Id = Guid.NewGuid().ToString();
             var groupEntity = model.ToEntity();
             _authorizationDbContext.Groups.Add(groupEntity);
