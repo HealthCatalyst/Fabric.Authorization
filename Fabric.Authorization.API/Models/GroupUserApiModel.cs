@@ -11,6 +11,10 @@ namespace Fabric.Authorization.API.Models
 
         public string GroupName { get; set; }
 
+        public string DisplayName { get; set; }
+
+        public string Description { get; set; }
+
         /// <summary>
         /// Group source (e.g., Custom, Windows, Google). For custom groups, use "Custom".
         /// </summary>
