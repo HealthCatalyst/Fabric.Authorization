@@ -13,6 +13,8 @@ fdescribe('FabricAuthGroupService', () => {
 
   const groupName = 'Dos Admin Group';
   const groupSource = 'Custom';
+  const grain = 'dos';
+  const securableItem = 'datamart';
 
   const mockUsersResponse = [
     {
@@ -51,7 +53,7 @@ fdescribe('FabricAuthGroupService', () => {
     TestBed.configureTestingModule({
       imports: [ HttpClientTestingModule ],
       providers: [
-        FabricAuthGroupService,         
+        FabricAuthGroupService,
         { provide: HTTP_INTERCEPTORS, useClass: FabricHttpErrorHandlerInterceptorService, multi: true },
         AccessControlConfigService ]
     });
@@ -205,11 +207,12 @@ fdescribe('FabricAuthGroupService', () => {
         httpTestingController: HttpTestingController,
         service: FabricAuthGroupService) => {
 
-        service.getGroupRoles(groupName).subscribe(returnedGroup => {
+        service.getGroupRoles(groupName, grain, securableItem).subscribe(returnedGroup => {
           assertMockGroupRolesResponse(returnedGroup);
         });
 
-        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthGroupService.baseGroupApiUrl}/${groupName}/roles`));
+        const req = httpTestingController.expectOne(
+          encodeURI(`${FabricAuthGroupService.baseGroupApiUrl}/${groupName}/${grain}/${securableItem}/roles`));
         expect(req.request.method).toBe("GET");      
         req.flush(mockRolesResponse, {status: 200, statusText: 'OK'});        
         httpTestingController.verify();
@@ -224,7 +227,7 @@ fdescribe('FabricAuthGroupService', () => {
         httpTestingController: HttpTestingController,
         service: FabricAuthGroupService) => {
 
-        service.getGroupRoles(groupName, null).catch(error => {
+        service.getGroupRoles(groupName, grain, securableItem).catch(error => {
           expect(Observable.of(error)).toBeTruthy();
           expect(error.statusCode).toBe(404);
           expect(error.message).toBe('Group not found');
@@ -232,7 +235,8 @@ fdescribe('FabricAuthGroupService', () => {
         })
         .subscribe();
 
-        const req = httpTestingController.expectOne(encodeURI(`${FabricAuthGroupService.baseGroupApiUrl}/${groupName}/roles`));
+        const req = httpTestingController.expectOne(
+          encodeURI(`${FabricAuthGroupService.baseGroupApiUrl}/${groupName}/${grain}/${securableItem}/roles`));
         expect(req.request.method).toBe("GET");
         req.flush(null, {status: 404, statusText: 'Group not found'});        
         httpTestingController.verify();
