@@ -222,6 +222,12 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .IsRequired()
                     .HasMaxLength(200);
 
+                entity.Property(e => e.DisplayName)
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.Description)
+                    .HasMaxLength(4000);
+
                 entity.Property(e => e.IsDeleted).HasDefaultValueSql("0");
 
                 entity.Property(e => e.CreatedBy)
