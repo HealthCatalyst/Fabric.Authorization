@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { UserManager, User, Log } from 'oidc-client';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/catch';
+import 'rxjs/add/operator/map';
 import { log } from 'util';
 
 @Injectable()
