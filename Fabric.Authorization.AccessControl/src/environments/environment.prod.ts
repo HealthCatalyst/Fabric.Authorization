@@ -1,7 +1,5 @@
-export const environment = {
-  production: true,
-  fabricAuthApiUri: 'http://localhost/authorization',
-  fabricAuthApiVersionSegment: 'v1',
-  fabricExternalIdPSearchApiUri: 'http://localhost:5009',
-  fabricExternalIdPSearchApiVersionSegment: 'v1'
-};
+import { Environment, defaultEnvironment } from './environment.default';
+
+export const environment = Object.assign<Environment, Partial<Environment>>(defaultEnvironment, {
+  production: true
+});
