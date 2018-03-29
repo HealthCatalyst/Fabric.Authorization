@@ -75,9 +75,10 @@ fdescribe('FabricAuthMemberSearchService', () => {
           httpTestingController: HttpTestingController,
           service: FabricAuthMemberSearchService
         ) => {
-          const authSearchRequest = new AuthMemberSearchRequest();
-          authSearchRequest.clientId = 'atlas';
-          authSearchRequest.pageNumber = 1;
+          const authSearchRequest: AuthMemberSearchRequest = {
+            clientId: 'atlas',
+            pageNumber: 1
+          };
 
           service.searchMembers(authSearchRequest).subscribe(searchResults => {
             expect(searchResults).toBeDefined();
