@@ -7,7 +7,7 @@ namespace Fabric.Authorization.API.Models.Requests
         public Guid RoleId { get; set; }
     }
 
-    public class RolePatchApiRequest : RoleIdentifierApiRequest
+    public class RolePatchApiRequest
     {
         public string DisplayName { get; set; }
         public string Description { get; set; }
