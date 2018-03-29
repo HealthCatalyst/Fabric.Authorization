@@ -2,7 +2,6 @@ import { NgModule, ModuleWithProviders } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
-<<<<<<< HEAD
 import {
   ButtonModule,
   IconModule,
@@ -11,9 +10,6 @@ import {
   SelectModule,
   ProgressIndicatorsModule
 } from '@healthcatalyst/cashmere';
-=======
-import { ButtonModule, IconModule, PopoverModule } from '@healthcatalyst/cashmere';
->>>>>>> updates to interceptors to get packaging to work
 
 import { AccessControlRoutingModule } from './access-control-routing.module';
 import {
