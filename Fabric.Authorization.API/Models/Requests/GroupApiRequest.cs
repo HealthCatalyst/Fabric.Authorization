@@ -5,7 +5,7 @@
         public string GroupName { get; set; }
     }
 
-    public class GroupPatchApiRequest : GroupIdentifierApiRequest
+    public class GroupPatchApiRequest
     {
         public string DisplayName { get; set; }
         public string Description { get; set; }
