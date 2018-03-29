@@ -5,7 +5,10 @@ import { FormsModule } from '@angular/forms';
 import {
   ButtonModule,
   IconModule,
-  PopoverModule
+  PopoverModule,
+  InputModule,
+  SelectModule,
+  ProgressIndicatorsModule
 } from '@healthcatalyst/cashmere';
 
 import { AccessControlRoutingModule } from './access-control-routing.module';
@@ -32,7 +35,10 @@ import { CustomGroupEditComponent } from './custom-group-edit/custom-group-edit.
     // Cashmere modules
     ButtonModule,
     IconModule,
-    PopoverModule
+    PopoverModule,
+    InputModule,
+    SelectModule,
+    ProgressIndicatorsModule
   ],
   declarations: [
     MemberListComponent,

@@ -25,7 +25,7 @@ namespace Fabric.Authorization.API.Models.Search.Validators
             RuleFor(request => request.SortKey)
                 .Must(sortKey => string.IsNullOrWhiteSpace(sortKey) ||
                                  ValidSortKeys.Contains(sortKey, StringComparer.OrdinalIgnoreCase))
-                .WithMessage($"sort_key must be one of the following values: {ValidSortKeys}")
+                .WithMessage($"sort_key must be one of the following values: {string.Join(", ", ValidSortKeys)}")
                 .WithState(c => ValidationEnums.ValidationState.InvalidFieldValue);
 
             RuleFor(request => request.SortDirection)
