@@ -12,6 +12,7 @@ using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
+using Fabric.Authorization.Domain.Validators;
 using FluentValidation;
 using Nancy;
 using Nancy.Extensions;
@@ -101,6 +102,13 @@ namespace Fabric.Authorization.API.Modules
         }
 
         protected Negotiator CreateSuccessfulGetResponse<T1>(T1 model, HttpStatusCode statusCode = HttpStatusCode.OK)
+        {
+            return Negotiate
+                .WithModel(model)
+                .WithStatusCode(statusCode);
+        }
+
+        protected Negotiator CreateSuccessfulPatchResponse<T1>(T1 model, HttpStatusCode statusCode = HttpStatusCode.OK)
         {
             return Negotiate
                 .WithModel(model)

@@ -18,9 +18,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
     [Collection("InMemoryTests")]
     public class RolesTests : IClassFixture<IntegrationTestsFixture>
     {
-        private readonly Browser _browser;
-        private readonly string _securableItem;
-        private readonly string _subjectId;
+        protected readonly Browser _browser;
+        protected readonly string _securableItem;
+
         public RolesTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory, ConnectionStrings connectionStrings = null)
         {
             if (connectionStrings != null)
@@ -28,7 +28,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 fixture.ConnectionStrings = connectionStrings;
             }
             _securableItem = "rolesprincipal" + Guid.NewGuid();
-            _subjectId = _securableItem;
+
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
             {
                 new Claim(Claims.Scope, Scopes.ManageClientsScope),
@@ -58,10 +58,10 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Theory]
         [IntegrationTestsFixture.DisplayTestMethodName]
-        [InlineData("EA318378-CCA3-42B4-93E2-F2FBF12E679A")]
-        [InlineData("2374EEB4-EC72-454D-915B-23A89AD67879")]
-        [InlineData("6BC32347-36A1-44CF-AA0E-6C1038AA1DF3")]
-        public async Task TestAddNewRole_SuccessAsync(string name)
+        [InlineData("EA318378-CCA3-42B4-93E2-F2FBF12E679A", "Role Display Name 1", "Role Description 1")]
+        [InlineData("2374EEB4-EC72-454D-915B-23A89AD67879", "Role Display Name 2", "Role Description 2")]
+        [InlineData("6BC32347-36A1-44CF-AA0E-6C1038AA1DF3", "Role Display Name 3", "Role Description 3")]
+        public async Task AddRole_ValidRequest_SuccessAsync(string name, string displayName, string description)
         {
             var postResponse = await _browser.Post("/roles", with =>
             {
@@ -70,7 +70,45 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 {
                     Grain = "app",
                     SecurableItem = _securableItem,
-                    Name = name
+                    Name = name,
+                    DisplayName = displayName,
+                    Description = description
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+
+            var getResponse = await _browser.Get($"/roles/app/{_securableItem}/{name}", with =>
+            {
+                with.HttpRequest();
+            });
+
+            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+            var roles = JsonConvert.DeserializeObject<List<RoleApiModel>>(getResponse.Body.AsString());
+
+            Assert.Single(roles);
+            var role = roles.First();
+            Assert.Equal(name, role.Name);
+            Assert.Equal(displayName, role.DisplayName);
+            Assert.Equal(description, role.Description);
+        }
+
+        [Theory]
+        [IntegrationTestsFixture.DisplayTestMethodName]
+        [InlineData("EA318378-CCA3-42B4-93E2-F2FBF12E679A", "Role Display Name 1", "Role Description 1")]
+        public async Task PatchRole_ValidRequest_SuccessAsync(string name, string displayName, string description)
+        {
+            var postResponse = await _browser.Post("/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = _securableItem,
+                    Name = name,
+                    DisplayName = displayName,
+                    Description = description
                 });
             });
 
@@ -81,7 +119,28 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
-            Assert.Contains(name, getResponse.Body.AsString());
+
+            var roles = JsonConvert.DeserializeObject<List<RoleApiModel>>(getResponse.Body.AsString());
+
+            Assert.Single(roles);
+            var role = roles.First();
+
+            var patchResponse = await _browser.Patch($"/roles/{role.Id}", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    DisplayName = "Role Display Name 2",
+                    Description = "Role Description 2"
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.OK, patchResponse.StatusCode);
+
+            role = JsonConvert.DeserializeObject<RoleApiModel>(patchResponse.Body.AsString());
+            Assert.Equal(name, role.Name);
+            Assert.Equal("Role Display Name 2", role.DisplayName);
+            Assert.Equal("Role Description 2", role.Description);
         }
 
         [Fact]

@@ -14,6 +14,10 @@ namespace Fabric.Authorization.API.Models
 
         public string Name { get; set; }
 
+        public string DisplayName { get; set; }
+
+        public string Description { get; set; }
+
         public Guid? ParentRole { get; set; }
 
         public IEnumerable<PermissionApiModel> Permissions { get; set; }
