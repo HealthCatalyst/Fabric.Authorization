@@ -1,16 +1,16 @@
 import { Role } from './role.model';
 
-export class AuthMemberSearchResult {
-  public subjectId: string;
-  public identityProvider: string;
-  public roles: Array<Role>;
-  public groupName: string;
-  public firstName: string;
-  public middleName: string;
-  public lastName: string;
-  public lastLoginDateTimeUtc: string | Date;
-  public entityType: string;
-  public name: string;
+export type AuthMemberSearchResultEntityType = 'User' | 'DirectoryGroup' | 'CustomGroup';
 
-  constructor() {}
+export interface AuthMemberSearchResult {
+  subjectId: string;
+  identityProvider: string;
+  roles: Array<Role>;
+  groupName: string;
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  lastLoginDateTimeUtc: string | Date;
+  entityType: AuthMemberSearchResultEntityType;
+  name: string;
 }

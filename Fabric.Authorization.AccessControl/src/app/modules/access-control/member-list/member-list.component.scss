@@ -1,0 +1,23 @@
+@import '../../../../../node_modules/@healthcatalyst/cashmere/cashmere.scss';
+
+.remove-button {
+  cursor: pointer;
+  color: $gray-400;
+}
+
+.header {
+  clear: both;
+
+  div[hcInputIcon] {
+    float: right;
+    margin-right: -25px;
+  }
+
+  :after {
+    clear: both;
+  }
+}
+
+th.sortKey * {
+  color: $green;
+}

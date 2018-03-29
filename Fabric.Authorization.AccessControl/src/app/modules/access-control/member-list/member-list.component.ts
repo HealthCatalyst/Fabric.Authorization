@@ -12,16 +12,24 @@ import {
   AuthMemberSearchRequest,
   AuthMemberSearchResult,
   Role,
-  FabricPrincipal
+  FabricPrincipal,
+  SortDirection,
+  SortKey
 } from '../../../models';
 
 @Component({
   selector: 'app-member-list',
   templateUrl: './member-list.component.html',
-  styleUrls: ['./member-list.component.css']
+  styleUrls: ['./member-list.component.scss']
 })
 export class MemberListComponent implements OnInit {
   members: AuthMemberSearchResult[];
+  pageNumber = 0;
+  pageSize = 20;
+  filter = '';
+  sortKey: SortKey = 'name';
+  sortDirection: SortDirection = 'asc';
+  searchesInProgress = 0;
 
   constructor(
     private memberSearchService: FabricAuthMemberSearchService,
@@ -35,20 +43,36 @@ export class MemberListComponent implements OnInit {
     this.getMembers();
   }
 
+  onSearchChanged() {
+    this.getMembers();
+  }
+
   getMembers() {
-    const searchRequest = new AuthMemberSearchRequest();
+    const searchRequest: AuthMemberSearchRequest = {
+      pageNumber: this.pageNumber,
+      pageSize: this.pageSize,
+      filter: this.filter,
+      sortKey: this.sortKey,
+      sortDirection: this.sortDirection,
+
+      grain: this.configService.grain,
+      securableItem: this.configService.securableItem,
+    };
     searchRequest.grain = this.configService.grain;
     searchRequest.securableItem = this.configService.securableItem;
 
+    this.searchesInProgress++;
     return this.memberSearchService
       .searchMembers(searchRequest)
       .subscribe((memberList) => {
         this.members = memberList;
+        this.searchesInProgress--;
       });
   }
 
   removeRolesFromMember(member: AuthMemberSearchResult) {
-    if (member.entityType === 'user') {
+    console.dir(member);
+    if (member.entityType === 'User') {
       this.userService
         .removeRolesFromUser(
           member.identityProvider,
@@ -67,6 +91,20 @@ export class MemberListComponent implements OnInit {
           return this.getMembers();
         });
     }
+  }
+
+  changeSort(sortColumn: SortKey) {
+    if (sortColumn === this.sortKey) {
+      if (this.sortDirection === 'asc') {
+        this.sortDirection = 'desc';
+      } else {
+        this.sortDirection = 'asc';
+      }
+    } else {
+      this.sortKey = sortColumn;
+      this.sortDirection = 'asc';
+    }
+    this.getMembers();
   }
 
   selectRoleNames(roles: Array<Role>) {
