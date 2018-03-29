@@ -10,10 +10,9 @@ export interface AuthMemberSearchRequest {
   sortKey?: SortKey;
   sortDirection?: SortDirection;
 
-  /** if omitted, must provide both `grain` and `securableItem` */
+  /** if omitted, must provide `grain` */
   clientId?: string;
-  /** if provided, must also provide `securableItem` */
+  /** if omitted, must provide `clientId` */
   grain?: string;
-  /** if provided, must also provide `grain` */
   securableItem?: string;
 }
