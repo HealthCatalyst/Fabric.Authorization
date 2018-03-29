@@ -39,12 +39,16 @@ fdescribe('FabricAuthGroupService', () => {
   const mockRolesResponse = [
     {
       name: 'admin',
+      displayName: 'DOS Administrators (role)',
+      description: 'Administers DOS items (role)',
       grain: 'dos',
       securableItem: 'datamart',
       parentRole: 'admin_parent'
     },
     {
       name: 'superuser',
+      displayName: 'DOS Super Users (role)',
+      description: 'Elevated DOS privileges (role)',
       grain: 'dos',
       securableItem: 'datamart',
       childRoles: ['dos_child1', 'dos_child2']
@@ -54,6 +58,8 @@ fdescribe('FabricAuthGroupService', () => {
   const mockGroupResponse = {
     groupName: groupName,
     groupSource: groupSource,
+    displayName: 'DOS Administrators (group)',
+    description: 'Administers DOS items (group)',
     users: mockUsersResponse,
     roles: mockRolesResponse
   };
@@ -484,6 +490,8 @@ fdescribe('FabricAuthGroupService', () => {
   function assertMockGroupResponse(returnedGroup: Group) {
     expect(returnedGroup.groupName).toBe(groupName);
     expect(returnedGroup.groupSource).toBe(groupSource);
+    expect(returnedGroup.displayName).toBe('DOS Administrators (group)');
+    expect(returnedGroup.description).toBe('Administers DOS items (group)');
     assertMockGroupRolesResponse(returnedGroup.roles);
     assertMockGroupUsersResponse(returnedGroup.users);
   }
@@ -494,12 +502,16 @@ fdescribe('FabricAuthGroupService', () => {
 
     const adminRole = returnedRoles[0];
     expect(adminRole.name).toBe('admin');
+    expect(adminRole.displayName).toBe('DOS Administrators (role)');
+    expect(adminRole.description).toBe('Administers DOS items (role)');
     expect(adminRole.grain).toBe('dos');
     expect(adminRole.securableItem).toBe('datamart');
     expect(adminRole.parentRole).toBe('admin_parent');
 
     const superUserRole = returnedRoles[1];
     expect(superUserRole.name).toBe('superuser');
+    expect(superUserRole.displayName).toBe('DOS Super Users (role)');
+    expect(superUserRole.description).toBe('Elevated DOS privileges (role)');
     expect(superUserRole.grain).toBe('dos');
     expect(superUserRole.securableItem).toBe('datamart');
     expect(superUserRole.childRoles).toBeDefined();
