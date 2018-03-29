@@ -5,7 +5,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 
-import { httpInterceptorProviders } from './services/interceptors';
+ import { httpInterceptorProviders } from './services/interceptors';
 import { AuthService } from '../app/services/global/auth.service';
 import { AccessControlConfigService } from './services/access-control-config.service';
 import { ClientAccessControlConfigService } from './services/global/client-access-control-config.service';
@@ -21,11 +21,11 @@ import { ButtonModule } from '@healthcatalyst/cashmere';
   imports: [BrowserModule, AppRoutingModule, HttpClientModule, ButtonModule],
   providers: [
     AuthService,
-    httpInterceptorProviders,
     {
       provide: AccessControlConfigService,
       useClass: ClientAccessControlConfigService
-    }
+    },
+    httpInterceptorProviders
   ],
   bootstrap: [AppComponent]
 })

@@ -26,6 +26,7 @@ export class FabricHttpRequestInterceptorService implements HttpInterceptor {
     const tokenObservable = Observable.fromPromise(
       this.configService.getAccessToken()
     );
+    console.log('setting headers in the request interceptor');
     return tokenObservable.mergeMap(accessToken => {
       const modifiedRequest = req.clone({
         setHeaders: {
