@@ -15,7 +15,7 @@
   </hc-popover-content>
 
   <div hcInputIcon>
-    <input hc-input name="filter" placeholder="filter" [(ngModel)]="filter" (change)="onSearchChanged()" />
+    <input hc-input name="filter" placeholder="filter" [(ngModel)]="filter" (keyup)="keyUp.next($event)" />
     <hc-icon fontSet="fa" fontIcon="fa-filter"></hc-icon>
   </div>
 </div>

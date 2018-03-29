@@ -1,5 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
+import { Subject } from 'rxjs/Subject';
+import 'rxjs/add/operator/debounceTime';
+import 'rxjs/add/operator/distinctUntilChanged';
 import { Router } from '@angular/router';
 
 import {
@@ -30,6 +33,7 @@ export class MemberListComponent implements OnInit {
   sortKey: SortKey = 'name';
   sortDirection: SortDirection = 'asc';
   searchesInProgress = 0;
+  readonly keyUp = new Subject<Event>();
 
   constructor(
     private memberSearchService: FabricAuthMemberSearchService,
@@ -37,7 +41,13 @@ export class MemberListComponent implements OnInit {
     private userService: FabricAuthUserService,
     private groupService: FabricAuthGroupService,
     private router: Router
-  ) {}
+  ) {
+    this.keyUp
+      .debounceTime(500)
+      .map(value => this.filter)
+      .distinctUntilChanged()
+      .subscribe(() => this.onSearchChanged());
+  }
 
   ngOnInit() {
     this.getMembers();
