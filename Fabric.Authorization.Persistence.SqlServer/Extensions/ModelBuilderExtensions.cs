@@ -211,6 +211,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .ValueGeneratedOnAdd()
                     .UseSqlServerIdentityColumn();
 
+                entity.Property(e => e.Id).Metadata.IsReadOnlyAfterSave = true;
+
                 entity.Property(e => e.SecurableItemId)
                     .IsRequired();
 
@@ -286,6 +288,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                 entity.Property(e => e.Id)
                     .ValueGeneratedOnAdd()
                     .UseSqlServerIdentityColumn();
+
+                entity.Property(e => e.Id).Metadata.IsReadOnlyAfterSave = true;
 
                 entity.Property(e => e.Name)
                     .IsRequired()

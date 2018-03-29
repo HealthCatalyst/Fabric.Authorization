@@ -110,7 +110,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.HttpRequest();
             });
 
-            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
             var patchResponse = await Browser.Patch($"/groups/{groupName}", with =>

@@ -76,12 +76,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 });
             });
 
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+
             var getResponse = await _browser.Get($"/roles/app/{_securableItem}/{name}", with =>
             {
                 with.HttpRequest();
             });
 
-            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
             var roles = JsonConvert.DeserializeObject<List<RoleApiModel>>(getResponse.Body.AsString());
