@@ -22,8 +22,6 @@ import {
   AccessControlConfigService
 } from '../../services';
 
-// import { httpInterceptorProviders } from '../../services/interceptors';
-
 import { MemberListComponent } from './member-list/member-list.component';
 import { MemberAddComponent } from './member-add/member-add.component';
 import { CustomGroupAddComponent } from './custom-group-add/custom-group-add.component';
@@ -51,7 +49,6 @@ import { CustomGroupEditComponent } from './custom-group-edit/custom-group-edit.
     CustomGroupEditComponent
   ],
   providers: [
-  //  httpInterceptorProviders,
     FabricBaseService,
     FabricAuthGroupService,
     FabricAuthMemberSearchService,
