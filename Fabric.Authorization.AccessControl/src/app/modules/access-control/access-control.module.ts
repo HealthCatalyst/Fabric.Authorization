@@ -10,7 +10,9 @@ import {
   LabelModule,
   CheckboxModule,
   SelectModule,
-  ProgressIndicatorsModule
+  ProgressIndicatorsModule,
+  LabelModule,
+  CheckboxModule
 } from '@healthcatalyst/cashmere';
 
 import { AccessControlRoutingModule } from './access-control-routing.module';
@@ -43,7 +45,9 @@ import { CustomGroupEditComponent } from './custom-group-edit/custom-group-edit.
     LabelModule,
     CheckboxModule,
     SelectModule,
-    ProgressIndicatorsModule
+    ProgressIndicatorsModule,
+    LabelModule,
+    CheckboxModule
   ],
   declarations: [
     MemberListComponent,
