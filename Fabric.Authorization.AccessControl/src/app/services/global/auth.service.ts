@@ -16,8 +16,7 @@ export class AuthService {
 
   constructor(private httpClient: HttpClient) {
     this.clientId = 'fabric-accesscontrol';
-    this.authority = 'http://localhost/identity';
-
+    this.authority = 'https://atlasdemo.hqcatalyst.local/Identity';
 
     const clientSettings: any = {
       authority: this.authority,
@@ -58,14 +57,8 @@ export class AuthService {
   }
 
   login() {
-    this.userManager
-      .signinRedirect()
-      .then(() => {
-        console.log('signin redirect done');
-      })
-      .catch(err => {
-        console.error(err);
-      });
+    return this.userManager
+      .signinRedirect();
   }
 
   logout() {

@@ -4,8 +4,45 @@ $fa-font-path: '../node_modules/font-awesome/fonts';
 $FontPathOpenSans: "../node_modules/typeface-open-sans/files";
 @import '../node_modules/typeface-open-sans/index.css';
 
-@import '../node_modules/@healthcatalyst/cashmere/cashmere.scss';
+@import "~@healthcatalyst/cashmere/cashmere";
 
 body {
   font-family: "Open Sans", sans-serif;
+  margin: 0;
+  // background-color: $slate-gray-100;
+}
+
+.container {
+  padding: 30px 45px;
+}
+
+.buttons {
+  margin: 50px 0 0 0;
+}
+
+.h3 {
+  margin: 25px 0;
+  display: flex;
+  flex-direction: row;
+  >span {
+      padding-right:20px;
+  }
+
+  // horizantal line
+  &::after {
+      content: "";
+      flex: 1 1;
+      border-bottom: 2px solid $gray-200;
+      margin: auto;
+  }
+}
+
+table.hc-table {
+  &.hc-table-borders th {
+    border: none;
+  }
+
+  &>thead>tr>th:first-child,&>tbody>tr>td:first-child {
+    width: 70px;
+  }
 }

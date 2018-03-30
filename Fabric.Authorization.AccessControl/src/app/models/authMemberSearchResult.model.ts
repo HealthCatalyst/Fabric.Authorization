@@ -1,16 +1,14 @@
-import { Role } from './role.model';
+import { IRole } from './role.model';
 
-export class AuthMemberSearchResult {
-  public subjectId: string;
-  public identityProvider: string;
-  public roles: Array<Role>;
-  public groupName: string;
-  public firstName: string;
-  public middleName: string;
-  public lastName: string;
-  public lastLoginDateTimeUtc: string | Date;
-  public entityType: string;
-  public name: string;
-
-  constructor() {}
+export interface IAuthMemberSearchResult {
+  subjectId: string;
+  identityProvider: string;
+  roles: Array<IRole>;
+  groupName: string;
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  lastLoginDateTimeUtc: string | Date;
+  entityType: string;
+  name: string;
 }

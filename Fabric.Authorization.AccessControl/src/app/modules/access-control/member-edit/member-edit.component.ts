@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute, ParamMap } from '@angular/router';
 import 'rxjs/add/operator/switchMap';
 
-import { Role, User } from '../../../models';
+import { IRole, IUser } from '../../../models';
 import {
   FabricAuthUserService,
   AccessControlConfigService,
@@ -16,11 +16,11 @@ import {
   styleUrls: ['./member-edit.component.css']
 })
 export class MemberEditComponent implements OnInit {
-  public roles: Array<Role> = [];
-  public assignableRoles: Array<Role> = [];
+  public roles: Array<IRole> = [];
+  public assignableRoles: Array<IRole> = [];
   public subjectId = '';
   public identityProvider = '';
-  public rolesToAssign: Array<Role> = [];
+  public rolesToAssign: Array<IRole> = [];
   public entityType: string;
 
   constructor(
@@ -64,9 +64,9 @@ export class MemberEditComponent implements OnInit {
     }
   }
 
-  removeRole(role: Role) {
+  removeRole(role: IRole) {
     this.roles = this.removeMemberRole(role);
-    const rolesToRemove: Array<Role> = [];
+    const rolesToRemove: Array<IRole> = [];
     rolesToRemove.push(role);
 
     if (this.entityType === 'user') {
@@ -101,7 +101,7 @@ export class MemberEditComponent implements OnInit {
       });
   }
 
-  onRoleSelect(role: Role) {
+  onRoleSelect(role: IRole) {
     if (!this.roleIsSelected(role)) {
       this.rolesToAssign.push(role);
     } else {
@@ -109,7 +109,7 @@ export class MemberEditComponent implements OnInit {
     }
   }
 
-  roleIsSelected(role: Role) {
+  roleIsSelected(role: IRole) {
     return this.rolesToAssign.filter(r => r.name === role.name).length > 0;
   }
 
@@ -131,7 +131,7 @@ export class MemberEditComponent implements OnInit {
     }
   }
 
-  private removeMemberRole(role: Role) {
+  private removeMemberRole(role: IRole) {
     return this.roles.filter(r => r.name !== role.name);
   }
 }

@@ -8,25 +8,24 @@ import {
   FabricAuthGroupService
 } from '../../../services';
 import {
-  FabricPrincipal,
-  Role,
-  User,
-  Group,
-  IdPSearchRequest
+  IFabricPrincipal,
+  IRole,
+  IUser,
+  IGroup
 } from '../../../models';
 
 @Component({
   selector: 'app-custom-group-add',
   templateUrl: './custom-group-add.component.html',
-  styleUrls: ['./custom-group-add.component.css']
+  styleUrls: ['./custom-group-add.component.scss']
 })
 export class CustomGroupAddComponent implements OnInit {
   public customGroupName = '';
   public searchInput: string;
-  public users: Array<FabricPrincipal> = [];
-  public selectedUsers: Array<FabricPrincipal> = [];
-  public roles: Array<Role> = [];
-  public selectedRoles: Array<Role> = [];
+  public users: Array<IFabricPrincipal> = [];
+  public selectedUsers: Array<IFabricPrincipal> = [];
+  public roles: Array<IRole> = [];
+  public selectedRoles: Array<IRole> = [];
 
   constructor(
     private idpSearchService: FabricExternalIdpSearchService,
@@ -47,15 +46,13 @@ export class CustomGroupAddComponent implements OnInit {
     if (searchText.length < 2) {
       return;
     }
-    const request = new IdPSearchRequest(searchText);
-    request.type = 'user';
 
-    this.idpSearchService.searchExternalIdP(request).subscribe(result => {
+    this.idpSearchService.searchExternalIdP(searchText, 'user').subscribe(result => {
       this.users = result.principals;
     });
   }
 
-  onUserSelect(user: FabricPrincipal) {
+  onUserSelect(user: IFabricPrincipal) {
     if (!this.userIsSelected(user)) {
       this.selectedUsers.push(user);
     } else {
@@ -65,19 +62,19 @@ export class CustomGroupAddComponent implements OnInit {
     }
   }
 
-  userIsSelected(user: FabricPrincipal) {
+  userIsSelected(user: IFabricPrincipal) {
     return (
       this.selectedUsers.filter(u => u.subjectId === user.subjectId).length > 0
     );
   }
 
-  removeUserSelection(user: User) {
+  removeUserSelection(user: IUser) {
     this.selectedUsers = this.selectedUsers.filter(
       u => u.subjectId !== user.subjectId
     );
   }
 
-  onRoleSelect(role: Role) {
+  onRoleSelect(role: IRole) {
     if (!this.roleIsSelected(role)) {
       this.selectedRoles.push(role);
     } else {
@@ -85,7 +82,7 @@ export class CustomGroupAddComponent implements OnInit {
     }
   }
 
-  roleIsSelected(role: Role) {
+  roleIsSelected(role: IRole) {
     return this.selectedRoles.filter(r => r.name === role.name).length > 0;
   }
 
@@ -101,7 +98,7 @@ export class CustomGroupAddComponent implements OnInit {
   }
 
   addGroupWithUsersAndRoles() {
-    const group = new Group(this.customGroupName, 'custom');
+    const group: IGroup = { groupName: this.customGroupName,  groupSource: 'custom'};
     this.groupService
       .createGroup(group)
       .toPromise()
@@ -112,9 +109,9 @@ export class CustomGroupAddComponent implements OnInit {
       })
       .then(() => {
         const identityProvider = this.configService.identityProvider;
-        const usersToSave = new Array<User>();
+        const usersToSave = new Array<IUser>();
         this.selectedUsers.forEach(function(user) {
-          const userModel = new User(identityProvider, user.subjectId);
+          const userModel: IUser = { identityProvider, subjectId: user.subjectId };
           usersToSave.push(userModel);
         });
         return this.groupService

@@ -1,7 +1,7 @@
 export const environment = {
   production: false,
-  fabricAuthApiUri: 'http://localhost/authorization',
+  fabricAuthApiUri: 'https://atlasdemo.hqcatalyst.local/Authorization',
   fabricAuthApiVersionSegment: 'v1',
-  fabricExternalIdPSearchApiUri: 'http://localhost:5009',
+  fabricExternalIdPSearchApiUri: 'https://atlasdemo.hqcatalyst.local/IdentityProviderSearchService',
   fabricExternalIdPSearchApiVersionSegment: 'v1'
 };

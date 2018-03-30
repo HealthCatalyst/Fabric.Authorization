@@ -1,11 +1,8 @@
-export class Role {
-  public id: string;
-  public parentRole: string;
-  public childRoles: Array<string>;
-
-  constructor(
-    public name: string,
-    public grain: string,
-    public securableItem: string
-  ) {}
+export interface IRole {
+  id: string;
+  parentRole: string;
+  childRoles: Array<string>;
+  name: string;
+  grain: string;
+  securableItem: string;
 }

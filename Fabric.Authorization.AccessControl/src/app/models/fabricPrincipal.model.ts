@@ -1,9 +1,7 @@
-export class FabricPrincipal {
-  public subjectId: string;
-  public firstName: string;
-  public middleName: string;
-  public lastName: string;
-  public principalType: string;
-
-  constructor() {}
+export interface IFabricPrincipal {
+  subjectId: string;
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  principalType: string;
 }

@@ -4,7 +4,7 @@ import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { catchError, retry } from 'rxjs/operators';
 
-import { AuthMemberSearchRequest, AuthMemberSearchResult } from '../models';
+import { IAuthMemberSearchRequest, IAuthMemberSearchResult } from '../models';
 import { FabricBaseService } from './fabric-base.service';
 import { AccessControlConfigService } from './access-control-config.service';
 
@@ -24,8 +24,8 @@ export class FabricAuthMemberSearchService extends FabricBaseService {
   }
 
   public searchMembers(
-    request: AuthMemberSearchRequest
-  ): Observable<AuthMemberSearchResult[]> {
+    request: IAuthMemberSearchRequest
+  ): Observable<IAuthMemberSearchResult[]> {
     let params = new HttpParams();
 
     if (request.clientId) {
@@ -60,7 +60,7 @@ export class FabricAuthMemberSearchService extends FabricBaseService {
       params = params.set('filter', request.filter);
     }
 
-    return this.httpClient.get<AuthMemberSearchResult[]>(
+    return this.httpClient.get<IAuthMemberSearchResult[]>(
       FabricAuthMemberSearchService.baseMemberSearchApiUrl,
       { params }
     );

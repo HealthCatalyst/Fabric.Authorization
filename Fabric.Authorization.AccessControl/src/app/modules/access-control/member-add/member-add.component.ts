@@ -1,4 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+
+import { Subject } from 'rxjs/Subject';
+import { Subscription } from 'rxjs/Subscription';
+import { Observable } from 'rxjs/Observable';
+import 'rxjs/add/operator/do';
+import 'rxjs/add/operator/takeUntil';
+import 'rxjs/add/operator/catch';
+import 'rxjs/add/observable/throw';
+
 import {
   FabricExternalIdpSearchService,
   FabricAuthRoleService,
@@ -6,124 +15,148 @@ import {
   FabricAuthUserService,
   FabricAuthGroupService
 } from '../../../services';
-import {
-  FabricPrincipal,
-  Role,
-  User,
-  Group,
-  IdPSearchRequest
-} from '../../../models';
+import { IFabricPrincipal, IRole, IUser, IGroup } from '../../../models';
+import { inherits } from 'util';
+import { Router } from '@angular/router';
+
+interface IRoleModel extends IRole {
+  selected: boolean;
+}
+
+interface IFabricPrincipalModel extends IFabricPrincipal {
+  selected: boolean;
+}
 
 @Component({
   selector: 'app-member-add',
   templateUrl: './member-add.component.html',
-  styleUrls: ['./member-add.component.css']
+  styleUrls: ['./member-add.component.scss']
 })
-export class MemberAddComponent implements OnInit {
-  public searchInput: string;
-  public principals: Array<FabricPrincipal>;
-  public selectedPrincipal: FabricPrincipal;
-  public roles: Array<Role>;
-  public selectedRoles: Array<Role>;
+export class MemberAddComponent implements OnInit, OnDestroy {
+  public principals: Array<IFabricPrincipalModel>;
+  public roles: Array<IRoleModel>;
+  public searching = false;
+
+  public searchText = new Subject<string>();
+  private ngUnsubscribe: any = new Subject();
+  private principalSelected = false;
 
   constructor(
     private idpSearchService: FabricExternalIdpSearchService,
     private roleService: FabricAuthRoleService,
     private userService: FabricAuthUserService,
     private configService: AccessControlConfigService,
-    private groupService: FabricAuthGroupService
+    private groupService: FabricAuthGroupService,
+    private router: Router
   ) {
-    this.selectedRoles = [];
   }
 
   ngOnInit() {
-    this.getRoles();
-  }
-
-  onKey(searchText) {
-    if (searchText.length < 2) {
-      return;
-    }
-    const request = new IdPSearchRequest(searchText);
-
-    this.idpSearchService.searchExternalIdP(request).subscribe(result => {
-      this.principals = result.principals;
-    });
-  }
-
-  onPrincipalSelect(principal: FabricPrincipal) {
-    this.selectedPrincipal = principal;
-  }
-
-  onRoleSelect(role: Role) {
-    if (!this.roleIsSelected(role)) {
-      this.selectedRoles.push(role);
-    } else {
-      this.selectedRoles = this.selectedRoles.filter(r => r.name !== role.name);
-    }
-  }
-
-  roleIsSelected(role: Role) {
-    return this.selectedRoles.filter(r => r.name === role.name).length > 0;
-  }
-
-  getRoles() {
+    // Roles
     this.roleService
       .getRolesBySecurableItemAndGrain(
         this.configService.grain,
         this.configService.securableItem
       )
+      .takeUntil(this.ngUnsubscribe)
       .subscribe(roleResults => {
-        this.roles = roleResults;
+        this.roles = roleResults.map(role => {
+          // TODO: find user and associated roles on server
+          const newRole = <IRoleModel>role;
+          newRole.selected = false;
+          return newRole;
+        });
+      });
+
+    // Search text
+    this.searchText
+      .takeUntil(this.ngUnsubscribe)
+      .do(() => {
+        this.searching = true;
+      }).subscribe();
+
+    // User / Group
+    this.idpSearchService
+      .searchUser(this.searchText, null)
+      .takeUntil(this.ngUnsubscribe)
+      .subscribe(result => {
+        this.searching = false;
+        this.principals = result.principals.map(principal => <IFabricPrincipalModel>principal);
       });
   }
 
+  ngOnDestroy(): void {
+    this.ngUnsubscribe.next();
+    this.ngUnsubscribe.complete();
+  }
+
+  selectPrincipal(principal: IFabricPrincipalModel) {
+    for (const otherPrincal of this.principals.filter((p) => p.subjectId !== principal.subjectId)) {
+      otherPrincal.selected = false;
+    }
+    this.principalSelected = !principal.selected;
+  }
+
   addMemberWithRoles() {
-    if (this.selectedPrincipal.principalType === 'user') {
-      const user = new User(
-        this.configService.identityProvider,
-        this.selectedPrincipal.subjectId
-      );
+    const selected: IFabricPrincipalModel = this.principals.find(p => p.selected);
+    if (!selected) {
+      return;
+    }
+
+    const selectedRoles = this.roles.filter(r => r.selected);
+
+    if (selected.principalType === 'user') {
+      const user: IUser = { identityProvider: this.configService.identityProvider, subjectId: selected.subjectId };
       return this.userService
         .getUser(
           this.configService.identityProvider,
-          this.selectedPrincipal.subjectId
+          selected.subjectId
         )
-        .toPromise()
-        .then((userResult: User) => {
-          return userResult;
+        .mergeMap((userResult: IUser) => {
+          return Observable.of(userResult);
         })
         .catch(err => {
           if (err.statusCode === 404) {
-            return this.userService.createUser(user).toPromise();
+            return this
+              .userService
+              .createUser(user);
+          } else {
+            // TODO: handle error
           }
         })
-        .then((newUser: User) => {
+        .mergeMap((newUser: IUser) => {
           return this.userService
             .addRolesToUser(
               newUser.identityProvider,
               newUser.subjectId,
-              this.selectedRoles
-            )
-            .toPromise();
+              selectedRoles
+            );
+        })
+        .subscribe(() => {
+          this.router.navigate(['/accesscontrol']);
         });
     } else {
-      const group = new Group(this.selectedPrincipal.subjectId, '');
+      const group: IGroup = { groupName: selected.subjectId, groupSource: '' };
       return this.groupService
         .getGroup(group.groupName)
-        .toPromise()
-        .then((groupResult: Group) => {
-          return groupResult;
+        .mergeMap((groupResult: IGroup) => {
+          return Observable.of(groupResult);
         })
         .catch(err => {
           if (err.statusCode === 404) {
-            return this.groupService.createGroup(group).toPromise();
+            return this
+              .groupService
+              .createGroup(group);
+          } else {
+            // TODO: handle error
           }
         })
-        .then((newGroup: Group) => {
-          this.groupService
-            .addRolesToGroup(newGroup.groupName, this.selectedRoles)
-            .toPromise();
+        .mergeMap((newGroup: IGroup) => {
+          return this.groupService
+            .addRolesToGroup(newGroup.groupName, selectedRoles);
+        })
+        .subscribe(() => {
+          this.router.navigate(['/accesscontrol']);
         });
     }
   }

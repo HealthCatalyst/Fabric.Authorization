@@ -9,10 +9,10 @@ import {
   FabricAuthGroupService
 } from '../../../services';
 import {
-  AuthMemberSearchRequest,
-  AuthMemberSearchResult,
-  Role,
-  FabricPrincipal
+  IAuthMemberSearchRequest,
+  IAuthMemberSearchResult,
+  IRole,
+  IFabricPrincipal
 } from '../../../models';
 
 @Component({
@@ -21,7 +21,7 @@ import {
   styleUrls: ['./member-list.component.css']
 })
 export class MemberListComponent implements OnInit {
-  members: AuthMemberSearchResult[];
+  members: IAuthMemberSearchResult[];
 
   constructor(
     private memberSearchService: FabricAuthMemberSearchService,
@@ -36,9 +36,7 @@ export class MemberListComponent implements OnInit {
   }
 
   getMembers() {
-    const searchRequest = new AuthMemberSearchRequest();
-    searchRequest.grain = this.configService.grain;
-    searchRequest.securableItem = this.configService.securableItem;
+    const searchRequest: IAuthMemberSearchRequest = {grain: this.configService.grain, securableItem: this.configService.securableItem};
 
     return this.memberSearchService
       .searchMembers(searchRequest)
@@ -47,7 +45,7 @@ export class MemberListComponent implements OnInit {
       });
   }
 
-  removeRolesFromMember(member: AuthMemberSearchResult) {
+  removeRolesFromMember(member: IAuthMemberSearchResult) {
     if (member.entityType === 'user') {
       this.userService
         .removeRolesFromUser(
@@ -69,13 +67,13 @@ export class MemberListComponent implements OnInit {
     }
   }
 
-  selectRoleNames(roles: Array<Role>) {
+  selectRoleNames(roles: Array<IRole>) {
     return roles.map(function(role) {
       return role.name;
     });
   }
 
-  goToMemberEdit(member: AuthMemberSearchResult) {
+  goToMemberEdit(member: IAuthMemberSearchResult) {
     if (member.entityType !== 'CustomGroup') {
       this.router.navigate([
         '/accesscontrol/memberedit',
