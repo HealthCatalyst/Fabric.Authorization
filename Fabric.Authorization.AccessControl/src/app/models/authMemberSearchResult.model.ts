@@ -1,4 +1,4 @@
-import { Role } from './role.model';
+import { Role } from '../models';
 
 export type AuthMemberSearchResultEntityType = 'User' | 'DirectoryGroup' | 'CustomGroup';
 
