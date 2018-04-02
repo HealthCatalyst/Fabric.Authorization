@@ -1,6 +1,12 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { async, ComponentFixture, TestBed, inject } from '@angular/core/testing';
 
 import { CustomGroupAddComponent } from './custom-group-add.component';
+import { FormsModule } from '@angular/forms';
+import { FabricExternalIdpSearchService, AccessControlConfigService, FabricAuthRoleService } from '../../../services';
+import { HttpClient, HttpHandler } from '@angular/common/http';
+import { ServicesMockModule } from '../member-add/services.mock.module';
+import { Observable } from 'rxjs/Observable';
+import { FabricAuthRoleServiceMock, mockRoles } from '../../../services/fabric-auth-role.service.mock';
 
 describe('CustomGroupAddComponent', () => {
   let component: CustomGroupAddComponent;
@@ -9,10 +15,16 @@ describe('CustomGroupAddComponent', () => {
   beforeEach(
     async(() => {
       TestBed.configureTestingModule({
-        declarations: [CustomGroupAddComponent]
+        declarations: [CustomGroupAddComponent],
+        imports: [ServicesMockModule, FormsModule],
+        providers: [FabricExternalIdpSearchService, HttpClient, HttpHandler, AccessControlConfigService]
       }).compileComponents();
     })
   );
+
+  beforeEach(inject([FabricAuthRoleService], (roleService: FabricAuthRoleServiceMock) => {
+    roleService.getRolesBySecurableItemAndGrain.and.returnValue(Observable.of(mockRoles));
+  }));
 
   beforeEach(() => {
     fixture = TestBed.createComponent(CustomGroupAddComponent);

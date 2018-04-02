@@ -18,45 +18,17 @@ import {
   FabricAuthGroupService,
   AccessControlConfigService
 } from '../services';
-import { Group, User, Role } from '../models';
+import { IGroup, IUser, IRole } from '../models';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { FabricHttpErrorHandlerInterceptorService } from './interceptors/fabric-http-error-handler-interceptor.service';
+import { mockUsersResponse, mockGroupResponse } from './fabric-auth-group.service.mock';
+import { mockRolesResponse } from './fabric-auth-user.service.mock';
 
-fdescribe('FabricAuthGroupService', () => {
+describe('FabricAuthGroupService', () => {
   const groupName = 'Dos Admin Group';
   const groupSource = 'Custom';
   const grain = 'dos';
   const securableItem = 'datamart';
-
-  const mockUsersResponse = [
-    {
-      name: 'First Last',
-      subjectId: 'Sub123',
-      identityProvider: 'Windows'
-    }
-  ];
-
-  const mockRolesResponse = [
-    {
-      name: 'admin',
-      grain: 'dos',
-      securableItem: 'datamart',
-      parentRole: 'admin_parent'
-    },
-    {
-      name: 'superuser',
-      grain: 'dos',
-      securableItem: 'datamart',
-      childRoles: ['dos_child1', 'dos_child2']
-    }
-  ];
-
-  const mockGroupResponse = {
-    groupName: groupName,
-    groupSource: groupSource,
-    users: mockUsersResponse,
-    roles: mockRolesResponse
-  };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -150,8 +122,8 @@ fdescribe('FabricAuthGroupService', () => {
           httpTestingController: HttpTestingController,
           service: FabricAuthGroupService
         ) => {
-          const userRequest: User = new User('idp', 'sub123');
-          const userRequestArr: User[] = new Array<User>(userRequest);
+          const userRequest: IUser = { identityProvider: 'idp', subjectId: 'sub123'};
+          const userRequestArr: IUser[] = new Array<IUser>(userRequest);
           service
             .addUsersToCustomGroup(groupName, userRequestArr)
             .subscribe(returnedGroup => {
@@ -185,7 +157,7 @@ fdescribe('FabricAuthGroupService', () => {
           service: FabricAuthGroupService
         ) => {
           service
-            .addUsersToCustomGroup(groupName, new Array<User>())
+            .addUsersToCustomGroup(groupName, new Array<IUser>())
             .catch(error => {
               expect(Observable.of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
@@ -217,7 +189,7 @@ fdescribe('FabricAuthGroupService', () => {
           httpTestingController: HttpTestingController,
           service: FabricAuthGroupService
         ) => {
-          const user = new User('idp', 'sub');
+          const user: IUser = { identityProvider: 'idp', subjectId: 'sub'};
 
           service
             .removeUserFromCustomGroup(groupName, user)
@@ -408,10 +380,10 @@ fdescribe('FabricAuthGroupService', () => {
           httpTestingController: HttpTestingController,
           service: FabricAuthGroupService
         ) => {
-          const role = new Role('admin', 'dos', 'datamart');
+          const role: IRole = { name: 'admin', grain: 'dos', securableItem: 'datamart'};
           role.parentRole = 'admin_parent';
 
-          const roleArr = new Array<Role>(role);
+          const roleArr = new Array<IRole>(role);
 
           service
             .removeRolesFromGroup(groupName, roleArr)
@@ -459,7 +431,7 @@ fdescribe('FabricAuthGroupService', () => {
           service: FabricAuthGroupService
         ) => {
           service
-            .removeRolesFromGroup(groupName, new Array<Role>())
+            .removeRolesFromGroup(groupName, new Array<IRole>())
             .catch(error => {
               expect(Observable.of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
@@ -481,14 +453,14 @@ fdescribe('FabricAuthGroupService', () => {
     )
   );
 
-  function assertMockGroupResponse(returnedGroup: Group) {
+  function assertMockGroupResponse(returnedGroup: IGroup) {
     expect(returnedGroup.groupName).toBe(groupName);
     expect(returnedGroup.groupSource).toBe(groupSource);
     assertMockGroupRolesResponse(returnedGroup.roles);
     assertMockGroupUsersResponse(returnedGroup.users);
   }
 
-  function assertMockGroupRolesResponse(returnedRoles: Role[]) {
+  function assertMockGroupRolesResponse(returnedRoles: IRole[]) {
     expect(returnedRoles).toBeDefined();
     expect(returnedRoles.length).toBe(2);
 
@@ -508,7 +480,7 @@ fdescribe('FabricAuthGroupService', () => {
     expect(superUserRole.childRoles[1]).toBe('dos_child2');
   }
 
-  function assertMockGroupUsersResponse(returnedUsers: User[]) {
+  function assertMockGroupUsersResponse(returnedUsers: IUser[]) {
     expect(returnedUsers).toBeDefined();
     expect(returnedUsers.length).toBe(1);
 

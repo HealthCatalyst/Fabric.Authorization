@@ -12,6 +12,7 @@ import { AccessControlConfigService } from './access-control-config.service';
 import 'rxjs/add/operator/distinctUntilChanged';
 import 'rxjs/add/operator/debounceTime';
 import 'rxjs/add/operator/filter';
+import 'rxjs/add/operator/switchMap';
 
 @Injectable()
 export class FabricExternalIdpSearchService extends FabricBaseService {

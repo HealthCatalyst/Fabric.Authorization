@@ -34,7 +34,7 @@ export class MemberEditComponent implements OnInit {
 
   ngOnInit() {
     this.subjectId = this.route.snapshot.paramMap.get('subjectid');
-    this.entityType = this.route.snapshot.paramMap.get('type').toLowerCase();
+    this.entityType = (this.route.snapshot.paramMap.get('type') || '').toLowerCase();
     this.identityProvider = this.configService.identityProvider;
 
     return this.getMemberRoles();

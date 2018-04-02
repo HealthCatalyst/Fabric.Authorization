@@ -8,7 +8,7 @@ export interface IAuthMemberSearchResult {
   firstName: string;
   middleName: string;
   lastName: string;
-  lastLoginDateTimeUtc: string | Date;
+  lastLoginDateTimeUtc?: string | Date;
   entityType: string;
-  name: string;
+  name?: string;
 }

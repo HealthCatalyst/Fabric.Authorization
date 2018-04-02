@@ -4,7 +4,6 @@ import {
   FabricExternalIdpSearchService,
   FabricAuthRoleService,
   AccessControlConfigService,
-  FabricAuthUserService,
   FabricAuthGroupService
 } from '../../../services';
 import {
@@ -30,7 +29,6 @@ export class CustomGroupAddComponent implements OnInit {
   constructor(
     private idpSearchService: FabricExternalIdpSearchService,
     private roleService: FabricAuthRoleService,
-    private userService: FabricAuthUserService,
     private configService: AccessControlConfigService,
     private groupService: FabricAuthGroupService
   ) {}

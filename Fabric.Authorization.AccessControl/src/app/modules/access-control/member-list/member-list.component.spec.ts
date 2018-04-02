@@ -1,6 +1,11 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { async, ComponentFixture, TestBed, inject } from '@angular/core/testing';
 
 import { MemberListComponent } from './member-list.component';
+import { ServicesMockModule } from '../member-add/services.mock.module';
+import { PopoverModule, IconModule } from '@healthcatalyst/cashmere';
+import { FabricAuthMemberSearchServiceMock, mockAuthSearchResult } from '../../../services/fabric-auth-member-search.service.mock';
+import { FabricAuthMemberSearchService } from '../../../services';
+import { Observable } from 'rxjs/Observable';
 
 describe('MemberListComponent', () => {
   let component: MemberListComponent;
@@ -9,10 +14,15 @@ describe('MemberListComponent', () => {
   beforeEach(
     async(() => {
       TestBed.configureTestingModule({
-        declarations: [MemberListComponent]
+        declarations: [MemberListComponent],
+        imports: [ServicesMockModule, PopoverModule, IconModule]
       }).compileComponents();
     })
   );
+
+  beforeEach(inject([FabricAuthMemberSearchService], (memberSearchService: FabricAuthMemberSearchServiceMock) => {
+    memberSearchService.searchMembers.and.returnValue(Observable.of(mockAuthSearchResult));
+  }));
 
   beforeEach(() => {
     fixture = TestBed.createComponent(MemberListComponent);
