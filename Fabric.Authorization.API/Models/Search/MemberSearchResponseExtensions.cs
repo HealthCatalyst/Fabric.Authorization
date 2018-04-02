@@ -65,5 +65,14 @@ namespace Fabric.Authorization.API.Models.Search
                 || (!string.IsNullOrWhiteSpace(r.SubjectId) && r.SubjectId.ToLower().Contains(filter))
                 || r.Roles.Select(role => role.Name).Contains(filter, StringComparer.OrdinalIgnoreCase));
         }
+
+        public static MemberSearchResponseApiModel ToMemberSearchResponseApiModel(this FabricAuthUserSearchResponse authUserSearchResponse)
+        {
+            return new MemberSearchResponseApiModel
+            {
+                TotalCount = authUserSearchResponse.TotalCount,
+                Results = authUserSearchResponse.Results
+            };
+        }
     }
 }

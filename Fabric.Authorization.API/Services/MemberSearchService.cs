@@ -106,6 +106,7 @@ namespace Fabric.Authorization.API.Services
 
             var pageSize = request.PageSize ?? 100;
             var pageNumber = request.PageNumber ?? 1;
+            var filteredResults = searchResults.Filter(request).ToList();
 
             return new FabricAuthUserSearchResponse
             {
@@ -114,11 +115,12 @@ namespace Fabric.Authorization.API.Services
                         ? Nancy.HttpStatusCode.PartialContent
                         : Nancy.HttpStatusCode.OK,
 
-                Results = searchResults
-                    .Filter(request)
+                Results = filteredResults
                     .Sort(request)
                     .Skip((pageNumber - 1) * pageSize)
-                    .Take(pageSize)
+                    .Take(pageSize),
+
+                TotalCount = filteredResults.Count
             };
         }
     }
