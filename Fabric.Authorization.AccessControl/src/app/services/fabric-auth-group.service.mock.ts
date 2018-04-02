@@ -5,6 +5,14 @@ import { Observable } from 'rxjs/Observable';
 
 const groupName = 'Dos Admin Group';
 const groupSource = 'Custom';
+const dosAdminRoleDisplayName = 'DOS Administrators (role)';
+const dosAdminRoleDescription = 'Administers DOS items (role)';
+
+const dosSuperUsersRoleDisplayName = 'DOS Super Users (role)';
+const dosSuperUsersRoleDescription = 'Elevated DOS privileges (role)';
+
+const dosAdminGroupDisplayName = 'DOS Administrators (group)';
+const dosAdminGroupDescription = 'Administers DOS items (group)';
 
 export const mockUsersResponse: IUser[] = [
     {
@@ -19,13 +27,17 @@ export const mockRolesResponse: IRole[] = [
         name: 'admin',
         grain: 'dos',
         securableItem: 'datamart',
-        parentRole: 'admin_parent'
+        parentRole: 'admin_parent',
+        displayName: dosAdminRoleDisplayName,
+        description: dosAdminRoleDescription,
     },
     {
         name: 'superuser',
         grain: 'dos',
         securableItem: 'datamart',
-        childRoles: ['dos_child1', 'dos_child2']
+        childRoles: ['dos_child1', 'dos_child2'],
+        displayName: dosSuperUsersRoleDisplayName,
+        description: dosSuperUsersRoleDescription,
     }
 ];
 
@@ -33,7 +45,9 @@ export const mockGroupResponse: IGroup = {
     groupName: groupName,
     groupSource: groupSource,
     users: mockUsersResponse,
-    roles: mockRolesResponse
+    roles: mockRolesResponse,
+    displayName: dosAdminGroupDisplayName,
+    description: dosAdminGroupDescription,
 };
 
 export class FabricAuthGroupServiceMock {

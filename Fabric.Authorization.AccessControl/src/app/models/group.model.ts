@@ -6,4 +6,6 @@ export interface IGroup {
   users?: Array<IUser>;
   groupName: string;
   groupSource: string;
+  displayName?: string;
+  description?: string;
 }

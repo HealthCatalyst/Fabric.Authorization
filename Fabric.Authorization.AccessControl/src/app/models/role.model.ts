@@ -5,4 +5,6 @@ export interface IRole {
   name: string;
   grain: string;
   securableItem: string;
+  displayName?: string;
+  description?: string;
 }

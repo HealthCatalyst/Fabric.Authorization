@@ -21,14 +21,19 @@ import {
 import { IGroup, IUser, IRole } from '../models';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { FabricHttpErrorHandlerInterceptorService } from './interceptors/fabric-http-error-handler-interceptor.service';
-import { mockUsersResponse, mockGroupResponse } from './fabric-auth-group.service.mock';
-import { mockRolesResponse } from './fabric-auth-user.service.mock';
+import { mockUsersResponse, mockGroupResponse, mockRolesResponse } from './fabric-auth-group.service.mock';
 
 describe('FabricAuthGroupService', () => {
   const groupName = 'Dos Admin Group';
   const groupSource = 'Custom';
   const grain = 'dos';
   const securableItem = 'datamart';
+  const dosAdminRoleDisplayName = 'DOS Administrators (role)';
+  const dosAdminRoleDescription = 'Administers DOS items (role)';
+  const dosSuperUsersRoleDisplayName = 'DOS Super Users (role)';
+  const dosSuperUsersRoleDescription = 'Elevated DOS privileges (role)';
+  const dosAdminGroupDisplayName = 'DOS Administrators (group)';
+  const dosAdminGroupDescription = 'Administers DOS items (group)';
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -456,6 +461,8 @@ describe('FabricAuthGroupService', () => {
   function assertMockGroupResponse(returnedGroup: IGroup) {
     expect(returnedGroup.groupName).toBe(groupName);
     expect(returnedGroup.groupSource).toBe(groupSource);
+    expect(returnedGroup.displayName).toBe(dosAdminGroupDisplayName);
+    expect(returnedGroup.description).toBe(dosAdminGroupDescription);
     assertMockGroupRolesResponse(returnedGroup.roles);
     assertMockGroupUsersResponse(returnedGroup.users);
   }
@@ -466,12 +473,16 @@ describe('FabricAuthGroupService', () => {
 
     const adminRole = returnedRoles[0];
     expect(adminRole.name).toBe('admin');
+    expect(adminRole.displayName).toBe(dosAdminRoleDisplayName);
+    expect(adminRole.description).toBe(dosAdminRoleDescription);
     expect(adminRole.grain).toBe('dos');
     expect(adminRole.securableItem).toBe('datamart');
     expect(adminRole.parentRole).toBe('admin_parent');
 
     const superUserRole = returnedRoles[1];
     expect(superUserRole.name).toBe('superuser');
+    expect(superUserRole.displayName).toBe(dosSuperUsersRoleDisplayName);
+    expect(superUserRole.description).toBe(dosSuperUsersRoleDescription);
     expect(superUserRole.grain).toBe('dos');
     expect(superUserRole.securableItem).toBe('datamart');
     expect(superUserRole.childRoles).toBeDefined();

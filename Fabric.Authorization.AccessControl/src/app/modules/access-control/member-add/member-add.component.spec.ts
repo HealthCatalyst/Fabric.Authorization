@@ -12,7 +12,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { FabricExternalIdpSearchService, FabricAuthRoleService } from '../../../services';
 import { FabricExternalIdpSearchServiceMock, mockExternalIdpSearchResult } from '../../../services/fabric-external-idp-search.service.mock';
-import { ServicesMockModule } from './services.mock.module';
+import { ServicesMockModule } from '../services.mock.module';
 import { FabricAuthRoleServiceMock, mockRoles } from '../../../services/fabric-auth-role.service.mock';
 import { Observable } from 'rxjs/Observable';
 import { IdPSearchResult } from '../../../models';
