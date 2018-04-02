@@ -1,8 +1,6 @@
-import { FabricPrincipal } from '../models';
+import { IFabricPrincipal } from '../models';
 
 export class IdPSearchResult {
-  public principals: Array<FabricPrincipal>;
-  public resultCount: string;
-
-  constructor() {}
+  public principals: Array<IFabricPrincipal>;
+  public resultCount: number;
 }

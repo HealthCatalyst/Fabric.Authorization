@@ -5,7 +5,7 @@ import { Observable } from 'rxjs/Observable';
 import { catchError, retry } from 'rxjs/operators';
 
 import {
-  AuthMemberSearchRequest,
+  IAuthMemberSearchRequest,
   IAuthMemberSearchResult,
   IAuthMemberSearchResponse
 } from '../models';
@@ -28,7 +28,7 @@ export class FabricAuthMemberSearchService extends FabricBaseService {
   }
 
   public searchMembers(
-    request: AuthMemberSearchRequest
+    request: IAuthMemberSearchRequest
   ): Observable<IAuthMemberSearchResponse> {
     let params = new HttpParams();
 

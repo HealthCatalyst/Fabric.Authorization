@@ -4,7 +4,7 @@ import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { catchError, retry } from 'rxjs/operators';
 
-import { Exception, Group, Role, User } from '../models';
+import { Exception, IGroup, IRole, IUser } from '../models';
 import { FabricBaseService } from './fabric-base.service';
 import { AccessControlConfigService } from './access-control-config.service';
 
@@ -26,36 +26,23 @@ export class FabricAuthUserService extends FabricBaseService {
     }
 
     if (!FabricAuthUserService.userRolesApiUrl) {
-      FabricAuthUserService.userRolesApiUrl = `${
-        FabricAuthUserService.baseUserApiUrl
-      }/{identityProvider}/{subjectId}/roles`;
+      FabricAuthUserService.userRolesApiUrl = `${FabricAuthUserService.baseUserApiUrl}/{identityProvider}/{subjectId}/roles`;
     }
 
     if (!FabricAuthUserService.userGroupsApiUrl) {
-      FabricAuthUserService.userGroupsApiUrl = `${
-        FabricAuthUserService.baseUserApiUrl
-      }/{identityProvider}/{subjectId}/groups`;
+      FabricAuthUserService.userGroupsApiUrl = `${FabricAuthUserService.baseUserApiUrl}/{identityProvider}/{subjectId}/groups`;
     }
   }
 
-  public getUser(
-    identityProvider: string,
-    subjectId: string
-  ): Observable<User> {
-    return this.httpClient.get<User>(
-      encodeURI(
-        `${
-          FabricAuthUserService.baseUserApiUrl
-        }/${identityProvider}/${subjectId}`
-      )
-    );
+  public getUser(identityProvider: string, subjectId: string): Observable<IUser> {
+    return this.httpClient.get<IUser>(`${FabricAuthUserService.baseUserApiUrl}/${encodeURI(identityProvider)}/${encodeURI(subjectId)}`);
   }
 
   public getUserGroups(
     identityProvider: string,
     subjectId: string
-  ): Observable<Group[]> {
-    return this.httpClient.get<Group[]>(
+  ): Observable<IGroup[]> {
+    return this.httpClient.get<IGroup[]>(
       this.replaceUserIdSegment(
         FabricAuthUserService.userGroupsApiUrl,
         identityProvider,
@@ -67,8 +54,8 @@ export class FabricAuthUserService extends FabricBaseService {
   public getUserRoles(
     identityProvider: string,
     subjectId: string
-  ): Observable<Role[]> {
-    return this.httpClient.get<Role[]>(
+  ): Observable<IRole[]> {
+    return this.httpClient.get<IRole[]>(
       this.replaceUserIdSegment(
         FabricAuthUserService.userRolesApiUrl,
         identityProvider,
@@ -80,9 +67,9 @@ export class FabricAuthUserService extends FabricBaseService {
   public addRolesToUser(
     identityProvider: string,
     subjectId: string,
-    roles: Role[]
-  ): Observable<User> {
-    return this.httpClient.post<User>(
+    roles: IRole[]
+  ): Observable<IUser> {
+    return this.httpClient.post<IUser>(
       this.replaceUserIdSegment(
         FabricAuthUserService.userRolesApiUrl,
         identityProvider,
@@ -95,9 +82,9 @@ export class FabricAuthUserService extends FabricBaseService {
   public removeRolesFromUser(
     identityProvider: string,
     subjectId: string,
-    roles: Role[]
-  ): Observable<User> {
-    return this.httpClient.request<User>(
+    roles: IRole[]
+  ): Observable<IUser> {
+    return this.httpClient.request<IUser>(
       'DELETE',
       this.replaceUserIdSegment(
         FabricAuthUserService.userRolesApiUrl,
@@ -108,8 +95,8 @@ export class FabricAuthUserService extends FabricBaseService {
     );
   }
 
-  public createUser(user: User): Observable<User> {
-    return this.httpClient.post<User>(
+  public createUser(user: IUser): Observable<IUser> {
+    return this.httpClient.post<IUser>(
       FabricAuthUserService.baseUserApiUrl,
       user
     );

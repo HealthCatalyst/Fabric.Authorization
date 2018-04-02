@@ -1,10 +1,10 @@
-import { Role, Group } from '../models';
+import { IRole, IGroup } from '../models';
 
-export class User {
-  public id: string;
-  public groups: Array<Group>;
-  public roles: Array<Role>;
-  public name: string;
-
-  constructor(public identityProvider: string, public subjectId: string) {}
+export interface IUser {
+  id?: string;
+  groups?: Array<IGroup>;
+  roles?: Array<IRole>;
+  name?: string;
+  identityProvider?: string;
+  subjectId: string;
 }

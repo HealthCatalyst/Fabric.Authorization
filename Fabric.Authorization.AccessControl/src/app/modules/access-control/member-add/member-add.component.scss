@@ -1,0 +1,52 @@
+@import "~@healthcatalyst/cashmere/colors";
+
+.selected {
+    background-color:#D3D3D3;    
+  }
+
+ul {
+    list-style-type: none;
+    padding: 0;
+    width: 15em;
+}
+
+li {
+    cursor: pointer;
+}
+
+li.selected:hover{
+    background-color:#D3D3D3;
+}
+
+li:hover{
+    background-color: #D3D3D3;
+}
+
+.principals{
+    $scrollbar-width: 0.9em;
+    display: flex;
+    flex-flow: column;
+    max-height: 180px;
+  
+    thead,
+    tbody tr {
+      display: table;
+      table-layout: fixed;
+    }
+  
+    thead {
+      flex: 0 0 auto;
+      width: calc(100% - $scrollbar-width);
+    }
+  
+    tbody {
+      display: block;
+      flex: 1 1 auto;
+      overflow-y: auto;
+  
+      tr {
+        width: 100%;
+      }
+    }
+  }
+  

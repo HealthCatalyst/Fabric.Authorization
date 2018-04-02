@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
-import { Role, User, FabricPrincipal, IdPSearchRequest } from '../../../models';
+import { IRole, IUser, IFabricPrincipal } from '../../../models';
 import {
   FabricAuthUserService,
   AccessControlConfigService,
@@ -13,16 +13,16 @@ import {
 @Component({
   selector: 'app-custom-group-edit',
   templateUrl: './custom-group-edit.component.html',
-  styleUrls: ['./custom-group-edit.component.css']
+  styleUrls: ['./custom-group-edit.component.scss']
 })
 export class CustomGroupEditComponent implements OnInit {
   public groupName = '';
-  public roles: Array<Role> = [];
-  public assignableRoles: Array<Role> = [];
-  public rolesToAssign: Array<Role> = [];
-  public usersToAssign: Array<FabricPrincipal> = [];
-  public selectedUsers: Array<FabricPrincipal> = [];
-  public users: Array<User> = [];
+  public roles: Array<IRole> = [];
+  public assignableRoles: Array<IRole> = [];
+  public rolesToAssign: Array<IRole> = [];
+  public usersToAssign: Array<IFabricPrincipal> = [];
+  public selectedUsers: Array<IFabricPrincipal> = [];
+  public users: Array<IUser> = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -46,15 +46,13 @@ export class CustomGroupEditComponent implements OnInit {
     if (searchText.length < 2) {
       return;
     }
-    const request = new IdPSearchRequest(searchText);
-    request.type = 'user';
 
-    this.idpSearchService.searchExternalIdP(request).subscribe(result => {
+    this.idpSearchService.searchExternalIdP(searchText, 'user').subscribe(result => {
       this.usersToAssign = result.principals;
     });
   }
 
-  onUserSelect(user: FabricPrincipal) {
+  onUserSelect(user: IFabricPrincipal) {
     if (!this.userIsSelected(user)) {
       this.selectedUsers.push(user);
     } else {
@@ -64,13 +62,13 @@ export class CustomGroupEditComponent implements OnInit {
     }
   }
 
-  userIsSelected(user: FabricPrincipal) {
+  userIsSelected(user: IFabricPrincipal) {
     return (
       this.selectedUsers.filter(u => u.subjectId === user.subjectId).length > 0
     );
   }
 
-  removeUserSelection(user: User) {
+  removeUserSelection(user: IUser) {
     this.selectedUsers = this.selectedUsers.filter(
       u => u.subjectId !== user.subjectId
     );
@@ -85,7 +83,7 @@ export class CustomGroupEditComponent implements OnInit {
       });
   }
 
-  removeUserFromGroup(user: User) {
+  removeUserFromGroup(user: IUser) {
     return this.groupService
       .removeUserFromCustomGroup(this.groupName, user)
       .toPromise()
@@ -106,9 +104,9 @@ export class CustomGroupEditComponent implements OnInit {
       });
   }
 
-  removeRole(role: Role) {
+  removeRole(role: IRole) {
     this.roles = this.removeMemberRole(role);
-    const rolesToRemove: Array<Role> = [];
+    const rolesToRemove: Array<IRole> = [];
     rolesToRemove.push(role);
 
     return this.groupService
@@ -132,7 +130,7 @@ export class CustomGroupEditComponent implements OnInit {
       });
   }
 
-  onRoleSelect(role: Role) {
+  onRoleSelect(role: IRole) {
     if (!this.roleIsSelected(role)) {
       this.rolesToAssign.push(role);
     } else {
@@ -140,7 +138,7 @@ export class CustomGroupEditComponent implements OnInit {
     }
   }
 
-  roleIsSelected(role: Role) {
+  roleIsSelected(role: IRole) {
     return this.rolesToAssign.filter(r => r.name === role.name).length > 0;
   }
 
@@ -155,9 +153,9 @@ export class CustomGroupEditComponent implements OnInit {
     // add users from selectedUsers
     if (this.selectedUsers.length > 0) {
       const identityProvider = this.configService.identityProvider;
-      const usersToSave = new Array<User>();
+      const usersToSave = new Array<IUser>();
       this.selectedUsers.forEach(function(user) {
-        const userModel = new User(identityProvider, user.subjectId);
+        const userModel: IUser = {identityProvider, subjectId: user.subjectId};
         usersToSave.push(userModel);
       });
       this.groupService
@@ -172,7 +170,7 @@ export class CustomGroupEditComponent implements OnInit {
     }
   }
 
-  private removeMemberRole(role: Role) {
+  private removeMemberRole(role: IRole) {
     return this.roles.filter(r => r.name !== role.name);
   }
 }

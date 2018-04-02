@@ -12,10 +12,10 @@ import {
   FabricAuthGroupService
 } from '../../../services';
 import {
-  AuthMemberSearchRequest,
+  IAuthMemberSearchRequest,
   IAuthMemberSearchResult,
-  Role,
-  FabricPrincipal,
+  IRole,
+  IFabricPrincipal,
   SortDirection,
   SortKey
 } from '../../../models';
@@ -100,7 +100,7 @@ export class MemberListComponent implements OnInit {
   }
 
   getMembers() {
-    const searchRequest: AuthMemberSearchRequest = {
+    const searchRequest: IAuthMemberSearchRequest = {
       pageNumber: this.pageNumber,
       pageSize: this.pageSize,
       filter: this.filter,
@@ -159,7 +159,7 @@ export class MemberListComponent implements OnInit {
     this.getMembers();
   }
 
-  selectRoleNames(roles: Array<Role>) {
+  selectRoleNames(roles: Array<IRole>) {
     return roles.map(function(role) {
       return role.name;
     });

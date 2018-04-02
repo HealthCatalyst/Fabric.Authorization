@@ -37,7 +37,7 @@ namespace Fabric.Authorization.API.Modules
                 var searchRequest = this.Bind<MemberSearchRequest>();
                 Validate(searchRequest);
                 var authResponse = await _memberSearchService.Search(searchRequest);
-                return CreateSuccessfulGetResponse(authResponse.Results, authResponse.HttpStatusCode);
+                return CreateSuccessfulGetResponse(authResponse.ToMemberSearchResponseApiModel(), authResponse.HttpStatusCode);
             }
             catch (NotFoundException<Client> ex)
             {

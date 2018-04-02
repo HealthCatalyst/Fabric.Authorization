@@ -166,7 +166,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     with.Query("page_size", "2");
                 });
 
-            var results = response.Body.DeserializeJson<List<MemberSearchResponse>>();
+            var results = response.Body.DeserializeJson<MemberSearchResponseApiModel>();
             AssertValidRequest(results, lastLoginDate);
         }
 
@@ -195,7 +195,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     with.Query("page_size", "2");
                 });
 
-            var results = response.Body.DeserializeJson<List<MemberSearchResponse>>();
+            var results = response.Body.DeserializeJson<MemberSearchResponseApiModel>();
             AssertValidRequest(results, lastLoginDate);
         }
 
@@ -222,7 +222,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     with.Query("filter", groupName);
                 });
 
-            var results = response.Body.DeserializeJson<List<MemberSearchResponse>>();
+            var resultModel = response.Body.DeserializeJson<MemberSearchResponseApiModel>();
+            var results = resultModel.Results.ToList();
             Assert.Single(results);
 
             //ensure the group has two roles 
@@ -231,6 +232,57 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(MemberSearchResponseEntityType.CustomGroup.ToString(), result.EntityType);
             Assert.Equal(2, result.Roles.Count());
 
+        }
+
+        [Fact]
+        public async Task MemberSearch_ValidRequest_NoPageSize_TotalCountCorrect_SuccessAsync()
+        {
+            var lastLoginDate = new DateTime(2017, 9, 15).ToUniversalTime();
+
+            var mockIdentityServiceProvider = CreateIdentityServiceProviderMock(null, lastLoginDate);
+            await Fixture.InitializeSuccessDataAsync(mockIdentityServiceProvider);
+
+            var response = await Fixture.Browser.Get(
+                MemberSearchRoute,
+                with =>
+                {
+                    with.HttpRequest();
+                    with.Header("Accept", "application/json");
+                    with.Query("grain", "app");
+                    with.Query("securable_item", Fixture.AtlasClientId);
+                });
+
+            var resultModel = response.Body.DeserializeJson<MemberSearchResponseApiModel>();
+            //no page size so total count should match result count
+            Assert.NotEmpty(resultModel.Results);
+            Assert.Equal(resultModel.Results.Count(), resultModel.TotalCount);
+        }
+
+        [Fact]
+        public async Task MemberSearch_ValidRequest_PageSizeSet_TotalCountCorrect_SuccessAsync()
+        {
+            var lastLoginDate = new DateTime(2017, 9, 15).ToUniversalTime();
+
+            var mockIdentityServiceProvider = CreateIdentityServiceProviderMock(null, lastLoginDate);
+            await Fixture.InitializeSuccessDataAsync(mockIdentityServiceProvider);
+
+            var response = await Fixture.Browser.Get(
+                MemberSearchRoute,
+                with =>
+                {
+                    with.HttpRequest();
+                    with.Header("Accept", "application/json");
+                    with.Query("grain", "app");
+                    with.Query("securable_item", Fixture.AtlasClientId);
+                    with.Query("page_number", "1");
+                    with.Query("page_size", "1");
+                });
+
+            var resultModel = response.Body.DeserializeJson<MemberSearchResponseApiModel>();
+            //page size set so total count should be greater than results count
+            Assert.NotEmpty(resultModel.Results);
+            Assert.Single(resultModel.Results);
+            Assert.True(resultModel.TotalCount > resultModel.Results.Count());
         }
 
         private IIdentityServiceProvider CreateIdentityServiceProviderMock(string clientId, DateTime? lastLoginDate)
@@ -280,8 +332,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             return mockIdentityServiceProvider.Object;
         }
 
-        private void AssertValidRequest(IReadOnlyList<MemberSearchResponse> results, DateTime? lastLoginDate)
+        private void AssertValidRequest(MemberSearchResponseApiModel result, DateTime? lastLoginDate)
         {
+            var results = result.Results.ToList();            
             Assert.Equal(2, results.Count);
 
             var result1 = results[0];

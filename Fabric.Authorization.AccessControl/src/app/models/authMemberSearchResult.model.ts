@@ -1,4 +1,4 @@
-import { Role } from '../models';
+import { IRole } from './role.model';
 
 export type AuthMemberSearchResultEntityType =
   | 'User'
@@ -13,12 +13,12 @@ export interface IAuthMemberSearchResponse {
 export interface IAuthMemberSearchResult {
   subjectId: string;
   identityProvider: string;
-  roles: Array<Role>;
+  roles: Array<IRole>;
   groupName: string;
   firstName: string;
   middleName: string;
   lastName: string;
-  lastLoginDateTimeUtc: string | Date;
+  lastLoginDateTimeUtc?: string | Date;
   entityType: AuthMemberSearchResultEntityType;
-  name: string;
+  name?: string;
 }

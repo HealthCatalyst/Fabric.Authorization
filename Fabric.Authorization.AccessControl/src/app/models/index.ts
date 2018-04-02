@@ -4,6 +4,5 @@ export * from './exception.model';
 export * from './fabricPrincipal.model';
 export * from './group.model';
 export * from './idpSearchResult.model';
-export * from './idpSearchRequest.model';
 export * from './role.model';
 export * from './user.model';

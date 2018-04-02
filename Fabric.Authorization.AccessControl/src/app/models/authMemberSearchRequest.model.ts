@@ -1,9 +1,7 @@
-import { IAuthMemberSearchResult } from './authMemberSearchResult.model';
-
 export type SortDirection = 'asc' | 'ascending' | 'desc' | 'descending';
 export type SortKey = 'name' | 'role' | 'lastlogin' | 'subjectid';
 
-export interface AuthMemberSearchRequest {
+export interface IAuthMemberSearchRequest {
   pageNumber?: number;
   pageSize?: number;
   filter?: string;

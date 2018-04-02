@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
 
-import { Role } from '../models';
+import { IRole } from '../models';
 import { FabricBaseService } from './fabric-base.service';
 import { AccessControlConfigService } from './access-control-config.service';
 
@@ -25,9 +25,9 @@ export class FabricAuthRoleService extends FabricBaseService {
   getRolesBySecurableItemAndGrain(
     grain: string,
     securableItem: string
-  ): Observable<Role[]> {
+  ): Observable<IRole[]> {
     const url = this.getRolesBySecurableItemSegment(grain, securableItem);
-    return this.httpClient.get<Role[]>(url);
+    return this.httpClient.get<IRole[]>(url);
   }
 
   private getRolesBySecurableItemSegment(

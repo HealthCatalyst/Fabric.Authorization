@@ -442,9 +442,11 @@ describe("authorization tests", function () {
                 })
                 .then(function (getResponse) {
                     expect(getResponse).to.have.status(200);
-                    var results = getResponse.body;
+                    var searchResult = getResponse.body;
+                    var results = searchResult.results;                    
                     expect(results).to.be.an("array").that.is.not.empty;
-                    expect(results.length).to.equal(2);
+                    expect(results.length).to.equal(2);                              
+                    expect(searchResult.totalCount).to.equal(4);
 
                     var groupHcAdminResult = results[0];
                     expect(groupHcAdminResult.groupName).to.equal(groupHcAdmin.groupName);
