@@ -13,7 +13,7 @@ import {
 } from '../../../services';
 import {
   AuthMemberSearchRequest,
-  AuthMemberSearchResult,
+  IAuthMemberSearchResult,
   Role,
   FabricPrincipal,
   SortDirection,
@@ -26,14 +26,18 @@ import {
   styleUrls: ['./member-list.component.scss']
 })
 export class MemberListComponent implements OnInit {
-  members: AuthMemberSearchResult[];
-  pageNumber = 0;
-  pageSize = 20;
+  readonly pageSizes: number[] = [5, 10, 25, 50];
+  readonly keyUp = new Subject<Event>();
+  readonly maxPageSize = 50;
+
+  pageSize = 10;
+  members: IAuthMemberSearchResult[];
+  totalMembers = null;
+  pageNumber = 1;
   filter = '';
   sortKey: SortKey = 'name';
   sortDirection: SortDirection = 'asc';
   searchesInProgress = 0;
-  readonly keyUp = new Subject<Event>();
 
   constructor(
     private memberSearchService: FabricAuthMemberSearchService,
@@ -46,14 +50,52 @@ export class MemberListComponent implements OnInit {
       .debounceTime(500)
       .map(value => this.filter)
       .distinctUntilChanged()
-      .subscribe(() => this.onSearchChanged());
+      .subscribe(() => {
+        this.onSearchChanged();
+      });
   }
 
   ngOnInit() {
     this.getMembers();
   }
 
-  onSearchChanged() {
+  get availablePageSizes() {
+    return this.pageSizes.filter(
+      s => s < this.totalMembers && s <= this.maxPageSize
+    );
+  }
+
+  get totalPages() {
+    return typeof this.totalMembers === 'number'
+      ? Math.ceil(this.totalMembers / this.pageSize)
+      : null;
+  }
+
+  firstPage() {
+    this.pageNumber = 1;
+    this.onSearchChanged(true);
+  }
+
+  previousPage() {
+    this.pageNumber--;
+    this.onSearchChanged(true);
+  }
+
+  nextPage() {
+    this.pageNumber++;
+    this.onSearchChanged(true);
+  }
+
+  lastPage() {
+    this.pageNumber = this.totalPages;
+    this.onSearchChanged(true);
+  }
+
+  onSearchChanged(preservePageNumber = false) {
+    if (!preservePageNumber) {
+      this.pageNumber = 1;
+    }
+
     this.getMembers();
   }
 
@@ -66,7 +108,7 @@ export class MemberListComponent implements OnInit {
       sortDirection: this.sortDirection,
 
       grain: this.configService.grain,
-      securableItem: this.configService.securableItem,
+      securableItem: this.configService.securableItem
     };
     searchRequest.grain = this.configService.grain;
     searchRequest.securableItem = this.configService.securableItem;
@@ -74,14 +116,14 @@ export class MemberListComponent implements OnInit {
     this.searchesInProgress++;
     return this.memberSearchService
       .searchMembers(searchRequest)
-      .subscribe((memberList) => {
-        this.members = memberList;
+      .subscribe(response => {
+        this.totalMembers = response.totalCount;
+        this.members = response.results;
         this.searchesInProgress--;
       });
   }
 
-  removeRolesFromMember(member: AuthMemberSearchResult) {
-    console.dir(member);
+  removeRolesFromMember(member: IAuthMemberSearchResult) {
     if (member.entityType === 'User') {
       this.userService
         .removeRolesFromUser(
@@ -123,7 +165,7 @@ export class MemberListComponent implements OnInit {
     });
   }
 
-  goToMemberEdit(member: AuthMemberSearchResult) {
+  goToMemberEdit(member: IAuthMemberSearchResult) {
     if (member.entityType !== 'CustomGroup') {
       this.router.navigate([
         '/accesscontrol/memberedit',

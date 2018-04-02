@@ -4,13 +4,16 @@ import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { catchError, retry } from 'rxjs/operators';
 
-import { AuthMemberSearchRequest, AuthMemberSearchResult } from '../models';
+import {
+  AuthMemberSearchRequest,
+  IAuthMemberSearchResult,
+  IAuthMemberSearchResponse
+} from '../models';
 import { FabricBaseService } from './fabric-base.service';
 import { AccessControlConfigService } from './access-control-config.service';
 
 @Injectable()
 export class FabricAuthMemberSearchService extends FabricBaseService {
-
   public static baseMemberSearchApiUrl = '';
 
   constructor(
@@ -26,7 +29,7 @@ export class FabricAuthMemberSearchService extends FabricBaseService {
 
   public searchMembers(
     request: AuthMemberSearchRequest
-  ): Observable<AuthMemberSearchResult[]> {
+  ): Observable<IAuthMemberSearchResponse> {
     let params = new HttpParams();
 
     if (request.clientId) {
@@ -61,7 +64,7 @@ export class FabricAuthMemberSearchService extends FabricBaseService {
       params = params.set('filter', request.filter);
     }
 
-    return this.httpClient.get<AuthMemberSearchResult[]>(
+    return this.httpClient.get<IAuthMemberSearchResponse>(
       FabricAuthMemberSearchService.baseMemberSearchApiUrl,
       { params }
     );

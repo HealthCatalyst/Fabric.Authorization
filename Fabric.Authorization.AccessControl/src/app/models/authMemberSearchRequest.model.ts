@@ -1,4 +1,4 @@
-import { AuthMemberSearchResult } from './authMemberSearchResult.model';
+import { IAuthMemberSearchResult } from './authMemberSearchResult.model';
 
 export type SortDirection = 'asc' | 'ascending' | 'desc' | 'descending';
 export type SortKey = 'name' | 'role' | 'lastlogin' | 'subjectid';
