@@ -69,7 +69,8 @@ namespace Fabric.Authorization.API.Modules
                 typeof(RoleApiModel),
                 typeof(UserApiModel),
                 typeof(UserIdentifierApiRequest),
-                typeof(RoleIdentifierApiRequest));
+                typeof(RoleIdentifierApiRequest),
+                typeof(GroupPatchApiRequest));
 
             RouteDescriber.DescribeRouteWithParams(
                 "AddGroup",
@@ -110,6 +111,48 @@ namespace Fabric.Authorization.API.Modules
                 {
                     _groupsTag
                 }).SecurityRequirement(OAuth2ReadWriteScopeBuilder);
+
+            RouteDescriber.DescribeRouteWithParams(
+                "UpdateGroup",
+                "",
+                "Updates an existing group",
+                new[]
+                {
+                    new HttpResponseMetadata<GroupRoleApiModel>
+                    {
+                        Code = (int) HttpStatusCode.OK,
+                        Message = "Updated"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.Forbidden,
+                        Message = "Client does not have access"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.NotFound,
+                        Message = "Group with specified name does not exist"
+                    }
+                    ,
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.UnsupportedMediaType,
+                        Message = "Content-Type header was not included in request"
+                    }
+                },
+                new[]
+                {
+                    _groupNameParameter,
+                    new BodyParameter<GroupPatchApiRequest>(modelCatalog)
+                    {
+                        Name = "GroupPatchApiRequest",
+                        Description = "The model containing the fields to update (currently only DisplayName and Description can be modified)"
+                    }
+                },
+                new[]
+                {
+                    _groupsTag
+                }).SecurityRequirement(OAuth2WriteScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
                 "UpdateGroups",

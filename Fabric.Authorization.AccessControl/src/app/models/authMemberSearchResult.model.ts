@@ -1,5 +1,7 @@
 import { IRole } from './role.model';
 
+export type AuthMemberSearchResultEntityType = 'User' | 'DirectoryGroup' | 'CustomGroup';
+
 export interface IAuthMemberSearchResult {
   subjectId: string;
   identityProvider: string;
@@ -9,6 +11,6 @@ export interface IAuthMemberSearchResult {
   middleName: string;
   lastName: string;
   lastLoginDateTimeUtc?: string | Date;
-  entityType: string;
+  entityType: AuthMemberSearchResultEntityType;
   name?: string;
 }

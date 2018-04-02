@@ -74,14 +74,14 @@ describe('FabricAuthMemberSearchService', () => {
             expect(result1.roles[1]).toEqual(
               { name: 'superuser', grain: 'app', securableItem: 'foo'}
             );
-            expect(result1.entityType).toBe('user');
+            expect(result1.entityType).toBe('User');
 
             const result2 = searchResults[1];
             expect(result2.groupName).toBe('Group 2');
             expect(result2.roles).toBeDefined();
             expect(result2.roles.length).toBe(1);
             expect(result2.roles[0]).toEqual({name: 'viewer', grain: 'app', securableItem: 'foo'});
-            expect(result2.entityType).toBe('group');
+            expect(result2.entityType).toBe('CustomGroup');
           });
 
           const req = httpTestingController.expectOne(

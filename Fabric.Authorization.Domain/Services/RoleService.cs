@@ -127,6 +127,19 @@ namespace Fabric.Authorization.Domain.Services
             }
         }
 
+        public async Task<Role> UpdateRole(Role role)
+        {
+            try
+            {
+                await _roleStore.Update(role);
+                return role;
+            }
+            catch (NotFoundException<Role> e)
+            {
+                throw new NotFoundException<Role>(e.Message);
+            }
+        }
+
         /// <summary>
         /// Removes an existing Role.
         /// </summary>

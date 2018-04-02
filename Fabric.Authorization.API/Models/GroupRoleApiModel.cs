@@ -9,6 +9,10 @@ namespace Fabric.Authorization.API.Models
 
         public string GroupName { get; set; }
 
+        public string DisplayName { get; set; }
+
+        public string Description { get; set; }
+
         public IEnumerable<RoleApiModel> Roles { get; set; }
 
         /// <summary>

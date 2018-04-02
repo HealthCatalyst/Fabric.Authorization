@@ -10,6 +10,7 @@ using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using Nancy;
 using Nancy.Testing;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace Fabric.Authorization.IntegrationTests.Modules
@@ -55,10 +56,10 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Theory]
         [IntegrationTestsFixture.DisplayTestMethodName]
-        [InlineData("Group1", "Source1")]
-        [InlineData("Group2", "Source2")]
-        [InlineData("6BC32347-36A1-44CF-AA0E-6C1038AA1DF3", "Source3")]
-        public async Task AddGroup_SingleGroup_SuccessAsync(string groupName, string groupSource)
+        [InlineData("AddGroup_SingleGroup_SuccessAsync1", "Source1", "DisplayName1", "Description1")]
+        [InlineData("AddGroup_SingleGroup_SuccessAsync2", "Source2", "DisplayName2", "Description2")]
+        [InlineData("6BC32347-36A1-44CF-AA0E-6C1038AA1DF3", "Source3", "DisplayName3", "Description3")]
+        public async Task AddGroup_SingleGroup_SuccessAsync(string groupName, string groupSource, string displayName, string description)
         {
             var postResponse = await Browser.Post("/groups", with =>
             {
@@ -66,7 +67,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(new
                 {
                     GroupName = groupName,
-                    GroupSource = groupSource
+                    GroupSource = groupSource,
+                    DisplayName = displayName,
+                    Description = description
                 });
             });
 
@@ -78,14 +81,62 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
             Assert.Contains(groupName, getResponse.Body.AsString());
+            Assert.Contains(groupSource, getResponse.Body.AsString());
+            Assert.Contains(displayName, getResponse.Body.AsString());
+            Assert.Contains(description, getResponse.Body.AsString());
         }
 
         [Theory]
         [IntegrationTestsFixture.DisplayTestMethodName]
-        [InlineData("BatchGroup1", "BatchSource1")]
-        [InlineData("BatchGroup2", "BatchSource2")]
-        [InlineData("6AC32A47-36C1-23BF-AA22-6C1028AA5DC3", "BatchSource3")]
-        public async Task AddGroup_Batch_SuccessAsync(string groupName, string groupSource)
+        [InlineData("PatchGroup_ValidRequest_SuccessAsync", "Source1", "Group Display Name 1", "Group Description 1")]
+        public async Task PatchGroup_ValidRequest_SuccessAsync(string groupName, string groupSource, string displayName, string description)
+        {
+            var postResponse = await Browser.Post("/groups", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    GroupName = groupName,
+                    GroupSource = groupSource,
+                    DisplayName = displayName,
+                    Description = description
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+
+            var getResponse = await Browser.Get($"/groups/{groupName}", with =>
+            {
+                with.HttpRequest();
+            });
+
+            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+            var patchResponse = await Browser.Patch($"/groups/{groupName}", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    DisplayName = "Group Display Name 2",
+                    Description = "Group Description 2"
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.OK, patchResponse.StatusCode);
+
+            var group = JsonConvert.DeserializeObject<GroupRoleApiModel>(patchResponse.Body.AsString());
+            Assert.Equal(groupName, group.GroupName);
+            Assert.Equal(groupSource, group.GroupSource);
+            Assert.Equal("Group Display Name 2", group.DisplayName);
+            Assert.Equal("Group Description 2", group.Description);
+        }
+
+        [Theory]
+        [IntegrationTestsFixture.DisplayTestMethodName]
+        [InlineData("BatchGroup1", "BatchSource1", "DisplayName1", "Description1")]
+        [InlineData("BatchGroup2", "BatchSource2", "DisplayName2", "Description2")]
+        [InlineData("6AC32A47-36C1-23BF-AA22-6C1028AA5DC3", "BatchSource3", "DisplayName3", "Description3")]
+        public async Task AddGroup_Batch_SuccessAsync(string groupName, string groupSource, string displayName, string description)
         {
             groupName = groupName + Guid.NewGuid();
             var postResponse = await Browser.Post("/groups/UpdateGroups", with =>
@@ -97,19 +148,25 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     {
                         Id = groupName + "_0",
                         GroupName = groupName + "_0",
-                        GroupSource = groupSource + "_0"
+                        GroupSource = groupSource + "_0",
+                        DisplayName = displayName + "_0",
+                        Description = description + "_0"
                     },
                     new
                     {
                         Id = groupName + "_1",
                         GroupName = groupName + "_1",
-                        GroupSource = groupSource + "_1"
+                        GroupSource = groupSource + "_1",
+                        DisplayName = displayName + "_1",
+                        Description = description + "_1"
                     },
                     new
                     {
                         Id = groupName + "_2",
                         GroupName = groupName + "_2",
-                        GroupSource = groupSource + "_2"
+                        GroupSource = groupSource + "_2",
+                        DisplayName = displayName + "_2",
+                        Description = description + "_2"
                     }
                 });
             });
@@ -145,6 +202,14 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Contains(groupSource + "_0", getResponse0.Body.AsString());
             Assert.Contains(groupSource + "_1", getResponse1.Body.AsString());
             Assert.Contains(groupSource + "_2", getResponse2.Body.AsString());
+
+            Assert.Contains(displayName + "_0", getResponse0.Body.AsString());
+            Assert.Contains(displayName + "_1", getResponse1.Body.AsString());
+            Assert.Contains(displayName + "_2", getResponse2.Body.AsString());
+
+            Assert.Contains(description + "_0", getResponse0.Body.AsString());
+            Assert.Contains(description + "_1", getResponse1.Body.AsString());
+            Assert.Contains(description + "_2", getResponse2.Body.AsString());
         }
 
         [Fact]

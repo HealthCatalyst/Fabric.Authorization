@@ -8,7 +8,8 @@ import { AccessControlConfigService } from './access-control-config.service';
 
 @Injectable()
 export class FabricAuthRoleService extends FabricBaseService {
-  public static BaseRoleApiUrl;
+
+  public static BaseRoleApiUrl = '';
 
   constructor(
     httpClient: HttpClient,

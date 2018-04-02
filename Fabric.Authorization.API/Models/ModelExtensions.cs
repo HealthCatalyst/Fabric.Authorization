@@ -18,6 +18,8 @@ namespace Fabric.Authorization.API.Models
                 Grain = role.Grain,
                 SecurableItem = role.SecurableItem,
                 Name = role.Name,
+                DisplayName = role.DisplayName,
+                Description = role.Description,
                 ParentRole = role.ParentRole,
                 ChildRoles = role.ChildRoles.ToList(),
                 Permissions = role.Permissions?.Select(p => p.ToPermissionApiModel()),
@@ -45,6 +47,8 @@ namespace Fabric.Authorization.API.Models
                 Grain = role.Grain,
                 SecurableItem = role.SecurableItem,
                 Name = role.Name,
+                DisplayName = role.DisplayName,
+                Description = role.Description,
                 ParentRole = role.ParentRole,
                 ChildRoles = role.ChildRoles?.ToList() ?? new List<Guid>(),
                 Permissions = role.Permissions?.Select(p => p.ToPermissionDomainModel()).ToList() ?? new List<Permission>(),
@@ -82,6 +86,8 @@ namespace Fabric.Authorization.API.Models
             {
                 Id = group.Id,
                 GroupName = group.Name,
+                DisplayName = group.DisplayName,
+                Description = group.Description,
                 Roles = group.Roles?.Where(r => !r.IsDeleted).Select(r => r.ToRoleApiModel()),
                 GroupSource = group.Source
             };
@@ -95,6 +101,8 @@ namespace Fabric.Authorization.API.Models
             {
                 Id = group.Id,
                 GroupName = group.Name,
+                DisplayName = group.DisplayName,
+                Description = group.Description,
                 Roles = group.Roles?
                     .Where(r => !r.IsDeleted 
                         && groupRoleFilter(r, groupRoleRequest.Grain, groupRoleRequest.SecurableItem))
@@ -111,6 +119,8 @@ namespace Fabric.Authorization.API.Models
             {
                 Id = group.Id,
                 GroupName = group.Name,
+                DisplayName = group.DisplayName,
+                Description = group.Description,
                 Users = group.Users?.Where(u => !u.IsDeleted).Select(r => r.ToUserApiModel()),
                 GroupSource = group.Source
             };
@@ -124,6 +134,8 @@ namespace Fabric.Authorization.API.Models
             {
                 Id = string.IsNullOrEmpty(groupRoleApiModel.Id) ? groupRoleApiModel.GroupName : groupRoleApiModel.Id,
                 Name = groupRoleApiModel.GroupName,
+                DisplayName = groupRoleApiModel.DisplayName,
+                Description = groupRoleApiModel.Description,
                 Source = groupRoleApiModel.GroupSource
             };
 

@@ -211,6 +211,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .ValueGeneratedOnAdd()
                     .UseSqlServerIdentityColumn();
 
+                entity.Property(e => e.Id).Metadata.IsReadOnlyAfterSave = true;
+
                 entity.Property(e => e.SecurableItemId)
                     .IsRequired();
 
@@ -221,6 +223,12 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                 entity.Property(e => e.Name)
                     .IsRequired()
                     .HasMaxLength(200);
+
+                entity.Property(e => e.DisplayName)
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.Description)
+                    .HasMaxLength(4000);
 
                 entity.Property(e => e.IsDeleted).HasDefaultValueSql("0");
 
@@ -281,9 +289,17 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .ValueGeneratedOnAdd()
                     .UseSqlServerIdentityColumn();
 
+                entity.Property(e => e.Id).Metadata.IsReadOnlyAfterSave = true;
+
                 entity.Property(e => e.Name)
                     .IsRequired()
                     .HasMaxLength(200);
+
+                entity.Property(e => e.DisplayName)
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.Description)
+                    .HasMaxLength(4000);
 
                 entity.Property(e => e.Source)
                     .IsRequired()

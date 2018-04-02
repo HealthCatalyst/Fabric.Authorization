@@ -16,7 +16,8 @@ import 'rxjs/add/operator/switchMap';
 
 @Injectable()
 export class FabricExternalIdpSearchService extends FabricBaseService {
-  public static idPServiceBaseUrl: string;
+
+  public static idPServiceBaseUrl = '';
 
   constructor(
     httpClient: HttpClient,

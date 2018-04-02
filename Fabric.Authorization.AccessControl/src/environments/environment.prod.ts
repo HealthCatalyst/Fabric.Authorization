@@ -1,7 +1,5 @@
-export const environment = {
-  production: true,
-  fabricAuthApiUri: 'https://atlasdemo.hqcatalyst.local/Authorization',
-  fabricAuthApiVersionSegment: 'v1',
-  fabricExternalIdPSearchApiUri: 'https://atlasdemo.hqcatalyst.local/IdentityProviderSearchService',
-  fabricExternalIdPSearchApiVersionSegment: 'v1'
-};
+import { Environment, defaultEnvironment } from './environment.default';
+
+export const environment = Object.assign<Environment, Partial<Environment>>(defaultEnvironment, {
+  production: true
+});

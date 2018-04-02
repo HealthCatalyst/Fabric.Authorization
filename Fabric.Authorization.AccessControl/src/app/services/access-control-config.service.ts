@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { environment } from '../../environments/environment.test';
 
 @Injectable()
 export class AccessControlConfigService {
@@ -15,14 +14,10 @@ export class AccessControlConfigService {
   }
 
   getFabricAuthApiUrl(): string {
-    return `${environment.fabricAuthApiUri}/${
-      environment.fabricAuthApiVersionSegment
-    }`;
+    return '';
   }
 
   getFabricExternalIdpSearchApiUrl(): string {
-    return `${environment.fabricExternalIdPSearchApiUri}/${
-      environment.fabricExternalIdPSearchApiVersionSegment
-    }`;
+    return '';
   }
 }

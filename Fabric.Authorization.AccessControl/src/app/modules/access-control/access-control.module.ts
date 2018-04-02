@@ -8,7 +8,9 @@ import {
   PopoverModule,
   InputModule,
   LabelModule,
-  CheckboxModule
+  CheckboxModule,
+  SelectModule,
+  ProgressIndicatorsModule
 } from '@healthcatalyst/cashmere';
 
 import { AccessControlRoutingModule } from './access-control-routing.module';
@@ -18,7 +20,8 @@ import {
   FabricAuthMemberSearchService,
   FabricAuthUserService,
   FabricExternalIdpSearchService,
-  FabricAuthRoleService
+  FabricAuthRoleService,
+  AccessControlConfigService
 } from '../../services';
 
 import { MemberListComponent } from './member-list/member-list.component';
@@ -38,7 +41,9 @@ import { CustomGroupEditComponent } from './custom-group-edit/custom-group-edit.
     PopoverModule,
     InputModule,
     LabelModule,
-    CheckboxModule
+    CheckboxModule,
+    SelectModule,
+    ProgressIndicatorsModule
   ],
   declarations: [
     MemberListComponent,
@@ -57,4 +62,13 @@ import { CustomGroupEditComponent } from './custom-group-edit/custom-group-edit.
   ],
   exports: []
 })
-export class AccessControlModule {}
+export class AccessControlModule {
+  static forRoot(config: AccessControlConfigService): ModuleWithProviders {
+    return {
+      ngModule: AccessControlModule,
+      providers: [
+        {provide: AccessControlConfigService, useValue: config}
+      ]
+    };
+  }
+}

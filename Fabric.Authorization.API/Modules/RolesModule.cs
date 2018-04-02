@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Models;
+using Fabric.Authorization.API.Models.Requests;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
@@ -36,6 +37,11 @@ namespace Fabric.Authorization.API.Modules
                 async parameters => await AddRole().ConfigureAwait(false),
                 null,
                 "AddRole");
+
+            Patch("/{roleId}",
+                async parameters => await this.UpdateRole(parameters).ConfigureAwait(false),
+                null,
+                "UpdateRole");
 
             Delete("/{roleId}",
                 async parameters => await this.DeleteRole(parameters).ConfigureAwait(false),
@@ -93,13 +99,40 @@ namespace Fabric.Authorization.API.Modules
             return CreateSuccessfulPostResponse(role.ToRoleApiModel());
         }
 
+        private async Task<dynamic> UpdateRole(dynamic parameters)
+        {
+            if (!Guid.TryParse(parameters.roleId, out Guid roleId))
+            {
+                return CreateFailureResponse("roleId must be a GUID.", HttpStatusCode.BadRequest);
+            }
+
+            try
+            {
+                var rolePatchApiRequest = this.Bind<RolePatchApiRequest>();
+
+                var existingRole = await _roleService.GetRole(roleId);
+                await CheckWriteAccess(_clientService, _grainService, existingRole.Grain, existingRole.SecurableItem);
+
+                existingRole.DisplayName = rolePatchApiRequest.DisplayName;
+                existingRole.Description = rolePatchApiRequest.Description;
+
+                var role = await _roleService.UpdateRole(existingRole);
+                return CreateSuccessfulPatchResponse(role.ToRoleApiModel());
+            }
+            catch (NotFoundException<Role> ex)
+            {
+                Logger.Error(ex, ex.Message, parameters.roleId);
+                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
+            }
+        }
+
         private async Task<dynamic> DeleteRole(dynamic parameters)
         {
             try
             {
                 if (!Guid.TryParse(parameters.roleId, out Guid roleId))
                 {
-                    return CreateFailureResponse("roleId must be a guid.", HttpStatusCode.BadRequest);
+                    return CreateFailureResponse("roleId must be a GUID.", HttpStatusCode.BadRequest);
                 }
 
                 var roleToDelete = await _roleService.GetRole(roleId);

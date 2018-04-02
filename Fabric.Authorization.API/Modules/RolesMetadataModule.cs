@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Fabric.Authorization.API.Models;
+using Fabric.Authorization.API.Models.Requests;
 using Fabric.Authorization.API.Swagger;
 using Nancy;
 using Nancy.Swagger;
@@ -38,7 +39,9 @@ namespace Fabric.Authorization.API.Modules
             modelCatalog.AddModels(
                 typeof(Guid),
                 typeof(Guid?),
-                typeof(PermissionApiModel));
+                typeof(PermissionApiModel),
+                typeof(RoleApiModel),
+                typeof(RolePatchApiRequest));
 
             RouteDescriber.DescribeRouteWithParams(
                 "GetRolesBySecurableItem",
@@ -115,8 +118,7 @@ namespace Fabric.Authorization.API.Modules
                     {
                         Code = (int) HttpStatusCode.BadRequest,
                         Message = "Role with specified id already exists or Role object in body failed validation"
-                    }
-                    ,
+                    },
                     new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.Conflict,
@@ -134,6 +136,48 @@ namespace Fabric.Authorization.API.Modules
                     {
                         Name = "Role",
                         Description = "The role to add"
+                    }
+                },
+                new[]
+                {
+                    _rolesTag
+                }).SecurityRequirement(OAuth2WriteScopeBuilder);
+
+            RouteDescriber.DescribeRouteWithParams(
+                "UpdateRole",
+                "",
+                "Updates an existing role",
+                new[]
+                {
+                    new HttpResponseMetadata<RoleApiModel>
+                    {
+                        Code = (int) HttpStatusCode.OK,
+                        Message = "Updated"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.Forbidden,
+                        Message = "Client does not have access"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.NotFound,
+                        Message = "Role with specified id does not exist"
+                    }
+                    ,
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.UnsupportedMediaType,
+                        Message = "Content-Type header was not included in request"
+                    }
+                },
+                new[]
+                {
+                    _roleIdParameter,
+                    new BodyParameter<RolePatchApiRequest>(modelCatalog)
+                    {
+                        Name = "RolePatchApiRequest",
+                        Description = "The model containing the fields to update (currently only DisplayName and Description can be modified)"
                     }
                 },
                 new[]

@@ -1,5 +1,6 @@
 /* "Barrel" of Http Interceptors */
-import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { InjectionToken } from '@angular/core';
+import { HttpInterceptor, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { FabricHttpRequestInterceptorService } from './fabric-http-request-interceptor.service';
 import { FabricHttpErrorHandlerInterceptorService } from './fabric-http-error-handler-interceptor.service';
 

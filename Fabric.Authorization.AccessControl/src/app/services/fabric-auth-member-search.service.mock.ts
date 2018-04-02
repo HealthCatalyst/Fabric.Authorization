@@ -12,7 +12,7 @@ export const mockAuthSearchResult: IAuthMemberSearchResult[] = [
             { name: 'admin', grain: 'app', securableItem: 'foo' },
             { name: 'superuser', grain: 'app', securableItem: 'foo' }
         ],
-        entityType: 'user'
+        entityType: 'User'
     },
     {
         subjectId: 'sub345',
@@ -22,7 +22,7 @@ export const mockAuthSearchResult: IAuthMemberSearchResult[] = [
         lastName: 'Last2',
         groupName: 'Group 2',
         roles: [{ name: 'viewer', grain: 'app', securableItem: 'foo' }],
-        entityType: 'group'
+        entityType: 'CustomGroup'
     }
 ];
 

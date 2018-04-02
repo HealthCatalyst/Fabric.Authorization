@@ -6,6 +6,7 @@ import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/map';
 import { log } from 'util';
+import { environment } from '../../../environments/environment';
 
 @Injectable()
 export class AuthService {
@@ -16,7 +17,7 @@ export class AuthService {
 
   constructor(private httpClient: HttpClient) {
     this.clientId = 'fabric-accesscontrol';
-    this.authority = 'https://atlasdemo.hqcatalyst.local/Identity';
+    this.authority = environment.fabricIdentityApiUri;
 
     const clientSettings: any = {
       authority: this.authority,
@@ -38,7 +39,6 @@ export class AuthService {
       filterProtocolClaims: true,
       loadUserInfo: true
     };
-
     this.userManager = new UserManager(clientSettings);
 
     this.userManager.events.addAccessTokenExpiring(function() {

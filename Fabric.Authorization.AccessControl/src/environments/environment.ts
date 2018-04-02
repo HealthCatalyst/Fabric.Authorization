@@ -1,12 +1,6 @@
-// The file contents for the current environment will overwrite these during build.
-// The build system defaults to the dev environment which uses `environment.ts`, but if you do
-// `ng build --env=prod` then `environment.prod.ts` will be used instead.
-// The list of which env maps to which file can be found in `.angular-cli.json`.
+// This is a dummy file to get the Angular tooling to work.
+// Don't make any changes here; instead, make changes in the environment-specific files.
 
-export const environment = {
-  production: false,
-  fabricAuthApiUri: 'https://atlasdemo.hqcatalyst.local/Authorization',
-  fabricAuthApiVersionSegment: 'v1',
-  fabricExternalIdPSearchApiUri: 'https://atlasdemo.hqcatalyst.local/IdentityProviderSearchService',
-  fabricExternalIdPSearchApiVersionSegment: 'v1'
-};
+import { Environment, defaultEnvironment } from './environment.default';
+
+export const environment: Environment = defaultEnvironment;
