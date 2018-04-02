@@ -1,7 +1,7 @@
 import { async, ComponentFixture, TestBed, inject } from '@angular/core/testing';
 
 import { MemberListComponent } from './member-list.component';
-import { ServicesMockModule } from '../member-add/services.mock.module';
+import { ServicesMockModule } from '../services.mock.module';
 import { PopoverModule, IconModule, ProgressIndicatorsModule } from '@healthcatalyst/cashmere';
 import { FabricAuthMemberSearchServiceMock, mockAuthSearchResult } from '../../../services/fabric-auth-member-search.service.mock';
 import { FabricAuthMemberSearchService } from '../../../services';

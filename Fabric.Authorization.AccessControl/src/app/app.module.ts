@@ -14,11 +14,11 @@ import { LoginComponent } from './login/login.component';
 import { HomeComponent } from './home/home.component';
 import { LogoutComponent } from './logout/logout.component';
 
-import { ButtonModule } from '@healthcatalyst/cashmere';
+import { ButtonModule, ProgressIndicatorsModule } from '@healthcatalyst/cashmere';
 
 @NgModule({
   declarations: [AppComponent, LoginComponent, HomeComponent, LogoutComponent],
-  imports: [BrowserModule, AppRoutingModule, HttpClientModule, ButtonModule],
+  imports: [BrowserModule, AppRoutingModule, HttpClientModule, ButtonModule, ProgressIndicatorsModule],
   providers: [
     AuthService,
     {

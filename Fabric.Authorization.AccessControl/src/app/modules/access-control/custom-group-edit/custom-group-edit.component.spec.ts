@@ -1,7 +1,7 @@
 import { async, ComponentFixture, TestBed, inject } from '@angular/core/testing';
 
 import { CustomGroupEditComponent } from './custom-group-edit.component';
-import { ServicesMockModule } from '../member-add/services.mock.module';
+import { ServicesMockModule } from '../services.mock.module';
 import { FormsModule } from '@angular/forms';
 import { FabricAuthGroupService, FabricAuthRoleService } from '../../../services';
 import { FabricAuthRoleServiceMock, mockRoles } from '../../../services/fabric-auth-role.service.mock';

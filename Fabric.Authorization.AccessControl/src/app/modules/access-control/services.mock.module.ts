@@ -8,13 +8,13 @@ import {
     AccessControlConfigService,
     FabricAuthGroupService,
     FabricAuthMemberSearchService
-} from '../../../services';
-import { FabricExternalIdpSearchServiceMock } from '../../../services/fabric-external-idp-search.service.mock';
-import { FabricAuthUserServiceMock } from '../../../services/fabric-auth-user.service.mock';
-import { FabricAuthGroupServiceMock } from '../../../services/fabric-auth-group.service.mock';
+} from '../../services';
+import { FabricExternalIdpSearchServiceMock } from '../../services/fabric-external-idp-search.service.mock';
+import { FabricAuthUserServiceMock } from '../../services/fabric-auth-user.service.mock';
+import { FabricAuthGroupServiceMock } from '../../services/fabric-auth-group.service.mock';
 import { RouterTestingModule } from '@angular/router/testing';
-import { FabricAuthMemberSearchServiceMock } from '../../../services/fabric-auth-member-search.service.mock';
-import { FabricAuthRoleServiceMock } from '../../../services/fabric-auth-role.service.mock';
+import { FabricAuthMemberSearchServiceMock } from '../../services/fabric-auth-member-search.service.mock';
+import { FabricAuthRoleServiceMock } from '../../services/fabric-auth-role.service.mock';
 
 @NgModule({
     providers: [

@@ -4,9 +4,9 @@ import { CustomGroupAddComponent } from './custom-group-add.component';
 import { FormsModule } from '@angular/forms';
 import { FabricExternalIdpSearchService, AccessControlConfigService, FabricAuthRoleService } from '../../../services';
 import { HttpClient, HttpHandler } from '@angular/common/http';
-import { ServicesMockModule } from '../member-add/services.mock.module';
 import { Observable } from 'rxjs/Observable';
 import { FabricAuthRoleServiceMock, mockRoles } from '../../../services/fabric-auth-role.service.mock';
+import { ServicesMockModule } from '../services.mock.module';
 
 describe('CustomGroupAddComponent', () => {
   let component: CustomGroupAddComponent;
