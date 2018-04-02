@@ -14,46 +14,14 @@ import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/of';
 
 import { FabricAuthUserService, AccessControlConfigService } from '../services';
-import { Group, User, Role } from '../models';
+import { IGroup, IUser, IRole } from '../models';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { FabricHttpErrorHandlerInterceptorService } from './interceptors/fabric-http-error-handler-interceptor.service';
+import { mockGroupsResponse, mockRolesResponse, mockUserResponse } from './fabric-auth-user.service.mock';
 
-fdescribe('FabricAuthUserService', () => {
+describe('FabricAuthUserService', () => {
   const idP = 'ad';
   const subjectId = 'sub123';
-
-  const mockGroupsResponse = [
-    {
-      groupName: 'Group 1'
-    },
-    {
-      groupName: 'Group 2'
-    }
-  ];
-
-  const mockRolesResponse = [
-    {
-      name: 'admin',
-      grain: 'dos',
-      securableItem: 'datamart',
-      parentRole: 'admin_parent'
-    },
-    {
-      name: 'superuser',
-      grain: 'dos',
-      securableItem: 'datamart',
-      childRoles: ['dos_child1', 'dos_child2']
-    }
-  ];
-
-  const mockUserResponse = {
-    id: idP,
-    name: 'First Last',
-    identityProvider: idP,
-    subjectId: subjectId,
-    groups: mockGroupsResponse,
-    roles: mockRolesResponse
-  };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -270,12 +238,12 @@ fdescribe('FabricAuthUserService', () => {
           httpTestingController: HttpTestingController,
           service: FabricAuthUserService
         ) => {
-          const role1 = new Role('admin', 'dos', 'datamart');
+          const role1: IRole = {  name: 'admin', grain: 'dos', securableItem: 'datamart' };
           role1.parentRole = 'admin_parent';
 
-          const role2 = new Role('superuser', 'dos', 'datamart');
+          const role2: IRole = {  name: 'superuser', grain: 'dos', securableItem: 'datamart'};
           role2.childRoles = ['dos_child1', 'dos_child2'];
-          const rolesArray: Role[] = new Array<Role>(role1, role2);
+          const rolesArray: IRole[] = [role1, role2];
 
           service
             .removeRolesFromUser(idP, subjectId, rolesArray)
@@ -340,7 +308,7 @@ fdescribe('FabricAuthUserService', () => {
     )
   );
 
-  function assertMockUserResponse(returnedUser: User) {
+  function assertMockUserResponse(returnedUser: IUser) {
     expect(returnedUser.id).toBe(idP);
     expect(returnedUser.name).toBe('First Last');
     expect(returnedUser.subjectId).toBe(subjectId);
@@ -348,13 +316,13 @@ fdescribe('FabricAuthUserService', () => {
     assertMockUserRolesResponse(returnedUser.roles);
   }
 
-  function assertMockUserGroupsResponse(returnedGroups: Group[]) {
+  function assertMockUserGroupsResponse(returnedGroups: IGroup[]) {
     expect(returnedGroups).toBeDefined();
     expect(returnedGroups[0].groupName).toBe('Group 1');
     expect(returnedGroups[1].groupName).toBe('Group 2');
   }
 
-  function assertMockUserRolesResponse(returnedRoles: Role[]) {
+  function assertMockUserRolesResponse(returnedRoles: IRole[]) {
     expect(returnedRoles).toBeDefined();
     expect(returnedRoles.length).toBe(2);
 

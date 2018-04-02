@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { catchError, retry } from 'rxjs/operators';
-import { Exception, Group, Role, User } from '../models';
+import { Exception, IGroup, IRole, IUser } from '../models';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 
 import { FabricBaseService } from './fabric-base.service';
@@ -39,14 +39,14 @@ export class FabricAuthGroupService extends FabricBaseService {
     }
   }
 
-  public getGroup(groupName: string): Observable<Group> {
-    return this.httpClient.get<Group>(
+  public getGroup(groupName: string): Observable<IGroup> {
+    return this.httpClient.get<IGroup>(
       encodeURI(`${FabricAuthGroupService.baseGroupApiUrl}/${groupName}`)
     );
   }
 
-  public getGroupUsers(groupName: string): Observable<User[]> {
-    return this.httpClient.get<User[]>(
+  public getGroupUsers(groupName: string): Observable<IUser[]> {
+    return this.httpClient.get<IUser[]>(
       this.replaceGroupNameSegment(
         FabricAuthGroupService.groupUsersApiUrl,
         groupName
@@ -56,9 +56,9 @@ export class FabricAuthGroupService extends FabricBaseService {
 
   public addUsersToCustomGroup(
     groupName: string,
-    users: User[]
-  ): Observable<Group> {
-    return this.httpClient.post<Group>(
+    users: IUser[]
+  ): Observable<IGroup> {
+    return this.httpClient.post<IGroup>(
       this.replaceGroupNameSegment(
         FabricAuthGroupService.groupUsersApiUrl,
         groupName
@@ -74,9 +74,9 @@ export class FabricAuthGroupService extends FabricBaseService {
 
   public removeUserFromCustomGroup(
     groupName: string,
-    user: User
-  ): Observable<Group> {
-    return this.httpClient.request<Group>(
+    user: IUser
+  ): Observable<IGroup> {
+    return this.httpClient.request<IGroup>(
       'DELETE',
       this.replaceGroupNameSegment(
         FabricAuthGroupService.groupUsersApiUrl,
@@ -90,8 +90,8 @@ export class FabricAuthGroupService extends FabricBaseService {
     groupName: string,
     grain: string,
     securableItem: string
-  ): Observable<Role[]> {
-    return this.httpClient.get<Role[]>(
+  ): Observable<IRole[]> {
+    return this.httpClient.get<IRole[]>(
       encodeURI(
         `${
           FabricAuthGroupService.baseGroupApiUrl
@@ -102,9 +102,9 @@ export class FabricAuthGroupService extends FabricBaseService {
 
   public addRolesToGroup(
     groupName: string,
-    roles: Array<Role>
-  ): Observable<Group> {
-    return this.httpClient.post<Group>(
+    roles: Array<IRole>
+  ): Observable<IGroup> {
+    return this.httpClient.post<IGroup>(
       this.replaceGroupNameSegment(
         FabricAuthGroupService.groupRolesApiUrl,
         groupName
@@ -115,9 +115,9 @@ export class FabricAuthGroupService extends FabricBaseService {
 
   public removeRolesFromGroup(
     groupName: string,
-    roles: Role[]
-  ): Observable<Group> {
-    return this.httpClient.request<Group>(
+    roles: IRole[]
+  ): Observable<IGroup> {
+    return this.httpClient.request<IGroup>(
       'DELETE',
       this.replaceGroupNameSegment(
         FabricAuthGroupService.groupRolesApiUrl,
@@ -133,8 +133,8 @@ export class FabricAuthGroupService extends FabricBaseService {
     );
   }
 
-  public createGroup(group: Group): Observable<Group> {
-    return this.httpClient.post<Group>(
+  public createGroup(group: IGroup): Observable<IGroup> {
+    return this.httpClient.post<IGroup>(
       FabricAuthGroupService.baseGroupApiUrl,
       group
     );

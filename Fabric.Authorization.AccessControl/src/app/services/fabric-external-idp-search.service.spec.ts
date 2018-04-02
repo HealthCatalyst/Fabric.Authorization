@@ -15,29 +15,11 @@ import {
   FabricExternalIdpSearchService,
   AccessControlConfigService
 } from '../services';
-import { IdPSearchRequest } from '../models';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { FabricHttpErrorHandlerInterceptorService } from './interceptors/fabric-http-error-handler-interceptor.service';
+import { mockExternalIdpSearchResult } from './fabric-external-idp-search.service.mock';
 
-fdescribe('FabricExternalIdpSearchService', () => {
-  const mockExternalIdpSearchResult = {
-    resultCount: 2,
-    principals: [
-      {
-        subjectId: 'sub123',
-        firstName: 'First_1',
-        lastName: 'Last_1',
-        principalType: 'user'
-      },
-      {
-        subjectId: 'sub456',
-        firstName: 'First_2',
-        lastName: 'Last_2',
-        principalType: 'user'
-      }
-    ]
-  };
-
+describe('FabricExternalIdpSearchService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
@@ -73,10 +55,7 @@ fdescribe('FabricExternalIdpSearchService', () => {
           httpTestingController: HttpTestingController,
           service: FabricExternalIdpSearchService
         ) => {
-          const searchRequest = new IdPSearchRequest('sub');
-          searchRequest.type = 'user';
-
-          service.searchExternalIdP(searchRequest).subscribe(searchResult => {
+          service.searchExternalIdP('sub', 'user').subscribe(searchResult => {
             expect(searchResult).toBeDefined();
             expect(searchResult.principals.length).toBe(2);
 

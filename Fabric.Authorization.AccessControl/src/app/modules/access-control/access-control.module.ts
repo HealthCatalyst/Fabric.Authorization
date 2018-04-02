@@ -7,6 +7,8 @@ import {
   IconModule,
   PopoverModule,
   InputModule,
+  LabelModule,
+  CheckboxModule,
   SelectModule,
   ProgressIndicatorsModule
 } from '@healthcatalyst/cashmere';
@@ -38,6 +40,8 @@ import { CustomGroupEditComponent } from './custom-group-edit/custom-group-edit.
     IconModule,
     PopoverModule,
     InputModule,
+    LabelModule,
+    CheckboxModule,
     SelectModule,
     ProgressIndicatorsModule
   ],

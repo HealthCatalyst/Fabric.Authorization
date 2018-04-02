@@ -57,14 +57,8 @@ export class AuthService {
   }
 
   login() {
-    this.userManager
-      .signinRedirect()
-      .then(() => {
-        console.log('signin redirect done');
-      })
-      .catch(err => {
-        console.error(err);
-      });
+    return this.userManager
+      .signinRedirect();
   }
 
   logout() {

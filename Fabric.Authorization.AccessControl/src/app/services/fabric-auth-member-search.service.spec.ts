@@ -16,30 +16,12 @@ import {
   FabricAuthMemberSearchService,
   AccessControlConfigService
 } from '../services';
-import { AuthMemberSearchRequest, Role } from '../models';
+import { IAuthMemberSearchRequest, IRole, IAuthMemberSearchResult } from '../models';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { FabricHttpErrorHandlerInterceptorService } from './interceptors/fabric-http-error-handler-interceptor.service';
+import { mockAuthSearchResult } from './fabric-auth-member-search.service.mock';
 
-fdescribe('FabricAuthMemberSearchService', () => {
-  const mockAuthSearchResult = [
-    {
-      subjectId: 'sub123',
-      identityProvider: 'AD',
-      firstName: 'First',
-      lastName: 'Last',
-      roles: [
-        new Role('admin', 'app', 'foo'),
-        new Role('superuser', 'app', 'foo')
-      ],
-      entityType: 'user'
-    },
-    {
-      groupName: 'Group 1',
-      roles: [new Role('viewer', 'app', 'foo')],
-      entityType: 'group'
-    }
-  ];
-
+describe('FabricAuthMemberSearchService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
@@ -75,10 +57,7 @@ fdescribe('FabricAuthMemberSearchService', () => {
           httpTestingController: HttpTestingController,
           service: FabricAuthMemberSearchService
         ) => {
-          const authSearchRequest: AuthMemberSearchRequest = {
-            clientId: 'atlas',
-            pageNumber: 1
-          };
+          const authSearchRequest: IAuthMemberSearchRequest = {clientId: 'atlas', pageNumber: 1, grain: 'app', securableItem: 'Datamarts'};
 
           service.searchMembers(authSearchRequest).subscribe(searchResults => {
             expect(searchResults).toBeDefined();
@@ -91,25 +70,22 @@ fdescribe('FabricAuthMemberSearchService', () => {
             expect(result1.lastName).toBe('Last');
             expect(result1.roles).toBeDefined();
             expect(result1.roles.length).toBe(2);
-            expect(result1.roles[0]).toEqual(new Role('admin', 'app', 'foo'));
+            expect(result1.roles[0]).toEqual({ name: 'admin', grain: 'app', securableItem: 'foo'});
             expect(result1.roles[1]).toEqual(
-              new Role('superuser', 'app', 'foo')
+              { name: 'superuser', grain: 'app', securableItem: 'foo'}
             );
-            expect(result1.entityType).toBe('user');
+            expect(result1.entityType).toBe('User');
 
             const result2 = searchResults[1];
-            expect(result2.groupName).toBe('Group 1');
+            expect(result2.groupName).toBe('Group 2');
             expect(result2.roles).toBeDefined();
             expect(result2.roles.length).toBe(1);
-            expect(result2.roles[0]).toEqual(new Role('viewer', 'app', 'foo'));
-            expect(result2.entityType).toBe('group');
+            expect(result2.roles[0]).toEqual({name: 'viewer', grain: 'app', securableItem: 'foo'});
+            expect(result2.entityType).toBe('CustomGroup');
           });
 
           const req = httpTestingController.expectOne(
-            `${
-              FabricAuthMemberSearchService.baseMemberSearchApiUrl
-            }?clientId=atlas&pageNumber=1`
-          );
+            `${FabricAuthMemberSearchService.baseMemberSearchApiUrl}?clientId=atlas&grain=app&securableItem=Datamarts&pageNumber=1`);
           expect(req.request.method).toBe('GET');
           req.flush(mockAuthSearchResult, { status: 200, statusText: 'OK' });
           httpTestingController.verify();

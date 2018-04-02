@@ -1,11 +1,12 @@
 import { TestBed, inject } from '@angular/core/testing';
 
 import { FabricHttpRequestInterceptorService } from './fabric-http-request-interceptor.service';
+import { AccessControlConfigService } from '..';
 
 describe('FabricHttpRequestInterceptorService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [FabricHttpRequestInterceptorService]
+      providers: [FabricHttpRequestInterceptorService, AccessControlConfigService]
     });
   });
 

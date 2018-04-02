@@ -1,28 +1,57 @@
-<div>
-  <label>
-    Name
-  </label>
-</div>
-<div>
-  <input #searchTerm (keyup)="onKey(searchTerm.value)">
-  <ul class="princpals">
-      <li *ngFor="let principal of principals"
-          [class.selected]="principal === selectedPrincipal"
-          (click)="onPrincipalSelect(principal)">
-          {{principal.subjectId}}
-      </li> 
-  </ul>    
-</div>
-<div>  
-  <ul class="roles">
-    <li *ngFor="let role of roles"
-        [class.selected]="roleIsSelected(role)"
-        (click)="onRoleSelect(role)">
-        {{role.name}}
-    </li>
-  </ul>
-</div>
-
-<div>
-  <button (click)="addMemberWithRoles()">Save</button>
+<div class="container">
+  <h3 class="h3">
+    <span>Name (as it appears in directory)</span>
+  </h3>
+  <div hcInputIcon>
+    <input hc-input class="hc-input" (keyup)="searchText.next($event.target.value)">
+    <hc-icon>
+      <i [style.display]="searching ? 'block' : 'none'" class="fa fa-spinner fa-pulse fa-fw"></i>
+    </hc-icon>
+  </div>
+  <table *ngIf="principals" class="hc-table hc-table-borders principals">
+    <thead>
+      <tr>
+        <th></th>
+        <th>User</th>
+        <th>Type</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let principal of principals">
+        <td>
+          <hc-checkbox [id]="principal.subjectId" [(ngModel)]="principal.selected" (click)="selectPrincipal(principal)">
+          </hc-checkbox>
+        </td>
+        <td [innerText]="principal.subjectId">
+        </td>
+        <td [innerText]="principal.principalType">
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 class="h3">
+    <span>Roles</span>
+  </h3>
+  <table class="hc-table hc-table-borders">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Role Name</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let role of roles">
+        <td>
+          <hc-checkbox [id]="role.id" [(ngModel)]="role.selected" [disabled]="!principalSelected">
+          </hc-checkbox>
+        </td>
+        <td [innerText]="role.name">
+        </td>        
+      </tr>
+    </tbody>
+  </table>
+  <div class="buttons">
+    <button hc-button (click)="addMemberWithRoles()" class="btn-save" color="primary" [disabled]="!principalSelected">Save</button>
+    <a hc-button routerLink="/accesscontrol" color="secondary">Cancel</a>
+  </div>
 </div>

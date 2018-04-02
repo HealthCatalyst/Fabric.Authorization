@@ -12,10 +12,10 @@ import {
   FabricAuthGroupService
 } from '../../../services';
 import {
-  AuthMemberSearchRequest,
-  AuthMemberSearchResult,
-  Role,
-  FabricPrincipal,
+  IAuthMemberSearchRequest,
+  IAuthMemberSearchResult,
+  IRole,
+  IFabricPrincipal,
   SortDirection,
   SortKey
 } from '../../../models';
@@ -26,7 +26,7 @@ import {
   styleUrls: ['./member-list.component.scss']
 })
 export class MemberListComponent implements OnInit {
-  members: AuthMemberSearchResult[];
+  members: IAuthMemberSearchResult[];
   pageNumber = 0;
   pageSize = 20;
   filter = '';
@@ -58,7 +58,7 @@ export class MemberListComponent implements OnInit {
   }
 
   getMembers() {
-    const searchRequest: AuthMemberSearchRequest = {
+    const searchRequest: IAuthMemberSearchRequest = {
       pageNumber: this.pageNumber,
       pageSize: this.pageSize,
       filter: this.filter,
@@ -80,7 +80,7 @@ export class MemberListComponent implements OnInit {
       });
   }
 
-  removeRolesFromMember(member: AuthMemberSearchResult) {
+  removeRolesFromMember(member: IAuthMemberSearchResult) {
     console.dir(member);
     if (member.entityType === 'User') {
       this.userService
@@ -117,13 +117,13 @@ export class MemberListComponent implements OnInit {
     this.getMembers();
   }
 
-  selectRoleNames(roles: Array<Role>) {
+  selectRoleNames(roles: Array<IRole>) {
     return roles.map(function(role) {
       return role.name;
     });
   }
 
-  goToMemberEdit(member: AuthMemberSearchResult) {
+  goToMemberEdit(member: IAuthMemberSearchResult) {
     if (member.entityType !== 'CustomGroup') {
       this.router.navigate([
         '/accesscontrol/memberedit',
