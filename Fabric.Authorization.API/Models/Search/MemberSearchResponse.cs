@@ -44,6 +44,13 @@ namespace Fabric.Authorization.API.Models.Search
     public class FabricAuthUserSearchResponse
     {
         public HttpStatusCode HttpStatusCode { get; set; }
+        public int TotalCount { get; set; }
+        public IEnumerable<MemberSearchResponse> Results { get; set; }
+    }
+
+    public class MemberSearchResponseApiModel
+    {
+        public int TotalCount { get; set; }
         public IEnumerable<MemberSearchResponse> Results { get; set; }
     }
 }
