@@ -1,6 +1,6 @@
 import { async, ComponentFixture, TestBed, inject } from '@angular/core/testing';
 
-import { MemberAddComponent } from './member-add.component';
+import { MemberComponent } from './member.component';
 import {
   ButtonModule,
   IconModule,
@@ -18,13 +18,13 @@ import { Observable } from 'rxjs/Observable';
 import { IdPSearchResult } from '../../../models';
 
 describe('MemberAddComponent', () => {
-  let component: MemberAddComponent;
-  let fixture: ComponentFixture<MemberAddComponent>;
+  let component: MemberComponent;
+  let fixture: ComponentFixture<MemberComponent>;
 
   beforeEach(
     async(() => {
       TestBed.configureTestingModule({
-        declarations: [MemberAddComponent],
+        declarations: [MemberComponent],
         imports: [ServicesMockModule,
           FormsModule,
           ButtonModule,
@@ -44,7 +44,7 @@ describe('MemberAddComponent', () => {
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(MemberAddComponent);
+    fixture = TestBed.createComponent(MemberComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

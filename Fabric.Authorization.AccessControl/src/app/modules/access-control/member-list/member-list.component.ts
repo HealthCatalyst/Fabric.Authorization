@@ -168,7 +168,7 @@ export class MemberListComponent implements OnInit {
   goToMemberEdit(member: IAuthMemberSearchResult) {
     if (member.entityType !== 'CustomGroup') {
       this.router.navigate([
-        '/accesscontrol/memberedit',
+        '/accesscontrol/member',
         member.subjectId,
         member.entityType
       ]);

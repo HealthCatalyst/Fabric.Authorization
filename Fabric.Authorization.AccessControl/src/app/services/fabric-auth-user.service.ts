@@ -69,6 +69,10 @@ export class FabricAuthUserService extends FabricBaseService {
     subjectId: string,
     roles: IRole[]
   ): Observable<IUser> {
+    if (!roles || roles.length === 0) {
+      return Observable.of(undefined);
+    }
+
     return this.httpClient.post<IUser>(
       this.replaceUserIdSegment(
         FabricAuthUserService.userRolesApiUrl,
@@ -84,6 +88,10 @@ export class FabricAuthUserService extends FabricBaseService {
     subjectId: string,
     roles: IRole[]
   ): Observable<IUser> {
+    if (!roles || roles.length === 0) {
+      return Observable.of(undefined);
+    }
+
     return this.httpClient.request<IUser>(
       'DELETE',
       this.replaceUserIdSegment(
