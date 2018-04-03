@@ -1,6 +1,14 @@
 import { IRole } from './role.model';
 
-export type AuthMemberSearchResultEntityType = 'User' | 'DirectoryGroup' | 'CustomGroup';
+export type AuthMemberSearchResultEntityType =
+  | 'User'
+  | 'DirectoryGroup'
+  | 'CustomGroup';
+
+export interface IAuthMemberSearchResponse {
+  totalCount: number;
+  results: IAuthMemberSearchResult[];
+}
 
 export interface IAuthMemberSearchResult {
   subjectId: string;
