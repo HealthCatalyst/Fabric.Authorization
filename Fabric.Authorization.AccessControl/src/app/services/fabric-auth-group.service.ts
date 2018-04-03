@@ -40,9 +40,8 @@ export class FabricAuthGroupService extends FabricBaseService {
   }
 
   public getGroup(groupName: string): Observable<IGroup> {
-    return this.httpClient.get<IGroup>(
-      encodeURI(`${FabricAuthGroupService.baseGroupApiUrl}/${groupName}`)
-    );
+    const url = `${FabricAuthGroupService.baseGroupApiUrl}/${encodeURI(groupName)}`;
+    return this.httpClient.get<IGroup>(url);
   }
 
   public getGroupUsers(groupName: string): Observable<IUser[]> {
@@ -91,13 +90,8 @@ export class FabricAuthGroupService extends FabricBaseService {
     grain: string,
     securableItem: string
   ): Observable<IRole[]> {
-    return this.httpClient.get<IRole[]>(
-      encodeURI(
-        `${
-          FabricAuthGroupService.baseGroupApiUrl
-        }/${groupName}/${grain}/${securableItem}/roles`
-      )
-    );
+    const url = `${FabricAuthGroupService.baseGroupApiUrl}/${encodeURI(groupName)}/${encodeURI(grain)}/${encodeURI(securableItem)}/roles`;
+    return this.httpClient.get<IRole[]>(url);
   }
 
   public addRolesToGroup(
