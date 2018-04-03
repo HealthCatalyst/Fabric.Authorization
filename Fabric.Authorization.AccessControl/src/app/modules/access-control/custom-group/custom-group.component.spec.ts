@@ -1,6 +1,6 @@
 import { async, ComponentFixture, TestBed, inject } from '@angular/core/testing';
 
-import { CustomGroupEditComponent } from './custom-group-edit.component';
+import { CustomGroupComponent } from './custom-group.component';
 import { ServicesMockModule } from '../services.mock.module';
 import { FormsModule } from '@angular/forms';
 import { FabricAuthGroupService, FabricAuthRoleService } from '../../../services';
@@ -10,13 +10,13 @@ import { Observable } from 'rxjs/Observable';
 import { mockRolesResponse } from '../../../services/fabric-auth-user.service.mock';
 
 describe('CustomGroupEditComponent', () => {
-  let component: CustomGroupEditComponent;
-  let fixture: ComponentFixture<CustomGroupEditComponent>;
+  let component: CustomGroupComponent;
+  let fixture: ComponentFixture<CustomGroupComponent>;
 
   beforeEach(
     async(() => {
       TestBed.configureTestingModule({
-        declarations: [CustomGroupEditComponent],
+        declarations: [CustomGroupComponent],
         imports: [FormsModule, ServicesMockModule]
       }).compileComponents();
     })
@@ -30,7 +30,7 @@ describe('CustomGroupEditComponent', () => {
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(CustomGroupEditComponent);
+    fixture = TestBed.createComponent(CustomGroupComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

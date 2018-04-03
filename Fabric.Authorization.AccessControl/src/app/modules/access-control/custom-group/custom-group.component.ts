@@ -11,11 +11,11 @@ import {
 } from '../../../services';
 
 @Component({
-  selector: 'app-custom-group-edit',
-  templateUrl: './custom-group-edit.component.html',
-  styleUrls: ['./custom-group-edit.component.scss']
+  selector: 'app-custom-group',
+  templateUrl: './custom-group.component.html',
+  styleUrls: ['./custom-group.component.scss']
 })
-export class CustomGroupEditComponent implements OnInit {
+export class CustomGroupComponent implements OnInit {
   public groupName = '';
   public roles: Array<IRole> = [];
   public assignableRoles: Array<IRole> = [];

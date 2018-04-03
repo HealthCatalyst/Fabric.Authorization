@@ -3,8 +3,7 @@ import { Routes, RouterModule } from '@angular/router';
 
 import { MemberListComponent } from './member-list/member-list.component';
 import { MemberComponent } from './member/member.component';
-import { CustomGroupAddComponent } from './custom-group-add/custom-group-add.component';
-import { CustomGroupEditComponent } from './custom-group-edit/custom-group-edit.component';
+import { CustomGroupComponent } from './custom-group/custom-group.component';
 
 const routes: Routes = [
   {
@@ -12,20 +11,20 @@ const routes: Routes = [
     component: MemberListComponent
   },
   {
-    path: 'member/:subjectid/:type',
-    component: MemberComponent
-  },
-  {
     path: 'member',
     component: MemberComponent
   },
   {
-    path: 'customgroupadd',
-    component: CustomGroupAddComponent
+    path: 'member/:subjectid/:type',
+    component: MemberComponent
   },
   {
-    path: 'customgroupedit/:subjectid',
-    component: CustomGroupEditComponent
+    path: 'customgroup',
+    component: CustomGroupComponent
+  },
+  {
+    path: 'customgroup/:subjectid',
+    component: CustomGroupComponent
   }
 ];
 
