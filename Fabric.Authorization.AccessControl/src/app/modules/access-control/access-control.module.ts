@@ -27,9 +27,8 @@ import {
 } from '../../services';
 
 import { MemberListComponent } from './member-list/member-list.component';
-import { MemberAddComponent } from './member-add/member-add.component';
+import { MemberComponent } from './member/member.component';
 import { CustomGroupAddComponent } from './custom-group-add/custom-group-add.component';
-import { MemberEditComponent } from './member-edit/member-edit.component';
 import { CustomGroupEditComponent } from './custom-group-edit/custom-group-edit.component';
 
 @NgModule({
@@ -51,9 +50,8 @@ import { CustomGroupEditComponent } from './custom-group-edit/custom-group-edit.
   ],
   declarations: [
     MemberListComponent,
-    MemberAddComponent,
+    MemberComponent,
     CustomGroupAddComponent,
-    MemberEditComponent,
     CustomGroupEditComponent
   ],
   providers: [

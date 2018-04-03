@@ -3,12 +3,12 @@
     <span>Name (as it appears in directory)</span>
   </h3>
   <div hcInputIcon>
-    <input hc-input class="hc-input" (keyup)="searchText.next($event.target.value)">
+    <input hc-input class="hc-input" (keyup)="searchTextSubject.next($event.target.value)" [(ngModel)]="subjectId" [readOnly]="editMode">
     <hc-icon>
       <i [style.display]="searching ? 'block' : 'none'" class="fa fa-spinner fa-pulse fa-fw"></i>
     </hc-icon>
   </div>
-  <table *ngIf="principals" class="hc-table hc-table-borders principals">
+  <table *ngIf="!editMode" class="hc-table hc-table-borders principals">
     <thead>
       <tr>
         <th></th>
@@ -42,7 +42,7 @@
     <tbody>
       <tr *ngFor="let role of roles">
         <td>
-          <hc-checkbox [id]="role.id" [(ngModel)]="role.selected" [disabled]="!principalSelected">
+          <hc-checkbox [id]="role.id" [(ngModel)]="role.selected" [disabled]="!principalSelected && !editMode">
           </hc-checkbox>
         </td>
         <td [innerText]="role.name">
@@ -51,7 +51,7 @@
     </tbody>
   </table>
   <div class="buttons">
-    <button hc-button (click)="addMemberWithRoles()" class="btn-save" color="primary" [disabled]="!principalSelected">Save</button>
+    <button hc-button (click)="save()" class="btn-save" color="primary" [disabled]="!principalSelected && !editMode">Save</button>
     <a hc-button routerLink="/accesscontrol" color="secondary">Cancel</a>
   </div>
 </div>
