@@ -213,7 +213,7 @@ export class MemberComponent implements OnInit, OnDestroy {
       this.userService.getUserRoles(this.configService.identityProvider, subjectId) :
       this.groupService.getGroupRoles(subjectId, this.configService.grain, this.configService.securableItem);
 
-    return roleObservable.map((existingRoles: IRole[]) => {
+    return roleObservable.do((existingRoles: IRole[]) => {
       if (!existingRoles) {
         return this.roles.map(role => role.selected = false);
       } else {
