@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { catchError, retry } from 'rxjs/operators';
+import 'rxjs/add/observable/empty';
 
 import { Exception, IGroup, IRole, IUser } from '../models';
 import { FabricBaseService } from './fabric-base.service';
@@ -70,7 +71,7 @@ export class FabricAuthUserService extends FabricBaseService {
     roles: IRole[]
   ): Observable<IUser> {
     if (!roles || roles.length === 0) {
-      return Observable.of(undefined);
+      return Observable.empty();
     }
 
     return this.httpClient.post<IUser>(
@@ -89,7 +90,7 @@ export class FabricAuthUserService extends FabricBaseService {
     roles: IRole[]
   ): Observable<IUser> {
     if (!roles || roles.length === 0) {
-      return Observable.of(undefined);
+      return Observable.empty();
     }
 
     return this.httpClient.request<IUser>(

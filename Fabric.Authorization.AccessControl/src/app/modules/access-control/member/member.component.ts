@@ -8,6 +8,7 @@ import 'rxjs/add/operator/takeUntil';
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/observable/throw';
 import 'rxjs/add/observable/zip';
+import 'rxjs/add/observable/empty';
 
 import {
   FabricExternalIdpSearchService,
@@ -206,7 +207,7 @@ export class MemberComponent implements OnInit, OnDestroy {
 
   private bindExistingRoles(subjectId: string, principalType: string): Observable<any> {
     if (!this.subjectId) {
-      return Observable.of(undefined);
+      return Observable.empty();
     }
     const roleObservable = principalType === 'user' ?
       this.userService.getUserRoles(this.configService.identityProvider, subjectId) :
@@ -214,9 +215,9 @@ export class MemberComponent implements OnInit, OnDestroy {
 
     return roleObservable.map((existingRoles: IRole[]) => {
       if (!existingRoles) {
-        this.roles.map(role => role.selected = false);
+        return this.roles.map(role => role.selected = false);
       } else {
-        this.roles.map(role => role.selected = existingRoles.some(userRole => userRole.id === role.id));
+        return this.roles.map(role => role.selected = existingRoles.some(userRole => userRole.id === role.id));
       }
     });
   }

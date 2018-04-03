@@ -5,6 +5,7 @@ import { Observable } from 'rxjs/Observable';
 import { catchError, retry } from 'rxjs/operators';
 import { Exception, IGroup, IRole, IUser } from '../models';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
+import 'rxjs/add/observable/empty';
 
 import { FabricBaseService } from './fabric-base.service';
 import { AccessControlConfigService } from './access-control-config.service';
@@ -95,7 +96,7 @@ export class FabricAuthGroupService extends FabricBaseService {
     roles: Array<IRole>
   ): Observable<IGroup> {
     if (!roles || roles.length === 0) {
-      return Observable.of(undefined);
+      return Observable.empty();
     }
 
     return this.httpClient.post<IGroup>(
@@ -112,7 +113,7 @@ export class FabricAuthGroupService extends FabricBaseService {
     roles: IRole[]
   ): Observable<IGroup> {
     if (!roles || roles.length === 0) {
-      return Observable.of(undefined);
+      return Observable.empty();
     }
 
     const url = this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName);
