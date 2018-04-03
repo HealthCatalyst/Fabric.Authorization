@@ -61,9 +61,10 @@ describe('FabricAuthMemberSearchService', () => {
 
           service.searchMembers(authSearchRequest).subscribe(searchResults => {
             expect(searchResults).toBeDefined();
-            expect(searchResults.length).toBe(2);
+            expect(searchResults.results).toBeDefined();
+            expect(searchResults.results.length).toBe(2);
 
-            const result1 = searchResults[0];
+            const result1 = searchResults.results[0];
             expect(result1.subjectId).toBe('sub123');
             expect(result1.identityProvider).toBe('AD');
             expect(result1.firstName).toBe('First');
@@ -76,7 +77,7 @@ describe('FabricAuthMemberSearchService', () => {
             );
             expect(result1.entityType).toBe('User');
 
-            const result2 = searchResults[1];
+            const result2 = searchResults.results[1];
             expect(result2.groupName).toBe('Group 2');
             expect(result2.roles).toBeDefined();
             expect(result2.roles.length).toBe(1);
