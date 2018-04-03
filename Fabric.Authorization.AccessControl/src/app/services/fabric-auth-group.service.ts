@@ -27,15 +27,11 @@ export class FabricAuthGroupService extends FabricBaseService {
     }
 
     if (!FabricAuthGroupService.groupRolesApiUrl) {
-      FabricAuthGroupService.groupRolesApiUrl = `${
-        FabricAuthGroupService.baseGroupApiUrl
-      }/{groupName}/roles`;
+      FabricAuthGroupService.groupRolesApiUrl = `${FabricAuthGroupService.baseGroupApiUrl}/{groupName}/roles`;
     }
 
     if (!FabricAuthGroupService.groupUsersApiUrl) {
-      FabricAuthGroupService.groupUsersApiUrl = `${
-        FabricAuthGroupService.baseGroupApiUrl
-      }/{groupName}/users`;
+      FabricAuthGroupService.groupUsersApiUrl = `${FabricAuthGroupService.baseGroupApiUrl}/{groupName}/users`;
     }
   }
 
@@ -62,7 +58,7 @@ export class FabricAuthGroupService extends FabricBaseService {
         FabricAuthGroupService.groupUsersApiUrl,
         groupName
       ),
-      users.map(function(u) {
+      users.map(function (u) {
         return {
           identityProvider: u.identityProvider,
           subjectId: u.subjectId
@@ -98,6 +94,10 @@ export class FabricAuthGroupService extends FabricBaseService {
     groupName: string,
     roles: Array<IRole>
   ): Observable<IGroup> {
+    if (!roles || roles.length === 0) {
+      return Observable.of(undefined);
+    }
+
     return this.httpClient.post<IGroup>(
       this.replaceGroupNameSegment(
         FabricAuthGroupService.groupRolesApiUrl,
@@ -111,14 +111,16 @@ export class FabricAuthGroupService extends FabricBaseService {
     groupName: string,
     roles: IRole[]
   ): Observable<IGroup> {
+    if (!roles || roles.length === 0) {
+      return Observable.of(undefined);
+    }
+
+    const url = this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName);
     return this.httpClient.request<IGroup>(
       'DELETE',
-      this.replaceGroupNameSegment(
-        FabricAuthGroupService.groupRolesApiUrl,
-        groupName
-      ),
+      url,
       {
-        body: roles.map(function(r) {
+        body: roles.map(function (r) {
           return {
             roleId: r.id
           };
