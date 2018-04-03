@@ -61,7 +61,7 @@ describe('FabricAuthMemberSearchService', () => {
 
           service.searchMembers(authSearchRequest).subscribe(searchResults => {
             expect(searchResults).toBeDefined();
-            expect(searchResults.length).toBe(2);
+            expect(searchResults.results.length).toBe(2);
 
             const result1 = searchResults[0];
             expect(result1.subjectId).toBe('sub123');
