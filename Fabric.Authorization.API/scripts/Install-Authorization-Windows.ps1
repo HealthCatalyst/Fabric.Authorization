@@ -322,7 +322,7 @@ if(!(Test-PrerequisiteExact "*.NET Core*Windows Server Hosting*" 1.1.30503.82))
         net stop was /y
         net start w3svc			
     }catch{
-        Write-Error "Could not install .NET Windows Server Hosting bundle. Please install the hosting bundle before proceeding. https://go.microsoft.com/fwlink/?linkid=844461" -ErrorAction Stop
+        Write-Error "Could not install .NET Windows Server Hosting bundle. Please install the hosting bundle before proceeding. https://go.microsoft.com/fwlink/?linkid=844461." -ErrorAction Stop
     }
     try{
         Remove-Item $env:Temp\bundle.exe
@@ -338,7 +338,7 @@ if(!(Test-PrerequisiteExact "*.NET Core*Windows Server Hosting*" 1.1.30503.82))
 }
 
 if(!(Test-Prerequisite "*IIS URL Rewrite Module 2" 7.2.1952)){
-    Write-Error "IIS URL Rewrite Module 2 v7.2.1952 or greater is not installed. Please install the IIS URL Rewrite Module 2 before proceeding: https://www.iis.net/downloads/microsoft/url-rewrite" -ErrorAction Stop
+    Write-Error "IIS URL Rewrite Module 2 v7.2.1952 or greater is not installed. Please install the IIS URL Rewrite Module 2 before proceeding: https://www.iis.net/downloads/microsoft/url-rewrite." -ErrorAction Stop
 }
 
 try{
