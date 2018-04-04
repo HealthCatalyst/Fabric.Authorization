@@ -126,11 +126,11 @@ export class MemberComponent implements OnInit, OnDestroy {
       this.saveUser(selectedSubjectId, selectedRoles) :
       this.saveGroup(selectedSubjectId, selectedRoles);
 
-    return saveObservable.subscribe(() => {
-      this.router.navigate(['/accesscontrol']);
-    }, (error) => {
+    return saveObservable.subscribe(null, (error) => {
       // TODO: Error handling
       console.error(error);
+    }, () => {
+      this.router.navigate(['/accesscontrol']);
     });
   }
 
@@ -215,9 +215,9 @@ export class MemberComponent implements OnInit, OnDestroy {
 
     return roleObservable.do((existingRoles: IRole[]) => {
       if (!existingRoles) {
-        return this.roles.map(role => role.selected = false);
+        this.roles.map(role => role.selected = false);
       } else {
-        return this.roles.map(role => role.selected = existingRoles.some(userRole => userRole.id === role.id));
+        this.roles.map(role => role.selected = existingRoles.some(userRole => userRole.id === role.id));
       }
     });
   }
