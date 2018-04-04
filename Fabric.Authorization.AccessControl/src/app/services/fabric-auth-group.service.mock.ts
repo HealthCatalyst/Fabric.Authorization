@@ -3,7 +3,7 @@ import { IRole } from '../models/role.model';
 import { IGroup } from '../models/group.model';
 import { Observable } from 'rxjs/Observable';
 
-const groupName = 'Dos Admin Group';
+const groupName = 'DosAdminGroup';
 const groupSource = 'Custom';
 const dosAdminRoleDisplayName = 'DOS Administrators (role)';
 const dosAdminRoleDescription = 'Administers DOS items (role)';

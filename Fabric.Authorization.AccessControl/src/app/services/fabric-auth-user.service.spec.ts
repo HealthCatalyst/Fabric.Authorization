@@ -173,7 +173,7 @@ describe('FabricAuthUserService', () => {
           service: FabricAuthUserService
         ) => {
           service
-            .addRolesToUser(idP, subjectId, null)
+            .addRolesToUser(idP, subjectId, mockRolesResponse)
             .subscribe(returnedUser => {
               assertMockUserResponse(returnedUser);
             });
@@ -204,7 +204,7 @@ describe('FabricAuthUserService', () => {
           service: FabricAuthUserService
         ) => {
           service
-            .addRolesToUser(idP, subjectId, null)
+            .addRolesToUser(idP, subjectId, mockRolesResponse)
             .catch(error => {
               expect(Observable.of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
@@ -284,7 +284,7 @@ describe('FabricAuthUserService', () => {
           service: FabricAuthUserService
         ) => {
           service
-            .removeRolesFromUser(idP, subjectId, null)
+            .removeRolesFromUser(idP, subjectId, mockRolesResponse)
             .catch(error => {
               expect(Observable.of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);

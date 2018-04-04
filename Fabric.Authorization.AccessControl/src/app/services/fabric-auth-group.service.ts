@@ -5,6 +5,7 @@ import { Observable } from 'rxjs/Observable';
 import { catchError, retry } from 'rxjs/operators';
 import { Exception, IGroup, IRole, IUser } from '../models';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
+import 'rxjs/add/observable/empty';
 
 import { FabricBaseService } from './fabric-base.service';
 import { AccessControlConfigService } from './access-control-config.service';
@@ -27,22 +28,17 @@ export class FabricAuthGroupService extends FabricBaseService {
     }
 
     if (!FabricAuthGroupService.groupRolesApiUrl) {
-      FabricAuthGroupService.groupRolesApiUrl = `${
-        FabricAuthGroupService.baseGroupApiUrl
-      }/{groupName}/roles`;
+      FabricAuthGroupService.groupRolesApiUrl = `${FabricAuthGroupService.baseGroupApiUrl}/{groupName}/roles`;
     }
 
     if (!FabricAuthGroupService.groupUsersApiUrl) {
-      FabricAuthGroupService.groupUsersApiUrl = `${
-        FabricAuthGroupService.baseGroupApiUrl
-      }/{groupName}/users`;
+      FabricAuthGroupService.groupUsersApiUrl = `${FabricAuthGroupService.baseGroupApiUrl}/{groupName}/users`;
     }
   }
 
   public getGroup(groupName: string): Observable<IGroup> {
-    return this.httpClient.get<IGroup>(
-      encodeURI(`${FabricAuthGroupService.baseGroupApiUrl}/${groupName}`)
-    );
+    const url = `${FabricAuthGroupService.baseGroupApiUrl}/${encodeURI(groupName)}`;
+    return this.httpClient.get<IGroup>(url);
   }
 
   public getGroupUsers(groupName: string): Observable<IUser[]> {
@@ -63,7 +59,7 @@ export class FabricAuthGroupService extends FabricBaseService {
         FabricAuthGroupService.groupUsersApiUrl,
         groupName
       ),
-      users.map(function(u) {
+      users.map(function (u) {
         return {
           identityProvider: u.identityProvider,
           subjectId: u.subjectId
@@ -91,19 +87,18 @@ export class FabricAuthGroupService extends FabricBaseService {
     grain: string,
     securableItem: string
   ): Observable<IRole[]> {
-    return this.httpClient.get<IRole[]>(
-      encodeURI(
-        `${
-          FabricAuthGroupService.baseGroupApiUrl
-        }/${groupName}/${grain}/${securableItem}/roles`
-      )
-    );
+    const url = `${FabricAuthGroupService.baseGroupApiUrl}/${encodeURI(groupName)}/${encodeURI(grain)}/${encodeURI(securableItem)}/roles`;
+    return this.httpClient.get<IRole[]>(url);
   }
 
   public addRolesToGroup(
     groupName: string,
     roles: Array<IRole>
   ): Observable<IGroup> {
+    if (!roles || roles.length === 0) {
+      return Observable.empty();
+    }
+
     return this.httpClient.post<IGroup>(
       this.replaceGroupNameSegment(
         FabricAuthGroupService.groupRolesApiUrl,
@@ -117,14 +112,16 @@ export class FabricAuthGroupService extends FabricBaseService {
     groupName: string,
     roles: IRole[]
   ): Observable<IGroup> {
+    if (!roles || roles.length === 0) {
+      return Observable.empty();
+    }
+
+    const url = this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName);
     return this.httpClient.request<IGroup>(
       'DELETE',
-      this.replaceGroupNameSegment(
-        FabricAuthGroupService.groupRolesApiUrl,
-        groupName
-      ),
+      url,
       {
-        body: roles.map(function(r) {
+        body: roles.map(function (r) {
           return {
             roleId: r.id
           };
