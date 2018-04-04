@@ -9,6 +9,7 @@ import 'rxjs/add/operator/catch';
 import 'rxjs/add/observable/throw';
 import 'rxjs/add/observable/zip';
 import 'rxjs/add/observable/empty';
+import 'rxjs/add/operator/mergeMap';
 
 import {
   FabricExternalIdpSearchService,
