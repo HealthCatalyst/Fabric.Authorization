@@ -7,6 +7,7 @@ import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/takeUntil';
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/observable/throw';
+import 'rxjs/add/operator/mergeMap';
 
 import {
   FabricExternalIdpSearchService,
@@ -19,11 +20,11 @@ import { IFabricPrincipal, IRole, IUser, IGroup } from '../../../models';
 import { inherits } from 'util';
 import { Router } from '@angular/router';
 
-interface IRoleModel extends IRole {
+export interface IRoleModel extends IRole {
   selected: boolean;
 }
 
-interface IFabricPrincipalModel extends IFabricPrincipal {
+export interface IFabricPrincipalModel extends IFabricPrincipal {
   selected: boolean;
 }
 
