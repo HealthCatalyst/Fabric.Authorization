@@ -337,6 +337,10 @@ if(!(Test-PrerequisiteExact "*.NET Core*Windows Server Hosting*" 1.1.30503.82))
     Write-Host ""
 }
 
+if(!(Test-Prerequisite "*IIS URL Rewrite Module 2" 7.2.1952)){
+    Write-Error "IIS URL Rewrite Module 2 v7.2.1952 or greater is not installed. Please install the IIS URL Rewrite Module 2 before proceeding: https://www.iis.net/downloads/microsoft/url-rewrite" -ErrorAction Stop
+}
+
 try{
     $sites = Get-ChildItem IIS:\Sites
     if($sites -is [array]){
