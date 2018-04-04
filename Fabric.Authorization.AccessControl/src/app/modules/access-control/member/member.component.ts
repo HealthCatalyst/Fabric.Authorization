@@ -22,11 +22,11 @@ import { IFabricPrincipal, IRole, IUser, IGroup } from '../../../models';
 import { inherits } from 'util';
 import { Router, ActivatedRoute } from '@angular/router';
 
-interface IRoleModel extends IRole {
+export interface IRoleModel extends IRole {
   selected: boolean;
 }
 
-interface IFabricPrincipalModel extends IFabricPrincipal {
+export interface IFabricPrincipalModel extends IFabricPrincipal {
   selected: boolean;
 }
 
