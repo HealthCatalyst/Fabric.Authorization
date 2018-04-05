@@ -24,7 +24,7 @@ export class FabricAuthGroupService extends FabricBaseService {
     super(httpClient, accessControlConfigService);
 
     if (!FabricAuthGroupService.baseGroupApiUrl) {
-      FabricAuthGroupService.baseGroupApiUrl = `${accessControlConfigService.getFabricAuthApiUrl()}/groups`;
+      FabricAuthGroupService.baseGroupApiUrl = `${accessControlConfigService.fabricAuthApiUrl}/groups`;
     }
 
     if (!FabricAuthGroupService.groupRolesApiUrl) {

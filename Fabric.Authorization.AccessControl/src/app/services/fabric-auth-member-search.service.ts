@@ -23,7 +23,7 @@ export class FabricAuthMemberSearchService extends FabricBaseService {
     super(httpClient, accessControlConfigService);
 
     if (!FabricAuthMemberSearchService.baseMemberSearchApiUrl) {
-      FabricAuthMemberSearchService.baseMemberSearchApiUrl = `${accessControlConfigService.getFabricAuthApiUrl()}/members`;
+      FabricAuthMemberSearchService.baseMemberSearchApiUrl = `${accessControlConfigService.fabricAuthApiUrl}/members`;
     }
   }
 
