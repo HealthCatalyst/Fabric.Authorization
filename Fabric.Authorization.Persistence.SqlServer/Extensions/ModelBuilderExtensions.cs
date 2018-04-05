@@ -403,8 +403,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                 entity.Property(e => e.ModifiedDateTimeUtc)
                     .HasColumnType("datetime");
 
-                entity.HasAlternateKey(e => new { e.GroupId, e.RoleId });
-
                 entity.HasOne(e => e.Group)
                     .WithMany(e => e.GroupRoles)
                     .HasForeignKey(e => e.GroupId);
@@ -420,9 +418,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             modelBuilder.Entity<RolePermission>(entity =>
             {
                 entity.ToTable("RolePermissions");
-
-                entity.HasAlternateKey(e => new {e.RoleId, e.PermissionId});
-
+                
                 entity.HasOne(e => e.Role)
                     .WithMany(e => e.RolePermissions)
                     .HasForeignKey(e => e.RoleId)
@@ -455,8 +451,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             modelBuilder.Entity<GroupUser>(entity =>
             {
                 entity.ToTable("GroupUsers");
-
-                entity.HasAlternateKey(e => new { e.SubjectId, e.IdentityProvider, e.GroupId });
 
                 entity.HasOne(e => e.User)
                     .WithMany(e => e.GroupUsers)
@@ -509,8 +503,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
             modelBuilder.Entity<UserPermission>(entity =>
             {
                 entity.ToTable("UserPermissions");
-
-                entity.HasAlternateKey(e => new { e.SubjectId, e.IdentityProvider, e.PermissionId });
 
                 entity.HasOne(e => e.User)
                     .WithMany(e => e.UserPermissions)

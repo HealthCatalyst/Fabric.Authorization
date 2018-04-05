@@ -284,7 +284,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Single(resultModel.Results);
             Assert.True(resultModel.TotalCount > resultModel.Results.Count());
         }
-
+        
         private IIdentityServiceProvider CreateIdentityServiceProviderMock(string clientId, DateTime? lastLoginDate)
         {
             var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
@@ -354,7 +354,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal("Brian", result2.LastName);
             Assert.NotNull(result2.LastLoginDateTimeUtc);
             Assert.Equal(lastLoginDate, result2.LastLoginDateTimeUtc.Value.ToUniversalTime());
-            Assert.Single(result2.Roles);
+            Assert.Equal(2, result2.Roles.Count());
             Assert.Contains(Fixture.ContributorAtlasRoleName, result2.Roles.Select(r => r.Name));
         }
 
@@ -657,17 +657,31 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
-            //add role to user            
+            //add roles to user            
             response = await Browser.Post($"/user/{IdentityProvider}/{AtlasUserNoGroupName}/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new[]
                 {
-                    contributorAtlasRoleResponse.Body.DeserializeJson<RoleApiModel>()
+                    contributorAtlasRoleResponse.Body.DeserializeJson<RoleApiModel>(),
+                    adminAtlasRole,
+                    userAtlasRole
                 });
             });
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            //delete the userAtlasRole from the user
+            response = await Browser.Delete($"/user/{IdentityProvider}/{AtlasUserNoGroupName}/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new[]
+                {                    
+                    userAtlasRole
+                });
+            });
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
         }
 
         public async Task InitializeClientWithoutRolesAsync(IIdentityServiceProvider identityServiceProvider)

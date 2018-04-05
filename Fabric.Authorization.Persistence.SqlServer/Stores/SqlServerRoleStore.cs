@@ -139,19 +139,24 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         {
             var roles = _authorizationDbContext.Roles
                 .Include(r => r.RolePermissions)
-                .ThenInclude(rp => rp.Permission)
-                .ThenInclude(p => p.SecurableItem)
+                    .ThenInclude(rp => rp.Permission)
+                    .ThenInclude(p => p.SecurableItem)
                 .Include(r => r.GroupRoles)
-                .ThenInclude(gr => gr.Group)
-                .ThenInclude(g => g.GroupRoles)
-                .ThenInclude(gr => gr.Role)
+                    .ThenInclude(gr => gr.Group)
+                    .ThenInclude(g => g.GroupRoles)
+                    .ThenInclude(gr => gr.Role)
                 .Include(r => r.SecurableItem)
                 .Include(r => r.ParentRole)
                 .Include(r => r.ChildRoles)
                 .Include(r => r.RoleUsers)
-                .ThenInclude(ru => ru.User)
-                .ThenInclude(u => u.GroupUsers)
-                .ThenInclude(gu => gu.Group)
+                    .ThenInclude(ru => ru.User)
+                    .ThenInclude(u => u.RoleUsers)
+                    .ThenInclude(ur => ur.Role)
+                .Include(r => r.RoleUsers)
+                    .ThenInclude(ru => ru.User)
+                    .ThenInclude(u => u.GroupUsers)
+                    .ThenInclude(gu => gu.Group)
+                .AsNoTracking()                    
                 .Where(r => !r.IsDeleted);
 
             if (!string.IsNullOrEmpty(grain))
@@ -167,6 +172,13 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             if (!string.IsNullOrWhiteSpace(roleName))
             {
                 roles = roles.Where(r => string.Equals(r.Name, roleName));
+            }
+
+            foreach (var role in roles)
+            {
+                role.RoleUsers = role.RoleUsers.Where(ru => !ru.IsDeleted).ToList();
+                role.GroupRoles = role.GroupRoles.Where(gr => !gr.IsDeleted).ToList();
+                role.RolePermissions = role.RolePermissions.Where(rp => !rp.IsDeleted).ToList();
             }
 
             return roles;
