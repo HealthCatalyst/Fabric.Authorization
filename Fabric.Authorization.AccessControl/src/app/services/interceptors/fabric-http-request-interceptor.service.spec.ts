@@ -1,12 +1,17 @@
 import { TestBed, inject } from '@angular/core/testing';
-
+import {
+  HttpInterceptor,
+  HttpRequest,
+  HttpHandler,
+  HttpEvent,
+  HttpClient } from '@angular/common/http';
 import { FabricHttpRequestInterceptorService } from './fabric-http-request-interceptor.service';
-import { AccessControlConfigService } from '..';
+import { AuthService } from '../global/auth.service';
 
 describe('FabricHttpRequestInterceptorService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [FabricHttpRequestInterceptorService, AccessControlConfigService]
+      providers: [FabricHttpRequestInterceptorService, AuthService, HttpClient, HttpHandler]
     });
   });
 
