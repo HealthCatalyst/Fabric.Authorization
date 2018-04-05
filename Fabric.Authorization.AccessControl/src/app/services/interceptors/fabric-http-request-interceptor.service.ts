@@ -8,7 +8,6 @@ import {
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/fromPromise';
 import 'rxjs/add/operator/mergeMap';
-
 import { AuthService } from '../global/auth.service';
 
 @Injectable()
