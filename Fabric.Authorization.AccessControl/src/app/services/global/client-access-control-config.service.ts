@@ -13,14 +13,6 @@ export class ClientAccessControlConfigService
   grain = 'dos';
   securableItem = 'datamarts';
 
-  getAccessToken() {
-    return this.authService.getUser().then(function(user) {
-      if (user) {
-        return user.access_token;
-      }
-    });
-  }
-
   getFabricAuthApiUrl(): string {
     console.log(
       `${environment.fabricAuthApiUri}/${

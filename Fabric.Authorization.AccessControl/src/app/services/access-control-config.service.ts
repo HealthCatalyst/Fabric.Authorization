@@ -9,10 +9,6 @@ export class AccessControlConfigService {
 
   constructor() {}
 
-  getAccessToken(): Promise<string> {
-    return Promise.resolve('');
-  }
-
   getFabricAuthApiUrl(): string {
     return '';
   }

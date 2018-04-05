@@ -1,27 +1,110 @@
 # Fabric.Authorization.AccessControl
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 1.5.2.
+An Angular 5 routed module for managing access in Fabric.Authorization
 
-## Development server
+# Installing
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+Run `npm i @healthcatalyst/fabric-access-control-ui`
 
-## Code scaffolding
+# Configuration
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+A configuration object should be provided to the module
 
-## Build
+```
+{
+  clientId: string;
+  identityProvider: string;
+  grain: string;
+  securableItem: string;
+  getFabricAuthApiUrl(): string
+  getFabricExternalIdpSearchApiUrl(): string
+}
+```
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `-prod` flag for a production build.
+This configuration object should be passed to the access control module in the forRoot function when it is loaded. The access control module is lazy loaded and should be imported into a module that will assist with loading it through the router and providing the configuration data. Here is an example:
 
-## Running unit tests
+```
+import { NgModule } from "@angular/core";
+import { AccessControlModule } from '@healthcatalyst/fabric-access-control-ui';
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+const accesscontrolConfig = {
+  clientId: 'fabric-angularsample',
+  identityProvider: 'windows',
+  grain: 'dos',
+  securableItem: 'datamarts',
+  
+  getFabricAuthApiUrl(): string {
+    return 'http://localhost/authorization/v1';
+  },
+  getFabricExternalIdpSearchApiUrl(): string {
+    return 'http://localhost:5009/v1';
+  }
+};
 
-## Running end-to-end tests
+@NgModule({
+  imports: [
+    AccessControlModule.forRoot(accesscontrolConfig)
+  ]
+})
+export class AccessControlLazyLoader {}
+```
 
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
+You can then wire the access control module up via the router.
 
-## Further help
+```
+ { path: 'accesscontrol',  loadChildren: './access-control-lazy-loader#AccessControlLazyLoader' }
+```
+# Http Interceptors
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+The access control module needs to be installed into an application that can get an access token with scopes to read and write to the Fabric.Authorization API. This access token needs to be provided in each http request to Fabric.Authorization. We recommend Http Interceptors for this. Here is an example of an http interceptor that will set the necessary headers for each http request. A service that can provide an access token should be injected via the constructor.
+
+```
+import { Injectable } from '@angular/core';
+import {
+  HttpInterceptor,
+  HttpRequest,
+  HttpHandler,
+  HttpEvent
+} from '@angular/common/http';
+import { Observable } from 'rxjs/Observable';
+import 'rxjs/add/observable/fromPromise';
+import 'rxjs/add/operator/mergeMap';
+
+import { AuthService } from '../services/auth.service'; 
+
+@Injectable()
+export class FabricHttpRequestInterceptorService implements HttpInterceptor {
+  protected static readonly AcceptHeader = 'application/json';
+  protected static readonly ContentTypeHeader = 'application/json';
+  protected static AuthorizationHeader = `Bearer`;
+
+  constructor(private authService: AuthService) {}
+
+  intercept(
+    req: HttpRequest<any>,
+    next: HttpHandler
+  ): Observable<HttpEvent<any>> {
+    const tokenObservable = Observable.fromPromise(
+      this.authService.getUser()
+        .then((user) => {
+          if(user){
+            return user.access_token;
+          }
+        })
+    );
+    
+    return tokenObservable.mergeMap(accessToken => {
+      const modifiedRequest = req.clone({
+        setHeaders: {
+          Authorization: `${
+            FabricHttpRequestInterceptorService.AuthorizationHeader
+          } ${accessToken}`,
+          Accept: FabricHttpRequestInterceptorService.AcceptHeader,
+          'Content-Type': FabricHttpRequestInterceptorService.ContentTypeHeader
+        }
+      });
+      return next.handle(modifiedRequest);
+    });
+  }
+}
+```
