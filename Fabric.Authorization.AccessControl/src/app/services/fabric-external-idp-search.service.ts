@@ -27,7 +27,7 @@ export class FabricExternalIdpSearchService extends FabricBaseService {
 
     if (!FabricExternalIdpSearchService.idPServiceBaseUrl) {
       const service = accessControlConfigService;
-      FabricExternalIdpSearchService.idPServiceBaseUrl = `${service.getFabricExternalIdpSearchApiUrl()}/principals/search`;
+      FabricExternalIdpSearchService.idPServiceBaseUrl = `${service.fabricExternalIdpSearchApiUrl}/principals/search`;
     }
   }
 

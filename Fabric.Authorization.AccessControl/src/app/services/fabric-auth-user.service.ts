@@ -23,7 +23,7 @@ export class FabricAuthUserService extends FabricBaseService {
     super(httpClient, accessControlConfigService);
 
     if (!FabricAuthUserService.baseUserApiUrl) {
-      FabricAuthUserService.baseUserApiUrl = `${accessControlConfigService.getFabricAuthApiUrl()}/user`;
+      FabricAuthUserService.baseUserApiUrl = `${accessControlConfigService.fabricAuthApiUrl}/user`;
     }
 
     if (!FabricAuthUserService.userRolesApiUrl) {

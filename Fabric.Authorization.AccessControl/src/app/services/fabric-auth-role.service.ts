@@ -18,7 +18,7 @@ export class FabricAuthRoleService extends FabricBaseService {
     super(httpClient, accessControlConfigService);
 
     if (!FabricAuthRoleService.BaseRoleApiUrl) {
-      FabricAuthRoleService.BaseRoleApiUrl = `${accessControlConfigService.getFabricAuthApiUrl()}/roles`;
+      FabricAuthRoleService.BaseRoleApiUrl = `${accessControlConfigService.fabricAuthApiUrl}/roles`;
     }
   }
 
