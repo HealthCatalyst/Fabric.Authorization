@@ -6,14 +6,8 @@ export class AccessControlConfigService {
   identityProvider: string;
   grain: string;
   securableItem: string;
+  fabricAuthApiUrl: string;
+  fabricExternalIdpSearchApiUrl: string;
 
   constructor() {}
-
-  getFabricAuthApiUrl(): string {
-    return '';
-  }
-
-  getFabricExternalIdpSearchApiUrl(): string {
-    return '';
-  }
 }

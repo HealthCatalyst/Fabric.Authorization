@@ -16,8 +16,8 @@ A configuration object should be provided to the module
   identityProvider: string;
   grain: string;
   securableItem: string;
-  getFabricAuthApiUrl(): string
-  getFabricExternalIdpSearchApiUrl(): string
+  fabricAuthApiUrl: string
+  fabricExternalIdpSearchApiUrl: string
 }
 ```
 
@@ -31,14 +31,9 @@ const accesscontrolConfig = {
   clientId: 'fabric-angularsample',
   identityProvider: 'windows',
   grain: 'dos',
-  securableItem: 'datamarts',
-  
-  getFabricAuthApiUrl(): string {
-    return 'http://localhost/authorization/v1';
-  },
-  getFabricExternalIdpSearchApiUrl(): string {
-    return 'http://localhost:5009/v1';
-  }
+  securableItem: 'datamarts',  
+  getFabricAuthApiUrl:'http://localhost/authorization/v1';  
+  getFabricExternalIdpSearchApiUrl: 'http://localhost:5009/v1';  
 };
 
 @NgModule({
@@ -49,14 +44,14 @@ const accesscontrolConfig = {
 export class AccessControlLazyLoader {}
 ```
 
-You can then wire the access control module up via the router.
+You can then wire the access control module up via the router using the lazy loader module.
 
 ```
  { path: 'accesscontrol',  loadChildren: './access-control-lazy-loader#AccessControlLazyLoader' }
 ```
 # Http Interceptors
 
-The access control module needs to be installed into an application that can get an access token with scopes to read and write to the Fabric.Authorization API. This access token needs to be provided in each http request to Fabric.Authorization. We recommend Http Interceptors for this. Here is an example of an http interceptor that will set the necessary headers for each http request. A service that can provide an access token should be injected via the constructor.
+The access control module needs to be installed into an application that can get an access token with scopes to read and write to the Fabric.Authorization API. This access token needs to be provided in each http request to Fabric.Authorization. We recommend Http Interceptors for this. Here is an example of an http interceptor taken from a sample application.
 
 ```
 import { Injectable } from '@angular/core';
