@@ -8,7 +8,7 @@ import { AccessControlConfigService } from '../services/access-control-config.se
   templateUrl: './home.component.html'
 })
 export class HomeComponent implements OnInit {
-  profile = {};
+  profile: any;
   clientId: string;
 
   constructor(
