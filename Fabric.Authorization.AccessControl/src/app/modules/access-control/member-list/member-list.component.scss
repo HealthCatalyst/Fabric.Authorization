@@ -1,4 +1,4 @@
-@import '../../../../../node_modules/@healthcatalyst/cashmere/cashmere.scss';
+@import '~@healthcatalyst/cashmere/colors';
 
 .remove-button {
   cursor: pointer;
@@ -29,6 +29,9 @@
 .hc-table {
   margin-top: 20px;
   margin-bottom: 30px;
+  a:hover {
+    cursor: pointer;
+  }
 
   th.sortKey * {
     color: $green;
