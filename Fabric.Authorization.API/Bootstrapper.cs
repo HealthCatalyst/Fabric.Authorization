@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http;
 using System.Security.Claims;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
@@ -65,6 +66,7 @@ namespace Fabric.Authorization.API
             container.Register(new NancyContextWrapper(context));
             var appConfig = container.Resolve<IAppConfiguration>();
             container.UseHttpClientFactory(context, appConfig.IdentityServerConfidentialClientSettings);
+            //container.UseHttpRequestMessageFactory(context, appConfig.IdentityServerConfidentialClientSettings);
             container.RegisterServices();
 
             var configurator = container.Resolve<IPersistenceConfigurator>();
@@ -141,6 +143,9 @@ namespace Fabric.Authorization.API
             container.Register(typeof(IOptions<>), typeof(OptionsManager<>));
             container.Register<IMemoryCache, MemoryCache>();
             container.Register<Domain.Defaults.Authorization>();
+
+            var httpClient = new HttpClient();
+            container.Register(httpClient);
 
             container.Register<IPersistenceConfigurator>((c, p) =>
             {
