@@ -22,8 +22,8 @@ export class AuthService {
     const clientSettings: any = {
       authority: this.authority,
       client_id: this.clientId,
-      redirect_uri: 'http://localhost:4200/oidc-callback.html',
-      post_logout_redirect_uri: 'http://localhost:4200',
+      redirect_uri: `${environment.applicationEndpoint}/oidc-callback.html`,
+      post_logout_redirect_uri: environment.applicationEndpoint,
       response_type: 'id_token token',
       scope: [
         'openid',
@@ -34,7 +34,7 @@ export class AuthService {
         'fabric/idprovider.searchusers',
         'fabric/authorization.dos.write'
       ].join(' '),
-      silent_redirect_uri: 'http://localhost:4200/silent.html',
+      silent_redirect_uri: `${environment.applicationEndpoint}/silent.html`,
       automaticSilentRenew: true,
       filterProtocolClaims: true,
       loadUserInfo: true

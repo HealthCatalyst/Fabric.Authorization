@@ -18,7 +18,13 @@
       }
       else {
         console.log("user is not null, redirecting to index");
-        window.location = "/";
+        var url = sessionStorage.getItem('redirect', window.location.href);
+        if (url) {
+          sessionStorage.removeItem('redirect');
+          window.location = url;
+        } else {
+          window.location = "/accesscontroldemo";
+        }
       }
     })
     .catch(function (er) {

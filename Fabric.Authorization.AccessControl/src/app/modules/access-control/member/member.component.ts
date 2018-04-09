@@ -8,7 +8,6 @@ import 'rxjs/add/operator/takeUntil';
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/observable/throw';
 import 'rxjs/add/observable/zip';
-import 'rxjs/add/observable/empty';
 import 'rxjs/add/operator/mergeMap';
 
 import {
@@ -39,14 +38,14 @@ export class MemberComponent implements OnInit, OnDestroy {
   public principals: Array<IFabricPrincipalModel> = [];
   public roles: Array<IRoleModel> = [];
   public searching = false;
-
+  public principalSelected = false;
   public searchTextSubject = new Subject<string>();
   public searchText: string;
-  private ngUnsubscribe: any = new Subject();
-  private principalSelected = false;
   public entityType = '';
   public subjectId = '';
   public editMode = false;
+
+  private ngUnsubscribe: any = new Subject();
 
   constructor(
     private idpSearchService: FabricExternalIdpSearchService,
@@ -208,7 +207,7 @@ export class MemberComponent implements OnInit, OnDestroy {
 
   private bindExistingRoles(subjectId: string, principalType: string): Observable<any> {
     if (!this.subjectId) {
-      return Observable.empty();
+      return Observable.of(undefined);
     }
     const roleObservable = principalType === 'user' ?
       this.userService.getUserRoles(this.configService.identityProvider, subjectId) :

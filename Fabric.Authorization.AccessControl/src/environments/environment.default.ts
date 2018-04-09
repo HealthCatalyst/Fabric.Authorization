@@ -5,7 +5,8 @@ export const defaultEnvironment = {
   fabricAuthApiVersionSegment: 'v1',
   fabricIdentityApiUri: 'http://localhost/identity',
   fabricExternalIdPSearchApiUri: 'http://localhost:5009',
-  fabricExternalIdPSearchApiVersionSegment: 'v1'
+  fabricExternalIdPSearchApiVersionSegment: 'v1',
+  applicationEndpoint: 'http://localhost:4200'
 };
 
 export type Environment = typeof defaultEnvironment;
