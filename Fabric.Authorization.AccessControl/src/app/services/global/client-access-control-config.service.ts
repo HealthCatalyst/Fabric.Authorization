@@ -7,6 +7,7 @@ import { environment } from '../../../environments/environment';
 export class ClientAccessControlConfigService
   implements AccessControlConfigService {
 
+  
   constructor(private authService: AuthService) {}
 
   clientId = '';
@@ -15,4 +16,8 @@ export class ClientAccessControlConfigService
   securableItem = 'datamarts';
   fabricAuthApiUrl = `${environment.fabricAuthApiUri}/${environment.fabricAuthApiVersionSegment}`;
   fabricExternalIdpSearchApiUrl = `${environment.fabricExternalIdPSearchApiUri}/${environment.fabricExternalIdPSearchApiVersionSegment}`;
+
+  dataChangeEvent(eventArgs: any): void {
+    throw new Error('Method not implemented.');
+  }
 }
