@@ -43,5 +43,10 @@ namespace Fabric.Authorization.Domain.Models
         {
             return string.Join(separator, list);
         }
+
+        public static string EnsureTrailingSlash(this string url)
+        {
+            return !url.EndsWith("/") ? $"{url}/" : url;
+        }
     }
 }

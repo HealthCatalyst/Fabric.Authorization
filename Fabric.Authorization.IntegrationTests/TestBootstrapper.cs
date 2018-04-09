@@ -39,7 +39,7 @@ namespace Fabric.Authorization.IntegrationTests
             base.ConfigureRequestContainer(container, context);
             if (_identityServiceProvider != null)
             {
-                container.Register<IIdentityServiceProvider>(_identityServiceProvider);
+                container.Register(_identityServiceProvider);
             }
         }
     }

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.RemoteServices.Identity.Models;
+using Fabric.Authorization.Domain.Models;
 using Fabric.Platform.Http;
 using IdentityModel.Client;
 using Newtonsoft.Json;
@@ -17,13 +18,15 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
 {
     public class IdentityServiceProvider : IIdentityServiceProvider
     {
+        private readonly HttpClient _httpClient;
+        private readonly IHttpRequestMessageFactory _httpRequestMessageFactory;
         private readonly IAppConfiguration _appConfiguration;
-        private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger _logger;
 
-        public IdentityServiceProvider(IHttpClientFactory httpClientFactory, IAppConfiguration appConfiguration, ILogger logger)
+        public IdentityServiceProvider(HttpClient httpClient, IHttpRequestMessageFactory httpRequestMessageFactory, IAppConfiguration appConfiguration, ILogger logger)
         {
-            _httpClientFactory = httpClientFactory;
+            _httpClient = httpClient;
+            _httpRequestMessageFactory = httpRequestMessageFactory;
             _appConfiguration = appConfiguration;
             _logger = logger;
         }
@@ -40,19 +43,14 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
                 };
             }
 
-            // TODO: clean this up / move to config
             var settings = _appConfiguration.IdentityServerConfidentialClientSettings;
-
-            var tokenUriAddress = $"{settings.Authority}connect/token";
+            var baseUri = settings.Authority.EnsureTrailingSlash();
+            var tokenUriAddress = $"{baseUri}connect/token";
             var tokenClient = new TokenClient(tokenUriAddress, "fabric-authorization-client", settings.ClientSecret);
             var accessTokenResponse = await tokenClient.RequestClientCredentialsAsync(IdentityScopes.SearchUsersScope).ConfigureAwait(false);
 
-            var httpClient = new HttpClientFactory(
-                tokenUriAddress,
-                "fabric-authorization-client",
-                settings.ClientSecret,
-                null,
-                null).CreateWithAccessToken(new Uri(settings.Authority), accessTokenResponse.AccessToken);
+            var httpRequestMessage = _httpRequestMessageFactory.CreateWithAccessToken(HttpMethod.Post, new Uri($"{baseUri}api/users"),
+                accessTokenResponse.AccessToken);
 
             var request = new UserSearchRequest
             {
@@ -60,10 +58,12 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
                 UserIds = userIdList
             };
 
-            _logger.Debug($"Invoking Fabric.Identity endpoint {httpClient.BaseAddress}");
+            _logger.Debug($"Invoking Fabric.Identity endpoint {httpRequestMessage.RequestUri}");
 
-            var response = await httpClient.PostAsync("api/users",
-                new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json"));
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8,
+                "application/json");
+
+            var response = await _httpClient.SendAsync(httpRequestMessage);
 
             var results = new List<UserSearchResponse>();
             var responseContent = response.Content == null ? string.Empty : await response.Content.ReadAsStringAsync();
