@@ -1,9 +1,24 @@
-import { async, ComponentFixture, TestBed, inject } from '@angular/core/testing';
+import {
+  async,
+  ComponentFixture,
+  TestBed,
+  inject
+} from '@angular/core/testing';
 
 import { MemberListComponent } from './member-list.component';
 import { ServicesMockModule } from '../services.mock.module';
-import { PopoverModule, IconModule, ProgressIndicatorsModule, SelectModule } from '@healthcatalyst/cashmere';
-import { FabricAuthMemberSearchServiceMock, mockAuthSearchResult } from '../../../services/fabric-auth-member-search.service.mock';
+import {
+  PopoverModule,
+  IconModule,
+  ProgressIndicatorsModule,
+  SelectModule,
+  ModalModule,
+  PaginationModule
+} from '@healthcatalyst/cashmere';
+import {
+  FabricAuthMemberSearchServiceMock,
+  mockAuthSearchResult
+} from '../../../services/fabric-auth-member-search.service.mock';
 import { FabricAuthMemberSearchService } from '../../../services';
 import { Observable } from 'rxjs/Observable';
 import { FormsModule } from '@angular/forms';
@@ -16,14 +31,30 @@ describe('MemberListComponent', () => {
     async(() => {
       TestBed.configureTestingModule({
         declarations: [MemberListComponent],
-        imports: [FormsModule, ServicesMockModule, PopoverModule, IconModule, ProgressIndicatorsModule, SelectModule]
+        imports: [
+          FormsModule,
+          ServicesMockModule,
+          PopoverModule,
+          IconModule,
+          ProgressIndicatorsModule,
+          SelectModule,
+          ModalModule,
+          PaginationModule
+        ]
       }).compileComponents();
     })
   );
 
-  beforeEach(inject([FabricAuthMemberSearchService], (memberSearchService: FabricAuthMemberSearchServiceMock) => {
-    memberSearchService.searchMembers.and.returnValue(Observable.of(mockAuthSearchResult));
-  }));
+  beforeEach(
+    inject(
+      [FabricAuthMemberSearchService],
+      (memberSearchService: FabricAuthMemberSearchServiceMock) => {
+        memberSearchService.searchMembers.and.returnValue(
+          Observable.of(mockAuthSearchResult)
+        );
+      }
+    )
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(MemberListComponent);
