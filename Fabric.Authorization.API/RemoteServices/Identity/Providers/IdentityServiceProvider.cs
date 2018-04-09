@@ -43,11 +43,8 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
                 };
             }
 
-            // TODO: clean this up / move to config
             var settings = _appConfiguration.IdentityServerConfidentialClientSettings;
-
             var baseUri = settings.Authority.EnsureTrailingSlash();
-
             var tokenUriAddress = $"{baseUri}connect/token";
             var tokenClient = new TokenClient(tokenUriAddress, "fabric-authorization-client", settings.ClientSecret);
             var accessTokenResponse = await tokenClient.RequestClientCredentialsAsync(IdentityScopes.SearchUsersScope).ConfigureAwait(false);
