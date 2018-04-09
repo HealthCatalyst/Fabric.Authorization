@@ -2,7 +2,7 @@ import { async, ComponentFixture, TestBed, inject } from '@angular/core/testing'
 
 import { MemberListComponent } from './member-list.component';
 import { ServicesMockModule } from '../services.mock.module';
-import { PopoverModule, IconModule, ProgressIndicatorsModule, SelectModule } from '@healthcatalyst/cashmere';
+import { PopoverModule, IconModule, ProgressIndicatorsModule, SelectModule, ModalModule, PaginationModule } from '@healthcatalyst/cashmere';
 import { FabricAuthMemberSearchServiceMock, mockAuthSearchResult } from '../../../services/fabric-auth-member-search.service.mock';
 import { FabricAuthMemberSearchService } from '../../../services';
 import { Observable } from 'rxjs/Observable';
@@ -16,7 +16,16 @@ describe('MemberListComponent', () => {
     async(() => {
       TestBed.configureTestingModule({
         declarations: [MemberListComponent],
-        imports: [FormsModule, ServicesMockModule, PopoverModule, IconModule, ProgressIndicatorsModule, SelectModule]
+        imports: [
+          FormsModule,
+          ServicesMockModule,
+          IconModule,
+          ModalModule,
+          PaginationModule,
+          PopoverModule,
+          ProgressIndicatorsModule,
+          SelectModule,
+        ]
       }).compileComponents();
     })
   );
