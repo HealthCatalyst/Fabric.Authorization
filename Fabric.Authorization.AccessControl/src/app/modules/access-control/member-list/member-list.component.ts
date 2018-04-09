@@ -117,10 +117,6 @@ export class MemberListComponent implements OnInit {
       });
   }
 
-  confirmRemoveRolesFromMember(member: IAuthMemberSearchResult) {
-
-  }
-
   removeRolesFromMember(member: IAuthMemberSearchResult) {
     this.modalService.open(this.confirmDialog, {
       data: member,
