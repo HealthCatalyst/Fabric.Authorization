@@ -69,6 +69,10 @@ export class MemberListComponent implements OnInit {
     return this._pageNumber;
   }
   set pageNumber(value: number) {
+    if (this._pageNumber === value) {
+      return;
+    }
+
     this._pageNumber = value;
     this.onSearchChanged(true);
   }
