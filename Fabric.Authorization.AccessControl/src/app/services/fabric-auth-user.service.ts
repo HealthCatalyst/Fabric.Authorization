@@ -81,7 +81,11 @@ export class FabricAuthUserService extends FabricBaseService {
     return this.httpClient.post<IUser>(
       url,
       roles
-    );
+    ).do((user) => { this.accessControlConfigService.dataChangeEvent({
+        subjectId: user.subjectId
+      });
+    }
+  );
   }
 
   public removeRolesFromUser(

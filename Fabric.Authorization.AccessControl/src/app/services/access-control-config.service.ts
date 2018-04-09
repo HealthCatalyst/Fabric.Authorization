@@ -9,5 +9,7 @@ export class AccessControlConfigService {
   fabricAuthApiUrl: string;
   fabricExternalIdpSearchApiUrl: string;
 
+  dataChangeEvent(eventArgs) {}
+
   constructor() {}
 }

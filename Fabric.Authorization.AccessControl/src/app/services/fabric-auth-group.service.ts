@@ -137,7 +137,10 @@ export class FabricAuthGroupService extends FabricBaseService {
     return this.httpClient.post<IGroup>(
       FabricAuthGroupService.baseGroupApiUrl,
       group
-    );
+    ).do((newGroup) => { this.accessControlConfigService.dataChangeEvent({
+      groupName: newGroup.groupName
+    });
+  });
   }
 
   private replaceGroupNameSegment(
