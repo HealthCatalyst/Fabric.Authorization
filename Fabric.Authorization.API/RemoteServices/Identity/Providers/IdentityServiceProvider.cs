@@ -49,7 +49,7 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
             var tokenClient = new TokenClient(tokenUriAddress, "fabric-authorization-client", settings.ClientSecret);
             var accessTokenResponse = await tokenClient.RequestClientCredentialsAsync(IdentityScopes.SearchUsersScope).ConfigureAwait(false);
 
-            var httpRequestMessage = _httpRequestMessageFactory.CreateWithAccessToken(HttpMethod.Post, new Uri("api/users"),
+            var httpRequestMessage = _httpRequestMessageFactory.CreateWithAccessToken(HttpMethod.Post, new Uri($"{settings.Authority}api/users"),
                 accessTokenResponse.AccessToken);
 
             var request = new UserSearchRequest
