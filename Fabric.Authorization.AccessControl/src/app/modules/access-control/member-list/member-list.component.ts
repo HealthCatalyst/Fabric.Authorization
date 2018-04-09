@@ -69,6 +69,10 @@ export class MemberListComponent implements OnInit {
     return this._pageNumber;
   }
   set pageNumber(value: number) {
+    if (this._pageNumber === value) {
+      return;
+    }
+
     this._pageNumber = value;
     this.onSearchChanged(true);
   }
@@ -124,29 +128,7 @@ export class MemberListComponent implements OnInit {
     })
       .result
       .filter(r => !!r)
-      .subscribe(r => doRemoveRoles());
-
-    function doRemoveRoles() {
-      if (member.entityType === 'User') {
-        this.userService
-          .removeRolesFromUser(
-            member.identityProvider,
-            member.subjectId,
-            member.roles
-          )
-          .toPromise()
-          .then(() => {
-            return this.getMembers();
-          });
-      } else {
-        this.groupService
-          .removeRolesFromGroup(member.groupName, member.roles)
-          .toPromise()
-          .then(() => {
-            return this.getMembers();
-          });
-      }
-    }
+      .subscribe(r => this.doRemoveRoles(member));
   }
 
   changeSort(sortColumn: SortKey) {
@@ -181,6 +163,28 @@ export class MemberListComponent implements OnInit {
         '/accesscontrol/customgroupedit',
         member.subjectId
       ]);
+    }
+  }
+
+  private doRemoveRoles(member: IAuthMemberSearchResult) {
+    if (member.entityType === 'User') {
+      this.userService
+        .removeRolesFromUser(
+          member.identityProvider,
+          member.subjectId,
+          member.roles
+        )
+        .toPromise()
+        .then(() => {
+          return this.getMembers();
+        });
+    } else {
+      this.groupService
+        .removeRolesFromGroup(member.groupName, member.roles)
+        .toPromise()
+        .then(() => {
+          return this.getMembers();
+        });
     }
   }
 }
