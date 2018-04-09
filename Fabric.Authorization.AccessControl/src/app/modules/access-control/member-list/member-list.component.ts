@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, TemplateRef } from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
 import { Subject } from 'rxjs/Subject';
 import 'rxjs/add/operator/debounceTime';
 import 'rxjs/add/operator/distinctUntilChanged';
 import { Router } from '@angular/router';
+import { ModalService } from '@healthcatalyst/cashmere';
 
 import {
   AccessControlConfigService,
@@ -30,21 +31,26 @@ export class MemberListComponent implements OnInit {
   readonly keyUp = new Subject<Event>();
   readonly maxPageSize = 50;
 
+  private _pageNumber = 1;
+
   pageSize = 10;
   members: IAuthMemberSearchResult[];
   totalMembers = null;
-  pageNumber = 1;
   filter = '';
   sortKey: SortKey = 'name';
   sortDirection: SortDirection = 'asc';
   searchesInProgress = 0;
+
+  @ViewChild('confirmDialog')
+  private confirmDialog: TemplateRef<any>;
 
   constructor(
     private memberSearchService: FabricAuthMemberSearchService,
     private configService: AccessControlConfigService,
     private userService: FabricAuthUserService,
     private groupService: FabricAuthGroupService,
-    private router: Router
+    private router: Router,
+    private modalService: ModalService
   ) {
     this.keyUp
       .debounceTime(500)
@@ -59,6 +65,14 @@ export class MemberListComponent implements OnInit {
     this.getMembers();
   }
 
+  get pageNumber() {
+    return this._pageNumber;
+  }
+  set pageNumber(value: number) {
+    this._pageNumber = value;
+    this.onSearchChanged(true);
+  }
+
   get availablePageSizes() {
     return this.pageSizes.filter(
       s => s < this.totalMembers && s <= this.maxPageSize
@@ -69,26 +83,6 @@ export class MemberListComponent implements OnInit {
     return typeof this.totalMembers === 'number'
       ? Math.ceil(this.totalMembers / this.pageSize)
       : null;
-  }
-
-  firstPage() {
-    this.pageNumber = 1;
-    this.onSearchChanged(true);
-  }
-
-  previousPage() {
-    this.pageNumber--;
-    this.onSearchChanged(true);
-  }
-
-  nextPage() {
-    this.pageNumber++;
-    this.onSearchChanged(true);
-  }
-
-  lastPage() {
-    this.pageNumber = this.totalPages;
-    this.onSearchChanged(true);
   }
 
   onSearchChanged(preservePageNumber = false) {
@@ -124,24 +118,34 @@ export class MemberListComponent implements OnInit {
   }
 
   removeRolesFromMember(member: IAuthMemberSearchResult) {
-    if (member.entityType === 'User') {
-      this.userService
-        .removeRolesFromUser(
-          member.identityProvider,
-          member.subjectId,
-          member.roles
-        )
-        .toPromise()
-        .then(() => {
-          return this.getMembers();
-        });
-    } else {
-      this.groupService
-        .removeRolesFromGroup(member.groupName, member.roles)
-        .toPromise()
-        .then(() => {
-          return this.getMembers();
-        });
+    this.modalService.open(this.confirmDialog, {
+      data: member,
+      size: 'md'
+    })
+      .result
+      .filter(r => !!r)
+      .subscribe(r => doRemoveRoles());
+
+    function doRemoveRoles() {
+      if (member.entityType === 'User') {
+        this.userService
+          .removeRolesFromUser(
+            member.identityProvider,
+            member.subjectId,
+            member.roles
+          )
+          .toPromise()
+          .then(() => {
+            return this.getMembers();
+          });
+      } else {
+        this.groupService
+          .removeRolesFromGroup(member.groupName, member.roles)
+          .toPromise()
+          .then(() => {
+            return this.getMembers();
+          });
+      }
     }
   }
 

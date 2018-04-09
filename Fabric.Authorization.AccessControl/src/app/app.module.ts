@@ -1,4 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule } from '@angular/core';
 import { HttpClientModule } from '@angular/common/http';
 
@@ -18,7 +19,7 @@ import { ButtonModule, ProgressIndicatorsModule } from '@healthcatalyst/cashmere
 
 @NgModule({
   declarations: [AppComponent, LoginComponent, HomeComponent, LogoutComponent],
-  imports: [BrowserModule, AppRoutingModule, HttpClientModule, ButtonModule, ProgressIndicatorsModule],
+  imports: [BrowserModule, AppRoutingModule, HttpClientModule, ButtonModule, ProgressIndicatorsModule, BrowserAnimationsModule],
   providers: [
     AuthService,
     {
