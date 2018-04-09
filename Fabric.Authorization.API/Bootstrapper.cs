@@ -65,8 +65,7 @@ namespace Fabric.Authorization.API
             base.ConfigureRequestContainer(container, context);
             container.Register(new NancyContextWrapper(context));
             var appConfig = container.Resolve<IAppConfiguration>();
-            container.UseHttpClientFactory(context, appConfig.IdentityServerConfidentialClientSettings);
-            //container.UseHttpRequestMessageFactory(context, appConfig.IdentityServerConfidentialClientSettings);
+            container.UseHttpRequestMessageFactory(context, appConfig.IdentityServerConfidentialClientSettings);
             container.RegisterServices();
 
             var configurator = container.Resolve<IPersistenceConfigurator>();
