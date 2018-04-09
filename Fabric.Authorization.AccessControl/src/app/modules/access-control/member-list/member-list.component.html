@@ -1,3 +1,14 @@
+<ng-template #confirmDialog let-close="close" let-dismiss="dismiss" let-data="data">
+  <hc-modal>
+    <hc-modal-header>Confirm</hc-modal-header>
+    <hc-modal-body>Are you sure you want to remove all roles from {{data.subjectId}}?</hc-modal-body>
+    <hc-modal-footer>
+      <button hc-button color="tertiary" (click)="dismiss()"> Cancel </button>
+      <button hc-button color="primary" (click)="close()"> OK </button>
+      </hc-modal-footer>
+  </hc-modal>
+</ng-template>
+
 <div class="container">
   <div class="header">
     <button hc-button color="primary" [hcPopover]="options" popperPlacement="bottom" aria-hidden="true">
@@ -73,37 +84,7 @@
       </label>
     </div>
     <div class="pagination">
-      <button hc-button color="secondary" [disabled]="pageNumber === 1">
-        <a id="pageFirst" (click)="firstPage()" aria-label="First">
-          <span aria-hidden="true">
-            <hc-icon fontSet="fa" fontIcon="fa-angle-double-left"></hc-icon>
-          </span>
-        </a>
-      </button>
-      <button hc-button color="secondary" [disabled]="pageNumber === 1">
-        <a id="pagePrevious" (click)="previousPage()" aria-label="Previous">
-          <span aria-hidden="true">
-            <hc-icon fontSet="fa" fontIcon="fa-angle-left"></hc-icon>
-          </span>
-        </a>
-      </button>
-      <button hc-button color="secondary" disabled class="active">
-        <a>Page {{pageNumber}} of {{totalPages}}</a>
-      </button>
-      <button hc-button color="secondary" [disabled]="pageNumber >= totalPages">
-        <a id="pageNext" (click)="nextPage()" aria-label="Next">
-          <span aria-hidden="true">
-            <hc-icon fontSet="fa" fontIcon="fa-angle-right"></hc-icon>
-          </span>
-        </a>
-      </button>
-      <button hc-button color="secondary" [disabled]="pageNumber >= totalPages">
-        <a id="pageLast" (click)="lastPage()" aria-label="Last">
-          <span aria-hidden="true">
-            <hc-icon fontSet="fa" fontIcon="fa-angle-double-right"></hc-icon>
-          </span>
-        </a>
-      </button>
+      <hc-pagination [totalPages]="totalPages" [(pageNumber)]="pageNumber"></hc-pagination>
     </div>
   </div>
 </div>
