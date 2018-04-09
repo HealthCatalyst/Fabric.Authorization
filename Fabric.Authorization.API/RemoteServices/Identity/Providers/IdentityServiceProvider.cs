@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.RemoteServices.Identity.Models;
+using Fabric.Authorization.Domain.Models;
 using Fabric.Platform.Http;
 using IdentityModel.Client;
 using Newtonsoft.Json;
@@ -45,11 +46,13 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
             // TODO: clean this up / move to config
             var settings = _appConfiguration.IdentityServerConfidentialClientSettings;
 
-            var tokenUriAddress = $"{settings.Authority}connect/token";
+            var baseUri = settings.Authority.EnsureTrailingSlash();
+
+            var tokenUriAddress = $"{baseUri}connect/token";
             var tokenClient = new TokenClient(tokenUriAddress, "fabric-authorization-client", settings.ClientSecret);
             var accessTokenResponse = await tokenClient.RequestClientCredentialsAsync(IdentityScopes.SearchUsersScope).ConfigureAwait(false);
 
-            var httpRequestMessage = _httpRequestMessageFactory.CreateWithAccessToken(HttpMethod.Post, new Uri($"{settings.Authority}api/users"),
+            var httpRequestMessage = _httpRequestMessageFactory.CreateWithAccessToken(HttpMethod.Post, new Uri($"{baseUri}api/users"),
                 accessTokenResponse.AccessToken);
 
             var request = new UserSearchRequest
