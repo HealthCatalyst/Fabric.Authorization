@@ -17,7 +17,7 @@ convertSwagger2markup {
 	def url = "${System.env.FABRICAUTHORIZATIONBASEURL}"
     if (url?.trim()) {
         logger.info("----------HOST NAME = ${url}----------")
-        swaggerInput "${url}/docs/swagger.json"
+        swaggerInput "${url}/swagger/ui/swagger.json"
     }
     else {
         throw new GradleException("FABRICAUTHORIZATIONBASEURL environment variable is required.")
