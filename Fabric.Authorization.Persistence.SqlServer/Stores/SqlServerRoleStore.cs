@@ -161,17 +161,17 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             if (!string.IsNullOrEmpty(grain))
             {
-                roles = roles.Where(r => string.Equals(r.Grain, grain, StringComparison.OrdinalIgnoreCase));
+                roles = roles.Where(r => r.Grain == grain);
             }
 
             if (!string.IsNullOrWhiteSpace(securableItem))
             {
-                roles = roles.Where(r => string.Equals(r.SecurableItem.Name, securableItem));
+                roles = roles.Where(r => r.SecurableItem.Name == securableItem);
             }
 
             if (!string.IsNullOrWhiteSpace(roleName))
             {
-                roles = roles.Where(r => string.Equals(r.Name, roleName));
+                roles = roles.Where(r => r.Name == roleName);
             }
 
             foreach (var role in roles)

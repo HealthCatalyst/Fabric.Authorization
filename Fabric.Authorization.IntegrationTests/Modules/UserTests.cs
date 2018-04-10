@@ -733,7 +733,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(perms);
             });
 
-            var postResponse = await _browser.Post($"/user/{IdentityProvider}/{subjectId.ToUpper()}/permissions", with =>
+            var postResponse = await _browser.Post($"/user/{IdentityProvider}/{subjectId}/permissions", with =>
             {
                 with.HttpRequest();
                 var perms = new List<PermissionApiModel> { modifyPatientPermission };

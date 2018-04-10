@@ -7,6 +7,8 @@ using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using Fabric.Authorization.Persistence.SqlServer.EntityModels;
 using Fabric.Authorization.Persistence.SqlServer.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.Extensions.Logging;
 using Client = Fabric.Authorization.Persistence.SqlServer.EntityModels.Client;
 using Grain = Fabric.Authorization.Persistence.SqlServer.EntityModels.Grain;
 using Group = Fabric.Authorization.Persistence.SqlServer.EntityModels.Group;
@@ -21,11 +23,13 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
     {
         private readonly IEventContextResolverService _eventContextResolverService;
         protected readonly ConnectionStrings ConnectionStrings;
-        
-        public AuthorizationDbContext(IEventContextResolverService eventContextResolverService, ConnectionStrings connectionStrings)
+        private readonly ILoggerFactory _loggerFactory;
+
+        public AuthorizationDbContext(IEventContextResolverService eventContextResolverService, ConnectionStrings connectionStrings, ILoggerFactory loggerFactory)
         {
             _eventContextResolverService = eventContextResolverService;
             ConnectionStrings = connectionStrings;
+            _loggerFactory = loggerFactory;
         }
         public DbSet<Grain> Grains { get; set; }
         public DbSet<Client> Clients { get; set; }
@@ -105,7 +109,10 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(ConnectionStrings.AuthorizationDatabase);
+            optionsBuilder
+                .UseLoggerFactory(_loggerFactory)
+                .ConfigureWarnings(warnings => warnings.Throw(RelationalEventId.QueryClientEvaluationWarning))
+                .UseSqlServer(ConnectionStrings.AuthorizationDatabase);
         }
     }
 }

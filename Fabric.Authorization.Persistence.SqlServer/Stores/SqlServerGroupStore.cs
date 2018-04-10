@@ -55,7 +55,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .ThenInclude(gr => gr.Role)
                 .ThenInclude(r => r.SecurableItem)
                 .AsNoTracking()
-                .SingleOrDefaultAsync(g => g.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
+                .SingleOrDefaultAsync(g => g.Name == name
                                            && !g.IsDeleted);
 
             if (group == null)
@@ -144,7 +144,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         public async Task<bool> Exists(string name)
         {
             var group = await _authorizationDbContext.Groups
-                .SingleOrDefaultAsync(g => g.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
+                .SingleOrDefaultAsync(g => g.Name == name
                                            && !g.IsDeleted).ConfigureAwait(false);
 
             return group != null;
@@ -153,7 +153,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         public async Task<Group> AddRolesToGroup(Group group, IEnumerable<Role> rolesToAdd)
         {
             var groupEntity = await _authorizationDbContext.Groups.SingleOrDefaultAsync(g =>
-                g.Name.Equals(group.Name, StringComparison.OrdinalIgnoreCase)
+                g.Name == group.Name
                 && !g.IsDeleted);
 
             if (groupEntity == null)
@@ -231,7 +231,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         public async Task<Group> AddUsersToGroup(Group group, IEnumerable<User> usersToAdd)
         {
             var groupEntity = await _authorizationDbContext.Groups.SingleOrDefaultAsync(g =>
-                g.Name.Equals(group.Name, StringComparison.OrdinalIgnoreCase)
+                g.Name == group.Name
                 && !g.IsDeleted);
 
             if (groupEntity == null)
@@ -257,8 +257,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         {
             var userInGroup = await _authorizationDbContext.GroupUsers
                 .SingleOrDefaultAsync(gu =>
-                    gu.SubjectId.Equals(user.SubjectId, StringComparison.OrdinalIgnoreCase) &&
-                    gu.IdentityProvider.Equals(user.IdentityProvider, StringComparison.OrdinalIgnoreCase) &&
+                    gu.SubjectId == user.SubjectId &&
+                    gu.IdentityProvider == user.IdentityProvider &&
                     gu.GroupId == Guid.Parse(group.Id));
 
             if (userInGroup != null)
