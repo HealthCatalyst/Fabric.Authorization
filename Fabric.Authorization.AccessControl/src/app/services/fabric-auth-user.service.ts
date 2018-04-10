@@ -4,7 +4,7 @@ import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { catchError, retry } from 'rxjs/operators';
 
-import { Exception, IGroup, IRole, IUser } from '../models';
+import { Exception, IGroup, IRole, IUser, IDataChanged, IChangedData } from '../models';
 import { FabricBaseService } from './fabric-base.service';
 import { AccessControlConfigService } from './access-control-config.service';
 
@@ -81,11 +81,20 @@ export class FabricAuthUserService extends FabricBaseService {
     return this.httpClient.post<IUser>(
       url,
       roles
-    ).do((user) => { this.accessControlConfigService.dataChangeEvent({
-        subjectId: user.subjectId
-      });
-    }
-  );
+    ).do((user) => {
+      const changedData = this.getUserRoleChanges(roles, subjectId, 'added');
+      this.accessControlConfigService.dataChangeEvent(changedData);
+    });
+  }
+
+  private getUserRoleChanges(roles: IRole[], subjectId: string, action: string): IDataChanged {
+    return {
+      member: subjectId,
+      action: action,
+      changes: roles.map((role, index) => {
+        return { name: role.name };
+      })
+    };
   }
 
   public removeRolesFromUser(
@@ -105,7 +114,10 @@ export class FabricAuthUserService extends FabricBaseService {
         subjectId
       ),
       { body: roles }
-    );
+    ).do((user) => {
+      const changedData = this.getUserRoleChanges(roles, subjectId, 'removed');
+      this.accessControlConfigService.dataChangeEvent(changedData);
+    });
   }
 
   public createUser(user: IUser): Observable<IUser> {
