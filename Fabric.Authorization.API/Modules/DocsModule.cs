@@ -5,16 +5,16 @@ namespace Fabric.Authorization.API.Modules
 {
     public class DocsModule : NancyModule
     {
-        public DocsModule(ISwaggerMetadataProvider converter) : base("/v1/docs")
+        public DocsModule(ISwaggerMetadataProvider converter) : base("/v1/swagger/ui")
         {
-            Get("/", _ => GetSwaggerUrl());
+            Get("/index", _ => GetSwaggerUrl());
             Get("/swagger.json", _ => converter.GetSwaggerJson(Context).ToJson());
         }
 
         private Response GetSwaggerUrl()
         {
             return Response.AsRedirect(
-                $"swagger/index.html?url=docs/swagger.json");
+                $"index.html?url=swagger.json");
         }
     }
 }

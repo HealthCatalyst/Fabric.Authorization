@@ -15,28 +15,28 @@
     <Content Remove="wwwroot/swagger\swagger-ui.js" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="wwwroot/swagger\favicon-16x16.png">
+    <EmbeddedResource Include="wwwroot\swagger\ui\favicon-16x16.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="wwwroot/swagger\favicon-32x32.png">
+    <EmbeddedResource Include="wwwroot\swagger\ui\favicon-32x32.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="wwwroot/swagger\index.html">
+    <EmbeddedResource Include="wwwroot\swagger\ui\index.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="wwwroot/swagger\oauth2-redirect.html">
+    <EmbeddedResource Include="wwwroot\swagger\ui\oauth2-redirect.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="wwwroot/swagger\swagger-ui-bundle.js">
+    <EmbeddedResource Include="wwwroot\swagger\ui\swagger-ui-bundle.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="wwwroot/swagger\swagger-ui-standalone-preset.js">
+    <EmbeddedResource Include="wwwroot\swagger\ui\swagger-ui-standalone-preset.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="wwwroot/swagger\swagger-ui.css">
+    <EmbeddedResource Include="wwwroot\swagger\ui\swagger-ui.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="wwwroot/swagger\swagger-ui.js">
+    <EmbeddedResource Include="wwwroot\swagger\ui\swagger-ui.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
