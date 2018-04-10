@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { catchError, retry } from 'rxjs/operators';
-import { Exception, IGroup, IRole, IUser } from '../models';
+import { Exception, IGroup, IRole, IUser, IDataChanged, IChangedData } from '../models';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 
 import { FabricBaseService } from './fabric-base.service';
@@ -130,17 +130,27 @@ export class FabricAuthGroupService extends FabricBaseService {
           };
         })
       }
-    );
+    ).do((user) => {
+      const changedData = this.getUserRoleChanges(roles, groupName, 'removed');
+      this.accessControlConfigService.dataChangeEvent(changedData);
+    });
   }
 
   public createGroup(group: IGroup): Observable<IGroup> {
     return this.httpClient.post<IGroup>(
       FabricAuthGroupService.baseGroupApiUrl,
       group
-    ).do((newGroup) => { this.accessControlConfigService.dataChangeEvent({
-      groupName: newGroup.groupName
-    });
-  });
+    );
+  }
+
+  private getUserRoleChanges(roles: IRole[], groupName: string, action: string): IDataChanged {
+    return {
+      member: groupName,
+      actionType: action,
+      changes: roles.map((role, index) => {
+        return { name: role.name };
+      })
+    };
   }
 
   private replaceGroupNameSegment(
