@@ -71,7 +71,7 @@ namespace Fabric.Authorization.API
         {
             var eventContextResolverService = new EventContextResolverService(new NancyContextWrapper(new NancyContext()));
             var clientStore = _appConfig.StorageProvider.Equals(StorageProviders.InMemory, StringComparison.OrdinalIgnoreCase)
-                ? (IClientStore) new InMemoryClientStore()
+                ? (IClientStore)new InMemoryClientStore()
                 : new CouchDbClientStore(new CouchDbAccessService(_appConfig.CouchDbSettings, _logger), _logger, eventContextResolverService);
             
             var result = await clientStore.GetAll();
