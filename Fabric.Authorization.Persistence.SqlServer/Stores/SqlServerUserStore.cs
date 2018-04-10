@@ -40,6 +40,9 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 throw new ArgumentException("id must be in the format {subjectId}:{identityProvider}");
             }
 
+            var subjectId = idParts[0];
+            var identityProvider = idParts[1];
+
             var user = await _authorizationDbContext.Users
                 .Include(u => u.GroupUsers)
                 .ThenInclude(ug => ug.Group)
@@ -49,10 +52,9 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .ThenInclude(u => u.Role)
                 .ThenInclude(r => r.SecurableItem)
                 .AsNoTracking()
-                .SingleOrDefaultAsync(u =>
-                    u.IdentityProvider.Equals(idParts[1], StringComparison.OrdinalIgnoreCase)
-                    && u.SubjectId.Equals(idParts[0], StringComparison.OrdinalIgnoreCase)
-                    && !u.IsDeleted);
+                .SingleOrDefaultAsync(u => u.IdentityProvider == identityProvider
+                                           && u.SubjectId == subjectId
+                                           && !u.IsDeleted);
 
             if (user == null)
             {
@@ -79,8 +81,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         {
             var user = await _authorizationDbContext.Users
                 .SingleOrDefaultAsync(u =>
-                    u.IdentityProvider.Equals(model.IdentityProvider, StringComparison.OrdinalIgnoreCase)
-                    && u.SubjectId.Equals(model.SubjectId, StringComparison.OrdinalIgnoreCase)
+                    u.IdentityProvider == model.IdentityProvider
+                    && u.SubjectId == model.SubjectId
                     && !u.IsDeleted);
 
             if (user == null)
@@ -96,8 +98,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         {
             var user = await _authorizationDbContext.Users
                 .SingleOrDefaultAsync(u =>
-                    u.IdentityProvider.Equals(model.IdentityProvider, StringComparison.OrdinalIgnoreCase)
-                    && u.SubjectId.Equals(model.SubjectId, StringComparison.OrdinalIgnoreCase)
+                    u.IdentityProvider == model.IdentityProvider
+                    && u.SubjectId == model.SubjectId
                     && !u.IsDeleted);
 
             if (user == null)
@@ -119,10 +121,13 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 throw new ArgumentException("id must be in the format {subjectId}:{identityProvider}");
             }
 
+            var subjectId = idParts[0];
+            var identityProvider = idParts[1];
+
             var user = await _authorizationDbContext.Users
                 .SingleOrDefaultAsync(u =>
-                    u.IdentityProvider.Equals(idParts[1], StringComparison.OrdinalIgnoreCase)
-                    && u.SubjectId.Equals(idParts[0], StringComparison.OrdinalIgnoreCase)
+                    u.IdentityProvider == identityProvider
+                    && u.SubjectId == subjectId
                     && !u.IsDeleted);
 
             return user != null;
@@ -147,12 +152,14 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task<User> DeleteRolesFromUser(User user, IList<Role> roles)
         {
+            var roleIds = roles.Select(r => r.Id);
+
             var roleUsers =
                 _authorizationDbContext.RoleUsers.Where(
-                    ru => ru.SubjectId.Equals(user.SubjectId, StringComparison.OrdinalIgnoreCase) &&
-                          ru.IdentityProvider.Equals(user.IdentityProvider, StringComparison.OrdinalIgnoreCase) &&
+                    ru => ru.SubjectId == user.SubjectId &&
+                          ru.IdentityProvider == user.IdentityProvider &&
                           !ru.IsDeleted &&
-                          roles.Select(r => r.Id).Contains(ru.RoleId));
+                          roleIds.Contains(ru.RoleId));
 
             foreach (var roleUser in roleUsers)
             {

@@ -22,7 +22,7 @@ namespace Fabric.Authorization.IntegrationTests
             IHostingEnvironment env, 
             ClaimsPrincipal principal, 
             IIdentityServiceProvider identityServiceProvider = null)
-            : base(logger, appConfig, levelSwitch, env)
+            : base(logger, appConfig, levelSwitch, env, null)
         {
             _principal = principal;
             _identityServiceProvider = identityServiceProvider;

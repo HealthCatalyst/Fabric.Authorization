@@ -70,7 +70,7 @@ namespace Fabric.Authorization.UnitTests.DbBootstrappers
 
         private InMemoryAuthorizationDbContext CreateDbContext()
         {
-            return new InMemoryAuthorizationDbContext(new NoOpEventContextResolverService(), new ConnectionStrings { AuthorizationDatabase = "somestring" });
+            return new InMemoryAuthorizationDbContext(new NoOpEventContextResolverService(), new ConnectionStrings { AuthorizationDatabase = "somestring" }, null);
         }
     }
 }

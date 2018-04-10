@@ -47,7 +47,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         {
             var client = await _authorizationDbContext.Clients
                 .Include(i => i.TopLevelSecurableItem)
-                .SingleOrDefaultAsync(c => c.ClientId.Equals(id, StringComparison.OrdinalIgnoreCase)
+                .SingleOrDefaultAsync(c => c.ClientId == id
                                            && !c.IsDeleted);
 
             if (client == null)
@@ -71,7 +71,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         {
             var client = await _authorizationDbContext.Clients
                 .Include(i => i.TopLevelSecurableItem)
-                .SingleOrDefaultAsync(c => c.ClientId.Equals(model.Id, StringComparison.OrdinalIgnoreCase)
+                .SingleOrDefaultAsync(c => c.ClientId == model.Id
                                            && !c.IsDeleted);
 
             if (client == null)
@@ -98,7 +98,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         {
             var client = await _authorizationDbContext.Clients
                 .Include(i => i.TopLevelSecurableItem)
-                .SingleOrDefaultAsync(c => c.ClientId.Equals(model.Id, StringComparison.OrdinalIgnoreCase)
+                .SingleOrDefaultAsync(c => c.ClientId == model.Id
                                            && !c.IsDeleted);
             if (client == null)
             {
@@ -119,7 +119,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         public async Task<bool> Exists(string id)
         {
             var client = await _authorizationDbContext.Clients                
-                .SingleOrDefaultAsync(c => c.ClientId.Equals(id, StringComparison.OrdinalIgnoreCase)
+                .SingleOrDefaultAsync(c => c.ClientId == id
                                            && !c.IsDeleted).ConfigureAwait(false);
 
             return client != null;

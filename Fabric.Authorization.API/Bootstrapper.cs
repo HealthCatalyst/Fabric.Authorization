@@ -15,6 +15,7 @@ using Fabric.Platform.Bootstrappers.Nancy;
 using LibOwin;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Nancy;
 using Nancy.Bootstrapper;
@@ -23,24 +24,26 @@ using Nancy.Owin;
 using Nancy.Responses.Negotiation;
 using Nancy.Swagger.Services;
 using Nancy.TinyIoc;
-using Serilog;
 using Serilog.Core;
 using Swagger.ObjectModel;
 using Swagger.ObjectModel.Builders;
 using HttpResponseHeaders = Fabric.Authorization.API.Constants.HttpResponseHeaders;
+using ILogger = Serilog.ILogger;
 
 namespace Fabric.Authorization.API
 {
     public class Bootstrapper : DefaultNancyBootstrapper
     {
         private readonly IHostingEnvironment _env;
+        private readonly ILoggerFactory _loggerFactory;
         private readonly IAppConfiguration _appConfig;
         private readonly ILogger _logger;
         private readonly LoggingLevelSwitch _loggingLevelSwitch;
 
-        public Bootstrapper(ILogger logger, IAppConfiguration appConfig, LoggingLevelSwitch levelSwitch, IHostingEnvironment env)
+        public Bootstrapper(ILogger logger, IAppConfiguration appConfig, LoggingLevelSwitch levelSwitch, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             _env = env;
+            _loggerFactory = loggerFactory;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _appConfig = appConfig ?? throw new ArgumentNullException(nameof(appConfig));
             _loggingLevelSwitch = levelSwitch ?? throw new ArgumentNullException(nameof(levelSwitch));
@@ -132,6 +135,7 @@ namespace Fabric.Authorization.API
         private void ConfigureApplicationRegistrations(TinyIoCContainer container)
         {
             container.Register(_appConfig);
+            container.Register(_loggerFactory);
             container.Register(_logger);
             var options = new MemoryCacheOptions();
             var eventLogger = LogFactory.CreateEventLogger(_loggingLevelSwitch, _appConfig.ApplicationInsights);

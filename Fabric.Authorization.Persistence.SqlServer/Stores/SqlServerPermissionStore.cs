@@ -119,17 +119,17 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         {
             var permissions = _authorizationDbContext.Permissions
                 .Include(p => p.SecurableItem)
-                .Where(p => string.Equals(p.Grain, grain, StringComparison.OrdinalIgnoreCase)
+                .Where(p => p.Grain == grain
                             && !p.IsDeleted);
 
             if (!string.IsNullOrWhiteSpace(securableItem))
             {
-                permissions = permissions.Where(p => string.Equals(p.SecurableItem.Name, securableItem));
+                permissions = permissions.Where(p => p.SecurableItem.Name == securableItem);
             }
 
             if (!string.IsNullOrWhiteSpace(permissionName))
             {
-                permissions = permissions.Where(p => string.Equals(p.Name, permissionName));
+                permissions = permissions.Where(p => p.Name == permissionName);
             }
 
             return Task.FromResult(permissions.Select(p => p.ToModel()).AsEnumerable());
@@ -139,20 +139,23 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         {
             var idParts = SplitGranularPermissionId(granularPermission.Id);
 
+            var subjectId = idParts[0];
+            var identityProvider = idParts[1];
+
             var user = await _authorizationDbContext.Users
                 .Include(u => u.UserPermissions)
                 .ThenInclude(up => up.Permission)
-                .SingleOrDefaultAsync(u => u.IdentityProvider.Equals(idParts[1], StringComparison.OrdinalIgnoreCase)
-                                           && u.SubjectId.Equals(idParts[0], StringComparison.OrdinalIgnoreCase)
+                .SingleOrDefaultAsync(u => u.IdentityProvider == identityProvider
+                                           && u.SubjectId == subjectId
                                            && !u.IsDeleted);
 
             if (user == null)
             {
                 user = new EntityModels.User
                 {
-                    IdentityProvider = idParts[1],
-                    SubjectId = idParts[0],
-                    Name = $"{idParts[1]}\\{idParts[0]}"
+                    IdentityProvider = identityProvider,
+                    SubjectId = subjectId,
+                    Name = $"{identityProvider}\\{subjectId}"
                 };
                 _authorizationDbContext.Users.Add(user);
             }
@@ -189,12 +192,15 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         {
             var idParts = SplitGranularPermissionId(userId);
 
+            var subjectId = idParts[0];
+            var identityProvider = idParts[1];
+
             var user = await _authorizationDbContext.Users
                 .Include(u => u.UserPermissions)
                 .ThenInclude(up => up.Permission)
                 .ThenInclude(p => p.SecurableItem)
-                .SingleOrDefaultAsync(u => u.IdentityProvider.Equals(idParts[1], StringComparison.OrdinalIgnoreCase)
-                            && u.SubjectId.Equals(idParts[0], StringComparison.OrdinalIgnoreCase)
+                .SingleOrDefaultAsync(u => u.IdentityProvider == identityProvider
+                            && u.SubjectId == subjectId
                             && !u.IsDeleted);
 
             if (user == null)
