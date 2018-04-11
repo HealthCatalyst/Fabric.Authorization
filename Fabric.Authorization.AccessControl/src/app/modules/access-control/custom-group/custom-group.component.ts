@@ -9,12 +9,15 @@ import {
   FabricAuthGroupService,
   FabricExternalIdpSearchService
 } from '../../../services';
+
+import { Subscription } from 'rxjs/Subscription';
 import { Subject } from 'rxjs/Subject';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/zip';
 import 'rxjs/add/operator/mergeMap';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
+import 'rxjs/add/operator/takeUntil';
 
 @Component({
   selector: 'app-custom-group',
@@ -49,7 +52,6 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     this.groupName = this.route.snapshot.paramMap.get('subjectid');
 
     Observable.zip(this.getGroupRoles(), this.getGroupUsers())
-
       .do((result: [IRole[], IUser[]]) => {
         this.roles = result[0];
         this.associatedPrincipals = result[1];

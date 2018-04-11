@@ -18,8 +18,10 @@ import {
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { FabricHttpErrorHandlerInterceptorService } from './interceptors/fabric-http-error-handler-interceptor.service';
 import { mockExternalIdpSearchResult } from './fabric-external-idp-search.service.mock';
+import { Subject } from 'rxjs/Subject';
 
 describe('FabricExternalIdpSearchService', () => {
+  let searchTextSubject: Subject<string>;
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
@@ -35,6 +37,10 @@ describe('FabricExternalIdpSearchService', () => {
     });
   });
 
+  beforeEach(() => {
+    searchTextSubject = new Subject<string>();
+  });
+
   it(
     'should be created',
     inject(
@@ -46,7 +52,7 @@ describe('FabricExternalIdpSearchService', () => {
   );
 
   it(
-    'searchExternalIdP should deserialize all properties',
+    'search should deserialize all properties',
     async(
       inject(
         [HttpClient, HttpTestingController, FabricExternalIdpSearchService],
@@ -55,7 +61,7 @@ describe('FabricExternalIdpSearchService', () => {
           httpTestingController: HttpTestingController,
           service: FabricExternalIdpSearchService
         ) => {
-          service.search('sub', 'user').subscribe(searchResult => {
+          service.search(searchTextSubject.asObservable(), 'user').subscribe(searchResult => {
             expect(searchResult).toBeDefined();
             expect(searchResult.principals.length).toBe(2);
 
@@ -70,19 +76,17 @@ describe('FabricExternalIdpSearchService', () => {
             expect(result2.firstName).toBe('First_2');
             expect(result2.lastName).toBe('Last_2');
             expect(result2.principalType).toBe('user');
-          });
 
-          const req = httpTestingController.expectOne(
-            `${
-              FabricExternalIdpSearchService.idPServiceBaseUrl
-            }?searchText=sub&type=user`
-          );
+            const req = httpTestingController.expectOne(`${FabricExternalIdpSearchService.idPServiceBaseUrl}?searchText=sub&type=user`);
+
           expect(req.request.method).toBe('GET');
           req.flush(mockExternalIdpSearchResult, {
             status: 200,
             statusText: 'OK'
           });
           httpTestingController.verify();
+          });
+          searchTextSubject.next('sub');
         }
       )
     )
