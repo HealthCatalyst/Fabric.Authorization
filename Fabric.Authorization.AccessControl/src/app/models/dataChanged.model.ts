@@ -1,6 +1,7 @@
 export interface IDataChanged {
     member: string;
-    actionType: string;
+    action: string;
+    type: string;
     changes: IChangedData[];
 }
 
