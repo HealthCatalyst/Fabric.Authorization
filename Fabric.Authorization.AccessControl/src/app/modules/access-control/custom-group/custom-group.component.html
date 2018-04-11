@@ -1,70 +1,88 @@
-<div>
-  <h2>Custom Group Name</h2>
-   <span>{{groupName}}</span>
-</div>
-
-<div>
-  <h3>Associate Users</h3>
-  <input #searchTerm (keyup)="onKey(searchTerm.value)">
-  <ul class="users">
-      <li *ngFor="let user of usersToAssign"
-          [class.selected]="userIsSelected(user)"
-          (click)="onUserSelect(user)">
-          {{user.subjectId}}
-      </li> 
-  </ul>    
-</div>
-<div>
-    <table>
+<div class="container">
+    <h3 class="h3">
+        <span>Custom Group Name</span>
+    </h3>
+    <input hc-input class="hc-input" [(ngModel)]="groupName" [readOnly]="editMode">
+    <h3 class="h3">
+        <span>Associated Users</span>
+    </h3>
+    <div class="associated-users">
+        <div class="top">
+            <div class="input-combo">
+                <input hc-input class="hc-input" [(ngModel)]="searchTerm" (keyup)="searchTermSubject.next($event.target.value)" placeholder="search for users">
+                <i [class]="searching ? 'btn-icon fa fa-spinner fa-pulse fa-fw' : 'btn-icon fa fa-search'"></i>
+            </div>
+        </div>
+        <div class="left">
+            <h3>Available</h3>
+            <div class="table-container">
+                <table class="hc-table hc-table-borders">
+                    <tbody>
+                        <tr *ngFor="let principal of principals">
+                            <td>
+                                <hc-checkbox [id]="principal.subjectId" [(ngModel)]="principal.selected">
+                                </hc-checkbox>
+                            </td>
+                            <td [innerText]="principal.subjectId">
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="empty-notification" *ngIf="!initializing && principals.length === 0">
+                    <label>Search to find Users</label>
+                </div>
+            </div>
+        </div>
+        <div class="middle">
+            <button (click)="associateUsers()">
+                <i class="fa fa-arrow-right" aria-hidden="true"></i>
+            </button>
+            <button (click)="unAssociateUsers()">
+                <i class="fa fa-arrow-left" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="right">
+            <h3>Selected</h3>
+            <div class="table-container">
+                <table class="hc-table hc-table-borders">
+                    <tbody>
+                        <tr *ngFor="let user of associatedPrincipals">
+                            <td>
+                                <hc-checkbox [id]="user.subjectId" [(ngModel)]="user.selected">
+                                </hc-checkbox>
+                            </td>
+                            <td [innerText]="user.subjectId"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="empty-notification" *ngIf="!initializing && associatedPrincipals.length === 0">
+                    <label>Add Users</label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h3 class="h3">
+        <span>Roles</span>
+    </h3>
+    <table class="hc-table hc-table-borders">
         <thead>
             <tr>
-                <th>Name</th>           
+                <th></th>
+                <th>Role Name</th>
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let user of selectedUsers">
-                <td>{{user.subjectId}}</td>
-                <button (click)="removeUserSelection(user)">X</button>
-            </tr>  
+            <tr *ngFor="let role of roles">
+                <td>
+                    <hc-checkbox [id]="role.id" [(ngModel)]="role.selected">
+                    </hc-checkbox>
+                </td>
+                <td [innerText]="role.name"></td>
+            </tr>
         </tbody>
     </table>
-</div>
-<div>
-  <h3>Associated Users</h3>
-  <table>
-    <thead>
-        <tr>
-            <th>Name</th>           
-        </tr>
-    </thead>
-    <tbody>
-        <tr *ngFor="let user of users">
-            <td>{{user.subjectId}}</td>
-            <button (click)="removeUserFromGroup(user)">X</button>
-        </tr>  
-    </tbody>
-</table>
-</div>
-<div>  
-  <h3>Assigned Roles</h3>
-  <ul class="roles">
-    <li *ngFor="let role of roles"
-        [class.selected]="roleIsSelected(role)"
-        (click)="onRoleSelect(role)">
-        {{role.name}}
-    </li>
-  </ul>
-</div>
-<div>
-  <h3>Roles to Assign:</h3>  
-  <ul class="roles">
-      <li *ngFor="let role of assignableRoles"
-          [class.selected]="roleIsSelected(role)"
-          (click)="onRoleSelect(role)">
-          {{role.name}}
-      </li>
-  </ul>
-  </div> 
-<div>    
-  <button (click)="updateGroup()">Save</button>
+    <div class="buttons">
+        <button hc-button color="primary" (click)="save()">Save</button>
+        <a hc-button routerLink="/accesscontrol" color="secondary">Cancel</a>
+    </div>
 </div>

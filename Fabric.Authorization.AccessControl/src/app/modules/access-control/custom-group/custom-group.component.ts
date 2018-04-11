@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 
-import { IRole, IUser, IFabricPrincipal } from '../../../models';
+import { IRole, IUser, IFabricPrincipal, IdPSearchResult, IGroup } from '../../../models';
 import {
   FabricAuthUserService,
   AccessControlConfigService,
@@ -9,168 +9,195 @@ import {
   FabricAuthGroupService,
   FabricExternalIdpSearchService
 } from '../../../services';
+import { Subject } from 'rxjs/Subject';
+import { Observable } from 'rxjs/Observable';
+import 'rxjs/add/observable/zip';
+import 'rxjs/add/operator/mergeMap';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/do';
 
 @Component({
   selector: 'app-custom-group',
   templateUrl: './custom-group.component.html',
   styleUrls: ['./custom-group.component.scss']
 })
-export class CustomGroupComponent implements OnInit {
+export class CustomGroupComponent implements OnInit, OnDestroy {
   public groupName = '';
   public roles: Array<IRole> = [];
-  public assignableRoles: Array<IRole> = [];
-  public rolesToAssign: Array<IRole> = [];
-  public usersToAssign: Array<IFabricPrincipal> = [];
-  public selectedUsers: Array<IFabricPrincipal> = [];
-  public users: Array<IUser> = [];
+  public principals: Array<IFabricPrincipal> = [];
+  public associatedPrincipals: Array<IUser> = [];
+  public editMode = true;
+
+  public searchTerm = '';
+  public searchTermSubject = new Subject<string>();
+  public searching = false;
+  public initializing = true;
+
+  private ngUnsubscribe: any = new Subject();
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private userService: FabricAuthUserService,
     private configService: AccessControlConfigService,
     private roleService: FabricAuthRoleService,
     private groupService: FabricAuthGroupService,
     private idpSearchService: FabricExternalIdpSearchService
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.groupName = this.route.snapshot.paramMap.get('subjectid');
-    this.getGroupRoles();
-    this.getGroupUsers();
-  }
 
-  onKey(searchText) {
-    if (searchText.length === 0) {
-      this.usersToAssign = [];
-    }
-    if (searchText.length < 2) {
-      return;
-    }
+    Observable.zip(this.getGroupRoles(), this.getGroupUsers())
 
-    this.idpSearchService.searchExternalIdP(searchText, 'user').subscribe(result => {
-      this.usersToAssign = result.principals;
-    });
-  }
+      .do((result: [IRole[], IUser[]]) => {
+        this.roles = result[0];
+        this.associatedPrincipals = result[1];
+      })
+      .takeUntil(this.ngUnsubscribe)
+      .subscribe(null, null, () => {
+        this.initializing = false;
+      });
 
-  onUserSelect(user: IFabricPrincipal) {
-    if (!this.userIsSelected(user)) {
-      this.selectedUsers.push(user);
-    } else {
-      this.selectedUsers = this.selectedUsers.filter(
-        u => u.subjectId !== user.subjectId
-      );
-    }
-  }
+    this.searchTermSubject
+      .takeUntil(this.ngUnsubscribe)
+      .do((term) => {
+        this.principals.map(p => p.selected = false);
+        if (term && term.length > 2) {
+          this.searching = true;
+        } else {
+          this.searching = false;
+          this.principals = [];
+        }
+      })
+      .takeUntil(this.ngUnsubscribe)
+      .subscribe();
 
-  userIsSelected(user: IFabricPrincipal) {
-    return (
-      this.selectedUsers.filter(u => u.subjectId === user.subjectId).length > 0
-    );
-  }
-
-  removeUserSelection(user: IUser) {
-    this.selectedUsers = this.selectedUsers.filter(
-      u => u.subjectId !== user.subjectId
-    );
-  }
-
-  getGroupUsers() {
-    return this.groupService
-      .getGroupUsers(this.groupName)
-      .toPromise()
-      .then(users => {
-        this.users = users;
+    this.idpSearchService
+      .search(this.searchTermSubject, 'user')
+      .takeUntil(this.ngUnsubscribe)
+      .subscribe(result => {
+        this.searching = false;
+        this.principals = result.principals
+          .filter(principal => this.associatedPrincipals
+            .some(associatedPrincipal => associatedPrincipal.subjectId !== principal.subjectId));
       });
   }
 
-  removeUserFromGroup(user: IUser) {
-    return this.groupService
-      .removeUserFromCustomGroup(this.groupName, user)
-      .toPromise()
-      .then(() => this.getGroupUsers());
+  ngOnDestroy(): void {
+    this.ngUnsubscribe.next();
+    this.ngUnsubscribe.complete();
   }
 
-  getGroupRoles() {
+  getGroupUsers(): Observable<IUser[]> {
     return this.groupService
+      .getGroupUsers(this.groupName);
+  }
+
+  getGroupRoles(): Observable<IRole[]> {
+    const rolesObservable = this.roleService
+      .getRolesBySecurableItemAndGrain(
+        this.configService.grain,
+        this.configService.securableItem
+      );
+
+    const groupRolesObservable = this.groupService
       .getGroupRoles(
         this.groupName,
         this.configService.grain,
         this.configService.securableItem
-      )
-      .toPromise()
-      .then(roles => {
-        this.roles = roles;
-        return this.getRolesToAssign();
+      );
+
+    return Observable.zip(rolesObservable, groupRolesObservable)
+      .map((result: [IRole[], IRole[]]) => {
+        let allRoles = result[0];
+        const groupRoles = result[1];
+
+        allRoles = allRoles.map(role => {
+          role.selected = groupRoles.some(groupRole => groupRole.name === role.name);
+          return role;
+        });
+
+        return allRoles;
       });
   }
 
-  removeRole(role: IRole) {
-    this.roles = this.removeMemberRole(role);
-    const rolesToRemove: Array<IRole> = [];
-    rolesToRemove.push(role);
-
-    return this.groupService
-      .removeRolesFromGroup(this.groupName, rolesToRemove)
-      .toPromise()
-      .then(() => this.getRolesToAssign());
-  }
-
-  getRolesToAssign() {
-    return this.roleService
-      .getRolesBySecurableItemAndGrain(
-        this.configService.grain,
-        this.configService.securableItem
-      )
-      .toPromise()
-      .then(roles => {
-        const existingRoleNames = this.roles.map(r => r.name);
-        this.assignableRoles = roles.filter(
-          r => existingRoleNames.indexOf(r.name) === -1
-        );
+  associateUsers() {
+    const newUsers: IUser[] = this.principals
+      .filter(principal => principal.selected === true)
+      .map((principal) => {
+        const newUser: IUser = {
+          subjectId: principal.subjectId,
+          identityProvider: this.configService.identityProvider,
+          selected: false
+        };
+        return newUser;
       });
+
+    this.associatedPrincipals = this.associatedPrincipals.concat(newUsers);
+    this.principals = this.principals.filter(principal => !principal.selected);
   }
 
-  onRoleSelect(role: IRole) {
-    if (!this.roleIsSelected(role)) {
-      this.rolesToAssign.push(role);
-    } else {
-      this.rolesToAssign = this.rolesToAssign.filter(r => r.name !== role.name);
-    }
-  }
-
-  roleIsSelected(role: IRole) {
-    return this.rolesToAssign.filter(r => r.name === role.name).length > 0;
-  }
-
-  addRoles() {
-    return this.groupService
-      .addRolesToGroup(this.groupName, this.rolesToAssign)
-      .toPromise()
-      .then(() => this.getGroupRoles());
-  }
-
-  updateGroup() {
-    // add users from selectedUsers
-    if (this.selectedUsers.length > 0) {
-      const identityProvider = this.configService.identityProvider;
-      const usersToSave = new Array<IUser>();
-      this.selectedUsers.forEach(function(user) {
-        const userModel: IUser = {identityProvider, subjectId: user.subjectId};
-        usersToSave.push(userModel);
+  unAssociateUsers() {
+    const removedUsers: IFabricPrincipal[] = this.associatedPrincipals
+      .filter(principal => principal.selected === true)
+      .map((principal) => {
+        const newUser: IFabricPrincipal = {
+          subjectId: principal.subjectId,
+          firstName: '',
+          middleName: '',
+          lastName: '',
+          principalType: 'user',
+          selected: false
+        };
+        return newUser;
       });
-      this.groupService
-        .addUsersToCustomGroup(this.groupName, usersToSave)
-        .toPromise();
-    }
-    // add roles from rolesToAssign
-    if (this.rolesToAssign.length > 0) {
-      this.groupService
-        .addRolesToGroup(this.groupName, this.rolesToAssign)
-        .toPromise();
-    }
+
+    this.principals = this.principals.concat(removedUsers);
+    this.associatedPrincipals = this.associatedPrincipals.filter(principal => !principal.selected);
   }
 
-  private removeMemberRole(role: IRole) {
-    return this.roles.filter(r => r.name !== role.name);
+  save() {
+    const newGroup: IGroup = { groupName: this.groupName, groupSource: 'custom' };
+    const groupObservable = this.editMode ? Observable.of(newGroup) : this.groupService.createGroup(newGroup);
+
+    return groupObservable
+      .mergeMap((group) => {
+        const groupRolesObservable = this.groupService
+          .getGroupRoles(this.groupName, this.configService.grain, this.configService.securableItem);
+        const groupUsersObservable = this.getGroupUsers();
+
+        return Observable.zip(groupRolesObservable, groupUsersObservable)
+          .mergeMap((result: [IRole[], IUser[]]) => {
+            const existingRoles = result[0];
+            const existingUsers = result[1];
+            const selectedRoles = this.roles.filter(role => role.selected === true);
+
+            const usersToAdd = this.associatedPrincipals
+              .filter(user => !existingUsers.some(existingUser => user.subjectId === existingUser.subjectId));
+            const usersToRemove = existingUsers
+              .filter(existingUser => !this.associatedPrincipals.some(user => user.subjectId === existingUser.subjectId));
+
+            const rolesToAdd = selectedRoles.filter(userRole => !existingRoles.some(selectedRole => userRole.id === selectedRole.id));
+            const rolesToRemove = existingRoles.filter(userRole => !selectedRoles.some(selectedRole => userRole.id === selectedRole.id));
+
+            // adding/removing roles and group members
+            const saveObservables = [];
+            saveObservables.push(this.groupService.removeRolesFromGroup(group.groupName, rolesToRemove));
+            saveObservables.push(this.groupService.addRolesToGroup(group.groupName, rolesToAdd));
+            saveObservables.push(this.groupService.addUsersToCustomGroup(group.groupName, usersToAdd));
+            for (const userToRemove of usersToRemove) {
+              saveObservables.push(this.groupService.removeUserFromCustomGroup(group.groupName, userToRemove));
+            }
+            return Observable.zip(...saveObservables);
+          });
+      })
+      .takeUntil(this.ngUnsubscribe)
+      .subscribe(null, (error) => {
+        // TODO: Error handling
+        console.error(error);
+      }, () => {
+        this.router.navigate(['/accesscontrol']);
+      });
   }
 }

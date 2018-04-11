@@ -4,4 +4,7 @@ export interface IFabricPrincipal {
   middleName: string;
   lastName: string;
   principalType: string;
+
+  // Custom Property
+  selected?: boolean;
 }

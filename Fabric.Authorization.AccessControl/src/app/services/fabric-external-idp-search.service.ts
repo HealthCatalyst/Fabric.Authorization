@@ -31,26 +31,22 @@ export class FabricExternalIdpSearchService extends FabricBaseService {
     }
   }
 
-  public searchUser(searchText: Observable<string>, type: string): Observable<IdPSearchResult> {
+  public search(searchText: Observable<string>, type: string): Observable<IdPSearchResult> {
     return searchText.debounceTime(250)
       .distinctUntilChanged()
       .filter((term: string) =>  term && term.length > 2)
       .switchMap((term) => {
-        return this.searchExternalIdP(term, type);
+        let params = new HttpParams()
+          .set('searchText', term);
+
+        if (type) {
+          params = params.set('type', type);
+        }
+
+        return this.httpClient.get<IdPSearchResult>(
+          FabricExternalIdpSearchService.idPServiceBaseUrl,
+          { params }
+        );
       });
-  }
-
-  public searchExternalIdP(searchText: string, type: string): Observable<IdPSearchResult> {
-    let params = new HttpParams()
-      .set('searchText', searchText);
-
-    if (type) {
-      params = params.set('type', type);
-    }
-
-    return this.httpClient.get<IdPSearchResult>(
-      FabricExternalIdpSearchService.idPServiceBaseUrl,
-      { params }
-    );
   }
 }

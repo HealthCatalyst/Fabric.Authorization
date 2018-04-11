@@ -46,3 +46,46 @@ table.hc-table {
     width: 70px;
   }
 }
+
+.scroll-table{
+  $scrollbar-width: 0.9em;
+  display: flex;
+  flex-flow: column;
+  max-height: 180px;
+
+  thead,
+  tbody tr {
+    display: table;
+    table-layout: fixed;
+  }
+
+  thead {
+    flex: 0 0 auto;
+    width: calc(100% - $scrollbar-width);
+  }
+
+  tbody {
+    display: block;
+    flex: 1 1 auto;
+    overflow-y: auto;
+
+    tr {
+      width: 100%;
+    }
+  }
+}
+
+.btn-icon {
+  cursor: pointer;
+  color: $gray-400;
+  &:hover {
+    color: $black;
+  }
+}
+
+.input-combo .fa {
+  color: $gray-400;
+  position: relative;
+  right: 35px;
+  pointer-events: none;
+}

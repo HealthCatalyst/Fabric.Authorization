@@ -21,22 +21,14 @@ import { IFabricPrincipal, IRole, IUser, IGroup } from '../../../models';
 import { inherits } from 'util';
 import { Router, ActivatedRoute } from '@angular/router';
 
-export interface IRoleModel extends IRole {
-  selected: boolean;
-}
-
-export interface IFabricPrincipalModel extends IFabricPrincipal {
-  selected: boolean;
-}
-
 @Component({
   selector: 'app-member',
   templateUrl: './member.component.html',
   styleUrls: ['./member.component.scss']
 })
 export class MemberComponent implements OnInit, OnDestroy {
-  public principals: Array<IFabricPrincipalModel> = [];
-  public roles: Array<IRoleModel> = [];
+  public principals: Array<IFabricPrincipal> = [];
+  public roles: Array<IRole> = [];
   public searching = false;
   public principalSelected = false;
   public searchTextSubject = new Subject<string>();
@@ -71,7 +63,7 @@ export class MemberComponent implements OnInit, OnDestroy {
       )
       .takeUntil(this.ngUnsubscribe)
       .mergeMap((roles: IRole[]) => {
-        this.roles = roles.map(role => <IRoleModel>role);
+        this.roles = roles.map(role => <IRole>role);
         return this.bindExistingRoles(this.subjectId, this.entityType);
       })
       .subscribe();
@@ -79,20 +71,25 @@ export class MemberComponent implements OnInit, OnDestroy {
     // Search text
     this.searchTextSubject
       .takeUntil(this.ngUnsubscribe)
-      .filter(() => !this.editMode)
-      .do(() => {
+      .filter((term) => !this.editMode)
+      .do((term) => {
         this.roles.map(r => r.selected = false);
         this.principals.map(p => p.selected = false);
-        this.searching = true;
+        if (term && term.length > 2) {
+          this.searching = true;
+        } else {
+          this.searching = false;
+          this.principals = [];
+        }
       }).subscribe();
 
     // User / Group IDP search
     this.idpSearchService
-      .searchUser(this.searchTextSubject, null)
+      .search(this.searchTextSubject, null)
       .takeUntil(this.ngUnsubscribe)
       .subscribe(result => {
         this.searching = false;
-        this.principals = result.principals.map(principal => <IFabricPrincipalModel>principal);
+        this.principals = result.principals.map(principal => <IFabricPrincipal>principal);
       });
   }
 
@@ -101,7 +98,7 @@ export class MemberComponent implements OnInit, OnDestroy {
     this.ngUnsubscribe.complete();
   }
 
-  selectPrincipal(principal: IFabricPrincipalModel): Subscription {
+  selectPrincipal(principal: IFabricPrincipal): Subscription {
     for (const otherPrincal of this.principals.filter((p) => p.subjectId !== principal.subjectId)) {
       otherPrincal.selected = false;
     }
@@ -117,7 +114,7 @@ export class MemberComponent implements OnInit, OnDestroy {
   }
 
   save(): Subscription {
-    const selectedPrincipal: IFabricPrincipalModel = this.principals.find(p => p.selected);
+    const selectedPrincipal: IFabricPrincipal = this.principals.find(p => p.selected);
     const selectedType = selectedPrincipal ? selectedPrincipal.principalType : this.entityType;
     const selectedSubjectId = selectedPrincipal ? selectedPrincipal.subjectId : this.subjectId;
     const selectedRoles = this.roles.filter(r => r.selected);
@@ -134,7 +131,7 @@ export class MemberComponent implements OnInit, OnDestroy {
     });
   }
 
-  private saveUser(subjectId: string, selectedRoles: IRoleModel[]): Observable<any> {
+  private saveUser(subjectId: string, selectedRoles: IRole[]): Observable<any> {
     const user: IUser = { identityProvider: this.configService.identityProvider, subjectId: subjectId };
     return this.userService
       .getUser(
@@ -175,7 +172,7 @@ export class MemberComponent implements OnInit, OnDestroy {
       });
   }
 
-  private saveGroup(subjectId: string, selectedRoles: IRoleModel[]): Observable<any> {
+  private saveGroup(subjectId: string, selectedRoles: IRole[]): Observable<any> {
     const group: IGroup = { groupName: subjectId, groupSource: '' };
     return this.groupService
       .getGroup(group.groupName)

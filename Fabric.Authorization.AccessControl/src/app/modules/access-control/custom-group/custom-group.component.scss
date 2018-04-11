@@ -1,21 +1,60 @@
-.selected {
-    background-color:#D3D3D3;    
-  }
+@import "~@healthcatalyst/cashmere/colors";
 
-ul {
-    list-style-type: none;
-    padding: 0;
-    width: 15em;
+.hc-input {
+    width: 300px;
 }
 
-li {
-    cursor: pointer;
-}
+.associated-users {
+    table {
+        border-collapse: initial;
+    }
+    display: flex;
+    flex-flow: row wrap;
 
-li.selected:hover{
-    background-color:#D3D3D3;
-}
+    .empty-notification {
+        display: flex;
+        flex-flow: column-reverse;
+        align-items: center;
+        height: 100px;
+        &>label {
+            font-size: 16px;
+            font-weight: 600;
+            color: $gray-300;
+        }
+    }
 
-li:hover{
-    background-color: #D3D3D3;
+    .middle {
+        flex: 1 0 0px;
+        display: flex;
+        flex-flow: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0 10px;
+        button {
+            font-size: 1.5em;
+            color: $gray-600;
+            border: none;
+            border-radius: 5px;
+            padding: 25px 15px;
+            margin: 5px 0;
+            &:hover {
+                background-color: $gray-300;
+            }
+        }
+    }
+
+    .left,.right{
+        flex: 10 0 0px;        
+        box-sizing: border-box;
+        .table-container {
+            border: 2px solid $gray-200;
+            height: 300px;
+            overflow-y: auto;
+        }
+    }
+    
+    .top {
+        width: 100%;
+        padding: 0 0 15px 0;
+    }
 }

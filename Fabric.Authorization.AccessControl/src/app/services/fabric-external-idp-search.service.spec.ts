@@ -55,7 +55,7 @@ describe('FabricExternalIdpSearchService', () => {
           httpTestingController: HttpTestingController,
           service: FabricExternalIdpSearchService
         ) => {
-          service.searchExternalIdP('sub', 'user').subscribe(searchResult => {
+          service.search('sub', 'user').subscribe(searchResult => {
             expect(searchResult).toBeDefined();
             expect(searchResult.principals.length).toBe(2);
 

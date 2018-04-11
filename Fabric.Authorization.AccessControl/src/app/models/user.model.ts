@@ -7,4 +7,7 @@ export interface IUser {
   name?: string;
   identityProvider?: string;
   subjectId: string;
+
+  // custom property
+  selected?: boolean;
 }
