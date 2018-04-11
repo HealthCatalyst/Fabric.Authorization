@@ -40,7 +40,7 @@ describe('MemberAddComponent', () => {
   beforeEach(inject([FabricAuthRoleService, FabricExternalIdpSearchService], (roleService: FabricAuthRoleServiceMock,
     idpSearch: FabricExternalIdpSearchServiceMock) => {
     roleService.getRolesBySecurableItemAndGrain.and.returnValue(Observable.of(mockRoles));
-    idpSearch.searchUser.and.returnValue(Observable.of(mockExternalIdpSearchResult));
+    idpSearch.search.and.returnValue(Observable.of(mockExternalIdpSearchResult));
   }));
 
   beforeEach(() => {

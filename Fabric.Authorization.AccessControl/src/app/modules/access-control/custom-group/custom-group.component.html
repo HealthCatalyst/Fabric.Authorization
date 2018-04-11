@@ -1,0 +1,91 @@
+<div class="container">
+    <h3 class="h3">
+        <span>Custom Group Name</span>
+    </h3>
+    <div class="input-combo">
+        <input hc-input class="hc-input" required [(ngModel)]="groupName" [readOnly]="editMode" [highlight]="groupNameinvalid" (keyup)="groupNameSubject.next($event.target.value)">
+        <div class="form-errors" *ngIf="groupNameinvalid" [innerText]="groupNameError"></div>
+    </div>
+    <h3 class="h3">
+        <span>Associated Users</span>
+    </h3>
+    <div class="associated-users">
+        <div class="top">
+            <div class="input-combo">
+                <input hc-input class="hc-input" [(ngModel)]="searchTerm" (keyup)="searchTermSubject.next($event.target.value)" placeholder="search for users">
+                <i [class]="searching ? 'btn-icon fa fa-spinner fa-pulse fa-fw' : 'btn-icon fa fa-search'"></i>
+                </div>
+            </div>
+        <div class="left">
+            <h3>Available</h3>
+            <div class="table-container">
+                <table class="hc-table hc-table-borders">
+                    <tbody>
+                        <tr *ngFor="let principal of principals">
+                            <td>
+                                <hc-checkbox [id]="principal.subjectId" [(ngModel)]="principal.selected">
+                                </hc-checkbox>
+                            </td>
+                            <td [innerText]="principal.subjectId">
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="empty-notification" *ngIf="!initializing && principals.length === 0">
+                    <label>Search to find Users</label>
+                </div>
+            </div>
+        </div>
+        <div class="middle">
+            <button (click)="associateUsers()">
+                <i class="fa fa-arrow-right" aria-hidden="true"></i>
+            </button>
+            <button (click)="unAssociateUsers()">
+                <i class="fa fa-arrow-left" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="right">
+            <h3>Selected</h3>
+            <div class="table-container">
+                <table class="hc-table hc-table-borders">
+                    <tbody>
+                        <tr *ngFor="let user of associatedPrincipals">
+                            <td>
+                                <hc-checkbox [id]="user.subjectId" [(ngModel)]="user.selected">
+                                </hc-checkbox>
+                            </td>
+                            <td [innerText]="user.subjectId"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="empty-notification" *ngIf="!initializing && associatedPrincipals.length === 0">
+                    <label>Add Users</label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h3 class="h3">
+        <span>Roles</span>
+    </h3>
+    <table class="hc-table hc-table-borders">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Role Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let role of roles">
+                <td>
+                    <hc-checkbox [id]="role.id" [(ngModel)]="role.selected">
+                    </hc-checkbox>
+                </td>
+                <td [innerText]="role.name"></td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="buttons">
+        <button hc-button color="primary" (click)="save()">Save</button>
+        <a hc-button routerLink="/accesscontrol" color="secondary">Cancel</a>
+    </div>
+</div>

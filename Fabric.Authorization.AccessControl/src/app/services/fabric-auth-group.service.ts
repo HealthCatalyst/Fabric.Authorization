@@ -53,6 +53,10 @@ export class FabricAuthGroupService extends FabricBaseService {
     groupName: string,
     users: IUser[]
   ): Observable<IGroup> {
+    if (!users || users.length === 0) {
+      return Observable.of(undefined);
+    }
+
     return this.httpClient.post<IGroup>(
       this.replaceGroupNameSegment(
         FabricAuthGroupService.groupUsersApiUrl,

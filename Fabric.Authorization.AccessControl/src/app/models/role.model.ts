@@ -7,4 +7,7 @@ export interface IRole {
   securableItem: string;
   displayName?: string;
   description?: string;
+
+  // Custom property
+  selected?: boolean;
 }

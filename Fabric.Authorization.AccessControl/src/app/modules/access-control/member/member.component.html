@@ -2,13 +2,11 @@
   <h3 class="h3">
     <span>Name (as it appears in directory)</span>
   </h3>
-  <div hcInputIcon>
-    <input hc-input class="hc-input" (keyup)="searchTextSubject.next($event.target.value)" [(ngModel)]="subjectId" [readOnly]="editMode">
-    <hc-icon>
-      <i [style.display]="searching ? 'block' : 'none'" class="fa fa-spinner fa-pulse fa-fw"></i>
-    </hc-icon>
+  <div class="input-combo">
+    <input hc-input class="hc-input" (keyup)="searchTextSubject.next($event.target.value)" [(ngModel)]="subjectId" [readOnly]="editMode" placeholder="search for user or group">
+    <i [class]="searching ? 'fa fa-spinner fa-pulse fa-fw' : 'fa fa-search'"></i>
   </div>
-  <table *ngIf="!editMode" class="hc-table hc-table-borders principals">
+  <table *ngIf="!editMode" class="hc-table hc-table-borders scroll-table">
     <thead>
       <tr>
         <th></th>
@@ -46,7 +44,7 @@
           </hc-checkbox>
         </td>
         <td [innerText]="role.name">
-        </td>        
+        </td>
       </tr>
     </tbody>
   </table>

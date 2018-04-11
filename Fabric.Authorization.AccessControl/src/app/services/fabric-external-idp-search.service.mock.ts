@@ -22,7 +22,5 @@ export const mockExternalIdpSearchResult: IdPSearchResult = {
   };
 
 export class FabricExternalIdpSearchServiceMock {
-    searchUser: jasmine.Spy = jasmine.createSpy('searchUser');
-
-    searchExternalIdP: jasmine.Spy = jasmine.createSpy('searchUser');
+    search: jasmine.Spy = jasmine.createSpy('search');
 }

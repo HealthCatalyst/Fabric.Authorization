@@ -160,7 +160,7 @@ export class MemberListComponent implements OnInit {
       ]);
     } else {
       this.router.navigate([
-        '/accesscontrol/customgroupedit',
+        '/accesscontrol/customgroup',
         member.subjectId
       ]);
     }
