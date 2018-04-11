@@ -108,7 +108,10 @@ export class FabricAuthGroupService extends FabricBaseService {
         groupName
       ),
       roles
-    );
+    ).do((user) => {
+      const changedData = this.getGroupRoleChanges(roles, groupName, 'added');
+      this.accessControlConfigService.dataChangeEvent(changedData);
+    });
   }
 
   public removeRolesFromGroup(
@@ -131,9 +134,20 @@ export class FabricAuthGroupService extends FabricBaseService {
         })
       }
     ).do((user) => {
-      const changedData = this.getUserRoleChanges(roles, groupName, 'removed');
+      const changedData = this.getGroupRoleChanges(roles, groupName, 'removed');
       this.accessControlConfigService.dataChangeEvent(changedData);
     });
+  }
+
+  private getGroupRoleChanges(roles: IRole[], groupName: string, action: string): IDataChanged {
+    return {
+      member: groupName,
+      action: action,
+      type: 'group',
+      changes: roles.map((role, index) => {
+        return { name: role.name };
+      })
+    };
   }
 
   public createGroup(group: IGroup): Observable<IGroup> {
@@ -141,16 +155,6 @@ export class FabricAuthGroupService extends FabricBaseService {
       FabricAuthGroupService.baseGroupApiUrl,
       group
     );
-  }
-
-  private getUserRoleChanges(roles: IRole[], groupName: string, action: string): IDataChanged {
-    return {
-      member: groupName,
-      actionType: action,
-      changes: roles.map((role, index) => {
-        return { name: role.name };
-      })
-    };
   }
 
   private replaceGroupNameSegment(

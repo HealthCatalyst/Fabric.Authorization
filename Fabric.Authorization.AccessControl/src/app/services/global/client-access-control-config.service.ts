@@ -2,12 +2,12 @@ import { Injectable } from '@angular/core';
 import { AuthService } from './auth.service';
 import { AccessControlConfigService } from '../access-control-config.service';
 import { environment } from '../../../environments/environment';
+import { IDataChanged } from '../../models';
 
 @Injectable()
 export class ClientAccessControlConfigService
   implements AccessControlConfigService {
 
-  
   constructor(private authService: AuthService) {}
 
   clientId = '';
@@ -17,7 +17,7 @@ export class ClientAccessControlConfigService
   fabricAuthApiUrl = `${environment.fabricAuthApiUri}/${environment.fabricAuthApiVersionSegment}`;
   fabricExternalIdpSearchApiUrl = `${environment.fabricExternalIdPSearchApiUri}/${environment.fabricExternalIdPSearchApiVersionSegment}`;
 
-  dataChangeEvent(eventArgs: any): void {
-    throw new Error('Method not implemented.');
+  dataChangeEvent(eventArgs: IDataChanged): void {
+    console.log(`some data changed: ${JSON.stringify(eventArgs)}`);
   }
 }

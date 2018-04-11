@@ -90,7 +90,8 @@ export class FabricAuthUserService extends FabricBaseService {
   private getUserRoleChanges(roles: IRole[], subjectId: string, action: string): IDataChanged {
     return {
       member: subjectId,
-      actionType: action,
+      action: action,
+      type: 'user',
       changes: roles.map((role, index) => {
         return { name: role.name };
       })
