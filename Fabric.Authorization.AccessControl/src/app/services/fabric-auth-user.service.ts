@@ -4,7 +4,7 @@ import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { catchError, retry } from 'rxjs/operators';
 
-import { Exception, IGroup, IRole, IUser, IDataChanged, IChangedData } from '../models';
+import { Exception, IGroup, IRole, IUser, IDataChangedEventArgs } from '../models';
 import { FabricBaseService } from './fabric-base.service';
 import { AccessControlConfigService } from './access-control-config.service';
 
@@ -82,20 +82,21 @@ export class FabricAuthUserService extends FabricBaseService {
       url,
       roles
     ).do((user) => {
-      const changedData = this.getUserRoleChanges(roles, subjectId, 'added');
-      this.accessControlConfigService.dataChangeEvent(changedData);
+      this.sendUserRoleDataChanges(roles, subjectId, 'added');
     });
   }
 
-  private getUserRoleChanges(roles: IRole[], subjectId: string, action: string): IDataChanged {
-    return {
-      member: subjectId,
+  private sendUserRoleDataChanges(roles: IRole[], subjectId: string, action: string) {
+    const changedData = {
+      memberAffected: subjectId,
+      memberType: 'user',
       action: action,
-      type: 'user',
+      changedDataType: 'role',
       changes: roles.map((role, index) => {
-        return { name: role.name };
+        return role.name;
       })
     };
+    this.accessControlConfigService.dataChangedEvent(changedData);
   }
 
   public removeRolesFromUser(
@@ -116,8 +117,7 @@ export class FabricAuthUserService extends FabricBaseService {
       ),
       { body: roles }
     ).do((user) => {
-      const changedData = this.getUserRoleChanges(roles, subjectId, 'removed');
-      this.accessControlConfigService.dataChangeEvent(changedData);
+      this.sendUserRoleDataChanges(roles, subjectId, 'removed');
     });
   }
 

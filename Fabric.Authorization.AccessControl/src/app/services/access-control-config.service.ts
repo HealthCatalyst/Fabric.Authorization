@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { IDataChanged } from '../models';
+import { IDataChangedEventArgs } from '../models';
 
 @Injectable()
 export class AccessControlConfigService {
@@ -10,7 +10,7 @@ export class AccessControlConfigService {
   fabricAuthApiUrl: string;
   fabricExternalIdpSearchApiUrl: string;
 
-  dataChangeEvent(eventArgs: IDataChanged) {}
+  dataChangedEvent(eventArgs: IDataChangedEventArgs) {}
 
   constructor() {}
 }

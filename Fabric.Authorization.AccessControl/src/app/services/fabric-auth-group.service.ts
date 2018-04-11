@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { catchError, retry } from 'rxjs/operators';
-import { Exception, IGroup, IRole, IUser, IDataChanged, IChangedData } from '../models';
+import { Exception, IGroup, IRole, IUser, IDataChangedEventArgs } from '../models';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 
 import { FabricBaseService } from './fabric-base.service';
@@ -68,7 +68,9 @@ export class FabricAuthGroupService extends FabricBaseService {
           subjectId: u.subjectId
         };
       })
-    );
+    ).do((user) => {
+      this.sendGroupUserDataChanges(users, groupName, 'added');
+    });
   }
 
   public removeUserFromCustomGroup(
@@ -82,7 +84,22 @@ export class FabricAuthGroupService extends FabricBaseService {
         groupName
       ),
       { body: user }
-    );
+    ).do(() => {
+      this.sendGroupUserDataChanges([user], groupName, 'removed');
+    });
+  }
+
+  private sendGroupUserDataChanges(users: IUser[], groupName: string, action: string) {
+    const changedData = {
+      memberAffected: groupName,
+      memberType: 'group',
+      action: action,
+      changedDataType: 'user',
+      changes: users.map((user, index) => {
+        return user.subjectId;
+      })
+    };
+    this.accessControlConfigService.dataChangedEvent(changedData);
   }
 
   public getGroupRoles(
@@ -109,8 +126,7 @@ export class FabricAuthGroupService extends FabricBaseService {
       ),
       roles
     ).do((user) => {
-      const changedData = this.getGroupRoleChanges(roles, groupName, 'added');
-      this.accessControlConfigService.dataChangeEvent(changedData);
+      this.sendGroupRoleDataChanges(roles, groupName, 'added');
     });
   }
 
@@ -134,20 +150,21 @@ export class FabricAuthGroupService extends FabricBaseService {
         })
       }
     ).do((user) => {
-      const changedData = this.getGroupRoleChanges(roles, groupName, 'removed');
-      this.accessControlConfigService.dataChangeEvent(changedData);
+      this.sendGroupRoleDataChanges(roles, groupName, 'removed');
     });
   }
 
-  private getGroupRoleChanges(roles: IRole[], groupName: string, action: string): IDataChanged {
-    return {
-      member: groupName,
+  private sendGroupRoleDataChanges(roles: IRole[], groupName: string, action: string) {
+    const changedData = {
+      memberAffected: groupName,
+      memberType: 'group',
       action: action,
-      type: 'group',
+      changedDataType: 'role',
       changes: roles.map((role, index) => {
-        return { name: role.name };
+        return role.name;
       })
     };
+    this.accessControlConfigService.dataChangedEvent(changedData);
   }
 
   public createGroup(group: IGroup): Observable<IGroup> {
