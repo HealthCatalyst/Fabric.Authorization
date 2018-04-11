@@ -18,6 +18,7 @@ import 'rxjs/add/operator/mergeMap';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/takeUntil';
+import 'rxjs/add/observable/empty';
 
 @Component({
   selector: 'app-custom-group',
@@ -25,11 +26,15 @@ import 'rxjs/add/operator/takeUntil';
   styleUrls: ['./custom-group.component.scss']
 })
 export class CustomGroupComponent implements OnInit, OnDestroy {
-  public groupName = '';
   public roles: Array<IRole> = [];
   public principals: Array<IFabricPrincipal> = [];
   public associatedPrincipals: Array<IUser> = [];
   public editMode = true;
+
+  public groupName = '';
+  public groupNameSubject: Subject<string>;
+  public groupNameinvalid = false;
+  public groupNameError: string;
 
   public searchTerm = '';
   public searchTermSubject = new Subject<string>();
@@ -50,16 +55,34 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.groupName = this.route.snapshot.paramMap.get('subjectid');
+    this.editMode = !!this.groupName;
 
-    Observable.zip(this.getGroupRoles(), this.getGroupUsers())
-      .do((result: [IRole[], IUser[]]) => {
-        this.roles = result[0];
-        this.associatedPrincipals = result[1];
-      })
-      .takeUntil(this.ngUnsubscribe)
-      .subscribe(null, null, () => {
-        this.initializing = false;
-      });
+    if (this.editMode) {
+      Observable.zip(this.getGroupRoles(), this.getGroupUsers())
+        .do((result: [IRole[], IUser[]]) => {
+          this.roles = result[0];
+          this.associatedPrincipals = result[1];
+        })
+        .takeUntil(this.ngUnsubscribe)
+        .subscribe(null, null, () => {
+          this.initializing = false;
+        });
+    } else {
+      this.setupGroupNameErrorCheck();
+
+      this.roleService
+        .getRolesBySecurableItemAndGrain(
+          this.configService.grain,
+          this.configService.securableItem
+        )
+        .do((roles: IRole[]) => {
+          this.roles = roles;
+        })
+        .takeUntil(this.ngUnsubscribe)
+        .subscribe(null, null, () => {
+          this.initializing = false;
+        });
+    }
 
     this.searchTermSubject
       .takeUntil(this.ngUnsubscribe)
@@ -80,9 +103,13 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
       .takeUntil(this.ngUnsubscribe)
       .subscribe(result => {
         this.searching = false;
-        this.principals = result.principals
-          .filter(principal => this.associatedPrincipals
-            .some(associatedPrincipal => associatedPrincipal.subjectId !== principal.subjectId));
+        if (this.associatedPrincipals && this.associatedPrincipals.length > 0) {
+          this.principals = result.principals
+            .filter(principal => this.associatedPrincipals
+              .some(associatedPrincipal => associatedPrincipal.subjectId !== principal.subjectId));
+        } else {
+          this.principals = result.principals;
+        }
       });
   }
 
@@ -200,6 +227,45 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
         console.error(error);
       }, () => {
         this.router.navigate(['/accesscontrol']);
+      });
+  }
+
+  private setupGroupNameErrorCheck(): any {
+    if (this.groupNameSubject) {
+      this.groupNameSubject.unsubscribe();
+    }
+
+    this.groupNameSubject = new Subject();
+
+    this.groupNameSubject
+      .debounceTime(250)
+      .distinctUntilChanged()
+      .do((term) => {
+        if (!term) {
+          this.groupNameError = 'Group name is required';
+          this.groupNameinvalid = true;
+        }
+      })
+      .filter(term => term && term.length > 0)
+      .mergeMap((term) => {
+        return this.groupService.getGroup(term);
+      })
+      .catch(err => {
+        if (err.statusCode === 404) {
+          return Observable.of(undefined);
+        }
+        return Observable.throw(err.message);
+      })
+      .takeUntil(this.ngUnsubscribe)
+      .subscribe((group) => {
+        if (!!group) {
+          this.groupNameinvalid = true;
+          this.groupNameError = `Group ${this.groupName} already exists`;
+        } else {
+          this.groupNameinvalid = false;
+          this.groupNameError = '';
+          this.setupGroupNameErrorCheck();
+        }
       });
   }
 }

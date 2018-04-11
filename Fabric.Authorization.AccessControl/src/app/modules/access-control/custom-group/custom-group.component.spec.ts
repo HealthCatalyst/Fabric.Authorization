@@ -32,12 +32,12 @@ describe('CustomGroupComponent', () => {
   );
 
   beforeEach(inject([FabricAuthGroupService, FabricAuthRoleService, FabricExternalIdpSearchService],
-      (groupService: FabricAuthGroupServiceMock, roleService: FabricAuthRoleServiceMock, search: FabricExternalIdpSearchServiceMock) => {
-    groupService.getGroupUsers.and.returnValue(Observable.of(mockUsersResponse));
-    groupService.getGroupRoles.and.returnValue(Observable.of(mockRolesResponse));
-    roleService.getRolesBySecurableItemAndGrain.and.returnValue(Observable.of(mockRolesResponse));
-    search.search.and.returnValue(Observable.of(mockExternalIdpSearchResult));
-  }));
+    (groupService: FabricAuthGroupServiceMock, roleService: FabricAuthRoleServiceMock, search: FabricExternalIdpSearchServiceMock) => {
+      groupService.getGroupUsers.and.returnValue(Observable.of(mockUsersResponse));
+      groupService.getGroupRoles.and.returnValue(Observable.of(mockRolesResponse));
+      roleService.getRolesBySecurableItemAndGrain.and.returnValue(Observable.of(mockRolesResponse));
+      search.search.and.returnValue(Observable.of(mockExternalIdpSearchResult));
+    }));
 
   beforeEach(() => {
     fixture = TestBed.createComponent(CustomGroupComponent);
