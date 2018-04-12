@@ -39,7 +39,12 @@ function Add-DiscoveryRegistration($discoveryUrl, $serviceUrl, $credential)
 		Invoke-RestMethod -Method Post -Uri "$url" -Body "$jsonBody" -ContentType "application/json" -Credential $credential | Out-Null
 		Write-Success "Fabric.Authorization successfully registered with DiscoveryService."
 	}catch{
-		Write-Error "Unable to register Fabric.Authorization with DiscoveryService. Error $($_.Exception.Message) Halting installation."
+        $exception = $_.Exception
+		Write-Error "Unable to register Fabric.Authorization with DiscoveryService. Ensure that DiscoveryService is running at $discoveryUrl, that Windows Authentication is enabled for DiscoveryService and Anonymous Authentication is disabled for DiscoveryService. Error $($_.Exception.Message) Halting installation."
+        if($exception.Response -ne $null){
+            $error = Get-ErrorFromResponse -response $exception.Response
+            Write-Error "    There was an error updating the resource: $error."
+        }
         throw
 	}
 }
