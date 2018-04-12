@@ -39,7 +39,8 @@ function Add-DiscoveryRegistration($discoveryUrl, $serviceUrl, $credential)
 		Invoke-RestMethod -Method Post -Uri "$url" -Body "$jsonBody" -ContentType "application/json" -Credential $credential | Out-Null
 		Write-Success "Fabric.Authorization successfully registered with DiscoveryService."
 	}catch{
-		Write-Error "Unable to register Fabric.Authorization with DiscoveryService. Error $($_.Exception.Message) Halting installation." -ErrorAction Stop
+		Write-Error "Unable to register Fabric.Authorization with DiscoveryService. Error $($_.Exception.Message) Halting installation."
+        throw
 	}
 }
 
@@ -188,7 +189,8 @@ function Test-IsGroup($samAccountName, $domain){
 function Get-SamAccountFromAccountName($accountName){
     $accountNameParts = $accountName.Split('\')
     if($accountNameParts.Count -ne 2){
-        Write-Error "Please enter an account in the form DOMAIN\account. Halting installation." -ErrorAction Stop
+        Write-Error "Please enter an account in the form DOMAIN\account. Halting installation." 
+        throw
     }
     $samAccountName = $accountNameParts[1]
     return $samAccountName
@@ -234,7 +236,8 @@ function Add-AccountToDosAdminRole($accountName, $domain, $authorizationServiceU
             }
         }
     }else{
-        Write-Error "$samAccountName is not a valid principal in the $domain domain. Please enter a valid account. Halting installation." -ErrorAction Stop
+        Write-Error "$samAccountName is not a valid principal in the $domain domain. Please enter a valid account. Halting installation."
+        throw
     }
 }
 
@@ -261,7 +264,8 @@ Import-Module -Name .\Fabric-Install-Utilities.psm1 -Force
 
 if(!(Test-IsRunAsAdministrator))
 {
-    Write-Error "You must run this script as an administrator. Halting configuration." -ErrorAction Stop
+    Write-Error "You must run this script as an administrator. Halting configuration."
+    throw
 }
 
 $installSettings = Get-InstallationSettings "authorization"
@@ -322,7 +326,8 @@ if(!(Test-PrerequisiteExact "*.NET Core*Windows Server Hosting*" 1.1.30503.82))
         net stop was /y
         net start w3svc			
     }catch{
-        Write-Error "Could not install .NET Windows Server Hosting bundle. Please install the hosting bundle before proceeding. https://go.microsoft.com/fwlink/?linkid=844461." -ErrorAction Stop
+        Write-Error "Could not install .NET Windows Server Hosting bundle. Please install the hosting bundle before proceeding. https://go.microsoft.com/fwlink/?linkid=844461."
+        throw
     }
     try{
         Remove-Item $env:Temp\bundle.exe
@@ -338,7 +343,8 @@ if(!(Test-PrerequisiteExact "*.NET Core*Windows Server Hosting*" 1.1.30503.82))
 }
 
 if(!(Test-Prerequisite "*IIS URL Rewrite Module 2" 7.2.1952)){
-    Write-Error "IIS URL Rewrite Module 2 v7.2.1952 or greater is not installed. Please install the IIS URL Rewrite Module 2 before proceeding: https://www.iis.net/downloads/microsoft/url-rewrite." -ErrorAction Stop
+    Write-Error "IIS URL Rewrite Module 2 v7.2.1952 or greater is not installed. Please install the IIS URL Rewrite Module 2 before proceeding: https://www.iis.net/downloads/microsoft/url-rewrite."
+    throw
 }
 
 try{
@@ -364,7 +370,8 @@ try{
     $siteName = $selectedSite.name
 
 }catch{
-    Write-Error "Could not select a website." -ErrorAction Stop
+    Write-Error "Could not select a website."
+    throw
 }
 
 if([string]::IsNullOrEmpty($encryptionCertificateThumbprint))
@@ -387,18 +394,21 @@ if([string]::IsNullOrEmpty($encryptionCertificateThumbprint))
 		$selectionNumber = Read-Host  "Select an encryption certificate by Index"
 		Write-Host ""
 		if([string]::IsNullOrEmpty($selectionNumber)){
-			Write-Error "You must select a certificate so Fabric.Identity can sign access and identity tokens." -ErrorAction Stop
+			Write-Error "You must select a certificate so Fabric.Identity can sign access and identity tokens."
+            throw
 		}
 		$selectionNumberAsInt = [convert]::ToInt32($selectionNumber, 10)
 		if(($selectionNumberAsInt -gt  $allCerts.Count) -or ($selectionNumberAsInt -le 0)){
-			Write-Error "Please select a certificate with index between 1 and $($allCerts.Count)."  -ErrorAction Stop
+			Write-Error "Please select a certificate with index between 1 and $($allCerts.Count)." 
+            throw
 		}
 		$certThumbprint = Get-CertThumbprint $allCerts $selectionNumberAsInt       
 		$encryptionCertificateThumbprint = $certThumbprint -replace '[^a-zA-Z0-9]', ''
 		}catch{
 			$scriptDirectory =  Get-CurrentScriptDirectory
 			Set-Location $scriptDirectory
-			Write-Error "Could not set the certificate thumbprint. Error $($_.Exception.Message)" -ErrorAction Stop        
+			Write-Error "Could not set the certificate thumbprint. Error $($_.Exception.Message)"
+            throw
 	}
 
 }
@@ -474,12 +484,14 @@ if(![string]::IsNullOrEmpty($userEnteredIisUser)){
     $pc = New-Object System.DirectoryServices.AccountManagement.PrincipalContext -ArgumentList $ct,$credential.GetNetworkCredential().Domain
     $isValid = $pc.ValidateCredentials($credential.GetNetworkCredential().UserName, $credential.GetNetworkCredential().Password)
     if(!$isValid){
-        Write-Error "Incorrect credentials for $iisUser" -ErrorAction Stop
+        Write-Error "Incorrect credentials for $iisUser"
+        throw
     }
     Write-Success "Credentials are valid for user $iisUser"
     Write-Host ""
 }else{
-    Write-Error "No user account was entered, please enter a valid user account." -ErrorAction Stop
+    Write-Error "No user account was entered, please enter a valid user account."
+    throw
 }
 
 $userEnteredAppInsightsInstrumentationKey = Read-Host  "Enter Application Insights instrumentation key or hit enter to accept the default [$appInsightsInstrumentationKey]"
@@ -545,7 +557,8 @@ if(Test-IsUser -samAccountName $samAccountName -domain $currentUserDomain){
 }elseif(Test-IsGroup -samAccountName $samAccountName -domain $currentUserDomain){
     $adminAccountIsUser = $false
 }else{
-    Write-Error "$samAccountName is not a valid principal in the $currentUserDomain domain. Please enter a valid account. Halting installation." -ErrorAction Stop
+    Write-Error "$samAccountName is not a valid principal in the $currentUserDomain domain. Please enter a valid account. Halting installation."
+    throw
 }
 
 
