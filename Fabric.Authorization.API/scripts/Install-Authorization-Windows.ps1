@@ -276,7 +276,7 @@ function Get-EdwAdminUsersAndGroups($connectionString) {
         $connection.Close()        
 
     }catch [System.Data.SqlClient.SqlException] {
-        Write-Error "An error ocurred while executing the command. Please ensure the connection string is correct and the identity database has been setup. Connection String: $($connectionString). Error $($_.Exception.Message)"  -ErrorAction Stop
+        Write-Error "An error ocurred while executing the command. Please ensure the connection string is correct and the metadata database has been setup. Connection String: $($connectionString). Error $($_.Exception.Message)"  -ErrorAction Stop
     }    
 
     return $usersAndGroups;
@@ -756,9 +756,9 @@ if ($adminAccount) {Add-InstallationSetting "authorization" "adminAccount" "$adm
 Invoke-MonitorShallow "$hostUrl/$appName"
 
 Write-Host "Upgrading all the users/groups with an 'EDW Admin' role to also have the dosadmin Fabric.Auth role"
-$edwAdminUsersAndGroups = Get-EdwAdminUsersAndGroups -connectionString $authorizationDbConnStr
+$edwAdminUsersAndGroups = Get-EdwAdminUsersAndGroups -connectionString $metadataConnStr
 Write-Host "There are $($edwAdminUsersAndGroups.Count) users/groups with this role"
 Write-Host ""
-Add-UsersAndGroupsToDosAdminRole -edwAdminUsersAndGroups $edwAdminUsersAndGroups -domain $currentUserDomain -connString $authorizationDbConnStr -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken
+Add-UsersAndGroupsToDosAdminRole -edwAdminUsersAndGroups $edwAdminUsersAndGroups -domain $currentUserDomain -connString $metadataConnStr -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken
 
 Read-Host -Prompt "Installation complete, press Enter to exit"
