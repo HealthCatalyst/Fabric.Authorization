@@ -255,23 +255,37 @@ function Invoke-MonitorShallow($authorizationUrl) {
     Invoke-RestMethod -Method Get -Uri $url
 }
 
-function Get-EdwAdminUsersAndGroups() {
-    $results = Invoke-Sqlcmd -Query "
-        SELECT i.IdentityID, i.IdentityNM, r.RoleNM
-        FROM [EDWAdmin].[CatalystAdmin].[RoleBASE] r
-        INNER JOIN [EDWAdmin].[CatalystAdmin].[IdentityRoleBASE] ir
-            ON r.RoleID = ir.RoleID
-        INNER JOIN [EDWAdmin].[CatalystAdmin].[IdentityBASE] i
-            ON ir.IdentityID = i.IdentityID
-        WHERE RoleNM = 'EDW Admin'";
+function Get-EdwAdminUsersAndGroups($connectionString) {
+    $connection = New-Object System.Data.SqlClient.SqlConnection($connectionString)
+    $sql = "SELECT i.IdentityID, i.IdentityNM, r.RoleNM
+            FROM [EDWAdmin].[CatalystAdmin].[RoleBASE] r
+            INNER JOIN [EDWAdmin].[CatalystAdmin].[IdentityRoleBASE] ir
+                ON r.RoleID = ir.RoleID
+            INNER JOIN [EDWAdmin].[CatalystAdmin].[IdentityBASE] i
+                ON ir.IdentityID = i.IdentityID
+            WHERE RoleNM = 'EDW Admin'";
+    $command = New-Object System.Data.SqlClient.SqlCommand($sql, $connection)
 
-    return $results;
+    $usersAndGroups = @();
+    try {
+        $connection.Open()    
+        $reader = $command.ExecuteReader()
+        while($reader.Read()) {
+            $usersAndGroups += $reader['IdentityNM']
+        }
+        $connection.Close()        
+
+    }catch [System.Data.SqlClient.SqlException] {
+        Write-Error "An error ocurred while executing the command. Please ensure the connection string is correct and the identity database has been setup. Connection String: $($connectionString). Error $($_.Exception.Message)"  -ErrorAction Stop
+    }    
+
+    return $usersAndGroups;
 }
 
-function Add-UsersAndGroupsToDosAdminRole($edwAdminUsersAndGroups, $domain, $connString) {
+function Add-UsersAndGroupsToDosAdminRole($edwAdminUsersAndGroups, $domain, $connString, $authorizationServiceUrl, $accessToken) {
 
     foreach ($edwAdmin in $edwAdminUsersAndGroups) {
-        Add-AccountToDosAdminRole -accountName $edwAdmin.IdentityNM -domain $domain -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken -connString $authorizationDbConnStr
+        Add-AccountToDosAdminRole -accountName $edwAdmin -domain $domain -authorizationServiceUrl $authorizationServiceUrl -accessToken $accessToken -connString $connString
     }
 }
 
@@ -742,7 +756,7 @@ if ($adminAccount) {Add-InstallationSetting "authorization" "adminAccount" "$adm
 Invoke-MonitorShallow "$hostUrl/$appName"
 
 Write-Host "Upgrading all the users/groups with an 'EDW Admin' role to also have the dosadmin Fabric.Auth role"
-$edwAdminUsersAndGroups = Get-EdwAdminUsersAndGroups
+$edwAdminUsersAndGroups = Get-EdwAdminUsersAndGroups -connectionString $authorizationDbConnStr
 Write-Host "There are $($edwAdminUsersAndGroups.Count) users/groups with this role"
 Write-Host ""
 Add-UsersAndGroupsToDosAdminRole -edwAdminUsersAndGroups $edwAdminUsersAndGroups -domain $currentUserDomain -connString $authorizationDbConnStr -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken
