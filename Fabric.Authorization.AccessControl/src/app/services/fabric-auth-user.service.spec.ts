@@ -13,11 +13,15 @@ import { TestBed, inject, async } from '@angular/core/testing';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/of';
 
-import { FabricAuthUserService, AccessControlConfigService } from '../services';
-import { IGroup, IUser, IRole } from '../models';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { FabricHttpErrorHandlerInterceptorService } from './interceptors/fabric-http-error-handler-interceptor.service';
 import { mockGroupsResponse, mockRolesResponse, mockUserResponse } from './fabric-auth-user.service.mock';
+import { FabricAuthUserService } from './fabric-auth-user.service';
+import { IRole } from '../models/role.model';
+import { IUser } from '../models/user.model';
+import { IGroup } from '../models/group.model';
+import { IAccessControlConfigService } from './access-control-config.service';
+import { MockAccessControlConfigService } from './access-control-config.service.mock';
 
 describe('FabricAuthUserService', () => {
   const idP = 'ad';
@@ -33,7 +37,10 @@ describe('FabricAuthUserService', () => {
           useClass: FabricHttpErrorHandlerInterceptorService,
           multi: true
         },
-        AccessControlConfigService
+        {
+          provide: 'IAccessControlConfigService',
+          useClass: MockAccessControlConfigService
+        }
       ]
     });
   });

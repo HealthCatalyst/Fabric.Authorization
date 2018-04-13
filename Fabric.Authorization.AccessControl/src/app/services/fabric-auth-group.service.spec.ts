@@ -14,14 +14,15 @@ import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/of';
 import 'rxjs/add/observable/throw';
 
-import {
-  FabricAuthGroupService,
-  AccessControlConfigService
-} from '../services';
-import { IGroup, IUser, IRole } from '../models';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { FabricHttpErrorHandlerInterceptorService } from './interceptors/fabric-http-error-handler-interceptor.service';
 import { mockUsersResponse, mockGroupResponse, mockRolesResponse } from './fabric-auth-group.service.mock';
+import { FabricAuthGroupService } from './fabric-auth-group.service';
+import { IAccessControlConfigService } from './access-control-config.service';
+import { IUser } from '../models/user.model';
+import { IRole } from '../models/role.model';
+import { IGroup } from '../models/group.model';
+import { MockAccessControlConfigService } from './access-control-config.service.mock';
 
 describe('FabricAuthGroupService', () => {
   const groupName = 'DosAdminGroup';
@@ -45,7 +46,10 @@ describe('FabricAuthGroupService', () => {
           useClass: FabricHttpErrorHandlerInterceptorService,
           multi: true
         },
-        AccessControlConfigService
+        {
+          provide: 'IAccessControlConfigService',
+          useClass: MockAccessControlConfigService
+        }
       ]
     });
   });

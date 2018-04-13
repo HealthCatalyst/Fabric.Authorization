@@ -11,14 +11,13 @@ import {
 import { TestBed, inject, async } from '@angular/core/testing';
 import { Observable } from 'rxjs/Observable';
 
-import {
-  FabricExternalIdpSearchService,
-  AccessControlConfigService
-} from '../services';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { FabricHttpErrorHandlerInterceptorService } from './interceptors/fabric-http-error-handler-interceptor.service';
 import { mockExternalIdpSearchResult } from './fabric-external-idp-search.service.mock';
 import { Subject } from 'rxjs/Subject';
+import { FabricExternalIdpSearchService } from './fabric-external-idp-search.service';
+import { IAccessControlConfigService } from './access-control-config.service';
+import { MockAccessControlConfigService } from './access-control-config.service.mock';
 
 describe('FabricExternalIdpSearchService', () => {
   let searchTextSubject: Subject<string>;
@@ -32,7 +31,10 @@ describe('FabricExternalIdpSearchService', () => {
           useClass: FabricHttpErrorHandlerInterceptorService,
           multi: true
         },
-        AccessControlConfigService
+        {
+          provide: 'IAccessControlConfigService',
+          useClass: MockAccessControlConfigService
+        }
       ]
     });
   });
@@ -79,12 +81,12 @@ describe('FabricExternalIdpSearchService', () => {
 
             const req = httpTestingController.expectOne(`${FabricExternalIdpSearchService.idPServiceBaseUrl}?searchText=sub&type=user`);
 
-          expect(req.request.method).toBe('GET');
-          req.flush(mockExternalIdpSearchResult, {
-            status: 200,
-            statusText: 'OK'
-          });
-          httpTestingController.verify();
+            expect(req.request.method).toBe('GET');
+            req.flush(mockExternalIdpSearchResult, {
+              status: 200,
+              statusText: 'OK'
+            });
+            httpTestingController.verify();
           });
           searchTextSubject.next('sub');
         }

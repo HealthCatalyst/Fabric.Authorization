@@ -1,15 +1,15 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { IRole, IUser, IFabricPrincipal, IdPSearchResult, IGroup } from '../../../models';
-import {
-  FabricAuthUserService,
-  AccessControlConfigService,
-  FabricAuthRoleService,
-  FabricAuthGroupService,
-  FabricExternalIdpSearchService
-} from '../../../services';
-
+import { FabricAuthRoleService } from '../../../services/fabric-auth-role.service';
+import { FabricAuthUserService } from '../../../services/fabric-auth-user.service';
+import { IAccessControlConfigService } from '../../../services/access-control-config.service';
+import { FabricAuthGroupService } from '../../../services/fabric-auth-group.service';
+import { FabricExternalIdpSearchService } from '../../../services/fabric-external-idp-search.service';
+import { IRole } from '../../../models/role.model';
+import { IUser } from '../../../models/user.model';
+import { IFabricPrincipal } from '../../../models/fabricPrincipal.model';
+import { IGroup } from '../../../models/group.model';
 import { Subscription } from 'rxjs/Subscription';
 import { Subject } from 'rxjs/Subject';
 import { Observable } from 'rxjs/Observable';
@@ -23,7 +23,7 @@ import 'rxjs/add/observable/empty';
 @Component({
   selector: 'app-custom-group',
   templateUrl: './custom-group.component.html',
-  styleUrls: ['./custom-group.component.scss']
+  styleUrls: ['./custom-group.component.scss', '../access-control.scss']
 })
 export class CustomGroupComponent implements OnInit, OnDestroy {
   public roles: Array<IRole> = [];
@@ -47,7 +47,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private userService: FabricAuthUserService,
-    private configService: AccessControlConfigService,
+    @Inject('IAccessControlConfigService') private configService: IAccessControlConfigService,
     private roleService: FabricAuthRoleService,
     private groupService: FabricAuthGroupService,
     private idpSearchService: FabricExternalIdpSearchService
@@ -226,7 +226,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
         // TODO: Error handling
         console.error(error);
       }, () => {
-        this.router.navigate(['/accesscontrol']);
+        this.router.navigate(['/access-control']);
       });
   }
 

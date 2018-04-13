@@ -1,4 +1,4 @@
-import { IFabricPrincipal } from '../models';
+import { IFabricPrincipal } from './fabricPrincipal.model';
 
 export class IdPSearchResult {
   public principals: Array<IFabricPrincipal>;

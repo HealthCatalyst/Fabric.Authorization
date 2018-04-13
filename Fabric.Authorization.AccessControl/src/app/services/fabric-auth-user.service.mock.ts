@@ -1,6 +1,7 @@
 import { IGroup } from '../models/group.model';
-import { IRole, IUser } from '../models';
 import { Observable } from 'rxjs/Observable';
+import { IRole } from '../models/role.model';
+import { IUser } from '../models/user.model';
 
 const idP = 'ad';
 const subjectId = 'sub123';

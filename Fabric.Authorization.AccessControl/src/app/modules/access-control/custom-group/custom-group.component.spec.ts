@@ -3,7 +3,9 @@ import { async, ComponentFixture, TestBed, inject } from '@angular/core/testing'
 import { CustomGroupComponent } from './custom-group.component';
 import { ServicesMockModule } from '../services.mock.module';
 import { FormsModule } from '@angular/forms';
-import { FabricAuthGroupService, FabricAuthRoleService, FabricExternalIdpSearchService } from '../../../services';
+import { FabricAuthGroupService } from '../../../services/fabric-auth-group.service';
+import { FabricAuthRoleService } from '../../../services/fabric-auth-role.service';
+import { FabricExternalIdpSearchService } from '../../../services/fabric-external-idp-search.service';
 import { FabricAuthRoleServiceMock, mockRoles } from '../../../services/fabric-auth-role.service.mock';
 import { FabricAuthGroupServiceMock, mockUsersResponse } from '../../../services/fabric-auth-group.service.mock';
 import { Observable } from 'rxjs/Observable';

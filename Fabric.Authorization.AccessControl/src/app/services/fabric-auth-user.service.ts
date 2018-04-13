@@ -1,12 +1,14 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { catchError, retry } from 'rxjs/operators';
 
-import { Exception, IGroup, IRole, IUser, IDataChangedEventArgs } from '../models';
 import { FabricBaseService } from './fabric-base.service';
-import { AccessControlConfigService } from './access-control-config.service';
+import { IAccessControlConfigService } from './access-control-config.service';
+import { IUser } from '../models/user.model';
+import { IGroup } from '../models/group.model';
+import { IRole } from '../models/role.model';
 
 @Injectable()
 export class FabricAuthUserService extends FabricBaseService {
@@ -17,7 +19,7 @@ export class FabricAuthUserService extends FabricBaseService {
 
   constructor(
     httpClient: HttpClient,
-    accessControlConfigService: AccessControlConfigService
+    @Inject('IAccessControlConfigService') accessControlConfigService: IAccessControlConfigService
   ) {
     super(httpClient, accessControlConfigService);
 
@@ -96,7 +98,7 @@ export class FabricAuthUserService extends FabricBaseService {
         return role.name;
       })
     };
-    this.accessControlConfigService.dataChangedEvent(changedData);
+    this.accessControlConfigService.dataChanged.next(changedData);
   }
 
   public removeRolesFromUser(

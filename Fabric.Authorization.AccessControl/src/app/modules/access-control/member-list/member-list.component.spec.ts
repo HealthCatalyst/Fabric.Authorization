@@ -4,9 +4,9 @@ import { MemberListComponent } from './member-list.component';
 import { ServicesMockModule } from '../services.mock.module';
 import { PopoverModule, IconModule, ProgressIndicatorsModule, SelectModule, ModalModule, PaginationModule } from '@healthcatalyst/cashmere';
 import { FabricAuthMemberSearchServiceMock, mockAuthSearchResult } from '../../../services/fabric-auth-member-search.service.mock';
-import { FabricAuthMemberSearchService } from '../../../services';
 import { Observable } from 'rxjs/Observable';
 import { FormsModule } from '@angular/forms';
+import { FabricAuthMemberSearchService } from '../../../services/fabric-auth-member-search.service';
 
 describe('MemberListComponent', () => {
   let component: MemberListComponent;

@@ -1,10 +1,10 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
 
-import { IRole } from '../models';
 import { FabricBaseService } from './fabric-base.service';
-import { AccessControlConfigService } from './access-control-config.service';
+import { IAccessControlConfigService } from './access-control-config.service';
+import { IRole } from '../models/role.model';
 
 @Injectable()
 export class FabricAuthRoleService extends FabricBaseService {
@@ -13,7 +13,7 @@ export class FabricAuthRoleService extends FabricBaseService {
 
   constructor(
     httpClient: HttpClient,
-    accessControlConfigService: AccessControlConfigService
+    @Inject('IAccessControlConfigService') accessControlConfigService: IAccessControlConfigService
   ) {
     super(httpClient, accessControlConfigService);
 
