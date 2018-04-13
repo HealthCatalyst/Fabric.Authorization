@@ -8,8 +8,8 @@ import {
 } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/throw';
-import { Exception } from '../../models';
 import 'rxjs/add/operator/catch';
+import { Exception } from '../../models/exception.model';
 
 @Injectable()
 export class FabricHttpErrorHandlerInterceptorService {

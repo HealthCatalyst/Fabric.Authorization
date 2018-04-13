@@ -1,16 +1,13 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { catchError, retry } from 'rxjs/operators';
 
-import {
-  IAuthMemberSearchRequest,
-  IAuthMemberSearchResult,
-  IAuthMemberSearchResponse
-} from '../models';
 import { FabricBaseService } from './fabric-base.service';
-import { AccessControlConfigService } from './access-control-config.service';
+import { IAccessControlConfigService } from './access-control-config.service';
+import { IAuthMemberSearchRequest } from '../models/authMemberSearchRequest.model';
+import { IAuthMemberSearchResponse } from '../models/authMemberSearchResult.model';
 
 @Injectable()
 export class FabricAuthMemberSearchService extends FabricBaseService {
@@ -18,7 +15,7 @@ export class FabricAuthMemberSearchService extends FabricBaseService {
 
   constructor(
     httpClient: HttpClient,
-    accessControlConfigService: AccessControlConfigService
+    @Inject('IAccessControlConfigService') accessControlConfigService: IAccessControlConfigService
   ) {
     super(httpClient, accessControlConfigService);
 

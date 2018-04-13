@@ -25,20 +25,37 @@ This configuration object should be passed to the access control module in the f
 
 ```
 import { NgModule } from "@angular/core";
-import { AccessControlModule } from '@healthcatalyst/fabric-access-control-ui';
+import { AccessControlModule, IAccessControlConfigService } from '@healthcatalyst/fabric-access-control-ui';
 
-const accesscontrolConfig = {
-  clientId: 'fabric-angularsample',
-  identityProvider: 'windows',
-  grain: 'dos',
-  securableItem: 'datamarts',  
-  getFabricAuthApiUrl:'http://localhost/authorization/v1';  
-  getFabricExternalIdpSearchApiUrl: 'http://localhost:5009/v1';  
-};
+// You can inject needed classes through the constructor
+@Injectable()
+class AccessControlConfig implements IAccessControlConfigService {
+    dataChanged: Subject<IDataChangedEventArgs> = new Subject<IDataChangedEventArgs>();
+    errorRaised: Subject<Exception> = new Subject<Exception>();
+
+    constructor() {
+        this.dataChanged.subscribe((eventArgs: IDataChangedEventArgs) => {
+            // tslint:disable-next-line:no-console
+            console.log(`Data changed: ${JSON.stringify(eventArgs)}`);
+        });
+
+        this.errorRaised.subscribe((eventArgs: Exception) => {
+            // tslint:disable-next-line:no-console
+            console.log(`Error: ${JSON.stringify(eventArgs)}`);
+        });
+    }
+
+    clientId: string = 'atlas';
+    identityProvider: string = 'windows';
+    grain: string = 'dos';
+    securableItem: string = 'datamarts';
+    fabricAuthApiUrl = 'http://localhost/authorization/v1';
+    fabricExternalIdpSearchApiUrl = 'http://localhost:5009/v1';
+}
 
 @NgModule({
   imports: [
-    AccessControlModule.forRoot(accesscontrolConfig)
+    AccessControlModule.forRoot(AccessControlConfig)
   ]
 })
 export class AccessControlLazyLoader {}

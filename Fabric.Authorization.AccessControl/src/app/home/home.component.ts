@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Inject } from '@angular/core';
 
 import { AuthService } from '../services/global/auth.service';
-import { AccessControlConfigService } from '../services/access-control-config.service';
+import { IAccessControlConfigService } from '../services/access-control-config.service';
 
 @Component({
   selector: 'app-home',
@@ -13,7 +13,7 @@ export class HomeComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
-    private configService: AccessControlConfigService
+    @Inject('IAccessControlConfigService') private configService: IAccessControlConfigService
   ) {}
 
   ngOnInit() {

@@ -7,7 +7,7 @@ import { LogoutComponent } from './logout/logout.component';
 
 const routes: Routes = [
   {
-    path: 'accesscontrol',
+    path: 'access-control',
     loadChildren:
       'app/modules/access-control/access-control.module#AccessControlModule'
   },

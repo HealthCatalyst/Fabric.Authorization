@@ -1,30 +1,22 @@
-import { Component, OnInit, ViewChild, TemplateRef } from '@angular/core';
+import { Component, OnInit, ViewChild, TemplateRef, Inject } from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
 import { Subject } from 'rxjs/Subject';
 import 'rxjs/add/operator/debounceTime';
 import 'rxjs/add/operator/distinctUntilChanged';
 import { Router } from '@angular/router';
 import { ModalService } from '@healthcatalyst/cashmere';
-
-import {
-  AccessControlConfigService,
-  FabricAuthMemberSearchService,
-  FabricAuthUserService,
-  FabricAuthGroupService
-} from '../../../services';
-import {
-  IAuthMemberSearchRequest,
-  IAuthMemberSearchResult,
-  IRole,
-  IFabricPrincipal,
-  SortDirection,
-  SortKey
-} from '../../../models';
+import { IAuthMemberSearchResult } from '../../../models/authMemberSearchResult.model';
+import { SortKey, SortDirection, IAuthMemberSearchRequest } from '../../../models/authMemberSearchRequest.model';
+import { FabricAuthMemberSearchService } from '../../../services/fabric-auth-member-search.service';
+import { IAccessControlConfigService } from '../../../services/access-control-config.service';
+import { FabricAuthUserService } from '../../../services/fabric-auth-user.service';
+import { FabricAuthGroupService } from '../../../services/fabric-auth-group.service';
+import { IRole } from '../../../models/role.model';
 
 @Component({
   selector: 'app-member-list',
   templateUrl: './member-list.component.html',
-  styleUrls: ['./member-list.component.scss']
+  styleUrls: ['./member-list.component.scss', '../access-control.scss']
 })
 export class MemberListComponent implements OnInit {
   readonly pageSizes: number[] = [5, 10, 25, 50];
@@ -46,7 +38,7 @@ export class MemberListComponent implements OnInit {
 
   constructor(
     private memberSearchService: FabricAuthMemberSearchService,
-    private configService: AccessControlConfigService,
+    @Inject('IAccessControlConfigService') private configService: IAccessControlConfigService,
     private userService: FabricAuthUserService,
     private groupService: FabricAuthGroupService,
     private router: Router,
@@ -154,13 +146,13 @@ export class MemberListComponent implements OnInit {
   goToMemberEdit(member: IAuthMemberSearchResult) {
     if (member.entityType !== 'CustomGroup') {
       this.router.navigate([
-        '/accesscontrol/member',
+        '/access-control/member',
         member.subjectId,
         member.entityType
       ]);
     } else {
       this.router.navigate([
-        '/accesscontrol/customgroup',
+        '/access-control/customgroup',
         member.subjectId
       ]);
     }
