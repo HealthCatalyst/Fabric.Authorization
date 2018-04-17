@@ -8,7 +8,7 @@ import { AppRoutingModule } from './app-routing.module';
 
  import { httpInterceptorProviders } from './services/interceptors';
 import { AuthService } from '../app/services/global/auth.service';
-import { AccessControlConfigService } from './services/access-control-config.service';
+import { IAccessControlConfigService } from './services/access-control-config.service';
 import { ClientAccessControlConfigService } from './services/global/client-access-control-config.service';
 
 import { LoginComponent } from './login/login.component';
@@ -23,7 +23,7 @@ import { ButtonModule, ProgressIndicatorsModule } from '@healthcatalyst/cashmere
   providers: [
     AuthService,
     {
-      provide: AccessControlConfigService,
+      provide: 'IAccessControlConfigService',
       useClass: ClientAccessControlConfigService
     },
     httpInterceptorProviders

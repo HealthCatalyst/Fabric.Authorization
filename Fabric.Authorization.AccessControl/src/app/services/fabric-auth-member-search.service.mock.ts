@@ -1,4 +1,4 @@
-import { IAuthMemberSearchResponse, IAuthMemberSearchResult } from '../models';
+import { IAuthMemberSearchResponse } from '../models/authMemberSearchResult.model';
 
 export const mockAuthSearchResult: IAuthMemberSearchResponse = {
     totalCount: 2,

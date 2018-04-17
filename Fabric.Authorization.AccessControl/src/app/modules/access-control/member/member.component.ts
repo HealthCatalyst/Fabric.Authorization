@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject } from '@angular/core';
 
 import { Subject } from 'rxjs/Subject';
 import { Subscription } from 'rxjs/Subscription';
@@ -10,21 +10,22 @@ import 'rxjs/add/observable/throw';
 import 'rxjs/add/observable/zip';
 import 'rxjs/add/operator/mergeMap';
 
-import {
-  FabricExternalIdpSearchService,
-  FabricAuthRoleService,
-  AccessControlConfigService,
-  FabricAuthUserService,
-  FabricAuthGroupService
-} from '../../../services';
-import { IFabricPrincipal, IRole, IUser, IGroup } from '../../../models';
 import { inherits } from 'util';
 import { Router, ActivatedRoute } from '@angular/router';
+import { IFabricPrincipal } from '../../../models/fabricPrincipal.model';
+import { IRole } from '../../../models/role.model';
+import { FabricExternalIdpSearchService } from '../../../services/fabric-external-idp-search.service';
+import { FabricAuthRoleService } from '../../../services/fabric-auth-role.service';
+import { FabricAuthUserService } from '../../../services/fabric-auth-user.service';
+import { IAccessControlConfigService } from '../../../services/access-control-config.service';
+import { FabricAuthGroupService } from '../../../services/fabric-auth-group.service';
+import { IUser } from '../../../models/user.model';
+import { IGroup } from '../../../models/group.model';
 
 @Component({
   selector: 'app-member',
   templateUrl: './member.component.html',
-  styleUrls: ['./member.component.scss']
+  styleUrls: ['./member.component.scss', '../access-control.scss']
 })
 export class MemberComponent implements OnInit, OnDestroy {
   public principals: Array<IFabricPrincipal> = [];
@@ -43,7 +44,7 @@ export class MemberComponent implements OnInit, OnDestroy {
     private idpSearchService: FabricExternalIdpSearchService,
     private roleService: FabricAuthRoleService,
     private userService: FabricAuthUserService,
-    private configService: AccessControlConfigService,
+    @Inject('IAccessControlConfigService')private configService: IAccessControlConfigService,
     private groupService: FabricAuthGroupService,
     private router: Router,
     private route: ActivatedRoute
@@ -127,7 +128,7 @@ export class MemberComponent implements OnInit, OnDestroy {
       // TODO: Error handling
       console.error(error);
     }, () => {
-      this.router.navigate(['/accesscontrol']);
+      this.router.navigate(['/access-control']);
     });
   }
 

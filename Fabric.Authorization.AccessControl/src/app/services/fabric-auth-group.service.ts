@@ -1,13 +1,15 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { catchError, retry } from 'rxjs/operators';
-import { Exception, IGroup, IRole, IUser, IDataChangedEventArgs } from '../models';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 
 import { FabricBaseService } from './fabric-base.service';
-import { AccessControlConfigService } from './access-control-config.service';
+import { IAccessControlConfigService } from './access-control-config.service';
+import { IGroup } from '../models/group.model';
+import { IUser } from '../models/user.model';
+import { IRole } from '../models/role.model';
 
 @Injectable()
 export class FabricAuthGroupService extends FabricBaseService {
@@ -18,7 +20,7 @@ export class FabricAuthGroupService extends FabricBaseService {
 
   constructor(
     httpClient: HttpClient,
-    accessControlConfigService: AccessControlConfigService
+    @Inject('IAccessControlConfigService') accessControlConfigService: IAccessControlConfigService
   ) {
     super(httpClient, accessControlConfigService);
 
@@ -99,7 +101,7 @@ export class FabricAuthGroupService extends FabricBaseService {
         return user.subjectId;
       })
     };
-    this.accessControlConfigService.dataChangedEvent(changedData);
+    this.accessControlConfigService.dataChanged.next(changedData);
   }
 
   public getGroupRoles(
@@ -164,7 +166,7 @@ export class FabricAuthGroupService extends FabricBaseService {
         return role.name;
       })
     };
-    this.accessControlConfigService.dataChangedEvent(changedData);
+    this.accessControlConfigService.dataChanged.next(changedData);
   }
 
   public createGroup(group: IGroup): Observable<IGroup> {

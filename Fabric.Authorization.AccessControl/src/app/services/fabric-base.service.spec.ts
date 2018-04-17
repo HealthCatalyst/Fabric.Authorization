@@ -1,13 +1,17 @@
 import { TestBed, inject } from '@angular/core/testing';
 
-import { FabricBaseService } from '../services';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { AccessControlConfigService } from './access-control-config.service';
+import { IAccessControlConfigService } from './access-control-config.service';
+import { FabricBaseService } from './fabric-base.service';
+import { MockAccessControlConfigService } from './access-control-config.service.mock';
 
 describe('FabricAuthBaseService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [FabricBaseService, AccessControlConfigService],
+      providers: [FabricBaseService, {
+        provide: 'IAccessControlConfigService',
+        useClass: MockAccessControlConfigService
+      }],
       imports: [HttpClientTestingModule]
     });
   });

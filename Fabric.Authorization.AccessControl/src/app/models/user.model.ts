@@ -1,4 +1,5 @@
-import { IRole, IGroup } from '../models';
+import { IGroup } from './group.model';
+import { IRole } from './role.model';
 
 export interface IUser {
   id?: string;

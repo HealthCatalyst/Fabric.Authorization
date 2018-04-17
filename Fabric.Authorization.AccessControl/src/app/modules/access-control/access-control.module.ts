@@ -1,4 +1,4 @@
-import { NgModule, ModuleWithProviders } from '@angular/core';
+import { NgModule, ModuleWithProviders, Type } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
@@ -16,15 +16,13 @@ import {
 } from '@healthcatalyst/cashmere';
 
 import { AccessControlRoutingModule } from './access-control-routing.module';
-import {
-  FabricBaseService,
-  FabricAuthGroupService,
-  FabricAuthMemberSearchService,
-  FabricAuthUserService,
-  FabricExternalIdpSearchService,
-  FabricAuthRoleService,
-  AccessControlConfigService
-} from '../../services';
+import { FabricBaseService } from '../../services/fabric-base.service';
+import { FabricAuthGroupService } from '../../services/fabric-auth-group.service';
+import { FabricAuthMemberSearchService } from '../../services/fabric-auth-member-search.service';
+import { FabricAuthUserService } from '../../services/fabric-auth-user.service';
+import { FabricExternalIdpSearchService } from '../../services/fabric-external-idp-search.service';
+import { FabricAuthRoleService } from '../../services/fabric-auth-role.service';
+import { IAccessControlConfigService } from '../../services/access-control-config.service';
 
 import { MemberListComponent } from './member-list/member-list.component';
 import { MemberComponent } from './member/member.component';
@@ -60,14 +58,13 @@ import { CustomGroupComponent } from './custom-group/custom-group.component';
     FabricExternalIdpSearchService,
     FabricAuthRoleService
   ],
-  exports: []
 })
 export class AccessControlModule {
-  static forRoot(config: AccessControlConfigService): ModuleWithProviders {
+  static forRoot(config: Type<IAccessControlConfigService>): ModuleWithProviders {
     return {
       ngModule: AccessControlModule,
       providers: [
-        {provide: AccessControlConfigService, useValue: config}
+        {provide: 'IAccessControlConfigService', useClass: config}
       ]
     };
   }
