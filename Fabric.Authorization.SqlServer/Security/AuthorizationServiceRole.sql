@@ -37,3 +37,6 @@ GO
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON [dbo].[Users] TO AuthorizationServiceRole;
 GO
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON [dbo].[EventLogs] to AuthorizationServiceRole;
+GO
