@@ -138,7 +138,7 @@ namespace Fabric.Authorization.API
             container.Register(_loggerFactory);
             container.Register(_logger);
             var options = new MemoryCacheOptions();
-            var eventLogger = LogFactory.CreateEventLogger(_loggingLevelSwitch, _appConfig.ApplicationInsights);
+            var eventLogger = LogFactory.CreateEventLogger(_loggingLevelSwitch, _appConfig);
             var serilogEventWriter = new SerilogEventWriter(eventLogger);
             container.Register<IEventWriter>(serilogEventWriter);
             container.Register(options);
