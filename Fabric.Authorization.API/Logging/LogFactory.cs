@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
+using Fabric.Authorization.API.Constants;
 using Serilog;
 using Serilog.Core;
+using Serilog.Sinks.MSSqlServer;
 
 namespace Fabric.Authorization.API.Logging
 {
@@ -23,16 +22,22 @@ namespace Fabric.Authorization.API.Logging
             return loggerConfiguration.CreateLogger();
         }
 
-        public static ILogger CreateEventLogger(LoggingLevelSwitch levelSwitch, ApplicationInsights appInsightsConfig)
+        public static ILogger CreateEventLogger(LoggingLevelSwitch levelSwitch, IAppConfiguration appConfiguration)
         {
-            var loggerConfiguration = CreateLoggerConfiguration(levelSwitch);
-
-            if (appInsightsConfig != null && appInsightsConfig.Enabled &&
-                !string.IsNullOrEmpty(appInsightsConfig.InstrumentationKey))
+            if (appConfiguration.StorageProvider.Equals(StorageProviders.SqlServer, StringComparison.OrdinalIgnoreCase))
             {
-                loggerConfiguration.WriteTo.ApplicationInsightsEvents(appInsightsConfig.InstrumentationKey);
+                var columnOptions = new ColumnOptions();
+                columnOptions.Store.Add(StandardColumn.LogEvent);
+
+                return new LoggerConfiguration().Enrich.FromLogContext()
+                    .WriteTo.MSSqlServer(
+                        appConfiguration.ConnectionStrings.AuthorizationDatabase,
+                        "EventLogs",
+                        columnOptions: columnOptions)
+                    .CreateLogger();
             }
 
+            var loggerConfiguration = CreateLoggerConfiguration(levelSwitch);
             return loggerConfiguration.CreateLogger();
         }
 
