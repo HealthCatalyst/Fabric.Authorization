@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Fabric.Authorization.Domain.Events;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
@@ -22,20 +23,21 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             _grainStore = grainStore;
         }
 
-        public async Task<Client> Add(Client model)
+        public async Task<Client> Add(Client client)
         {
             Grain grain = null;
-            if (model.TopLevelSecurableItem != null)
+            if (client.TopLevelSecurableItem != null)
             {
-                grain = await _grainStore.Get(model.TopLevelSecurableItem.Grain);
+                grain = await _grainStore.Get(client.TopLevelSecurableItem.Grain);
             }
 
-            var clientEntity = model.ToEntity();
+            var clientEntity = client.ToEntity();
             clientEntity.TopLevelSecurableItem.GrainId = grain?.Id;
 
             AuthorizationDbContext.Clients.Add(clientEntity);
             await AuthorizationDbContext.SaveChangesAsync();
-            return model;
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Client>(EventTypes.EntityCreatedEvent, client.Id, client));
+            return client;
         }
 
         /// <summary>
@@ -66,39 +68,41 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return clients.Select(c => c.ToModel());
         }
 
-        public async Task Delete(Client model)
+        public async Task Delete(Client client)
         {
-            var client = await AuthorizationDbContext.Clients
+            var clientEntity = await AuthorizationDbContext.Clients
                 .Include(i => i.TopLevelSecurableItem)
-                .SingleOrDefaultAsync(c => c.ClientId == model.Id
+                .SingleOrDefaultAsync(c => c.ClientId == client.Id
                                            && !c.IsDeleted);
 
-            if (client == null)
+            if (clientEntity == null)
             {
-                throw new NotFoundException<Client>($"Could not find {typeof(Client).Name} entity with ID {model.Id}");
+                throw new NotFoundException<Client>($"Could not find {typeof(Client).Name} entity with ID {client.Id}");
             }
 
             client.IsDeleted = true;
-            MarkSecurableItemsDeleted(client.TopLevelSecurableItem);
+            MarkSecurableItemsDeleted(clientEntity.TopLevelSecurableItem);
 
             await AuthorizationDbContext.SaveChangesAsync();
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Client>(EventTypes.EntityDeletedEvent, client.Id, client));
         }
 
-        public async Task Update(Client model)
+        public async Task Update(Client client)
         {
-            var client = await AuthorizationDbContext.Clients
+            var clientEntity = await AuthorizationDbContext.Clients
                 .Include(i => i.TopLevelSecurableItem)
-                .SingleOrDefaultAsync(c => c.ClientId == model.Id
+                .SingleOrDefaultAsync(c => c.ClientId == client.Id
                                            && !c.IsDeleted);
-            if (client == null)
+            if (clientEntity == null)
             {
-                throw new NotFoundException<Client>($"Could not find {typeof(Client).Name} entity with ID {model.Id}");
+                throw new NotFoundException<Client>($"Could not find {typeof(Client).Name} entity with ID {client.Id}");
             }
 
-            model.ToEntity(client);
+            client.ToEntity(clientEntity);
 
-            AuthorizationDbContext.Clients.Update(client);
+            AuthorizationDbContext.Clients.Update(clientEntity);
             await AuthorizationDbContext.SaveChangesAsync();
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Client>(EventTypes.EntityUpdatedEvent, client.Id, client));
         }
 
         /// <summary>
@@ -114,7 +118,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return client != null;
         }
 
-        private void MarkSecurableItemsDeleted(SecurableItem topLevelSecurableItem)
+        private static void MarkSecurableItemsDeleted(SecurableItem topLevelSecurableItem)
         {
             topLevelSecurableItem.IsDeleted = true;
             foreach (var securableItem in topLevelSecurableItem.SecurableItems)
