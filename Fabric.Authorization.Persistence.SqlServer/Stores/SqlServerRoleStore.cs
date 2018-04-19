@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
+using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Persistence.SqlServer.EntityModels;
 using Fabric.Authorization.Persistence.SqlServer.Mappers;
@@ -13,13 +14,11 @@ using Role = Fabric.Authorization.Domain.Models.Role;
 
 namespace Fabric.Authorization.Persistence.SqlServer.Stores
 {
-    public class SqlServerRoleStore : IRoleStore
+    public class SqlServerRoleStore : SqlServerBaseStore, IRoleStore
     {
-        private readonly IAuthorizationDbContext _authorizationDbContext;
-
-        public SqlServerRoleStore(IAuthorizationDbContext authorizationDbContext)
+        public SqlServerRoleStore(IAuthorizationDbContext authorizationDbContext, IEventService eventService) :
+            base(authorizationDbContext, eventService)
         {
-            _authorizationDbContext = authorizationDbContext;
         }
 
         public async Task<Role> Add(Role model)
@@ -27,9 +26,9 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             model.Id = Guid.NewGuid();
             var entity = model.ToEntity();
             entity.SecurableItem =
-                _authorizationDbContext.SecurableItems.First(s => !s.IsDeleted && s.Name == model.SecurableItem);
-            _authorizationDbContext.Roles.Add(entity);
-            await _authorizationDbContext.SaveChangesAsync();
+                AuthorizationDbContext.SecurableItems.First(s => !s.IsDeleted && s.Name == model.SecurableItem);
+            AuthorizationDbContext.Roles.Add(entity);
+            await AuthorizationDbContext.SaveChangesAsync();
 
             return entity.ToModel();
         }
@@ -40,29 +39,9 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return role.ToModel();
         }
 
-        private async Task<EntityModels.Role> GetEntityModel(Guid id)
-        {
-            var role = await _authorizationDbContext.Roles
-                .Include(r => r.RolePermissions)
-                .ThenInclude(rp => rp.Permission)
-                .Include(r => r.GroupRoles)
-                .ThenInclude(gr => gr.Group)
-                .Include(r => r.SecurableItem)
-                .SingleOrDefaultAsync(r =>
-                    r.RoleId == id
-                    && !r.IsDeleted);
-
-            if (role == null)
-            {
-                throw new NotFoundException<Role>($"Could not find {typeof(Role).Name} entity with ID {id}");
-            }
-
-            return role;
-        }
-
         public async Task<IEnumerable<Role>> GetAll()
         {
-            var roles = await _authorizationDbContext.Roles
+            var roles = await AuthorizationDbContext.Roles
                 .Include(r => r.RolePermissions)
                 .ThenInclude(rp => rp.Permission)
                 .Include(r => r.GroupRoles)
@@ -75,7 +54,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task Delete(Role model)
         {
-            var role = await _authorizationDbContext.Roles
+            var role = await AuthorizationDbContext.Roles
                 .Include(r => r.RolePermissions)
                 .Include(r => r.GroupRoles)
                 .SingleOrDefaultAsync(r =>
@@ -99,12 +78,12 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 groupRole.IsDeleted = true;
             }
 
-            await _authorizationDbContext.SaveChangesAsync();
+            await AuthorizationDbContext.SaveChangesAsync();
         }
 
         public async Task Update(Role model)
         {
-            var role = await _authorizationDbContext.Roles
+            var role = await AuthorizationDbContext.Roles
                 .SingleOrDefaultAsync(r =>
                     r.RoleId == model.Id
                     && !r.IsDeleted);
@@ -115,13 +94,13 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             }
 
             model.ToEntity(role);
-            _authorizationDbContext.Roles.Update(role);
-            await _authorizationDbContext.SaveChangesAsync();
+            AuthorizationDbContext.Roles.Update(role);
+            await AuthorizationDbContext.SaveChangesAsync();
         }
 
         public async Task<bool> Exists(Guid id)
         {
-            var role = await _authorizationDbContext.Roles
+            var role = await AuthorizationDbContext.Roles
                 .SingleOrDefaultAsync(r =>
                     r.RoleId == id
                     && !r.IsDeleted);
@@ -135,29 +114,129 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return Task.FromResult(roles.Select(r => r.ToModel()).AsEnumerable());
         }
 
-        private IEnumerable<EntityModels.Role> GetRoleEntityModels(string grain, string securableItem = null, string roleName = null)
+        public async Task<Role> AddPermissionsToRole(Role role, ICollection<Permission> allowPermissions,
+            ICollection<Permission> denyPermissions)
         {
-            var roles = _authorizationDbContext.Roles
+            // TODO: handle case where role.Id may not exist in Roles table
+            foreach (var permission in allowPermissions)
+            {
+                AuthorizationDbContext.RolePermissions.Add(new RolePermission
+                {
+                    RoleId = role.Id,
+                    PermissionId = permission.Id,
+                    PermissionAction = PermissionAction.Allow
+                });
+
+                role.Permissions.Add(permission);
+            }
+
+            foreach (var permission in denyPermissions)
+            {
+                AuthorizationDbContext.RolePermissions.Add(new RolePermission
+                {
+                    RoleId = role.Id,
+                    PermissionId = permission.Id,
+                    PermissionAction = PermissionAction.Deny
+                });
+
+                role.Permissions.Add(permission);
+            }
+
+            await AuthorizationDbContext.SaveChangesAsync();
+            return role;
+        }
+
+        public async Task<Role> RemovePermissionsFromRole(Role role, Guid[] permissionIds)
+        {
+            var roleEntity = await AuthorizationDbContext.Roles
+                .Include(r => r.RolePermissions)
+                .SingleOrDefaultAsync(r =>
+                    r.RoleId == role.Id
+                    && !r.IsDeleted);
+
+            if (roleEntity == null)
+            {
+                throw new NotFoundException<Role>($"Could not find {typeof(Role).Name} entity with ID {role.Id}");
+            }
+
+            foreach (var permissionId in permissionIds)
+            {
+                var rolePermissionToRemove = roleEntity.RolePermissions.Single(
+                    rp => rp.RoleId == roleEntity.RoleId
+                          && rp.PermissionId == permissionId);
+
+                rolePermissionToRemove.IsDeleted = true;
+                AuthorizationDbContext.RolePermissions.Update(rolePermissionToRemove);
+            }
+
+            await AuthorizationDbContext.SaveChangesAsync();
+            return roleEntity.ToModel();
+        }
+
+        public async Task RemovePermissionFromRoles(Guid permissionId, string grain, string securableItem = null)
+        {
+            var roles = GetRoleEntityModels(grain, securableItem);
+
+            foreach (var role in roles)
+            {
+                var rolePermissionToRemove = role.RolePermissions.Single(
+                    rp => rp.RoleId == role.RoleId
+                          && rp.Permission.PermissionId == permissionId);
+
+                if (rolePermissionToRemove != null)
+                {
+                    rolePermissionToRemove.IsDeleted = true;
+                    AuthorizationDbContext.RolePermissions.Update(rolePermissionToRemove);
+                }
+            }
+
+            await AuthorizationDbContext.SaveChangesAsync();
+        }
+
+        private async Task<EntityModels.Role> GetEntityModel(Guid id)
+        {
+            var role = await AuthorizationDbContext.Roles
+                .Include(r => r.RolePermissions)
+                .ThenInclude(rp => rp.Permission)
+                .Include(r => r.GroupRoles)
+                .ThenInclude(gr => gr.Group)
+                .Include(r => r.SecurableItem)
+                .SingleOrDefaultAsync(r =>
+                    r.RoleId == id
+                    && !r.IsDeleted);
+
+            if (role == null)
+            {
+                throw new NotFoundException<Role>($"Could not find {typeof(Role).Name} entity with ID {id}");
+            }
+
+            return role;
+        }
+
+        private IEnumerable<EntityModels.Role> GetRoleEntityModels(string grain, string securableItem = null,
+            string roleName = null)
+        {
+            var roles = AuthorizationDbContext.Roles
                 .Include(r => r.SecurableItem)
                 .Include(r => r.ParentRole)
                 .Include(r => r.ChildRoles)
                 .Include(r => r.RolePermissions)
-                    .ThenInclude(rp => rp.Permission)
-                    .ThenInclude(p => p.SecurableItem)
+                .ThenInclude(rp => rp.Permission)
+                .ThenInclude(p => p.SecurableItem)
                 .Include(r => r.GroupRoles)
-                    .ThenInclude(gr => gr.Group)
-                    .ThenInclude(g => g.GroupRoles)
-                    .ThenInclude(gr => gr.Role)
+                .ThenInclude(gr => gr.Group)
+                .ThenInclude(g => g.GroupRoles)
+                .ThenInclude(gr => gr.Role)
                 .Include(r => r.RoleUsers)
-                    .ThenInclude(ru => ru.User)
-                    .ThenInclude(u => u.RoleUsers)
-                    .ThenInclude(ur => ur.Role)
-                    .ThenInclude(r => r.SecurableItem)
+                .ThenInclude(ru => ru.User)
+                .ThenInclude(u => u.RoleUsers)
+                .ThenInclude(ur => ur.Role)
+                .ThenInclude(r => r.SecurableItem)
                 .Include(r => r.RoleUsers)
-                    .ThenInclude(ru => ru.User)
-                    .ThenInclude(u => u.GroupUsers)
-                    .ThenInclude(gu => gu.Group)
-                .AsNoTracking()                    
+                .ThenInclude(ru => ru.User)
+                .ThenInclude(u => u.GroupUsers)
+                .ThenInclude(gu => gu.Group)
+                .AsNoTracking()
                 .Where(r => !r.IsDeleted);
 
             if (!string.IsNullOrEmpty(grain))
@@ -183,84 +262,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             }
 
             return roles;
-        }
-
-        public async Task<Role> AddPermissionsToRole(Role role, ICollection<Permission> allowPermissions, ICollection<Permission> denyPermissions)
-        {
-            // TODO: handle case where role.Id may not exist in Roles table
-            foreach (var permission in allowPermissions)
-            {
-                _authorizationDbContext.RolePermissions.Add(new RolePermission
-                {
-                    RoleId = role.Id,
-                    PermissionId = permission.Id,
-                    PermissionAction = PermissionAction.Allow
-                });
-
-                role.Permissions.Add(permission);
-            }
-
-            foreach (var permission in denyPermissions)
-            {
-                _authorizationDbContext.RolePermissions.Add(new RolePermission
-                {
-                    RoleId = role.Id,
-                    PermissionId = permission.Id,
-                    PermissionAction = PermissionAction.Deny
-                });
-
-                role.Permissions.Add(permission);
-            }
-
-            await _authorizationDbContext.SaveChangesAsync();
-            return role;
-        }
-
-        public async Task<Role> RemovePermissionsFromRole(Role role, Guid[] permissionIds)
-        {
-            var roleEntity = await _authorizationDbContext.Roles
-                .Include(r => r.RolePermissions)
-                .SingleOrDefaultAsync(r =>
-                    r.RoleId == role.Id
-                    && !r.IsDeleted);
-
-            if (roleEntity == null)
-            {
-                throw new NotFoundException<Role>($"Could not find {typeof(Role).Name} entity with ID {role.Id}");
-            }
-
-            foreach (var permissionId in permissionIds)
-            {
-                var rolePermissionToRemove = roleEntity.RolePermissions.Single(
-                    rp => rp.RoleId == roleEntity.RoleId
-                          && rp.PermissionId == permissionId);
-
-                rolePermissionToRemove.IsDeleted = true;
-                _authorizationDbContext.RolePermissions.Update(rolePermissionToRemove);
-            }
-
-            await _authorizationDbContext.SaveChangesAsync();
-            return roleEntity.ToModel();
-        }
-
-        public async Task RemovePermissionFromRoles(Guid permissionId, string grain, string securableItem = null)
-        {
-            var roles = GetRoleEntityModels(grain, securableItem);
-
-            foreach (var role in roles)
-            {
-                var rolePermissionToRemove = role.RolePermissions.Single(
-                    rp => rp.RoleId == role.RoleId
-                          && rp.Permission.PermissionId == permissionId);
-
-                if (rolePermissionToRemove != null)
-                {
-                    rolePermissionToRemove.IsDeleted = true;
-                    _authorizationDbContext.RolePermissions.Update(rolePermissionToRemove);
-                }
-            }
-
-            await _authorizationDbContext.SaveChangesAsync();
         }
     }
 }
