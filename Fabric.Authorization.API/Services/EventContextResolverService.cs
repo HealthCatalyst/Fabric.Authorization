@@ -1,5 +1,4 @@
-﻿using System;
-using Fabric.Authorization.API.Constants;
+﻿using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Infrastructure;
 using Fabric.Authorization.Domain.Services;
 using IdentityModel;
@@ -10,6 +9,7 @@ namespace Fabric.Authorization.API.Services
     public class EventContextResolverService : IEventContextResolverService
     {
         private readonly NancyContext _context;
+
         public EventContextResolverService(NancyContextWrapper contextWrapper)
         {
             _context = contextWrapper.Context;

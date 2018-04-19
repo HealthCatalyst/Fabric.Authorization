@@ -1,24 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
+using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Persistence.SqlServer.Mappers;
 using Fabric.Authorization.Persistence.SqlServer.Services;
 using Microsoft.EntityFrameworkCore;
+using SecurableItem = Fabric.Authorization.Persistence.SqlServer.EntityModels.SecurableItem;
 
 namespace Fabric.Authorization.Persistence.SqlServer.Stores
 {
-    public class SqlServerClientStore : IClientStore
+    public class SqlServerClientStore : SqlServerBaseStore, IClientStore
     {
-        private readonly IAuthorizationDbContext _authorizationDbContext;
         private readonly IGrainStore _grainStore;
 
-        public SqlServerClientStore(IAuthorizationDbContext authorizationDbContext, IGrainStore grainStore)
-        {   
-            _authorizationDbContext = authorizationDbContext;
+        public SqlServerClientStore(IAuthorizationDbContext authorizationDbContext, IEventService eventService, IGrainStore grainStore) :
+            base(authorizationDbContext, eventService)
+        {
             _grainStore = grainStore;
         }
 
@@ -33,19 +33,18 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             var clientEntity = model.ToEntity();
             clientEntity.TopLevelSecurableItem.GrainId = grain?.Id;
 
-            _authorizationDbContext.Clients.Add(clientEntity);
-            await _authorizationDbContext.SaveChangesAsync();
+            AuthorizationDbContext.Clients.Add(clientEntity);
+            await AuthorizationDbContext.SaveChangesAsync();
             return model;
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="id">This is the unique client id of the client</param>
         /// <returns></returns>
         public async Task<Client> Get(string id)
         {
-            var client = await _authorizationDbContext.Clients
+            var client = await AuthorizationDbContext.Clients
                 .Include(i => i.TopLevelSecurableItem)
                 .SingleOrDefaultAsync(c => c.ClientId == id
                                            && !c.IsDeleted);
@@ -60,7 +59,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task<IEnumerable<Client>> GetAll()
         {
-            var clients = await _authorizationDbContext.Clients
+            var clients = await AuthorizationDbContext.Clients
                 .Where(c => !c.IsDeleted)
                 .ToArrayAsync();
 
@@ -69,7 +68,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task Delete(Client model)
         {
-            var client = await _authorizationDbContext.Clients
+            var client = await AuthorizationDbContext.Clients
                 .Include(i => i.TopLevelSecurableItem)
                 .SingleOrDefaultAsync(c => c.ClientId == model.Id
                                            && !c.IsDeleted);
@@ -82,21 +81,12 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             client.IsDeleted = true;
             MarkSecurableItemsDeleted(client.TopLevelSecurableItem);
 
-            await _authorizationDbContext.SaveChangesAsync();
-        }
-
-        private void MarkSecurableItemsDeleted(EntityModels.SecurableItem topLevelSecurableItem)
-        {
-            topLevelSecurableItem.IsDeleted = true;
-            foreach (var securableItem in topLevelSecurableItem.SecurableItems)
-            {
-                MarkSecurableItemsDeleted(securableItem);
-            }
+            await AuthorizationDbContext.SaveChangesAsync();
         }
 
         public async Task Update(Client model)
         {
-            var client = await _authorizationDbContext.Clients
+            var client = await AuthorizationDbContext.Clients
                 .Include(i => i.TopLevelSecurableItem)
                 .SingleOrDefaultAsync(c => c.ClientId == model.Id
                                            && !c.IsDeleted);
@@ -107,22 +97,30 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             model.ToEntity(client);
 
-            _authorizationDbContext.Clients.Update(client);
-            await _authorizationDbContext.SaveChangesAsync();
+            AuthorizationDbContext.Clients.Update(client);
+            await AuthorizationDbContext.SaveChangesAsync();
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="id">This is the unique client id of the client</param>
         /// <returns></returns>
         public async Task<bool> Exists(string id)
         {
-            var client = await _authorizationDbContext.Clients                
+            var client = await AuthorizationDbContext.Clients
                 .SingleOrDefaultAsync(c => c.ClientId == id
                                            && !c.IsDeleted).ConfigureAwait(false);
 
             return client != null;
+        }
+
+        private void MarkSecurableItemsDeleted(SecurableItem topLevelSecurableItem)
+        {
+            topLevelSecurableItem.IsDeleted = true;
+            foreach (var securableItem in topLevelSecurableItem.SecurableItems)
+            {
+                MarkSecurableItemsDeleted(securableItem);
+            }
         }
     }
 }

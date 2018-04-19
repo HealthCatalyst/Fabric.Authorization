@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
+using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Persistence.SqlServer.EntityModels;
 using Fabric.Authorization.Persistence.SqlServer.Mappers;
@@ -13,21 +14,19 @@ using User = Fabric.Authorization.Domain.Models.User;
 
 namespace Fabric.Authorization.Persistence.SqlServer.Stores
 {
-    public class SqlServerUserStore : IUserStore
+    public class SqlServerUserStore : SqlServerBaseStore, IUserStore
     {
-        private readonly IAuthorizationDbContext _authorizationDbContext;
-
-        public SqlServerUserStore(IAuthorizationDbContext authorizationDbContext)
+        public SqlServerUserStore(IAuthorizationDbContext authorizationDbContext, IEventService eventService) : 
+            base(authorizationDbContext, eventService)
         {
-            _authorizationDbContext = authorizationDbContext;
         }
 
         public async Task<User> Add(User model)
         {
             var entity = model.ToEntity();
 
-            _authorizationDbContext.Users.Add(entity);
-            await _authorizationDbContext.SaveChangesAsync();
+            AuthorizationDbContext.Users.Add(entity);
+            await AuthorizationDbContext.SaveChangesAsync();
             return entity.ToModel();
         }
 
@@ -43,7 +42,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             var subjectId = idParts[0];
             var identityProvider = idParts[1];
 
-            var user = await _authorizationDbContext.Users
+            var user = await AuthorizationDbContext.Users
                 .Include(u => u.GroupUsers)
                 .ThenInclude(ug => ug.Group)
                 .Include(u => u.UserPermissions)
@@ -70,7 +69,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task<IEnumerable<User>> GetAll()
         {
-            var users = await _authorizationDbContext.Users
+            var users = await AuthorizationDbContext.Users
                 .Where(c => !c.IsDeleted)
                 .ToArrayAsync();
 
@@ -79,7 +78,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task Delete(User model)
         {
-            var user = await _authorizationDbContext.Users
+            var user = await AuthorizationDbContext.Users
                 .SingleOrDefaultAsync(u =>
                     u.IdentityProvider == model.IdentityProvider
                     && u.SubjectId == model.SubjectId
@@ -87,16 +86,17 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             if (user == null)
             {
-                throw new NotFoundException<User>($"Could not find {typeof(User).Name} User IDP = {model.IdentityProvider}, SubjectId = {model.SubjectId}");
+                throw new NotFoundException<User>(
+                    $"Could not find {typeof(User).Name} User IDP = {model.IdentityProvider}, SubjectId = {model.SubjectId}");
             }
 
             user.IsDeleted = true;
-            await _authorizationDbContext.SaveChangesAsync();
+            await AuthorizationDbContext.SaveChangesAsync();
         }
 
         public async Task Update(User model)
         {
-            var user = await _authorizationDbContext.Users
+            var user = await AuthorizationDbContext.Users
                 .SingleOrDefaultAsync(u =>
                     u.IdentityProvider == model.IdentityProvider
                     && u.SubjectId == model.SubjectId
@@ -104,12 +104,13 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             if (user == null)
             {
-                throw new NotFoundException<User>($"Could not find {typeof(User).Name} User IDP = {model.IdentityProvider}, SubjectId = {model.SubjectId}");
+                throw new NotFoundException<User>(
+                    $"Could not find {typeof(User).Name} User IDP = {model.IdentityProvider}, SubjectId = {model.SubjectId}");
             }
 
             model.ToEntity(user);
-            _authorizationDbContext.Users.Update(user);
-            await _authorizationDbContext.SaveChangesAsync();
+            AuthorizationDbContext.Users.Update(user);
+            await AuthorizationDbContext.SaveChangesAsync();
         }
 
         public async Task<bool> Exists(string id)
@@ -124,7 +125,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             var subjectId = idParts[0];
             var identityProvider = idParts[1];
 
-            var user = await _authorizationDbContext.Users
+            var user = await AuthorizationDbContext.Users
                 .SingleOrDefaultAsync(u =>
                     u.IdentityProvider == identityProvider
                     && u.SubjectId == subjectId
@@ -134,11 +135,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         }
 
         public async Task<User> AddRolesToUser(User user, IList<Role> roles)
-        {   
+        {
             foreach (var role in roles)
             {
                 user.Roles.Add(role);
-                _authorizationDbContext.RoleUsers.Add(new RoleUser
+                AuthorizationDbContext.RoleUsers.Add(new RoleUser
                 {
                     IdentityProvider = user.IdentityProvider,
                     SubjectId = user.SubjectId,
@@ -146,8 +147,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 });
             }
 
-            await _authorizationDbContext.SaveChangesAsync();
-            return user;            
+            await AuthorizationDbContext.SaveChangesAsync();
+            return user;
         }
 
         public async Task<User> DeleteRolesFromUser(User user, IList<Role> roles)
@@ -155,7 +156,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             var roleIds = roles.Select(r => r.Id);
 
             var roleUsers =
-                _authorizationDbContext.RoleUsers.Where(
+                AuthorizationDbContext.RoleUsers.Where(
                     ru => ru.SubjectId == user.SubjectId &&
                           ru.IdentityProvider == user.IdentityProvider &&
                           !ru.IsDeleted &&
@@ -167,16 +168,17 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 if (roleToRemove != null)
                 {
                     user.Roles.Remove(roleToRemove);
-                    roleUser.IsDeleted = true;                    
+                    roleUser.IsDeleted = true;
                 }
             }
-            await _authorizationDbContext.SaveChangesAsync();
+
+            await AuthorizationDbContext.SaveChangesAsync();
             return user;
         }
-        
+
         private static string[] SplitId(string id)
         {
-            var delimiter = new [] {@":"};
+            var delimiter = new[] {@":"};
             return id.Split(delimiter, StringSplitOptions.RemoveEmptyEntries);
         }
     }

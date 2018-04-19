@@ -1,29 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
+using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Persistence.SqlServer.Mappers;
 using Fabric.Authorization.Persistence.SqlServer.Services;
 using Microsoft.EntityFrameworkCore;
+using SecurableItem = Fabric.Authorization.Persistence.SqlServer.EntityModels.SecurableItem;
 
 namespace Fabric.Authorization.Persistence.SqlServer.Stores
 {
-    public class SqlServerGrainStore : IGrainStore
+    public class SqlServerGrainStore : SqlServerBaseStore, IGrainStore
     {
-        private readonly IAuthorizationDbContext _authorizationDbContext;
-
-        public SqlServerGrainStore(IAuthorizationDbContext authorizationDbContext)
+        public SqlServerGrainStore(IAuthorizationDbContext authorizationDbContext, IEventService eventService) :
+            base(authorizationDbContext, eventService)
         {
-            _authorizationDbContext = authorizationDbContext ??
-                                      throw new ArgumentNullException(nameof(authorizationDbContext));
         }
 
         public async Task<Grain> Get(string name)
         {
-            var grain = await _authorizationDbContext.Grains
+            var grain = await AuthorizationDbContext.Grains
                 .Include(g => g.SecurableItems)
                 .SingleOrDefaultAsync(g => g.Name == name && !g.IsDeleted).ConfigureAwait(false);
 
@@ -42,7 +40,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public Task<IEnumerable<Grain>> GetSharedGrains()
         {
-            var sharedGrains = _authorizationDbContext.Grains
+            var sharedGrains = AuthorizationDbContext.Grains
                 .Include(g => g.SecurableItems)
                 .Where(g => !g.IsDeleted && g.IsShared)
                 .Select(g => g.ToModel())
@@ -51,9 +49,9 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return Task.FromResult(sharedGrains);
         }
 
-        private void LoadChildrenRecursive(EntityModels.SecurableItem securableItem)
+        private void LoadChildrenRecursive(SecurableItem securableItem)
         {
-            _authorizationDbContext.Entry(securableItem)
+            AuthorizationDbContext.Entry(securableItem)
                 .Collection(s => s.SecurableItems)
                 .Load();
 

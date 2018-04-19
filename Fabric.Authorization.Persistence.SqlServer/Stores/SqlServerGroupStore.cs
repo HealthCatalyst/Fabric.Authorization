@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
+using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Persistence.SqlServer.EntityModels;
 using Fabric.Authorization.Persistence.SqlServer.Mappers;
@@ -15,13 +16,11 @@ using User = Fabric.Authorization.Domain.Models.User;
 
 namespace Fabric.Authorization.Persistence.SqlServer.Stores
 {
-    public class SqlServerGroupStore : IGroupStore
+    public class SqlServerGroupStore : SqlServerBaseStore, IGroupStore
     {
-        private readonly IAuthorizationDbContext _authorizationDbContext;
-
-        public SqlServerGroupStore(IAuthorizationDbContext authorizationDbContext)
+        public SqlServerGroupStore(IAuthorizationDbContext authorizationDbContext, IEventService eventService) : 
+            base(authorizationDbContext, eventService)
         {
-            _authorizationDbContext = authorizationDbContext;
         }
 
         public async Task<Group> Add(Group model)
@@ -29,19 +28,20 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             var alreadyExists = await Exists(model.Name);
             if (alreadyExists)
             {
-                throw new AlreadyExistsException<Group>($"Group {model.Name} already exists. Please use a different GroupName.");
+                throw new AlreadyExistsException<Group>(
+                    $"Group {model.Name} already exists. Please use a different GroupName.");
             }
 
             model.Id = Guid.NewGuid().ToString();
             var groupEntity = model.ToEntity();
-            _authorizationDbContext.Groups.Add(groupEntity);
-            await _authorizationDbContext.SaveChangesAsync();
+            AuthorizationDbContext.Groups.Add(groupEntity);
+            await AuthorizationDbContext.SaveChangesAsync();
             return groupEntity.ToModel();
         }
 
         public async Task<Group> Get(string name)
         {
-            var group = await _authorizationDbContext.Groups
+            var group = await AuthorizationDbContext.Groups
                 .Include(g => g.GroupRoles)
                 .ThenInclude(gr => gr.Role)
                 .ThenInclude(r => r.RolePermissions)
@@ -80,7 +80,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task<IEnumerable<Group>> GetAll()
         {
-            var groups = await _authorizationDbContext.Groups
+            var groups = await AuthorizationDbContext.Groups
                 .Include(g => g.GroupRoles)
                 .ThenInclude(gr => gr.Role)
                 .Include(g => g.GroupUsers)
@@ -93,7 +93,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task Delete(Group model)
         {
-            var group = await _authorizationDbContext.Groups
+            var group = await AuthorizationDbContext.Groups
                 .Include(g => g.GroupRoles)
                 .Include(g => g.GroupUsers)
                 .SingleOrDefaultAsync(g => g.GroupId == Guid.Parse(model.Id));
@@ -112,6 +112,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                     groupRole.IsDeleted = true;
                 }
             }
+
             foreach (var groupUser in group.GroupUsers)
             {
                 if (!groupUser.IsDeleted)
@@ -120,12 +121,12 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 }
             }
 
-            await _authorizationDbContext.SaveChangesAsync();
+            await AuthorizationDbContext.SaveChangesAsync();
         }
 
         public async Task Update(Group model)
         {
-            var group = await _authorizationDbContext.Groups
+            var group = await AuthorizationDbContext.Groups
                 .Include(g => g.GroupRoles)
                 .Include(g => g.GroupUsers)
                 .SingleOrDefaultAsync(g => g.GroupId == Guid.Parse(model.Id));
@@ -137,13 +138,13 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             model.ToEntity(group);
 
-            _authorizationDbContext.Groups.Update(group);
-            await _authorizationDbContext.SaveChangesAsync();
+            AuthorizationDbContext.Groups.Update(group);
+            await AuthorizationDbContext.SaveChangesAsync();
         }
 
         public async Task<bool> Exists(string name)
         {
-            var group = await _authorizationDbContext.Groups
+            var group = await AuthorizationDbContext.Groups
                 .SingleOrDefaultAsync(g => g.Name == name
                                            && !g.IsDeleted).ConfigureAwait(false);
 
@@ -152,7 +153,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task<Group> AddRolesToGroup(Group group, IEnumerable<Role> rolesToAdd)
         {
-            var groupEntity = await _authorizationDbContext.Groups.SingleOrDefaultAsync(g =>
+            var groupEntity = await AuthorizationDbContext.Groups.SingleOrDefaultAsync(g =>
                 g.Name == group.Name
                 && !g.IsDeleted);
 
@@ -164,25 +165,27 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             foreach (var role in rolesToAdd)
             {
                 group.Roles.Add(role);
-                _authorizationDbContext.GroupRoles.Add(new GroupRole
+                AuthorizationDbContext.GroupRoles.Add(new GroupRole
                 {
                     GroupId = groupEntity.GroupId,
                     RoleId = role.Id
                 });
             }
-            await _authorizationDbContext.SaveChangesAsync();
+
+            await AuthorizationDbContext.SaveChangesAsync();
             return group;
         }
 
         public async Task<Group> DeleteRolesFromGroup(Group group, IEnumerable<Guid> roleIdsToDelete)
         {
-            var groupRolesToRemove = _authorizationDbContext.GroupRoles
+            var groupRolesToRemove = AuthorizationDbContext.GroupRoles
                 .Where(gr => roleIdsToDelete.Contains(gr.RoleId) &&
                              gr.GroupId == Guid.Parse(group.Id)).ToList();
 
             if (groupRolesToRemove.Count == 0)
             {
-                throw new NotFoundException<Role>($"No role mappings found for group {group.Name} with the supplied role IDs");
+                throw new NotFoundException<Role>(
+                    $"No role mappings found for group {group.Name} with the supplied role IDs");
             }
 
             var missingRoleMappings = new List<Guid>();
@@ -201,15 +204,16 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
                 // mark the many-to-many DB entity as deleted
                 groupRole.IsDeleted = true;
-                _authorizationDbContext.GroupRoles.Update(groupRole);
+                AuthorizationDbContext.GroupRoles.Update(groupRole);
             }
 
             if (missingRoleMappings.Any())
             {
-                throw new NotFoundException<Role>($"No role mapping(s) found for group {group.Name} with the following role IDs: {missingRoleMappings.ToString(", ")}");
+                throw new NotFoundException<Role>(
+                    $"No role mapping(s) found for group {group.Name} with the following role IDs: {missingRoleMappings.ToString(", ")}");
             }
 
-            await _authorizationDbContext.SaveChangesAsync();
+            await AuthorizationDbContext.SaveChangesAsync();
             return group;
         }
 
@@ -222,15 +226,15 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 IdentityProvider = user.IdentityProvider
             };
 
-            _authorizationDbContext.GroupUsers.Add(groupUser);
-            await _authorizationDbContext.SaveChangesAsync();
+            AuthorizationDbContext.GroupUsers.Add(groupUser);
+            await AuthorizationDbContext.SaveChangesAsync();
 
             return group;
         }
 
         public async Task<Group> AddUsersToGroup(Group group, IEnumerable<User> usersToAdd)
         {
-            var groupEntity = await _authorizationDbContext.Groups.SingleOrDefaultAsync(g =>
+            var groupEntity = await AuthorizationDbContext.Groups.SingleOrDefaultAsync(g =>
                 g.Name == group.Name
                 && !g.IsDeleted);
 
@@ -242,20 +246,21 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             foreach (var user in usersToAdd)
             {
                 group.Users.Add(user);
-                _authorizationDbContext.GroupUsers.Add(new GroupUser
+                AuthorizationDbContext.GroupUsers.Add(new GroupUser
                 {
                     GroupId = groupEntity.GroupId,
                     IdentityProvider = user.IdentityProvider,
                     SubjectId = user.SubjectId
                 });
             }
-            await _authorizationDbContext.SaveChangesAsync();
+
+            await AuthorizationDbContext.SaveChangesAsync();
             return group;
         }
 
         public async Task<Group> DeleteUserFromGroup(Group group, User user)
         {
-            var userInGroup = await _authorizationDbContext.GroupUsers
+            var userInGroup = await AuthorizationDbContext.GroupUsers
                 .SingleOrDefaultAsync(gu =>
                     gu.SubjectId == user.SubjectId &&
                     gu.IdentityProvider == user.IdentityProvider &&
@@ -264,8 +269,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             if (userInGroup != null)
             {
                 userInGroup.IsDeleted = true;
-                _authorizationDbContext.GroupUsers.Update(userInGroup);
-                await _authorizationDbContext.SaveChangesAsync();
+                AuthorizationDbContext.GroupUsers.Update(userInGroup);
+                await AuthorizationDbContext.SaveChangesAsync();
             }
 
             return group;
