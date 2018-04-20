@@ -25,10 +25,9 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         public async Task<User> Add(User user)
         {
             var userEntity = user.ToEntity();
-
             AuthorizationDbContext.Users.Add(userEntity);
             await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(new EntityAuditEvent<User>(EventTypes.EntityCreatedEvent, user.Id, user));
+            await EventService.RaiseEventAsync(new EntityAuditEvent<User>(EventTypes.EntityCreatedEvent, user.Id, userEntity.ToModel()));
             return userEntity.ToModel();
         }
 
@@ -44,7 +43,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             var subjectId = idParts[0];
             var identityProvider = idParts[1];
 
-            var user = await AuthorizationDbContext.Users
+            var userEntity = await AuthorizationDbContext.Users
                 .Include(u => u.GroupUsers)
                 .ThenInclude(ug => ug.Group)
                 .Include(u => u.UserPermissions)
@@ -57,16 +56,16 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                                            && u.SubjectId == subjectId
                                            && !u.IsDeleted);
 
-            if (user == null)
+            if (userEntity == null)
             {
                 throw new NotFoundException<User>($"Could not find {typeof(User).Name} entity with ID {id}");
             }
 
-            user.GroupUsers = user.GroupUsers.Where(gu => !gu.IsDeleted).ToList();
-            user.UserPermissions = user.UserPermissions.Where(up => !up.IsDeleted).ToList();
-            user.RoleUsers = user.RoleUsers.Where(ru => !ru.IsDeleted).ToList();
+            userEntity.GroupUsers = userEntity.GroupUsers.Where(gu => !gu.IsDeleted).ToList();
+            userEntity.UserPermissions = userEntity.UserPermissions.Where(up => !up.IsDeleted).ToList();
+            userEntity.RoleUsers = userEntity.RoleUsers.Where(ru => !ru.IsDeleted).ToList();
 
-            return user.ToModel();
+            return userEntity.ToModel();
         }
 
         public async Task<IEnumerable<User>> GetAll()
@@ -94,7 +93,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             userEntity.IsDeleted = true;
             await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(new EntityAuditEvent<User>(EventTypes.EntityDeletedEvent, user.Id, user));
+            await EventService.RaiseEventAsync(new EntityAuditEvent<User>(EventTypes.EntityDeletedEvent, user.Id, userEntity.ToModel()));
         }
 
         public async Task Update(User user)
@@ -114,7 +113,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             user.ToEntity(userEntity);
             AuthorizationDbContext.Users.Update(userEntity);
             await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(new EntityAuditEvent<User>(EventTypes.EntityUpdatedEvent, user.Id, user));
+            await EventService.RaiseEventAsync(new EntityAuditEvent<User>(EventTypes.EntityUpdatedEvent, user.Id, userEntity.ToModel()));
         }
 
         public async Task<bool> Exists(string id)
@@ -156,7 +155,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             }
 
             await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(new EntityBatchAuditEvent<RoleUser>(EventTypes.EntityCreatedEvent, roleUsers));
+            await EventService.RaiseEventAsync(new EntityAuditEvent<User>(EventTypes.ChildEntityCreatedEvent, user.Id, user));
             return user;
         }
 
@@ -182,7 +181,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             }
 
             await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(new EntityBatchAuditEvent<RoleUser>(EventTypes.EntityDeletedEvent, roleUsers));
+            await EventService.RaiseEventAsync(new EntityAuditEvent<User>(EventTypes.ChildEntityDeletedEvent, user.Id, user));
             return user;
         }
 

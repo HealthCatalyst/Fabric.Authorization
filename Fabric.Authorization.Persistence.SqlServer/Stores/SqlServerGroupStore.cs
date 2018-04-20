@@ -37,13 +37,13 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             var groupEntity = group.ToEntity();
             AuthorizationDbContext.Groups.Add(groupEntity);
             await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(new EntityAuditEvent<Group>(EventTypes.EntityCreatedEvent, group.Id, group));
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Group>(EventTypes.EntityCreatedEvent, group.Id, groupEntity.ToModel()));
             return groupEntity.ToModel();
         }
 
         public async Task<Group> Get(string name)
         {
-            var group = await AuthorizationDbContext.Groups
+            var groupEntity = await AuthorizationDbContext.Groups
                 .Include(g => g.GroupRoles)
                 .ThenInclude(gr => gr.Role)
                 .ThenInclude(r => r.RolePermissions)
@@ -60,24 +60,24 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .SingleOrDefaultAsync(g => g.Name == name
                                            && !g.IsDeleted);
 
-            if (group == null)
+            if (groupEntity == null)
             {
                 throw new NotFoundException<Group>($"Could not find {typeof(Group).Name} entity with ID {name}");
             }
 
-            group.GroupRoles = group.GroupRoles.Where(gr => !gr.IsDeleted).ToList();
-            foreach (var groupRole in group.GroupRoles)
+            groupEntity.GroupRoles = groupEntity.GroupRoles.Where(gr => !gr.IsDeleted).ToList();
+            foreach (var groupRole in groupEntity.GroupRoles)
             {
                 groupRole.Role.RolePermissions = groupRole.Role.RolePermissions.Where(rp => !rp.IsDeleted).ToList();
             }
 
-            group.GroupUsers = group.GroupUsers.Where(gu => !gu.IsDeleted).ToList();
-            foreach (var groupUser in group.GroupUsers)
+            groupEntity.GroupUsers = groupEntity.GroupUsers.Where(gu => !gu.IsDeleted).ToList();
+            foreach (var groupUser in groupEntity.GroupUsers)
             {
                 groupUser.User.UserPermissions = groupUser.User.UserPermissions.Where(up => !up.IsDeleted).ToList();
             }
 
-            return group.ToModel();
+            return groupEntity.ToModel();
         }
 
         public async Task<IEnumerable<Group>> GetAll()
@@ -124,7 +124,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             }
 
             await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(new EntityAuditEvent<Group>(EventTypes.EntityDeletedEvent, group.Id, group));
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Group>(EventTypes.EntityDeletedEvent, group.Id, groupEntity.ToModel()));
         }
 
         public async Task Update(Group group)
@@ -143,7 +143,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             AuthorizationDbContext.Groups.Update(groupEntity);
             await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(new EntityAuditEvent<Group>(EventTypes.EntityUpdatedEvent, group.Id, group));
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Group>(EventTypes.EntityUpdatedEvent, group.Id, groupEntity.ToModel()));
         }
 
         public async Task<bool> Exists(string name)
@@ -166,22 +166,18 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 throw new NotFoundException<Group>($"Could not find {typeof(Group).Name} entity with ID {group.Name}");
             }
 
-            var groupRoles = new List<GroupRole>();
             foreach (var role in rolesToAdd)
             {
                 group.Roles.Add(role);
-                var groupRole = new GroupRole
+                AuthorizationDbContext.GroupRoles.Add(new GroupRole
                 {
                     GroupId = groupEntity.GroupId,
                     RoleId = role.Id
-                };
-
-                AuthorizationDbContext.GroupRoles.Add(groupRole);
-                groupRoles.Add(groupRole);
+                });
             }
 
             await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(new EntityBatchAuditEvent<GroupRole>(EventTypes.EntityCreatedEvent, groupRoles));
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Group>(EventTypes.ChildEntityCreatedEvent, group.Id, group));
             return group;
         }
 
@@ -223,7 +219,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             }
 
             await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(new EntityBatchAuditEvent<GroupRole>(EventTypes.EntityDeletedEvent, groupRolesToRemove));
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Group>(EventTypes.ChildEntityDeletedEvent, group.Id, group));
             return group;
         }
 
@@ -238,7 +234,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             AuthorizationDbContext.GroupUsers.Add(groupUser);
             await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(new EntityAuditEvent<GroupUser>(EventTypes.EntityCreatedEvent, $"Group {groupUser.GroupId} / User {user.IdentityProvider}/{user.SubjectId}", groupUser));
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Group>(EventTypes.ChildEntityCreatedEvent, group.Id, group));
             return group;
         }
 
@@ -269,8 +265,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             }
 
             await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(
-                new EntityBatchAuditEvent<GroupUser>(EventTypes.EntityCreatedEvent, groupUsers));
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Group>(EventTypes.ChildEntityCreatedEvent, group.Id, group));
 
             return group;
         }
@@ -283,13 +278,16 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                     gu.IdentityProvider == user.IdentityProvider &&
                     gu.GroupId == Guid.Parse(group.Id));
 
-            if (groupUser != null)
+            if (groupUser == null)
             {
-                groupUser.IsDeleted = true;
-                AuthorizationDbContext.GroupUsers.Update(groupUser);
-                await AuthorizationDbContext.SaveChangesAsync();
-                await EventService.RaiseEventAsync(new EntityAuditEvent<GroupUser>(EventTypes.EntityDeletedEvent, groupUser.Id.ToString(), groupUser));
+                return group;
             }
+
+            groupUser.IsDeleted = true;
+            AuthorizationDbContext.GroupUsers.Update(groupUser);
+            await AuthorizationDbContext.SaveChangesAsync();
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Group>(EventTypes.ChildEntityDeletedEvent,
+                groupUser.Id.ToString(), group));
 
             return group;
         }

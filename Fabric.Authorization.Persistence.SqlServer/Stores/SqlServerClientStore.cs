@@ -36,7 +36,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             AuthorizationDbContext.Clients.Add(clientEntity);
             await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(new EntityAuditEvent<Client>(EventTypes.EntityCreatedEvent, client.Id, client));
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Client>(EventTypes.EntityCreatedEvent, client.Id, clientEntity.ToModel()));
             return client;
         }
 
@@ -46,17 +46,17 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         /// <returns></returns>
         public async Task<Client> Get(string id)
         {
-            var client = await AuthorizationDbContext.Clients
+            var clientEntity = await AuthorizationDbContext.Clients
                 .Include(i => i.TopLevelSecurableItem)
                 .SingleOrDefaultAsync(c => c.ClientId == id
                                            && !c.IsDeleted);
 
-            if (client == null)
+            if (clientEntity == null)
             {
                 throw new NotFoundException<Client>($"Could not find {typeof(Client).Name} entity with ID {id}");
             }
 
-            return client.ToModel();
+            return clientEntity.ToModel();
         }
 
         public async Task<IEnumerable<Client>> GetAll()
@@ -80,11 +80,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 throw new NotFoundException<Client>($"Could not find {typeof(Client).Name} entity with ID {client.Id}");
             }
 
-            client.IsDeleted = true;
+            clientEntity.IsDeleted = true;
             MarkSecurableItemsDeleted(clientEntity.TopLevelSecurableItem);
 
             await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(new EntityAuditEvent<Client>(EventTypes.EntityDeletedEvent, client.Id, client));
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Client>(EventTypes.EntityDeletedEvent, client.Id, clientEntity.ToModel()));
         }
 
         public async Task Update(Client client)
@@ -102,7 +102,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             AuthorizationDbContext.Clients.Update(clientEntity);
             await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(new EntityAuditEvent<Client>(EventTypes.EntityUpdatedEvent, client.Id, client));
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Client>(EventTypes.EntityUpdatedEvent, client.Id, clientEntity.ToModel()));
         }
 
         /// <summary>
