@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Fabric.Authorization.Domain.Events;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
@@ -9,6 +10,7 @@ using Fabric.Authorization.Persistence.SqlServer.EntityModels;
 using Fabric.Authorization.Persistence.SqlServer.Mappers;
 using Fabric.Authorization.Persistence.SqlServer.Services;
 using Microsoft.EntityFrameworkCore;
+using Group = Fabric.Authorization.Domain.Models.Group;
 using Role = Fabric.Authorization.Domain.Models.Role;
 using User = Fabric.Authorization.Domain.Models.User;
 
@@ -21,13 +23,14 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         {
         }
 
-        public async Task<User> Add(User model)
+        public async Task<User> Add(User user)
         {
-            var entity = model.ToEntity();
+            var userEntity = user.ToEntity();
 
-            AuthorizationDbContext.Users.Add(entity);
+            AuthorizationDbContext.Users.Add(userEntity);
             await AuthorizationDbContext.SaveChangesAsync();
-            return entity.ToModel();
+            await EventService.RaiseEventAsync(new EntityAuditEvent<User>(EventTypes.EntityCreatedEvent, user.Id, user));
+            return userEntity.ToModel();
         }
 
         public async Task<User> Get(string id)
@@ -76,41 +79,43 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return users.Select(u => u.ToModel());
         }
 
-        public async Task Delete(User model)
+        public async Task Delete(User user)
         {
-            var user = await AuthorizationDbContext.Users
+            var userEntity = await AuthorizationDbContext.Users
                 .SingleOrDefaultAsync(u =>
-                    u.IdentityProvider == model.IdentityProvider
-                    && u.SubjectId == model.SubjectId
+                    u.IdentityProvider == user.IdentityProvider
+                    && u.SubjectId == user.SubjectId
                     && !u.IsDeleted);
 
-            if (user == null)
+            if (userEntity == null)
             {
                 throw new NotFoundException<User>(
-                    $"Could not find {typeof(User).Name} User IDP = {model.IdentityProvider}, SubjectId = {model.SubjectId}");
+                    $"Could not find {typeof(User).Name} User IDP = {user.IdentityProvider}, SubjectId = {user.SubjectId}");
             }
 
-            user.IsDeleted = true;
+            userEntity.IsDeleted = true;
             await AuthorizationDbContext.SaveChangesAsync();
+            await EventService.RaiseEventAsync(new EntityAuditEvent<User>(EventTypes.EntityDeletedEvent, user.Id, user));
         }
 
-        public async Task Update(User model)
+        public async Task Update(User user)
         {
-            var user = await AuthorizationDbContext.Users
+            var userEntity = await AuthorizationDbContext.Users
                 .SingleOrDefaultAsync(u =>
-                    u.IdentityProvider == model.IdentityProvider
-                    && u.SubjectId == model.SubjectId
+                    u.IdentityProvider == user.IdentityProvider
+                    && u.SubjectId == user.SubjectId
                     && !u.IsDeleted);
 
-            if (user == null)
+            if (userEntity == null)
             {
                 throw new NotFoundException<User>(
-                    $"Could not find {typeof(User).Name} User IDP = {model.IdentityProvider}, SubjectId = {model.SubjectId}");
+                    $"Could not find {typeof(User).Name} User IDP = {user.IdentityProvider}, SubjectId = {user.SubjectId}");
             }
 
-            model.ToEntity(user);
-            AuthorizationDbContext.Users.Update(user);
+            user.ToEntity(userEntity);
+            AuthorizationDbContext.Users.Update(userEntity);
             await AuthorizationDbContext.SaveChangesAsync();
+            await EventService.RaiseEventAsync(new EntityAuditEvent<User>(EventTypes.EntityUpdatedEvent, user.Id, user));
         }
 
         public async Task<bool> Exists(string id)
@@ -136,18 +141,23 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task<User> AddRolesToUser(User user, IList<Role> roles)
         {
+            var roleUsers = new List<RoleUser>();
             foreach (var role in roles)
             {
                 user.Roles.Add(role);
-                AuthorizationDbContext.RoleUsers.Add(new RoleUser
+                var roleUser = new RoleUser
                 {
                     IdentityProvider = user.IdentityProvider,
                     SubjectId = user.SubjectId,
                     RoleId = role.Id
-                });
+                };
+
+                AuthorizationDbContext.RoleUsers.Add(roleUser);
+                roleUsers.Add(roleUser);
             }
 
             await AuthorizationDbContext.SaveChangesAsync();
+            await EventService.RaiseEventAsync(new EntityBatchAuditEvent<RoleUser>(EventTypes.EntityCreatedEvent, roleUsers));
             return user;
         }
 
@@ -173,6 +183,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             }
 
             await AuthorizationDbContext.SaveChangesAsync();
+            await EventService.RaiseEventAsync(new EntityBatchAuditEvent<RoleUser>(EventTypes.EntityDeletedEvent, roleUsers));
             return user;
         }
 

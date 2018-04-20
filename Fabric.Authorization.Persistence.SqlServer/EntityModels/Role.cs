@@ -57,5 +57,10 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
 
         [NotMapped]
         public ICollection<User> Users => RoleUsers.Where(ru => !ru.IsDeleted).Select(ru => ru.User).ToList();
+
+        public override string ToString()
+        {
+            return $"Id={Id}, RoleId={RoleId}, Grain={Grain}, SecurableItem={SecurableItemId}, Name={Name}, DisplayName={DisplayName}";
+        }
     }
 }

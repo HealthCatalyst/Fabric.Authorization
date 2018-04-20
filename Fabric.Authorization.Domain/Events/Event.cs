@@ -15,7 +15,5 @@ namespace Fabric.Authorization.Domain.Events
         public string Subject { get; set; }
         public string Name { get; set; }
         public string RemoteIpAddress { get; set; }
-
-
     }
 }

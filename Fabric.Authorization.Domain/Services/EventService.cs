@@ -8,6 +8,7 @@ namespace Fabric.Authorization.Domain.Services
     {
         private readonly IEventContextResolverService _eventContextResolverService;
         private readonly IEventWriter _eventWriter;
+
         public EventService(IEventContextResolverService eventContextResolverService, IEventWriter eventWriter)
         {
             _eventContextResolverService = eventContextResolverService ??
