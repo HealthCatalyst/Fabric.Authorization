@@ -30,7 +30,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 AuthorizationDbContext.SecurableItems.First(s => !s.IsDeleted && s.Name == role.SecurableItem);
             AuthorizationDbContext.Roles.Add(roleEntity);
             await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(new EntityAuditEvent<Role>(EventTypes.EntityCreatedEvent, role.Id.ToString(), role));
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Role>(EventTypes.EntityCreatedEvent, role.Id.ToString(), roleEntity.ToModel()));
             return roleEntity.ToModel();
         }
 
@@ -62,12 +62,12 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                     r.RoleId == role.Id
                     && !r.IsDeleted);
 
-            if (role == null)
+            if (roleEntity == null)
             {
                 throw new NotFoundException<Role>($"Could not find {typeof(Role).Name} entity with ID {role.Id}");
             }
 
-            role.IsDeleted = true;
+            roleEntity.IsDeleted = true;
 
             foreach (var rolePermission in roleEntity.RolePermissions)
             {
@@ -80,7 +80,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             }
 
             await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(new EntityAuditEvent<Role>(EventTypes.EntityDeletedEvent, role.Id.ToString(), role));
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Role>(EventTypes.EntityDeletedEvent, role.Id.ToString(), roleEntity.ToModel()));
         }
 
         public async Task Update(Role role)
@@ -90,7 +90,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                     r.RoleId == role.Id
                     && !r.IsDeleted);
 
-            if (role == null)
+            if (roleEntity == null)
             {
                 throw new NotFoundException<Role>($"Could not find {typeof(Role).Name} entity with ID {role.Id}");
             }
@@ -98,7 +98,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             role.ToEntity(roleEntity);
             AuthorizationDbContext.Roles.Update(roleEntity);
             await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(new EntityAuditEvent<Role>(EventTypes.EntityUpdatedEvent, role.Id.ToString(), role));
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Role>(EventTypes.EntityUpdatedEvent, role.Id.ToString(), roleEntity.ToModel()));
         }
 
         public async Task<bool> Exists(Guid id)
@@ -201,7 +201,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         private async Task<EntityModels.Role> GetEntityModel(Guid id)
         {
-            var role = await AuthorizationDbContext.Roles
+            var roleEntity = await AuthorizationDbContext.Roles
                 .Include(r => r.RolePermissions)
                 .ThenInclude(rp => rp.Permission)
                 .Include(r => r.GroupRoles)
@@ -211,12 +211,12 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                     r.RoleId == id
                     && !r.IsDeleted);
 
-            if (role == null)
+            if (roleEntity == null)
             {
                 throw new NotFoundException<Role>($"Could not find {typeof(Role).Name} entity with ID {id}");
             }
 
-            return role;
+            return roleEntity;
         }
 
         private IEnumerable<EntityModels.Role> GetRoleEntityModels(string grain, string securableItem = null,

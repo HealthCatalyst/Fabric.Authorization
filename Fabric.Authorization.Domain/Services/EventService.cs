@@ -23,7 +23,6 @@ namespace Fabric.Authorization.Domain.Services
             return Task.CompletedTask;
         }
 
-
         private Event EnrichEventWithContext(Event evnt)
         {
             evnt.Timestamp = DateTime.UtcNow;

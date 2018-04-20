@@ -29,27 +29,29 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             permissionEntity.PermissionId = Guid.NewGuid();
             permissionEntity.SecurableItem =
                 AuthorizationDbContext.SecurableItems.First(s => !s.IsDeleted && s.Name == permission.SecurableItem);
+
             AuthorizationDbContext.Permissions.Add(permissionEntity);
+
             await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(new EntityAuditEvent<Permission>(EventTypes.EntityCreatedEvent, permission.Id.ToString(), permission));
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Permission>(EventTypes.EntityCreatedEvent, permission.Id.ToString(), permissionEntity.ToModel()));
             return permissionEntity.ToModel();
         }
 
         public async Task<Permission> Get(Guid id)
         {
-            var permission = await AuthorizationDbContext.Permissions
+            var permissionEntity = await AuthorizationDbContext.Permissions
                 .Include(p => p.SecurableItem)
                 .SingleOrDefaultAsync(p =>
                     p.PermissionId == id
                     && !p.IsDeleted);
 
-            if (permission == null)
+            if (permissionEntity == null)
             {
                 throw new NotFoundException<Permission>(
                     $"Could not find {typeof(Permission).Name} entity with ID {id}");
             }
 
-            return permission.ToModel();
+            return permissionEntity.ToModel();
         }
 
         public async Task<IEnumerable<Permission>> GetAll()
@@ -89,7 +91,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             }
 
             await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(new EntityAuditEvent<Permission>(EventTypes.EntityDeletedEvent, permission.Id.ToString(), permission));
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Permission>(EventTypes.EntityDeletedEvent, permission.Id.ToString(), permissionEntity.ToModel()));
         }
 
         public async Task Update(Permission permission)
@@ -108,7 +110,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             permission.ToEntity(permissionEntity);
             AuthorizationDbContext.Permissions.Update(permissionEntity);
             await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(new EntityAuditEvent<Permission>(EventTypes.EntityUpdatedEvent, permission.Id.ToString(), permission));
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Permission>(EventTypes.EntityUpdatedEvent, permission.Id.ToString(), permissionEntity.ToModel()));
         }
 
         public async Task<bool> Exists(Guid id)
@@ -149,7 +151,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             var subjectId = idParts[0];
             var identityProvider = idParts[1];
 
-            var user = await AuthorizationDbContext.Users
+            var userEntity = await AuthorizationDbContext.Users
                 .Include(u => u.UserPermissions)
                 .ThenInclude(up => up.Permission)
                 .SingleOrDefaultAsync(u => u.IdentityProvider == identityProvider
@@ -157,20 +159,20 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                                            && !u.IsDeleted);
 
             var userCreated = false;
-            if (user == null)
+            if (userEntity == null)
             {
-                user = new User
+                userEntity = new User
                 {
                     IdentityProvider = identityProvider,
                     SubjectId = subjectId,
                     Name = $"{identityProvider}\\{subjectId}"
                 };
-                AuthorizationDbContext.Users.Add(user);
+                AuthorizationDbContext.Users.Add(userEntity);
                 userCreated = true;
             }
 
             // remove all current permissions first and then replace them with the new set of permissions
-            var currentUserPermissions = user.UserPermissions.Where(up => !up.IsDeleted);
+            var currentUserPermissions = userEntity.UserPermissions.Where(up => !up.IsDeleted);
             foreach (var userPermission in currentUserPermissions)
             {
                 userPermission.IsDeleted = true;
@@ -179,8 +181,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             await AuthorizationDbContext.UserPermissions.AddRangeAsync(granularPermission.AdditionalPermissions.Select(
                 ap => new UserPermission
                 {
-                    SubjectId = user.SubjectId,
-                    IdentityProvider = user.IdentityProvider,
+                    SubjectId = userEntity.SubjectId,
+                    IdentityProvider = userEntity.IdentityProvider,
                     PermissionId = ap.Id,
                     PermissionAction = PermissionAction.Allow
                 }));
@@ -188,8 +190,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             await AuthorizationDbContext.UserPermissions.AddRangeAsync(granularPermission.DeniedPermissions.Select(
                 dp => new UserPermission
                 {
-                    SubjectId = user.SubjectId,
-                    IdentityProvider = user.IdentityProvider,
+                    SubjectId = userEntity.SubjectId,
+                    IdentityProvider = userEntity.IdentityProvider,
                     PermissionId = dp.Id,
                     PermissionAction = PermissionAction.Deny
                 }));
@@ -198,7 +200,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             if (userCreated)
             {
-                await EventService.RaiseEventAsync(new EntityAuditEvent<User>(EventTypes.EntityCreatedEvent, granularPermission.Id, user));
+                await EventService.RaiseEventAsync(new EntityAuditEvent<Domain.Models.User>(EventTypes.EntityCreatedEvent, granularPermission.Id, userEntity.ToModel()));
             }
 
             await EventService.RaiseEventAsync(new EntityAuditEvent<GranularPermission>(EventTypes.EntityUpdatedEvent, granularPermission.Id, granularPermission));
