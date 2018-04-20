@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Fabric.Authorization.Domain.Events;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
@@ -22,15 +23,16 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         {
         }
 
-        public async Task<Permission> Add(Permission model)
+        public async Task<Permission> Add(Permission permission)
         {
-            var entity = model.ToEntity();
-            entity.PermissionId = Guid.NewGuid();
-            entity.SecurableItem =
-                AuthorizationDbContext.SecurableItems.First(s => !s.IsDeleted && s.Name == model.SecurableItem);
-            AuthorizationDbContext.Permissions.Add(entity);
+            var permissionEntity = permission.ToEntity();
+            permissionEntity.PermissionId = Guid.NewGuid();
+            permissionEntity.SecurableItem =
+                AuthorizationDbContext.SecurableItems.First(s => !s.IsDeleted && s.Name == permission.SecurableItem);
+            AuthorizationDbContext.Permissions.Add(permissionEntity);
             await AuthorizationDbContext.SaveChangesAsync();
-            return entity.ToModel();
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Permission>(EventTypes.EntityCreatedEvent, permission.Id.ToString(), permission));
+            return permissionEntity.ToModel();
         }
 
         public async Task<Permission> Get(Guid id)
@@ -59,52 +61,54 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return permissions.Select(p => p.ToModel());
         }
 
-        public async Task Delete(Permission model)
+        public async Task Delete(Permission permission)
         {
-            var permission = await AuthorizationDbContext.Permissions
+            var permissionEntity = await AuthorizationDbContext.Permissions
                 .Include(p => p.RolePermissions)
                 .Include(p => p.UserPermissions)
                 .SingleOrDefaultAsync(p =>
-                    p.PermissionId == model.Id
+                    p.PermissionId == permission.Id
                     && !p.IsDeleted);
 
-            if (permission == null)
+            if (permissionEntity == null)
             {
                 throw new NotFoundException<Permission>(
-                    $"Could not find {typeof(Permission).Name} entity with ID {model.Id}");
+                    $"Could not find {typeof(Permission).Name} entity with ID {permission.Id}");
             }
 
-            permission.IsDeleted = true;
+            permissionEntity.IsDeleted = true;
 
-            foreach (var rolePermission in permission.RolePermissions)
+            foreach (var rolePermission in permissionEntity.RolePermissions)
             {
                 rolePermission.IsDeleted = true;
             }
 
-            foreach (var userPermission in permission.UserPermissions)
+            foreach (var userPermission in permissionEntity.UserPermissions)
             {
                 userPermission.IsDeleted = true;
             }
 
             await AuthorizationDbContext.SaveChangesAsync();
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Permission>(EventTypes.EntityDeletedEvent, permission.Id.ToString(), permission));
         }
 
-        public async Task Update(Permission model)
+        public async Task Update(Permission permission)
         {
-            var permission = await AuthorizationDbContext.Permissions
+            var permissionEntity = await AuthorizationDbContext.Permissions
                 .SingleOrDefaultAsync(p =>
-                    p.PermissionId == model.Id
+                    p.PermissionId == permission.Id
                     && !p.IsDeleted);
 
-            if (permission == null)
+            if (permissionEntity == null)
             {
                 throw new NotFoundException<Permission>(
-                    $"Could not find {typeof(Permission).Name} entity with ID {model.Id}");
+                    $"Could not find {typeof(Permission).Name} entity with ID {permission.Id}");
             }
 
-            model.ToEntity(permission);
-            AuthorizationDbContext.Permissions.Update(permission);
+            permission.ToEntity(permissionEntity);
+            AuthorizationDbContext.Permissions.Update(permissionEntity);
             await AuthorizationDbContext.SaveChangesAsync();
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Permission>(EventTypes.EntityUpdatedEvent, permission.Id.ToString(), permission));
         }
 
         public async Task<bool> Exists(Guid id)
@@ -152,6 +156,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                                            && u.SubjectId == subjectId
                                            && !u.IsDeleted);
 
+            var userCreated = false;
             if (user == null)
             {
                 user = new User
@@ -161,6 +166,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                     Name = $"{identityProvider}\\{subjectId}"
                 };
                 AuthorizationDbContext.Users.Add(user);
+                userCreated = true;
             }
 
             // remove all current permissions first and then replace them with the new set of permissions
@@ -189,6 +195,13 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 }));
 
             await AuthorizationDbContext.SaveChangesAsync();
+
+            if (userCreated)
+            {
+                await EventService.RaiseEventAsync(new EntityAuditEvent<User>(EventTypes.EntityCreatedEvent, granularPermission.Id, user));
+            }
+
+            await EventService.RaiseEventAsync(new EntityAuditEvent<GranularPermission>(EventTypes.EntityUpdatedEvent, granularPermission.Id, granularPermission));
         }
 
         public async Task<GranularPermission> GetGranularPermission(string userId)
