@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Constants;
+using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using Nancy;
 using Nancy.Testing;
@@ -197,26 +198,41 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [InlineData("537B1742-4D2B-42F4-A29B-73DA3E074E93")]
         public async Task TestDeletePermission_SuccessAsync(string permission)
         {
-            var id = Guid.NewGuid();
 
-            await _browser.Post("/permissions", with =>
+            var postResponse = await _browser.Post("/permissions", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
                 {
-                    Id = id.ToString(),
                     Grain = "app",
                     SecurableItem = _securableItem,
                     Name = permission
                 });
             });
 
-            var delete = await _browser.Delete($"/permissions/{id}", with =>
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+            var createdPermission = postResponse.Body.DeserializeJson<PermissionApiModel>();
+
+            var delete = await _browser.Delete($"/permissions/{createdPermission.Id}", with =>
             {
                 with.HttpRequest();
             });
 
-            Assert.Equal(HttpStatusCode.NotFound, delete.StatusCode);
+            Assert.Equal(HttpStatusCode.NoContent, delete.StatusCode);
+
+            // Post same permission again
+            postResponse = await _browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = _securableItem,
+                    Name = permission
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
         }
 
         [Theory]

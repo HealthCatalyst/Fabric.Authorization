@@ -210,12 +210,24 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(clientToAdd);
             });
 
+            Assert.Equal(HttpStatusCode.Created, getResponse.StatusCode);
+
             var delete = await _browser.Delete($"/clients/{id}", with =>
             {
                 with.HttpRequest();
             });
 
             Assert.Equal(HttpStatusCode.NoContent, delete.StatusCode);
+
+            // post the same client again
+            getResponse = await _browser.Post("/clients", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(clientToAdd);
+            });
+
+            Assert.Equal(HttpStatusCode.Created, getResponse.StatusCode);
+
         }
 
         [Theory]
