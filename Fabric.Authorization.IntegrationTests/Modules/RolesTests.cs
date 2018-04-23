@@ -231,6 +231,48 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Theory]
         [IntegrationTestsFixture.DisplayTestMethodName]
+        [InlineData("0BF47710-11CD-4003-BFEB-2FDF3675513F")]
+        public async Task TestDeleteRole_SuccessAsync(string name)
+        {
+            var postResponse = await _browser.Post("/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = _securableItem,
+                    Name = name
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+            var role = postResponse.Body.DeserializeJson<RoleApiModel>();
+
+            var delete = await _browser.Delete($"/roles/{role.Id}", with =>
+            {
+                with.HttpRequest();
+            });
+
+            Assert.Equal(HttpStatusCode.NoContent, delete.StatusCode);
+
+            // Post role again to ensure role can be created again
+            postResponse = await _browser.Post("/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = _securableItem,
+                    Name = name
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+
+        }
+
+        [Theory]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         [InlineData("90431E6A-8E40-43A8-8564-7AEE1524925D")]
         [InlineData("B1A09125-2E01-4F5D-A77B-6C127C4F98BD")]
         public async Task TestGetRoleBySecItem_SuccessAsync(string name)

@@ -184,7 +184,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             foreach (var role in roles)
             {
-                var rolePermissionToRemove = role.RolePermissions.Single(
+                var rolePermissionToRemove = role.RolePermissions.SingleOrDefault(
                     rp => rp.RoleId == role.RoleId
                           && rp.Permission.PermissionId == permissionId);
 
