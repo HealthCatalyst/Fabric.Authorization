@@ -14,27 +14,43 @@ namespace Fabric.Authorization.Persistence.InMemory.Stores
         private readonly IUserStore _userStore;
 
         [Obsolete]
-        public InMemoryGroupStore(IIdentifierFormatter identifierFormatter, 
+        public InMemoryGroupStore(IIdentifierFormatter identifierFormatter,
             IRoleStore roleStore,
-            IUserStore userStore) 
+            IUserStore userStore)
             : base(identifierFormatter)
         {
             _roleStore = roleStore;
             _userStore = userStore;
             var group1 = new Group
             {
-                Id = Guid.NewGuid().ToString(),
+                Id = Guid.NewGuid(),
                 Name = @"FABRIC\Health Catalyst Viewer",
             };
 
             var group2 = new Group
             {
-                Id = Guid.NewGuid().ToString(),
+                Id = Guid.NewGuid(),
                 Name = @"FABRIC\Health Catalyst Editor",
             };
 
             this.Add(group1).Wait();
             this.Add(group2).Wait();
+        }
+
+        public Task<Group> Get(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> Exists(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<bool> Exists(string id)
+        {
+            var formattedId = FormatId(id);
+            return await base.Exists(formattedId) && !Dictionary[formattedId].IsDeleted;
         }
 
         public override async Task<Group> Add(Group group)
@@ -68,7 +84,7 @@ namespace Fabric.Authorization.Persistence.InMemory.Stores
         {
             group.IsDeleted = true;
 
-            var formattedId = FormatId(group.Id);
+            var formattedId = FormatId(group.Id.ToString());
 
             // use base class Exists so IsDeleted is ignored since it's already been updated at this point
             if (await base.Exists(formattedId).ConfigureAwait(false))
@@ -82,12 +98,6 @@ namespace Fabric.Authorization.Persistence.InMemory.Stores
             {
                 throw new NotFoundException<Group>(group, group.Identifier);
             }
-        }
-
-        public override async Task<bool> Exists(string id)
-        {
-            var formattedId = FormatId(id);
-            return await base.Exists(formattedId) && !Dictionary[formattedId].IsDeleted;
         }
 
         public Task<Group> DeleteRolesFromGroup(Group group, IEnumerable<Guid> roleIdsToDelete)

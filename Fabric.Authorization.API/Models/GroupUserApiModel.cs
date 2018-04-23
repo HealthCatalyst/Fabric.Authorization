@@ -1,13 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.API.Models
 {
     public class GroupUserApiModel : IIdentifiable
     {
-        public string Id { get; set; }
+        public Guid? Id { get; set; }
 
-        public string Identifier => Id;
+        public string Identifier => Id.ToString();
 
         public string GroupName { get; set; }
 

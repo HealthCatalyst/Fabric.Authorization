@@ -41,7 +41,7 @@ namespace Fabric.Authorization.UnitTests.Mocks
             mockGroupStore.Setup(groupStore => groupStore.Add(It.IsAny<Group>()))
                 .Returns((Group g) =>
                 {
-                    g.Id = Guid.NewGuid().ToString();
+                    g.Id = Guid.NewGuid();
                     return Task.FromResult(g);
                 });
             return mockGroupStore;

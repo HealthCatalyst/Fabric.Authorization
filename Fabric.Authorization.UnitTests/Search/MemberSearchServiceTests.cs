@@ -256,7 +256,7 @@ namespace Fabric.Authorization.UnitTests.Search
 
             _adminPatientSafetyGroup = new Group
             {
-                Id = AdminPatientSafetyGroupName,
+                Id = Guid.NewGuid(),
                 Name = AdminPatientSafetyGroupName,
                 Roles = new List<Role>
                 {
@@ -280,7 +280,7 @@ namespace Fabric.Authorization.UnitTests.Search
 
             _userPatientSafetyGroup = new Group
             {
-                Id = UserPatientSafetyGroupName,
+                Id = Guid.NewGuid(),
                 Name = UserPatientSafetyGroupName,
                 Users = new List<User>
                 {
@@ -323,7 +323,7 @@ namespace Fabric.Authorization.UnitTests.Search
 
             _adminAtlasGroup = new Group
             {
-                Id = AdminAtlasGroupName,
+                Id = Guid.NewGuid(),
                 Name = AdminAtlasGroupName,
                 Roles = new List<Role>
                 {
@@ -351,7 +351,7 @@ namespace Fabric.Authorization.UnitTests.Search
 
             _userAtlasGroup = new Group
             {
-                Id = UserAtlasGroupName,
+                Id = Guid.NewGuid(),
                 Name = UserAtlasGroupName,
                 Roles = new List<Role>
                 {
@@ -373,7 +373,7 @@ namespace Fabric.Authorization.UnitTests.Search
 
             _dosGroup = new Group
             {
-                Id = DosGroupName,
+                Id = Guid.NewGuid(),
                 Name = DosGroupName,
                 Roles = new List<Role>
                 {

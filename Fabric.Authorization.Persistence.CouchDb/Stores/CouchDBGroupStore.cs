@@ -29,18 +29,19 @@ namespace Fabric.Authorization.Persistence.CouchDb.Stores
             _userStore = userStore;
         }
 
-        public override async Task<Group> Add(Group group)
+        public Task<Group> Get(Guid id)
         {
-            // this will catch older active records that do not have the unique identifier appended to the ID
-            var exists = await Exists(group.Id).ConfigureAwait(false);
-            if (exists)
-            {
-                throw new AlreadyExistsException<Group>($"Group id {group.Id} already exists. Please provide a new id.");
-            }
+            throw new NotImplementedException();
+        }
 
-            // append unique identifier to document ID
-            group.Id = $"{group.Id}{IdDelimiter}{DateTime.UtcNow.Ticks}";
-            return await Add(FormatId(group.Id), group);
+        public Task<bool> Exists(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<Group> Add(Group group)
+        {
+            throw new NotImplementedException();
         }
 
         public override async Task<Group> Get(string id)
@@ -72,21 +73,21 @@ namespace Fabric.Authorization.Persistence.CouchDb.Stores
 
         public override async Task Delete(Group group)
         {
-            await Delete(group.Id, group);
+            await Delete(group.Id.ToString(), group);
         }
 
         public override async Task Update(Group group)
         {
             group.Track(false, GetActor());
             var activeGroup = await Get(group.Id).ConfigureAwait(false);
-            await ExponentialBackoff(DocumentDbService.UpdateDocument(FormatId(activeGroup.Id), group));
+            await ExponentialBackoff(DocumentDbService.UpdateDocument(FormatId(activeGroup.Id.ToString()), group));
         }
 
         protected override async Task Update(string id, Group group)
         {
             group.Track(false, GetActor());
             var activeGroup = await Get(id).ConfigureAwait(false);
-            await ExponentialBackoff(DocumentDbService.UpdateDocument(FormatId(activeGroup.Id), group));
+            await ExponentialBackoff(DocumentDbService.UpdateDocument(FormatId(activeGroup.Id.ToString()), group));
         }
 
         public override async Task<bool> Exists(string id)

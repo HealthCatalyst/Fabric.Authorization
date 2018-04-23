@@ -99,7 +99,7 @@ namespace Fabric.Authorization.Domain.Services
             }
         }
 
-        public async Task<bool> Exists(string id)
+        public async Task<bool> Exists(Guid id)
         {
             return await _groupStore.Exists(id).ConfigureAwait(false);
         }
