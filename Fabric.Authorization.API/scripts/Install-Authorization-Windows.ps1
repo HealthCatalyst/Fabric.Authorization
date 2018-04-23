@@ -258,10 +258,10 @@ function Invoke-MonitorShallow($authorizationUrl) {
 function Get-EdwAdminUsersAndGroups($connectionString) {
     $connection = New-Object System.Data.SqlClient.SqlConnection($connectionString)
     $sql = "SELECT i.IdentityID, i.IdentityNM, r.RoleNM
-            FROM [EDWAdmin].[CatalystAdmin].[RoleBASE] r
-            INNER JOIN [EDWAdmin].[CatalystAdmin].[IdentityRoleBASE] ir
+            FROM [CatalystAdmin].[RoleBASE] r
+            INNER JOIN [CatalystAdmin].[IdentityRoleBASE] ir
                 ON r.RoleID = ir.RoleID
-            INNER JOIN [EDWAdmin].[CatalystAdmin].[IdentityBASE] i
+            INNER JOIN [CatalystAdmin].[IdentityBASE] i
                 ON ir.IdentityID = i.IdentityID
             WHERE RoleNM = 'EDW Admin'";
     $command = New-Object System.Data.SqlClient.SqlCommand($sql, $connection)
@@ -759,6 +759,6 @@ Write-Host "Upgrading all the users/groups with an 'EDW Admin' role to also have
 $edwAdminUsersAndGroups = Get-EdwAdminUsersAndGroups -connectionString $metadataConnStr
 Write-Host "There are $($edwAdminUsersAndGroups.Count) users/groups with this role"
 Write-Host ""
-Add-UsersAndGroupsToDosAdminRole -edwAdminUsersAndGroups $edwAdminUsersAndGroups -domain $currentUserDomain -connString $metadataConnStr -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken
+Add-UsersAndGroupsToDosAdminRole -edwAdminUsersAndGroups $edwAdminUsersAndGroups -domain $currentUserDomain -connString $authorizationDbConnStr -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken
 
 Read-Host -Prompt "Installation complete, press Enter to exit"
