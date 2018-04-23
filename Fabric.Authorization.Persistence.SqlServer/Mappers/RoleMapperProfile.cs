@@ -21,7 +21,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Mappers
                 .ForMember(x => x.Id, opt => opt.Ignore())
                 .ForMember(x => x.ParentRoleId, opt => opt.MapFrom(src => src.ParentRole))
                 .ForMember(x => x.ParentRole, opt => opt.Ignore())                
-                .ForPath(x => x.SecurableItem.Name, opt => opt.Ignore());
+                .ForPath(x => x.SecurableItem.Name, opt => opt.Ignore())
+                .ForMember(x => x.ChildRoles, opt => opt.Ignore());
 
         }
     }

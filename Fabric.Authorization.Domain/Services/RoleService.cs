@@ -113,6 +113,8 @@ namespace Fabric.Authorization.Domain.Services
                 var denyPermissions = await ValidatePermissionList(denyPermissionsToAdd.Select(p => p.Id), role.Name,
                     role.Grain, role.SecurableItem, Enumerable.Empty<Permission>());
 
+                await ValidateChildRoles(role.ChildRoles, role.Grain, role.SecurableItem);
+
                 var newRole = await _roleStore.Add(role);
                 await _roleStore.AddPermissionsToRole(newRole, allowPermissions, denyPermissions);
                 return newRole;
@@ -176,6 +178,32 @@ namespace Fabric.Authorization.Domain.Services
                 permissionsToAdd.Add(permission);
             }
             return permissionsToAdd;
+        }
+
+        private async Task ValidateChildRoles(IEnumerable<Guid> childRoles, string grain, string securableItem)
+        {
+            var exceptions = new List<Exception>();
+            foreach (var childRole in childRoles)
+            {
+                try
+                {
+                    var role = await _roleStore.Get(childRole);
+                    if (!(role.Grain == grain && role.SecurableItem == securableItem))
+                    {
+                        exceptions.Add(new IncompatibleRoleException($"Role with id {role.Id} has the wrong grain and/or securableItem."));
+                    }
+                }
+                catch (NotFoundException<Role> ex)
+                {
+                    exceptions.Add(ex);
+                }
+
+            }
+
+            if (exceptions.Count > 0)
+            {
+                throw new AggregateException("There was an issue adding a child role to a role. See the inner exceptions for details", exceptions);
+            }
         }
 
         public async Task<Role> RemovePermissionsFromRole(Role role, Guid[] permissionIds)
