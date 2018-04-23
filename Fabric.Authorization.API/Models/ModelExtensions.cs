@@ -132,7 +132,7 @@ namespace Fabric.Authorization.API.Models
         {
             var group = new Group
             {
-                Id = string.IsNullOrEmpty(groupRoleApiModel.Id) ? groupRoleApiModel.GroupName : groupRoleApiModel.Id,
+                Id = groupRoleApiModel.Id ?? new Guid(),
                 Name = groupRoleApiModel.GroupName,
                 DisplayName = groupRoleApiModel.DisplayName,
                 Description = groupRoleApiModel.Description,

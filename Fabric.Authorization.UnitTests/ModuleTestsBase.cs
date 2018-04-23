@@ -119,13 +119,13 @@ namespace Fabric.Authorization.UnitTests
         {
             new Group
             {
-                Id = Guid.NewGuid().ToString(),
+                Id = Guid.NewGuid(),
                 IsDeleted = false,
                 Roles = CreateRoles
             },
             new Group
             {
-                Id = Guid.NewGuid().ToString(),
+                Id = Guid.NewGuid(),
                 IsDeleted = false,
                 Roles = CreateRoles
             }

@@ -11,7 +11,7 @@ namespace Fabric.Authorization.Domain.Models
             Users = new List<User>();
         }
 
-        public string Id { get; set; }
+        public Guid Id { get; set; }
 
         public string Name { get; set; }
 
@@ -25,7 +25,7 @@ namespace Fabric.Authorization.Domain.Models
 
         public string Source { get; set; }
 
-        public string Identifier => Id;
+        public string Identifier => Id.ToString();
 
         public bool IsDeleted { get; set; }
 

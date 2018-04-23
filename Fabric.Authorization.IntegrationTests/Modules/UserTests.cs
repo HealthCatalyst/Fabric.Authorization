@@ -350,7 +350,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.HttpRequest();
                 with.JsonBody(new
                 {
-                    Id = "DosGroup",
                     GroupName = "DosGroup",
                     GroupSource = "Custom"
                 });
