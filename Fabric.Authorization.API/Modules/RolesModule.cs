@@ -86,17 +86,24 @@ namespace Fabric.Authorization.API.Modules
 
         private async Task<dynamic> AddRole()
         {
-            var roleApiModel = this.Bind<RoleApiModel>(binderIgnore => binderIgnore.Id,
-                binderIgnore => binderIgnore.CreatedBy,
-                binderIgnore => binderIgnore.CreatedDateTimeUtc,
-                binderIgnore => binderIgnore.ModifiedDateTimeUtc,
-                binderIgnore => binderIgnore.ModifiedBy);
+            try
+            {
+                var roleApiModel = this.Bind<RoleApiModel>(binderIgnore => binderIgnore.Id,
+                    binderIgnore => binderIgnore.CreatedBy,
+                    binderIgnore => binderIgnore.CreatedDateTimeUtc,
+                    binderIgnore => binderIgnore.ModifiedDateTimeUtc,
+                    binderIgnore => binderIgnore.ModifiedBy);
 
-            var incomingRole = roleApiModel.ToRoleDomainModel();
-            Validate(incomingRole);
-            await CheckWriteAccess(_clientService, _grainService, roleApiModel.Grain, roleApiModel.SecurableItem);
-            var role = await _roleService.AddRole(incomingRole);
-            return CreateSuccessfulPostResponse(role.ToRoleApiModel());
+                var incomingRole = roleApiModel.ToRoleDomainModel();
+                Validate(incomingRole);
+                await CheckWriteAccess(_clientService, _grainService, roleApiModel.Grain, roleApiModel.SecurableItem);
+                var role = await _roleService.AddRole(incomingRole);
+                return CreateSuccessfulPostResponse(role.ToRoleApiModel());
+            }
+            catch (AggregateException ex)
+            {
+                return CreateFailureResponse(ex, HttpStatusCode.BadRequest);
+            }
         }
 
         private async Task<dynamic> UpdateRole(dynamic parameters)

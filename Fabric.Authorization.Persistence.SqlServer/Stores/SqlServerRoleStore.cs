@@ -28,6 +28,17 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             var roleEntity = role.ToEntity();
             roleEntity.SecurableItem =
                 AuthorizationDbContext.SecurableItems.First(s => !s.IsDeleted && s.Name == role.SecurableItem);
+
+            if (role.ChildRoles.Any())
+            {
+                var childRoles = await AuthorizationDbContext.Roles.Where(r => role.ChildRoles.Contains(r.RoleId))
+                    .ToListAsync();
+                foreach (var childRole in childRoles)
+                {
+                    childRole.ParentRole = roleEntity;
+                }
+            }
+
             AuthorizationDbContext.Roles.Add(roleEntity);
             await AuthorizationDbContext.SaveChangesAsync();
             await EventService.RaiseEventAsync(new EntityAuditEvent<Role>(EventTypes.EntityCreatedEvent, role.Id.ToString(), roleEntity.ToModel()));

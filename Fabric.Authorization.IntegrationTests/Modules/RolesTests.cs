@@ -191,6 +191,78 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Contains(childRole.Id.Value, retrievedParentRole.ChildRoles);
         }
 
+        [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
+        public async Task TestAddChildRole_SuccessAsync()
+        {
+            var childRoleResponse = await _browser.Post("/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = _securableItem,
+                    Name = "child" + Guid.NewGuid().ToString(),
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Created, childRoleResponse.StatusCode);
+            var childRole = JsonConvert.DeserializeObject<RoleApiModel>(childRoleResponse.Body.AsString());
+
+            var childRoleResponse2 = await _browser.Post("/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = _securableItem,
+                    Name = "child" + Guid.NewGuid().ToString(),
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Created, childRoleResponse2.StatusCode);
+            var childRole2 = JsonConvert.DeserializeObject<RoleApiModel>(childRoleResponse2.Body.AsString());
+
+            var parentRoleResponse = await _browser.Post("/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = _securableItem,
+                    Name = "parent" + Guid.NewGuid().ToString(),
+                    ChildRoles = new[] {childRole.Id, childRole2.Id}
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Created, parentRoleResponse.StatusCode);
+            var parentRole = JsonConvert.DeserializeObject<RoleApiModel>(parentRoleResponse.Body.AsString());
+            Assert.Equal(2, parentRole.ChildRoles.Count());
+            Assert.Single(parentRole.ChildRoles.Where(r => r == childRole.Id));
+            Assert.Single(parentRole.ChildRoles.Where(r => r == childRole2.Id));
+        }
+
+        [Fact]
+        public async Task TestAddChildRole_BadChildRole_BadRequestAsync()
+        {
+
+            var parentRoleResponse = await _browser.Post("/roles", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    Grain = "app",
+                    SecurableItem = _securableItem,
+                    Name = "parent" + Guid.NewGuid().ToString(),
+                    ChildRoles = new[] { Guid.NewGuid(), Guid.NewGuid() }
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.BadRequest, parentRoleResponse.StatusCode);
+            var error = parentRoleResponse.Body.DeserializeJson<Error>();
+            Assert.Equal(2, error.Details.Length);
+        }
+
         [Theory]
         [IntegrationTestsFixture.DisplayTestMethodName]
         [InlineData("E70ABF1E-D827-432F-9DC1-05D83A574527")]
