@@ -12,5 +12,6 @@ namespace Fabric.Authorization.Domain.Stores
         Task<Group> AddUserToGroup(Group group, User user);
         Task<Group> AddUsersToGroup(Group group, IEnumerable<User> usersToAdd);
         Task<Group> DeleteUserFromGroup(Group group, User user);
+        Task<IEnumerable<Group>> GetGroups(string name);
     }
 }

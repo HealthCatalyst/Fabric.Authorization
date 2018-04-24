@@ -4,7 +4,15 @@
     </h3>
     <div class="input-combo">
         <input hc-input class="hc-input" required [(ngModel)]="groupName" [readOnly]="editMode" [highlight]="groupNameinvalid" (keyup)="groupNameSubject.next($event.target.value)">
+        <i [class]="searchingGroup ? 'btn-icon fa fa-spinner fa-pulse fa-fw' : 'btn-icon fa fa-search'"></i>
         <div class="form-errors" *ngIf="groupNameinvalid" [innerText]="groupNameError"></div>
+    </div>
+    <div>
+        <ul *ngFor="let group of customGroups">
+            <li>
+                <hc-checkbox [id]="group.id" [(ngModel)]="group.selected" (click)="customGroupSelected(group)">{{group.groupName}}</hc-checkbox>
+            </li>
+        </ul>
     </div>
     <h3 class="h3">
         <span>Associated Users</span>

@@ -182,4 +182,21 @@ export class FabricAuthGroupService extends FabricBaseService {
   ): string {
     return encodeURI(tokenizedUrl.replace('{groupName}', groupName));
   }
+
+  public search(groupName: Observable<string>): Observable<IGroup[]> {
+    return groupName.debounceTime(250)
+      .distinctUntilChanged()
+      .filter((term: string) =>  term && term.length > 2)
+      .switchMap((term) => {
+        let params = new HttpParams()
+          .set('name', term);
+
+        params = params.set('type', 'custom');
+
+        return this.httpClient.get<IGroup[]>(
+          FabricAuthGroupService.baseGroupApiUrl,
+          { params }
+        );
+      });
+  }
 }

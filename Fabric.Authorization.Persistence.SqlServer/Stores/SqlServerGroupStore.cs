@@ -291,5 +291,28 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             return group;
         }
+
+        public async Task<IEnumerable<Group>> GetGroups(string name)
+        {
+            var groupEntities = await AuthorizationDbContext.Groups
+                .Include(g => g.GroupRoles)
+                .ThenInclude(gr => gr.Role)
+                .ThenInclude(r => r.RolePermissions)
+                .ThenInclude(rp => rp.Permission)
+                .ThenInclude(p => p.SecurableItem)
+                .Include(g => g.GroupUsers)
+                .ThenInclude(gu => gu.User)
+                .ThenInclude(u => u.UserPermissions)
+                .ThenInclude(up => up.Permission)
+                .Include(g => g.GroupRoles)
+                .ThenInclude(gr => gr.Role)
+                .ThenInclude(r => r.SecurableItem)
+                .AsNoTracking()
+                .Where(g => g.Name.Contains(name)
+                            && !g.IsDeleted)
+                .ToArrayAsync();
+
+            return groupEntities.Select(g => g.ToModel());
+        }
     }
 }

@@ -49,6 +49,11 @@ namespace Fabric.Authorization.API.Modules
             _clientService = clientService;
             _grainService = grainService;
 
+            Get("/",
+            async _ => await GetGroups().ConfigureAwait(false),
+            null,
+            "GetGroups");
+
             base.Get("/{groupName}",
                 async p => await this.GetGroup(p).ConfigureAwait(false),
                 null,
@@ -110,6 +115,21 @@ namespace Fabric.Authorization.API.Modules
                 async _ => await DeleteUserFromGroup().ConfigureAwait(false),
                 null,
                 "DeleteUserFromGroup");
+        }
+
+        private async Task<dynamic> GetGroups()
+        {
+            try
+            {
+                this.RequiresClaims(AuthorizationReadClaim);
+                var requestParams = this.Bind<GroupSearchApiRequest>();
+                IEnumerable<Group> groups = await _groupService.GetGroups(requestParams.Name, requestParams.Type);
+                return groups.Select(g => g.ToGroupRoleApiModel());
+            }
+            catch (NotFoundException<Group> ex)
+            {
+                return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
+            }
         }
 
         private async Task<dynamic> GetRolesForGroup(dynamic p)

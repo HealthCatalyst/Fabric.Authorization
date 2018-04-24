@@ -9,4 +9,7 @@ export interface IGroup {
   groupSource: string;
   displayName?: string;
   description?: string;
+
+   // Custom Property
+   selected?: boolean;
 }
