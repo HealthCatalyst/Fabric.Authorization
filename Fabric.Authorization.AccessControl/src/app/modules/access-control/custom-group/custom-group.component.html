@@ -7,13 +7,20 @@
         <i [class]="searchingGroup ? 'btn-icon fa fa-spinner fa-pulse fa-fw' : 'btn-icon fa fa-search'"></i>
         <div class="form-errors" *ngIf="groupNameinvalid" [innerText]="groupNameError"></div>
     </div>
-    <div class="scroll-list">
-        <div *ngIf="customGroups.length > 0"><span>Select an existing group:</span></div>
-        <ul>
-            <li *ngFor="let group of customGroups">
-                <hc-checkbox [id]="group.id" [(ngModel)]="group.selected" (click)="customGroupSelected(group)">{{group.groupName}}</hc-checkbox>
-            </li>
-        </ul>
+    <div class="custom-groups" *ngIf="customGroups.length > 0">
+    <span>Select an existing group:</span>
+    <table class="hc-table hc-table-borders scroll-table">
+       
+        <tbody>
+          <tr *ngFor="let group of customGroups">
+            <td>
+                <hc-checkbox [id]="group.id" [(ngModel)]="group.selected" (click)="customGroupSelected(group)"></hc-checkbox>
+            </td>
+            <td [innerText]="group.groupName">
+            </td>            
+          </tr>
+        </tbody>
+      </table>
     </div>
     <h3 class="h3">
         <span>Associated Users</span>
