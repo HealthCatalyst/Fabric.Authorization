@@ -119,6 +119,11 @@ namespace Fabric.Authorization.Persistence.InMemory.Stores
             return group;
         }
 
+        public Task<IEnumerable<Group>> GetGroups(string name)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<Group> AddRolesToGroup(Group @group, IEnumerable<Role> rolesToAdd)
         {
             throw new NotImplementedException();

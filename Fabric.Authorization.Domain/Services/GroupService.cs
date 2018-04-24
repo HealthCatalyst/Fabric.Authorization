@@ -202,5 +202,12 @@ namespace Fabric.Authorization.Domain.Services
 
             return await _groupStore.DeleteUserFromGroup(group, user);
         }
+
+        public async Task<IEnumerable<Group>> GetGroups(string name, string type)
+        {
+            var groups = await _groupStore.GetGroups(name);
+
+            return groups;
+        }
     }
 }

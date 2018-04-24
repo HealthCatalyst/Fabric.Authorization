@@ -28,13 +28,15 @@ import 'rxjs/add/observable/empty';
 export class CustomGroupComponent implements OnInit, OnDestroy {
   public roles: Array<IRole> = [];
   public principals: Array<IFabricPrincipal> = [];
+  public customGroups: Array<IGroup> = [];
   public associatedPrincipals: Array<IUser> = [];
   public editMode = true;
 
   public groupName = '';
-  public groupNameSubject: Subject<string>;
+  public groupNameSubject = new Subject<string>();
   public groupNameinvalid = false;
   public groupNameError: string;
+  public searchingGroup = false;
 
   public searchTerm = '';
   public searchTermSubject = new Subject<string>();
@@ -68,7 +70,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           this.initializing = false;
         });
     } else {
-      this.setupGroupNameErrorCheck();
+      // this.setupGroupNameErrorCheck();
 
       this.roleService
         .getRolesBySecurableItemAndGrain(
@@ -97,6 +99,29 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
       })
       .takeUntil(this.ngUnsubscribe)
       .subscribe();
+
+    this.groupNameSubject
+      .takeUntil(this.ngUnsubscribe)
+      .filter((term) => !this.editMode)
+      .do((term) => {
+        this.roles.map(r => r.selected = false);
+        this.principals.map(p => p.selected = false);
+        if (term && term.length > 2) {
+          this.searchingGroup = true;
+        } else {
+          this.searchingGroup = false;
+          this.customGroups = [];
+        }
+      }).subscribe();
+
+    // custom group search
+    this.groupService
+    .search(this.groupNameSubject)
+    .takeUntil(this.ngUnsubscribe)
+    .subscribe(result => {
+      this.searchingGroup = false;
+      this.customGroups = result.map(group => <IGroup>group);
+    });
 
     this.idpSearchService
       .search(this.searchTermSubject, 'user')
@@ -267,5 +292,18 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           this.setupGroupNameErrorCheck();
         }
       });
+  }
+
+  public customGroupSelected(selectedGroup: IGroup) {
+    this.groupName = selectedGroup.groupName;
+    this.editMode = true;
+    return Observable.zip(this.getGroupRoles(), this.getGroupUsers())
+        .do((result: [IRole[], IUser[]]) => {
+          this.roles = result[0];
+          this.associatedPrincipals = result[1];
+          this.customGroups = [];
+        })
+        .takeUntil(this.ngUnsubscribe)
+        .subscribe();
   }
 }
