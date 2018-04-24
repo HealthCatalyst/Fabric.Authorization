@@ -123,6 +123,10 @@ namespace Fabric.Authorization.API.Modules
             {
                 this.RequiresClaims(AuthorizationReadClaim);
                 var requestParams = this.Bind<GroupSearchApiRequest>();
+                if (string.IsNullOrEmpty(requestParams.Name))
+                {
+                   return CreateFailureResponse("Name is required", HttpStatusCode.BadRequest);
+                }
                 IEnumerable<Group> groups = await _groupService.GetGroups(requestParams.Name, requestParams.Type);
                 return groups.OrderBy(g => g.Name).Select(g => g.ToGroupRoleApiModel());
             }

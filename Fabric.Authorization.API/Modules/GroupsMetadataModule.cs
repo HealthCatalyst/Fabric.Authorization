@@ -226,6 +226,52 @@ namespace Fabric.Authorization.API.Modules
                 }).SecurityRequirement(OAuth2ReadScopeBuilder);
 
             RouteDescriber.DescribeRouteWithParams(
+                "GetGroups",
+                "",
+                "Gets groups by name and an optional type",
+                new List<HttpResponseMetadata>
+                {
+                    new HttpResponseMetadata<GroupRoleApiModel>
+                    {
+                        Code = (int) HttpStatusCode.OK,
+                        Message = "OK"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.Forbidden,
+                        Message = "Client does not have access"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.BadRequest,
+                        Message = "No name parameter was provided or an invalid type parameter was provided"
+                    }
+                },
+                new[]
+                {
+                    new Parameter()
+                    {
+                        Name = "name",
+                        Description = "the group name",
+                        Required = true,
+                        Type = "string",
+                        In = ParameterIn.Query
+                    },
+                    new Parameter()
+                    {
+                        Name = "type",
+                        Description = "the type of group, either 'custom' or 'directory'",
+                        Required = false,
+                        Type = "string",
+                        In = ParameterIn.Query
+                    }
+                },
+                new[]
+                {
+                    _groupsTag
+                }).SecurityRequirement(OAuth2ReadScopeBuilder);
+
+            RouteDescriber.DescribeRouteWithParams(
                 "DeleteGroup",
                 "",
                 "Deletes a group",
