@@ -50,8 +50,29 @@ export const mockGroupResponse: IGroup = {
     description: dosAdminGroupDescription,
 };
 
+export const mockGroupsResponse: IGroup[] = [
+    {
+        groupName: 'test custom group',
+        groupSource: 'custom',
+        users: mockUsersResponse,
+        roles: mockRolesResponse,
+        displayName: dosAdminGroupDisplayName,
+        description: dosAdminGroupDescription,
+    },
+    {
+        groupName: 'test windows group',
+        groupSource: 'windows',
+        users: mockUsersResponse,
+        roles: mockRolesResponse,
+        displayName: dosAdminGroupDisplayName,
+        description: dosAdminGroupDescription,
+    }
+];
+
 export class FabricAuthGroupServiceMock {
     getGroup: jasmine.Spy = jasmine.createSpy('getGroup');
+
+    search: jasmine.Spy = jasmine.createSpy('search');
 
     getGroupUsers: jasmine.Spy = jasmine.createSpy('getGroupUsers');
 
