@@ -59,13 +59,5 @@ import { CustomGroupComponent } from './custom-group/custom-group.component';
     FabricAuthRoleService
   ],
 })
-export class AccessControlModule {
-  static forRoot(config: Type<IAccessControlConfigService>): ModuleWithProviders {
-    return {
-      ngModule: AccessControlModule,
-      providers: [
-        {provide: 'IAccessControlConfigService', useClass: config}
-      ]
-    };
-  }
-}
+export class AccessControlModule { }
+
