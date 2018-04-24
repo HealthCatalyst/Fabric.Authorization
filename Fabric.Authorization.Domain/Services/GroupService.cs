@@ -205,8 +205,7 @@ namespace Fabric.Authorization.Domain.Services
 
         public async Task<IEnumerable<Group>> GetGroups(string name, string type)
         {
-            var groups = await _groupStore.GetGroups(name);
-
+            var groups = await _groupStore.GetGroups(name, type);
             return groups;
         }
     }

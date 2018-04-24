@@ -119,7 +119,7 @@ namespace Fabric.Authorization.Persistence.InMemory.Stores
             return group;
         }
 
-        public Task<IEnumerable<Group>> GetGroups(string name)
+        public Task<IEnumerable<Group>> GetGroups(string name, string type)
         {
             throw new NotImplementedException();
         }

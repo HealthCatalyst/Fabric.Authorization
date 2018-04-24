@@ -8,6 +8,7 @@
         <div class="form-errors" *ngIf="groupNameinvalid" [innerText]="groupNameError"></div>
     </div>
     <div>
+        <div *ngIf="customGroups.length > 0">Select an existing group:</div>
         <ul *ngFor="let group of customGroups">
             <li>
                 <hc-checkbox [id]="group.id" [(ngModel)]="group.selected" (click)="customGroupSelected(group)">{{group.groupName}}</hc-checkbox>

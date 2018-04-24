@@ -137,7 +137,7 @@ namespace Fabric.Authorization.Persistence.CouchDb.Stores
             return group;
         }
 
-        public Task<IEnumerable<Group>> GetGroups(string name)
+        public Task<IEnumerable<Group>> GetGroups(string name, string type)
         {
             throw new NotImplementedException();
         }
