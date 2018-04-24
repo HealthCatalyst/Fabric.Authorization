@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Events;
 using Fabric.Authorization.Domain.Exceptions;
@@ -292,7 +293,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return group;
         }
 
-        public async Task<IEnumerable<Group>> GetGroups(string name)
+        public async Task<IEnumerable<Group>> GetGroups(string name, string type)
         {
             var groupEntities = await AuthorizationDbContext.Groups
                 .Include(g => g.GroupRoles)
@@ -308,11 +309,26 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .ThenInclude(gr => gr.Role)
                 .ThenInclude(r => r.SecurableItem)
                 .AsNoTracking()
-                .Where(g => g.Name.Contains(name)
-                            && !g.IsDeleted)
+                .Where(g => g.Name.StartsWith(name)
+                            && !g.IsDeleted
+                            )
+                .Where(GetGroupSourceFilter(type))
                 .ToArrayAsync();
 
             return groupEntities.Select(g => g.ToModel());
+        }
+
+        private Expression<Func<EntityModels.Group, bool>> GetGroupSourceFilter(string source)
+        {
+            switch (source)
+            {
+                case "custom":
+                    return group => group.Source == "custom";
+                case "directory":
+                    return group => group.Source != "custom";
+                default:
+                    return group => true;
+            }
         }
     }
 }

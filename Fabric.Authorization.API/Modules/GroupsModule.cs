@@ -124,7 +124,7 @@ namespace Fabric.Authorization.API.Modules
                 this.RequiresClaims(AuthorizationReadClaim);
                 var requestParams = this.Bind<GroupSearchApiRequest>();
                 IEnumerable<Group> groups = await _groupService.GetGroups(requestParams.Name, requestParams.Type);
-                return groups.Select(g => g.ToGroupRoleApiModel());
+                return groups.OrderBy(g => g.Name).Select(g => g.ToGroupRoleApiModel());
             }
             catch (NotFoundException<Group> ex)
             {
