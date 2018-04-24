@@ -130,7 +130,7 @@ namespace Fabric.Authorization.API.Modules
                 IEnumerable<Group> groups = await _groupService.GetGroups(requestParams.Name, requestParams.Type);
                 return groups.OrderBy(g => g.Name).Select(g => g.ToGroupRoleApiModel());
             }
-            catch (BadRequestException<Group> ex)
+            catch (InvalidOperationException ex)
             {
                 return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
             }

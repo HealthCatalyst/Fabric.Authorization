@@ -320,15 +320,16 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         private Expression<Func<EntityModels.Group, bool>> GetGroupSourceFilter(string source)
         {
-            switch (source?.ToLower())
+            source = source ?? "";
+            if (source.Equals(GroupConstants.CustomSource, StringComparison.OrdinalIgnoreCase))
             {
-                case "custom":
-                    return group => group.Source == "custom";
-                case "directory":
-                    return group => group.Source != "custom";
-                default:
-                    return group => true;
+                return group => group.Source == "custom";
             }
+            if (source.Equals(GroupConstants.DirectorySource, StringComparison.OrdinalIgnoreCase))
+            {
+                return group => group.Source != "custom";
+            }
+            return group => true;
         }
     }
 }
