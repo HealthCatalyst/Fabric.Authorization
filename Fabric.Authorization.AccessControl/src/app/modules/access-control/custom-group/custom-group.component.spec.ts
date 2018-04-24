@@ -7,7 +7,7 @@ import { FabricAuthGroupService } from '../../../services/fabric-auth-group.serv
 import { FabricAuthRoleService } from '../../../services/fabric-auth-role.service';
 import { FabricExternalIdpSearchService } from '../../../services/fabric-external-idp-search.service';
 import { FabricAuthRoleServiceMock, mockRoles } from '../../../services/fabric-auth-role.service.mock';
-import { FabricAuthGroupServiceMock, mockUsersResponse } from '../../../services/fabric-auth-group.service.mock';
+import { FabricAuthGroupServiceMock, mockUsersResponse, mockGroupsResponse } from '../../../services/fabric-auth-group.service.mock';
 import { Observable } from 'rxjs/Observable';
 import { mockRolesResponse } from '../../../services/fabric-auth-user.service.mock';
 import { ButtonModule, IconModule, PopoverModule, InputModule, LabelModule, CheckboxModule } from '@healthcatalyst/cashmere';
@@ -37,6 +37,7 @@ describe('CustomGroupComponent', () => {
     (groupService: FabricAuthGroupServiceMock, roleService: FabricAuthRoleServiceMock, search: FabricExternalIdpSearchServiceMock) => {
       groupService.getGroupUsers.and.returnValue(Observable.of(mockUsersResponse));
       groupService.getGroupRoles.and.returnValue(Observable.of(mockRolesResponse));
+      groupService.search.and.returnValue(Observable.of(mockGroupsResponse));
       roleService.getRolesBySecurableItemAndGrain.and.returnValue(Observable.of(mockRolesResponse));
       search.search.and.returnValue(Observable.of(mockExternalIdpSearchResult));
     }));
