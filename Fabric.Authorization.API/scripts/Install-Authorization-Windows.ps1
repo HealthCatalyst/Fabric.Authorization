@@ -27,7 +27,6 @@ function Add-DiscoveryRegistration($discoveryUrl, $serviceUrl, $credential) {
         IsHidden      = $true
         FriendlyName  = "Fabric.Authorization"
         Description   = "The Fabric.Authorization service provides centralized authorization across the Fabric ecosystem."
-        BuildNumber   = "1.1.2017120101"
     }
 
 	$url = "$discoveryUrl/v1/Services"
@@ -636,23 +635,9 @@ $body = @'
 '@
 
 Write-Host "Registering Fabric.Authorization API."
-try {
-    $authorizationApiSecret = Add-ApiRegistration -authUrl $identityServerUrl -body $body -accessToken $accessToken
-    Write-Host "Fabric.Authorization apiSecret: $authorizationApiSecret"
-    Write-Host ""
-}
-catch {
-    $exception = $_.Exception
-    if ($exception -ne $null -and $exception.Response.StatusCode.value__ -eq 409) {
-        Write-Success "Fabric.Authorization API is already registered."
-        Write-Host ""
-    }
-    else {
-        Write-Error "Could not register Fabric.Authorization with Fabric.Identity, halting installation."
-        throw $exception
-    }
-
-}
+$authorizationApiSecret = Save-ApiRegistration -authUrl $identityServerUrl -body $body -accessToken $accessToken
+Write-Host "Fabric.Authorization apiSecret: $authorizationApiSecret"
+Write-Host ""
 
 #Register Fabric.Authorization client
 $body = @'
@@ -666,22 +651,9 @@ $body = @'
 '@
 
 Write-Host "Registering Fabric.Authorization Client."
-try {
-    $authorizationClientSecret = Add-ClientRegistration -authUrl $identityServerUrl -body $body -accessToken $accessToken
-    Write-Host "Fabric.Authorization clientSecret: $authorizationClientSecret"
-    Write-Host ""
-}
-catch {
-    $exception = $_.Exception
-    if ($exception -ne $null -and $exception.Response.StatusCode.value__ -eq 409) {
-        Write-Success "Fabric.Authorization Client is already registered."
-        Write-Host ""
-    }
-    else {
-        Write-Error "Could not register Fabric.Authorization.Client with Fabric.Identity, halting installation."
-        throw $exception
-    }
-}
+$authorizationClientSecret = Save-ClientRegistration -authUrl $identityServerUrl -body $body -accessToken $accessToken
+Write-Host "Fabric.Authorization clientSecret: $authorizationClientSecret"
+Write-Host ""
 
 #Write environment variables
 Write-Host ""
