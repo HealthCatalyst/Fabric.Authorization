@@ -1349,6 +1349,20 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
+        [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
+        public async Task SearchGroups_NoName_BadRequest_Async()
+        {
+            var response = await Browser.Get($"/groups", with =>
+            {
+                with.HttpRequest();                
+                with.Query("type", "foo");
+                with.Header("Accept", "application/json");
+            });
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
         // ReSharper disable once UnusedParameter.Local
         private async Task VerifyPermissionAsync(string groupName, string roleName, string permissionName, bool exists)
         {
