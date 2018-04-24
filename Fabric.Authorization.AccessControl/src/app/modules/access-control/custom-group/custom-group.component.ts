@@ -292,11 +292,11 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     this.editMode = true;
     this.groupNameinvalid = false;
     this.groupNameError = '';
+    this.customGroups = [];
     return Observable.zip(this.getGroupRoles(), this.getGroupUsers())
         .do((result: [IRole[], IUser[]]) => {
           this.roles = result[0];
           this.associatedPrincipals = result[1];
-          this.customGroups = [];
         })
         .takeUntil(this.ngUnsubscribe)
         .subscribe();
