@@ -320,7 +320,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         private Expression<Func<EntityModels.Group, bool>> GetGroupSourceFilter(string source)
         {
-            switch (source)
+            switch (source?.ToLower())
             {
                 case "custom":
                     return group => group.Source == "custom";
