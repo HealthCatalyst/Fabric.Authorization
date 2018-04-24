@@ -41,7 +41,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Fabric.Platform.Bootstrappers.Nancy" Version="1.0.2018040901" />
+    <PackageReference Include="Fabric.Platform.Bootstrappers.Nancy" Version="1.0.2018042404" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore" Version="1.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.Owin" Version="1.1.2" />
