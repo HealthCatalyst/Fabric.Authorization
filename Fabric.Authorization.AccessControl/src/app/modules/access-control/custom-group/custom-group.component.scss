@@ -56,5 +56,27 @@
     .top {
         width: 100%;
         padding: 0 0 15px 0;
+    }    
+}
+
+.scroll-list{
+    $scrollbar-width: 0.9em;
+    display: flex;
+    flex-flow: column;
+    max-height: 180px;
+
+    ul{
+        max-height: 180px;
+        overflow: auto;
+    }
+
+    li{
+        padding-bottom: .15em; 
+    }
+
+    span{
+        padding: .25em 0 .25em 0;
+        display: block;        
+        font-weight: 600;
     }
 }

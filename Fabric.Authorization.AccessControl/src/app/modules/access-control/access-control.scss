@@ -36,10 +36,10 @@ table.hc-table {
 }
 
 .scroll-table{
-$scrollbar-width: 0.9em;
-display: flex;
-flex-flow: column;
-max-height: 180px;
+    $scrollbar-width: 0.9em;
+    display: flex;
+    flex-flow: column;
+    max-height: 180px;
 
 thead,
 tbody tr {

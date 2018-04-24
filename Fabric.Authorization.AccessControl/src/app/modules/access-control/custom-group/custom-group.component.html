@@ -3,14 +3,14 @@
         <span>Custom Group Name</span>
     </h3>
     <div class="input-combo">
-        <input hc-input class="hc-input" required [(ngModel)]="groupName" [readOnly]="editMode" [highlight]="groupNameinvalid" (keyup)="groupNameSubject.next($event.target.value)">
+        <input hc-input class="hc-input" required [(ngModel)]="groupName" [readOnly]="editMode" [highlight]="groupNameinvalid" (keyup)="groupNameSubject.next($event.target.value)" placeholder="enter group name">
         <i [class]="searchingGroup ? 'btn-icon fa fa-spinner fa-pulse fa-fw' : 'btn-icon fa fa-search'"></i>
         <div class="form-errors" *ngIf="groupNameinvalid" [innerText]="groupNameError"></div>
     </div>
-    <div>
-        <div *ngIf="customGroups.length > 0">Select an existing group:</div>
-        <ul *ngFor="let group of customGroups">
-            <li>
+    <div class="scroll-list">
+        <div *ngIf="customGroups.length > 0"><span>Select an existing group:</span></div>
+        <ul>
+            <li *ngFor="let group of customGroups">
                 <hc-checkbox [id]="group.id" [(ngModel)]="group.selected" (click)="customGroupSelected(group)">{{group.groupName}}</hc-checkbox>
             </li>
         </ul>
