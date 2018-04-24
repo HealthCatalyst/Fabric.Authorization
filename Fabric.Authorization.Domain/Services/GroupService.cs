@@ -207,10 +207,10 @@ namespace Fabric.Authorization.Domain.Services
         {
             if (!string.IsNullOrEmpty(type))
             {
-                type = type.ToLower();
-                if (!type.Equals("custom") && !type.Equals("directory"))
+                if (!type.Equals(GroupConstants.CustomSource, StringComparison.OrdinalIgnoreCase) && 
+                    !type.Equals(GroupConstants.DirectorySource, StringComparison.OrdinalIgnoreCase))
                 {
-                    throw new BadRequestException<Group>("Invalid type provided. If provided valid values are custom or directory");
+                    throw new InvalidOperationException("Invalid type provided. If provided valid values are custom or directory");
                 }
             }
 
