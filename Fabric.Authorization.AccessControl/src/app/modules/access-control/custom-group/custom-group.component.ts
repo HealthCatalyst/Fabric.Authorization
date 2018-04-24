@@ -70,7 +70,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           this.initializing = false;
         });
     } else {
-      // this.setupGroupNameErrorCheck();
+      this.setupGroupNameErrorCheck();
 
       this.roleService
         .getRolesBySecurableItemAndGrain(
@@ -212,6 +212,10 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   }
 
   save() {
+    if (!this.checkGroupNameProvided(this.groupName)) {
+      return;
+    }
+
     const newGroup: IGroup = { groupName: this.groupName, groupSource: 'custom' };
     const groupObservable = this.editMode ? Observable.of(newGroup) : this.groupService.createGroup(newGroup);
 
@@ -248,6 +252,10 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
       })
       .takeUntil(this.ngUnsubscribe)
       .subscribe(null, (error) => {
+        if (error.statusCode === 409) {
+          this.groupNameinvalid = true;
+          this.groupNameError = `Group ${this.groupName} already exists`;
+        }
         // TODO: Error handling
         console.error(error);
       }, () => {
@@ -266,37 +274,24 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
       .debounceTime(250)
       .distinctUntilChanged()
       .do((term) => {
-        if (!term) {
-          this.groupNameError = 'Group name is required';
-          this.groupNameinvalid = true;
-        }
-      })
-      .filter(term => term && term.length > 0)
-      .mergeMap((term) => {
-        return this.groupService.getGroup(term);
-      })
-      .catch(err => {
-        if (err.statusCode === 404) {
-          return Observable.of(undefined);
-        }
-        return Observable.throw(err.message);
-      })
-      .takeUntil(this.ngUnsubscribe)
-      .subscribe((group) => {
-        if (!!group) {
-          this.groupNameinvalid = true;
-          this.groupNameError = `Group ${this.groupName} already exists`;
-        } else {
-          this.groupNameinvalid = false;
-          this.groupNameError = '';
-          this.setupGroupNameErrorCheck();
-        }
-      });
+        this.checkGroupNameProvided(term);
+      }).subscribe();
+  }
+
+  private checkGroupNameProvided(name: string) {
+    if (!name) {
+      this.groupNameError = 'Group name is required';
+      this.groupNameinvalid = true;
+      return false;
+    }
+    return true;
   }
 
   public customGroupSelected(selectedGroup: IGroup) {
     this.groupName = selectedGroup.groupName;
     this.editMode = true;
+    this.groupNameinvalid = false;
+    this.groupNameError = '';
     return Observable.zip(this.getGroupRoles(), this.getGroupUsers())
         .do((result: [IRole[], IUser[]]) => {
           this.roles = result[0];
