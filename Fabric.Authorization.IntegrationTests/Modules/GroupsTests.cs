@@ -1267,6 +1267,88 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             await VerifyPermissionAsync(groupName, roleName, permissionName, false);
         }
 
+        [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
+        public async Task SearchGroups_CustomGroupOnly_SuccessAsync()
+        {
+            string customGroup = "CustomGroupSearch" + Guid.NewGuid();
+            await SetupGroupAsync(customGroup, "custom");
+            string directoryGroup = "CustomGroupSearch" + Guid.NewGuid();
+            await SetupGroupAsync(directoryGroup, "windows");
+
+            var response = await Browser.Get($"/groups", with =>
+            {
+                with.HttpRequest();
+                with.Query("name", "CustomGroup");
+                with.Query("type", "custom");
+                with.Header("Accept", "application/json");
+            });
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var groupList = response.Body.DeserializeJson<GroupRoleApiModel[]>();
+            Assert.Single(groupList);
+            Assert.Equal("custom", groupList[0].GroupSource);
+        }
+
+        [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
+        public async Task SearchGroups_DirectoryGroupOnly_SuccessAsync()
+        {
+            string customGroup = "DirectoryGroupSearch" + Guid.NewGuid();
+            await SetupGroupAsync(customGroup, "custom");
+            string directoryGroup = "DirectoryGroupSearch" + Guid.NewGuid();
+            await SetupGroupAsync(directoryGroup, "windows");
+
+            var response = await Browser.Get($"/groups", with =>
+            {
+                with.HttpRequest();
+                with.Query("name", "DirectoryGroup");
+                with.Query("type", "directory");
+                with.Header("Accept", "application/json");
+            });
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var groupList = response.Body.DeserializeJson<GroupRoleApiModel[]>();
+            Assert.Single(groupList);
+            Assert.NotEqual("custom", groupList[0].GroupSource);
+        }
+
+        [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
+        public async Task SearchGroups_NoTypeProvided_ReturnsAllTypes_SuccessAsync()
+        {
+            string customGroup = "AllGroupSearch" + Guid.NewGuid();
+            await SetupGroupAsync(customGroup, "custom");
+            string directoryGroup = "AllGroupSearch" + Guid.NewGuid();
+            await SetupGroupAsync(directoryGroup, "windows");
+
+            var response = await Browser.Get($"/groups", with =>
+            {
+                with.HttpRequest();
+                with.Query("name", "AllGroup");                
+                with.Header("Accept", "application/json");
+            });
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var groupList = response.Body.DeserializeJson<GroupRoleApiModel[]>();
+            Assert.Equal(2, groupList.Length);            
+        }
+
+        [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
+        public async Task SearchGroups_InvalidType_BadRequest_Async()
+        {
+            var response = await Browser.Get($"/groups", with =>
+            {
+                with.HttpRequest();
+                with.Query("name", "AllGroup");
+                with.Query("type", "foo");
+                with.Header("Accept", "application/json");
+            });
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
         // ReSharper disable once UnusedParameter.Local
         private async Task VerifyPermissionAsync(string groupName, string roleName, string permissionName, bool exists)
         {

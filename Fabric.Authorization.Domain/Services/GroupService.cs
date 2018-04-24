@@ -205,6 +205,15 @@ namespace Fabric.Authorization.Domain.Services
 
         public async Task<IEnumerable<Group>> GetGroups(string name, string type)
         {
+            if (!string.IsNullOrEmpty(type))
+            {
+                type = type.ToLower();
+                if (!type.Equals("custom") && !type.Equals("directory"))
+                {
+                    throw new BadRequestException<Group>("Invalid type provided. If provided valid values are custom or directory");
+                }
+            }
+
             var groups = await _groupStore.GetGroups(name, type);
             return groups;
         }

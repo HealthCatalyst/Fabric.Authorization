@@ -126,7 +126,7 @@ namespace Fabric.Authorization.API.Modules
                 IEnumerable<Group> groups = await _groupService.GetGroups(requestParams.Name, requestParams.Type);
                 return groups.OrderBy(g => g.Name).Select(g => g.ToGroupRoleApiModel());
             }
-            catch (NotFoundException<Group> ex)
+            catch (BadRequestException<Group> ex)
             {
                 return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
             }
