@@ -636,8 +636,11 @@ $body = @'
 
 Write-Host "Registering Fabric.Authorization API."
 $authorizationApiSecret = Save-ApiRegistration -authUrl $identityServerUrl -body $body -accessToken $accessToken
-Write-Host "Fabric.Authorization apiSecret: $authorizationApiSecret"
-Write-Host ""
+
+if ($authorizationApiSecret){
+    Write-Host "Fabric.Authorization apiSecret: $authorizationApiSecret"
+    Write-Host ""
+}
 
 #Register Fabric.Authorization client
 $body = @'
@@ -652,8 +655,11 @@ $body = @'
 
 Write-Host "Registering Fabric.Authorization Client."
 $authorizationClientSecret = Save-ClientRegistration -authUrl $identityServerUrl -body $body -accessToken $accessToken
-Write-Host "Fabric.Authorization clientSecret: $authorizationClientSecret"
-Write-Host ""
+
+if ($authorizationClientSecret){
+    Write-Host "Fabric.Authorization clientSecret: $authorizationClientSecret"
+    Write-Host ""
+}
 
 #Write environment variables
 Write-Host ""
