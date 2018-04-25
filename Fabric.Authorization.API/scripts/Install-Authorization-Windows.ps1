@@ -29,54 +29,54 @@ function Add-DiscoveryRegistration($discoveryUrl, $serviceUrl, $credential) {
         Description   = "The Fabric.Authorization service provides centralized authorization across the Fabric ecosystem."
     }
 
-	$url = "$discoveryUrl/v1/Services"
-	$jsonBody = $registrationBody | ConvertTo-Json	
-	try{
-		Invoke-RestMethod -Method Post -Uri "$url" -Body "$jsonBody" -ContentType "application/json" -Credential $credential | Out-Null
-		Write-Success "Fabric.Authorization successfully registered with DiscoveryService."
-	}catch{
+    $url = "$discoveryUrl/v1/Services"
+    $jsonBody = $registrationBody | ConvertTo-Json	
+    try{
+        Invoke-RestMethod -Method Post -Uri "$url" -Body "$jsonBody" -ContentType "application/json" -Credential $credential | Out-Null
+        Write-Success "Fabric.Authorization successfully registered with DiscoveryService."
+    }catch{
         $exception = $_.Exception
-		Write-Error "Unable to register Fabric.Authorization with DiscoveryService. Ensure that DiscoveryService is running at $discoveryUrl, that Windows Authentication is enabled for DiscoveryService and Anonymous Authentication is disabled for DiscoveryService. Error $($_.Exception.Message) Halting installation."
+        Write-Error "Unable to register Fabric.Authorization with DiscoveryService. Ensure that DiscoveryService is running at $discoveryUrl, that Windows Authentication is enabled for DiscoveryService and Anonymous Authentication is disabled for DiscoveryService. Error $($_.Exception.Message) Halting installation."
         if($exception.Response -ne $null){
             $error = Get-ErrorFromResponse -response $exception.Response
             Write-Error "    There was an error updating the resource: $error."
         }
         throw
-	}
+    }
 }
 
 function Add-DatabaseLogin($userName, $connString) {
     $query = "USE master
-			If Not exists (SELECT * FROM sys.server_principals
-				WHERE sid = suser_sid(@userName))
-			BEGIN
-				print '-- creating database login'
+            If Not exists (SELECT * FROM sys.server_principals
+                WHERE sid = suser_sid(@userName))
+            BEGIN
+                print '-- creating database login'
                 DECLARE @sql nvarchar(4000)
                 set @sql = 'CREATE LOGIN ' + QUOTENAME('$userName') + ' FROM WINDOWS'
                 EXEC sp_executesql @sql
-			END"
+            END"
     Invoke-Sql $connString $query @{userName = $userName} | Out-Null
 }
 
 function Add-DatabaseUser($userName, $connString) {
     $query = "IF( NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = @userName))
-			BEGIN
-				print '-- Creating user';
-				DECLARE @sql nvarchar(4000)
+            BEGIN
+                print '-- Creating user';
+                DECLARE @sql nvarchar(4000)
                 set @sql = 'CREATE USER ' + QUOTENAME('$userName') + ' FOR LOGIN ' + QUOTENAME('$userName')
                 EXEC sp_executesql @sql
-			END"
+            END"
     Invoke-Sql $connString $query @{userName = $userName} | Out-Null
 }
 
 function Add-DatabaseUserToRole($userName, $connString, $role) {
     $query = "DECLARE @exists int
-			SELECT @exists = IS_ROLEMEMBER(@role, @userName) 
-			IF (@exists IS NULL OR @exists = 0)
-			BEGIN
-				print '-- Adding @role to @userName';
-				EXEC sp_addrolemember @role, @userName;
-			END"
+            SELECT @exists = IS_ROLEMEMBER(@role, @userName) 
+            IF (@exists IS NULL OR @exists = 0)
+            BEGIN
+                print '-- Adding @role to @userName';
+                EXEC sp_addrolemember @role, @userName;
+            END"
     Invoke-Sql $connString $query @{userName = $userName; role = $role} | Out-Null
 }
 
@@ -421,25 +421,25 @@ if ([string]::IsNullOrEmpty($encryptionCertificateThumbprint)) {
             $index ++} |
             Format-Table Index, Name, Subject, Expiration, Thumbprint  -AutoSize
 
-		$selectionNumber = Read-Host  "Select an encryption certificate by Index"
-		Write-Host ""
-		if([string]::IsNullOrEmpty($selectionNumber)){
-			Write-Error "You must select a certificate so Fabric.Identity can sign access and identity tokens."
+        $selectionNumber = Read-Host  "Select an encryption certificate by Index"
+        Write-Host ""
+        if([string]::IsNullOrEmpty($selectionNumber)){
+            Write-Error "You must select a certificate so Fabric.Identity can sign access and identity tokens."
             throw
-		}
-		$selectionNumberAsInt = [convert]::ToInt32($selectionNumber, 10)
-		if(($selectionNumberAsInt -gt  $allCerts.Count) -or ($selectionNumberAsInt -le 0)){
-			Write-Error "Please select a certificate with index between 1 and $($allCerts.Count)." 
+        }
+        $selectionNumberAsInt = [convert]::ToInt32($selectionNumber, 10)
+        if(($selectionNumberAsInt -gt  $allCerts.Count) -or ($selectionNumberAsInt -le 0)){
+            Write-Error "Please select a certificate with index between 1 and $($allCerts.Count)." 
             throw
-		}
-		$certThumbprint = Get-CertThumbprint $allCerts $selectionNumberAsInt       
-		$encryptionCertificateThumbprint = $certThumbprint -replace '[^a-zA-Z0-9]', ''
-		}catch{
-			$scriptDirectory =  Get-CurrentScriptDirectory
-			Set-Location $scriptDirectory
-			Write-Error "Could not set the certificate thumbprint. Error $($_.Exception.Message)"
+        }
+        $certThumbprint = Get-CertThumbprint $allCerts $selectionNumberAsInt       
+        $encryptionCertificateThumbprint = $certThumbprint -replace '[^a-zA-Z0-9]', ''
+        }catch{
+            $scriptDirectory =  Get-CurrentScriptDirectory
+            Set-Location $scriptDirectory
+            Write-Error "Could not set the certificate thumbprint. Error $($_.Exception.Message)"
             throw
-	}
+    }
 
 }
 
@@ -628,9 +628,9 @@ $accessToken = Get-AccessToken $identityServerUrl "fabric-installer" "fabric/ide
 #Register authorization api
 $body = @'
 {
-	"name":"authorization-api",
-	"userClaims":["name","email","role","groups"],
-	"scopes":[{"name":"fabric/authorization.read"}, {"name":"fabric/authorization.write"}, {"name":"fabric/authorization.dos.write"}, {"name":"fabric/authorization.manageclients"}]
+    "name":"authorization-api",
+    "userClaims":["name","email","role","groups"],
+    "scopes":[{"name":"fabric/authorization.read"}, {"name":"fabric/authorization.write"}, {"name":"fabric/authorization.dos.write"}, {"name":"fabric/authorization.manageclients"}]
 }
 '@
 
