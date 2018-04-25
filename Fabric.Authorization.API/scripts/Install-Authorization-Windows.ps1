@@ -613,6 +613,7 @@ Add-DatabaseSecurity $iisUser $authorizationDatabaseRole $authorizationDbConnStr
 
 Set-Location $workingDirectory
 
+Write-Host ""
 Write-Host "Getting access token for installer, at URL: $identityServerUrl"
 $accessToken = Get-AccessToken $identityServerUrl "fabric-installer" "fabric/identity.manageresources" $fabricInstallerSecret
 
@@ -629,7 +630,7 @@ Write-Host "Registering Fabric.Authorization API."
 $authorizationApiSecret = Add-ApiRegistration -authUrl $identityServerUrl -body $body -accessToken $accessToken
 
 if ($authorizationApiSecret){
-    Write-Host "Fabric.Authorization apiSecret: $authorizationApiSecret"
+    Write-Success "Fabric.Authorization apiSecret: $authorizationApiSecret"
     Write-Host ""
 }
 
@@ -648,12 +649,11 @@ Write-Host "Registering Fabric.Authorization Client."
 $authorizationClientSecret = Add-ClientRegistration -authUrl $identityServerUrl -body $body -accessToken $accessToken
 
 if ($authorizationClientSecret){
-    Write-Host "Fabric.Authorization clientSecret: $authorizationClientSecret"
+    Write-Success "Fabric.Authorization clientSecret: $authorizationClientSecret"
     Write-Host ""
 }
 
 #Write environment variables
-Write-Host ""
 Write-Host "Loading up environment variables..."
 $environmentVariables = @{"StorageProvider" = "sqlserver"}
 
