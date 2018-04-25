@@ -31,13 +31,14 @@ function Add-DiscoveryRegistration($discoveryUrl, $serviceUrl, $credential) {
 
     $url = "$discoveryUrl/v1/Services"
     $jsonBody = $registrationBody | ConvertTo-Json	
-    try{
+    try {
         Invoke-RestMethod -Method Post -Uri "$url" -Body "$jsonBody" -ContentType "application/json" -Credential $credential | Out-Null
         Write-Success "Fabric.Authorization successfully registered with DiscoveryService."
-    }catch{
+    }
+    catch {
         $exception = $_.Exception
         Write-Error "Unable to register Fabric.Authorization with DiscoveryService. Ensure that DiscoveryService is running at $discoveryUrl, that Windows Authentication is enabled for DiscoveryService and Anonymous Authentication is disabled for DiscoveryService. Error $($_.Exception.Message) Halting installation."
-        if($exception.Response -ne $null){
+        if ($exception.Response -ne $null) {
             $error = Get-ErrorFromResponse -response $exception.Response
             Write-Error "    There was an error updating the resource: $error."
         }
@@ -184,7 +185,7 @@ function Test-IsGroup($samAccountName, $domain) {
 
 function Get-SamAccountFromAccountName($accountName) {
     $accountNameParts = $accountName.Split('\')
-    if($accountNameParts.Count -ne 2){
+    if ($accountNameParts.Count -ne 2) {
         Write-Error "Please enter an account in the form DOMAIN\account. Halting installation." 
         throw
     }
@@ -234,7 +235,8 @@ function Add-AccountToDosAdminRole($accountName, $domain, $authorizationServiceU
                 throw $exception
             }
         }
-    }else{
+    }
+    else {
         Write-Error "$samAccountName is not a valid principal in the $domain domain. Please enter a valid account. Halting installation."
         throw
     }
@@ -260,12 +262,13 @@ function Get-EdwAdminUsersAndGroups($connectionString) {
     try {
         $connection.Open()    
         $reader = $command.ExecuteReader()
-        while($reader.Read()) {
+        while ($reader.Read()) {
             $usersAndGroups += $reader['IdentityNM']
         }
         $connection.Close()        
 
-    }catch [System.Data.SqlClient.SqlException] {
+    }
+    catch [System.Data.SqlClient.SqlException] {
         Write-Error "An error ocurred while executing the command. Please ensure the connection string is correct and the metadata database has been setup. Connection String: $($connectionString). Error $($_.Exception.Message)"  -ErrorAction Stop
     }    
 
@@ -285,8 +288,7 @@ if (!(Test-Path .\Fabric-Install-Utilities.psm1)) {
 }
 Import-Module -Name .\Fabric-Install-Utilities.psm1 -Force
 
-if(!(Test-IsRunAsAdministrator))
-{
+if (!(Test-IsRunAsAdministrator)) {
     Write-Error "You must run this script as an administrator. Halting configuration."
     throw
 }
@@ -344,7 +346,8 @@ if (!(Test-PrerequisiteExact "*.NET Core*Windows Server Hosting*" 1.1.30503.82))
         Start-Process $env:Temp\bundle.exe -Wait -ArgumentList '/quiet /install'
         net stop was /y
         net start w3svc			
-    }catch{
+    }
+    catch {
         Write-Error "Could not install .NET Windows Server Hosting bundle. Please install the hosting bundle before proceeding. https://go.microsoft.com/fwlink/?linkid=844461."
         throw
     }
@@ -363,7 +366,7 @@ else {
     Write-Host ""
 }
 
-if(!(Test-Prerequisite "*IIS URL Rewrite Module 2" 7.2.1952)){
+if (!(Test-Prerequisite "*IIS URL Rewrite Module 2" 7.2.1952)) {
     Write-Error "IIS URL Rewrite Module 2 v7.2.1952 or greater is not installed. Please install the IIS URL Rewrite Module 2 before proceeding: https://www.iis.net/downloads/microsoft/url-rewrite."
     throw
 }
@@ -391,7 +394,8 @@ try {
     $webroot = [System.Environment]::ExpandEnvironmentVariables($selectedSite.physicalPath)    
     $siteName = $selectedSite.name
 
-}catch{
+}
+catch {
     Write-Error "Could not select a website."
     throw
 }
@@ -414,22 +418,23 @@ if ([string]::IsNullOrEmpty($encryptionCertificateThumbprint)) {
 
         $selectionNumber = Read-Host  "Select an encryption certificate by Index"
         Write-Host ""
-        if([string]::IsNullOrEmpty($selectionNumber)){
+        if ([string]::IsNullOrEmpty($selectionNumber)) {
             Write-Error "You must select a certificate so Fabric.Identity can sign access and identity tokens."
             throw
         }
         $selectionNumberAsInt = [convert]::ToInt32($selectionNumber, 10)
-        if(($selectionNumberAsInt -gt  $allCerts.Count) -or ($selectionNumberAsInt -le 0)){
+        if (($selectionNumberAsInt -gt $allCerts.Count) -or ($selectionNumberAsInt -le 0)) {
             Write-Error "Please select a certificate with index between 1 and $($allCerts.Count)." 
             throw
         }
         $certThumbprint = Get-CertThumbprint $allCerts $selectionNumberAsInt       
         $encryptionCertificateThumbprint = $certThumbprint -replace '[^a-zA-Z0-9]', ''
-        }catch{
-            $scriptDirectory =  Get-CurrentScriptDirectory
-            Set-Location $scriptDirectory
-            Write-Error "Could not set the certificate thumbprint. Error $($_.Exception.Message)"
-            throw
+    }
+    catch {
+        $scriptDirectory = Get-CurrentScriptDirectory
+        Set-Location $scriptDirectory
+        Write-Error "Could not set the certificate thumbprint. Error $($_.Exception.Message)"
+        throw
     }
 
 }
@@ -505,13 +510,14 @@ if (![string]::IsNullOrEmpty($userEnteredIisUser)) {
     $ct = [System.DirectoryServices.AccountManagement.ContextType]::Domain
     $pc = New-Object System.DirectoryServices.AccountManagement.PrincipalContext -ArgumentList $ct, $credential.GetNetworkCredential().Domain
     $isValid = $pc.ValidateCredentials($credential.GetNetworkCredential().UserName, $credential.GetNetworkCredential().Password)
-    if(!$isValid){
+    if (!$isValid) {
         Write-Error "Incorrect credentials for $iisUser"
         throw
     }
     Write-Success "Credentials are valid for user $iisUser"
     Write-Host ""
-}else{
+}
+else {
     Write-Error "No user account was entered, please enter a valid user account."
     throw
 }
@@ -580,7 +586,8 @@ if (Test-IsUser -samAccountName $samAccountName -domain $currentUserDomain) {
 }
 elseif (Test-IsGroup -samAccountName $samAccountName -domain $currentUserDomain) {
     $adminAccountIsUser = $false
-}else{
+}
+else {
     Write-Error "$samAccountName is not a valid principal in the $currentUserDomain domain. Please enter a valid account. Halting installation."
     throw
 }
@@ -629,7 +636,7 @@ $body = @'
 Write-Host "Registering Fabric.Authorization API."
 $authorizationApiSecret = Add-ApiRegistration -authUrl $identityServerUrl -body $body -accessToken $accessToken
 
-if ($authorizationApiSecret){
+if ($authorizationApiSecret) {
     Write-Success "Fabric.Authorization apiSecret: $authorizationApiSecret"
     Write-Host ""
 }
@@ -648,7 +655,7 @@ $body = @'
 Write-Host "Registering Fabric.Authorization Client."
 $authorizationClientSecret = Add-ClientRegistration -authUrl $identityServerUrl -body $body -accessToken $accessToken
 
-if ($authorizationClientSecret){
+if ($authorizationClientSecret) {
     Write-Success "Fabric.Authorization clientSecret: $authorizationClientSecret"
     Write-Host ""
 }
@@ -674,7 +681,6 @@ if ($authorizationClientSecret) {
     $encryptedSecret = Get-EncryptedString $encryptionCert $authorizationClientSecret
     $environmentVariables.Add("IdentityServerConfidentialClientSettings__ClientSecret", $encryptedSecret)
 }
-
 
 $environmentVariables.Add("IdentityServerConfidentialClientSettings__Authority", $identityServerUrl)
 
@@ -720,7 +726,6 @@ if ($authorizationServiceUrl) { Add-InstallationSetting "common" "authorizationS
 if ($iisUser) { Add-InstallationSetting "authorization" "iisUser" "$iisUser" | Out-Null}
 if ($siteName) {Add-InstallationSetting "authorization" "siteName" "$siteName" | Out-Null}
 if ($adminAccount) {Add-InstallationSetting "authorization" "adminAccount" "$adminAccount" | Out-Null}
-
 
 Invoke-MonitorShallow "$hostUrl/$appName"
 
