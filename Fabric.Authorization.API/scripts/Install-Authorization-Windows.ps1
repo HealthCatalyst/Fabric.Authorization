@@ -240,15 +240,6 @@ function Add-AccountToDosAdminRole($accountName, $domain, $authorizationServiceU
     }
 }
 
-function Get-ErrorFromResponse($response) {
-    $result = $response.GetResponseStream()
-    $reader = New-Object System.IO.StreamReader($result)
-    $reader.BaseStream.Position = 0
-    $reader.DiscardBufferedData()
-    $responseBody = $reader.ReadToEnd();
-    return $responseBody
-}
-
 function Invoke-MonitorShallow($authorizationUrl) {
     $url = "$authorizationUrl/_monitor/shallow"
     Invoke-RestMethod -Method Get -Uri $url
