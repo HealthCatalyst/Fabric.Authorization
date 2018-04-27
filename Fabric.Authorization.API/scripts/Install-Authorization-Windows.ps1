@@ -367,8 +367,23 @@ else {
 }
 
 if (!(Test-Prerequisite "*IIS URL Rewrite Module 2" 7.2.1952)) {
-    Write-Error "IIS URL Rewrite Module 2 v7.2.1952 or greater is not installed. Please install the IIS URL Rewrite Module 2 before proceeding: https://www.iis.net/downloads/microsoft/url-rewrite."
-    throw
+    try{
+        Write-Console "IIS URL Rewrite Module 2 not installed...installing latest version."
+        Invoke-WebRequest -Uri "http://download.microsoft.com/download/D/D/E/DDE57C26-C62C-4C59-A1BB-31D58B36ADA2/rewrite_amd64_en-US.msi" -OutFile $env:Temp\rewrite_amd64_en-US.msi
+        Start-Process msiexec.exe -Wait -ArgumentList "/i $($env:Temp)\rewrite_amd64_en-US.msi /qn"
+        Write-Console "IIS URL Rewrite Module 2 installed successfully."
+    }catch{
+        Write-Error "Could not install IIS URL Rewrite Module 2. Please install the IIS URL Rewrite Module 2 before proceeding: https://www.iis.net/downloads/microsoft/url-rewrite."
+        throw
+    }
+    try {
+        Remove-Item $env:Temp\rewrite_amd64_en-US.msi
+    }
+    catch {        
+        $e = $_.Exception        
+        Write-Warning "Unable to remove IIS Rewrite msi installer." 
+        Write-Warning $e.Message
+    }
 }
 
 try {
