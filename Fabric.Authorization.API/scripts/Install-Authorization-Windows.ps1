@@ -727,7 +727,7 @@ if ($iisUser) { Add-InstallationSetting "authorization" "iisUser" "$iisUser" | O
 if ($siteName) {Add-InstallationSetting "authorization" "siteName" "$siteName" | Out-Null}
 if ($adminAccount) {Add-InstallationSetting "authorization" "adminAccount" "$adminAccount" | Out-Null}
 
-Invoke-MonitorShallow "$hostUrl/$appName"
+Invoke-MonitorShallow "$authorizationServiceUrl"
 
 Write-Host "Upgrading all the users/groups with an 'EDW Admin' role to also have the dosadmin Fabric.Auth role"
 $edwAdminUsersAndGroups = Get-EdwAdminUsersAndGroups -connectionString $metadataConnStr
