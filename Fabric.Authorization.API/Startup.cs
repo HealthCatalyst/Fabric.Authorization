@@ -37,7 +37,7 @@ namespace Fabric.Authorization.API
 
             _levelSwitch = new LoggingLevelSwitch();
             _idServerSettings = _appConfig.IdentityServerConfidentialClientSettings;
-            _logger = Logging.LogFactory.CreateTraceLogger(_levelSwitch, _appConfig.ApplicationInsights);
+            _logger = Logging.LogFactory.CreateTraceLogger(_levelSwitch, _appConfig);
 
         }
         // This method gets called by the runtime. Use this method to add services to the container.
