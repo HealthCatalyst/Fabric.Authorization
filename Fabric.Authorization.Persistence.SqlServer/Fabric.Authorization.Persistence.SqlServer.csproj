@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Configuration\" />
     <Folder Include="DependencyInjection\" />
     <Folder Include="Mappers\" />
   </ItemGroup>
