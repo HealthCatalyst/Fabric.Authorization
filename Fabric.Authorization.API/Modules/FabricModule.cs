@@ -12,7 +12,6 @@ using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
-using Fabric.Authorization.Domain.Validators;
 using FluentValidation;
 using Nancy;
 using Nancy.Extensions;

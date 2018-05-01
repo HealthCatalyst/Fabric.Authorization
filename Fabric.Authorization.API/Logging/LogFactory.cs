@@ -3,15 +3,18 @@ using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
 using Serilog;
 using Serilog.Core;
+using Serilog.Filters;
 using Serilog.Sinks.MSSqlServer;
 
 namespace Fabric.Authorization.API.Logging
 {
     public class LogFactory
     {
-        public static ILogger CreateTraceLogger(LoggingLevelSwitch levelSwitch, ApplicationInsights appInsightsConfig)
+        public static ILogger CreateTraceLogger(LoggingLevelSwitch levelSwitch, IAppConfiguration appConfiguration)
         {
-            var loggerConfiguration = CreateLoggerConfiguration(levelSwitch);
+            var appInsightsConfig = appConfiguration.ApplicationInsights;
+
+            var loggerConfiguration = CreateLoggerConfiguration(levelSwitch, appConfiguration);
 
             if (appInsightsConfig != null && appInsightsConfig.Enabled &&
                 !string.IsNullOrEmpty(appInsightsConfig.InstrumentationKey))
@@ -37,15 +40,19 @@ namespace Fabric.Authorization.API.Logging
                     .CreateLogger();
             }
 
-            var loggerConfiguration = CreateLoggerConfiguration(levelSwitch);
+            var loggerConfiguration = CreateLoggerConfiguration(levelSwitch, appConfiguration);
             return loggerConfiguration.CreateLogger();
         }
 
-        private static LoggerConfiguration CreateLoggerConfiguration(LoggingLevelSwitch levelSwitch)
+        private static LoggerConfiguration CreateLoggerConfiguration(LoggingLevelSwitch levelSwitch, IAppConfiguration appConfiguration)
         {
+            var isDbCommand = Matching.FromSource("Microsoft.EntityFrameworkCore");
+            var dbMinimumLogLevel = appConfiguration.EntityFrameworkSettings?.MinimumLogLevel ?? levelSwitch.MinimumLevel;
+
             return new LoggerConfiguration()
                 .MinimumLevel.ControlledBy(levelSwitch)
                 .Enrich.FromLogContext()
+                .Filter.ByExcluding(logEvent => logEvent.Level < dbMinimumLogLevel && isDbCommand.Invoke(logEvent))
                 .WriteTo.ColoredConsole();
         }
     }
