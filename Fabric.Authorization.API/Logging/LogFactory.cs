@@ -3,6 +3,7 @@ using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
 using Serilog;
 using Serilog.Core;
+using Serilog.Events;
 using Serilog.Filters;
 using Serilog.Sinks.MSSqlServer;
 
@@ -46,13 +47,13 @@ namespace Fabric.Authorization.API.Logging
 
         private static LoggerConfiguration CreateLoggerConfiguration(LoggingLevelSwitch levelSwitch, IAppConfiguration appConfiguration)
         {
-            var isDbCommand = Matching.FromSource("Microsoft.EntityFrameworkCore");
+            Func<LogEvent, bool> isEfCoreLogEventFunc = Matching.FromSource("Microsoft.EntityFrameworkCore");
             var dbMinimumLogLevel = appConfiguration.EntityFrameworkSettings?.MinimumLogLevel ?? levelSwitch.MinimumLevel;
 
             return new LoggerConfiguration()
                 .MinimumLevel.ControlledBy(levelSwitch)
                 .Enrich.FromLogContext()
-                .Filter.ByExcluding(logEvent => logEvent.Level < dbMinimumLogLevel && isDbCommand.Invoke(logEvent))
+                .Filter.ByExcluding(logEvent => logEvent.Level < dbMinimumLogLevel && isEfCoreLogEventFunc.Invoke(logEvent))
                 .WriteTo.ColoredConsole();
         }
     }
