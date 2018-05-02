@@ -3,6 +3,11 @@
     <TargetFramework>netcoreapp1.1</TargetFramework>
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
     <DebugType>Full</DebugType>
+    <Company>Health Catalyst</Company>
+    <Product>Fabric.Authorization</Product>
+    <Copyright>Copyright © 2018</Copyright>
+    <Version Condition=" '$(BUILD_BUILDNUMBER)' == '' ">1.0.0.0-local</Version>
+    <Version Condition=" '$(BUILD_BUILDNUMBER)' != '' ">$(BUILD_BUILDNUMBER)</Version>
   </PropertyGroup>
   <ItemGroup>
     <Content Remove="wwwroot/swagger\favicon-16x16.png" />
