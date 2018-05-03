@@ -39,7 +39,7 @@ namespace Fabric.Authorization.Domain.Models
             });
         }
 
-        public static string ToString(this IEnumerable list, string separator)
+        public static string ToString<T>(this IEnumerable<T> list, string separator)
         {
             return string.Join(separator, list);
         }
