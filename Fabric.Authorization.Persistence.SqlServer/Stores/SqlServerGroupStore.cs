@@ -185,8 +185,9 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         public async Task<Group> DeleteRolesFromGroup(Group group, IEnumerable<Guid> roleIdsToDelete)
         {
             var groupRolesToRemove = AuthorizationDbContext.GroupRoles
-                .Where(gr => roleIdsToDelete.Contains(gr.RoleId) &&
-                             gr.GroupId == Guid.Parse(group.Id)).ToList();
+                .Where(gr => roleIdsToDelete.Contains(gr.RoleId)
+                             && gr.GroupId == Guid.Parse(group.Id)
+                             && !gr.IsDeleted).ToList();
 
             if (groupRolesToRemove.Count == 0)
             {
