@@ -639,13 +639,22 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task DeleteRolesFromGroup_GroupExists_SuccessAsync()
-        { 
+        {
             var group1Name = "Group1Name" + Guid.NewGuid();
             await SetupGroupAsync(group1Name, "Custom");
             var role1Name = "Role1Name" + Guid.NewGuid();
             var role = await SetupRoleAsync(role1Name);
-            var response = await SetupGroupRoleMappingAsync(group1Name, role);
 
+            await AddAndDeleteRoleFromGroupAsync(group1Name, role);
+
+            // execute test again to confirm we can re-add and delete the same group-role mapping a second time
+            await AddAndDeleteRoleFromGroupAsync(group1Name, role);
+        }
+
+        private async Task AddAndDeleteRoleFromGroupAsync(string group1Name, Role role)
+        {
+            // create the mapping
+            var response = await SetupGroupRoleMappingAsync(group1Name, role);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             // delete the mapping
@@ -673,7 +682,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var responseEntity = response.Body.DeserializeJson<IEnumerable<RoleApiModel>>();
             var roleList = responseEntity.ToList();
             Assert.Empty(roleList);
-        }
+        } 
 
         [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
