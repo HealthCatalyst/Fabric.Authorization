@@ -43,27 +43,45 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             var subjectId = idParts[0];
             var identityProvider = idParts[1];
 
-            var userEntity = await AuthorizationDbContext.Users
-                .Include(u => u.GroupUsers)
-                .ThenInclude(ug => ug.Group)
-                .Include(u => u.UserPermissions)
-                .ThenInclude(up => up.Permission)
-                .Include(u => u.RoleUsers)
-                .ThenInclude(u => u.Role)
+            // attempting this query with a single statement did not pull in all the dependent
+            // entities as expected, we needed to break it out into separate statements
+            // the GroupUser entity was the entity that was not behaving
+            var groupUsers = await AuthorizationDbContext.GroupUsers
+                .Include(gu => gu.Group)
+                .Include(gu => gu.User)
+                .Where(gu => gu.SubjectId == subjectId && gu.IdentityProvider == identityProvider)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var userPermissions = await AuthorizationDbContext.UserPermissions
+                .Include(up => up.Permission)
+                .Include(up => up.User)
+                .Where(up => up.SubjectId == subjectId && up.IdentityProvider == identityProvider)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var roleUsers = await AuthorizationDbContext.RoleUsers
+                .Include(ru => ru.User)
+                .Include(ru => ru.Role)
                 .ThenInclude(r => r.SecurableItem)
+                .Where(ru => ru.SubjectId == subjectId && ru.IdentityProvider == identityProvider)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var userEntity = await AuthorizationDbContext.Users
                 .AsNoTracking()
                 .SingleOrDefaultAsync(u => u.IdentityProvider == identityProvider
-                                           && u.SubjectId == subjectId
-                                           && !u.IsDeleted);
+                                            && u.SubjectId == subjectId
+                                            && !u.IsDeleted);
 
             if (userEntity == null)
             {
                 throw new NotFoundException<User>($"Could not find {typeof(User).Name} entity with ID {id}");
             }
-
-            userEntity.GroupUsers = userEntity.GroupUsers.Where(gu => !gu.IsDeleted).ToList();
-            userEntity.UserPermissions = userEntity.UserPermissions.Where(up => !up.IsDeleted).ToList();
-            userEntity.RoleUsers = userEntity.RoleUsers.Where(ru => !ru.IsDeleted).ToList();
+            
+            userEntity.GroupUsers = groupUsers.Where(gu => !gu.IsDeleted).ToList();
+            userEntity.UserPermissions = userPermissions.Where(up => !up.IsDeleted).ToList();
+            userEntity.RoleUsers = roleUsers.Where(ru => !ru.IsDeleted).ToList();
 
             return userEntity.ToModel();
         }
