@@ -352,7 +352,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .IsRequired()
                     .HasMaxLength(200);
 
-                entity.Property(e => e.Name)                   
+                entity.Property(e => e.Name)
                     .HasMaxLength(200);
 
                 entity.Property(e => e.CreatedBy)
@@ -377,7 +377,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
 
                 entity.HasMany(e => e.RoleUsers)
                     .WithOne(e => e.User)
-                    .HasForeignKey(e => new { e.SubjectId, e.IdentityProvider });
+                    .HasForeignKey(e => new {e.SubjectId, e.IdentityProvider});
 
                 entity.HasMany(e => e.UserPermissions)
                     .WithOne(e => e.User)
