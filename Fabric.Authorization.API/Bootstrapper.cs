@@ -157,9 +157,6 @@ namespace Fabric.Authorization.API
                     case StorageProviders.InMemory:
                         return new InMemoryConfigurator(_appConfig);
 
-                    case StorageProviders.CouchDb:
-                        return new CouchDbConfigurator(_appConfig);
-
                     case StorageProviders.SqlServer:
                         return new SqlServerConfigurator(_appConfig);
 

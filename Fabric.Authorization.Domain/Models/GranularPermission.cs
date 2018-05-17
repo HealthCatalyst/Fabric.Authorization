@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Fabric.Authorization.Domain.Models
 {
-    public class GranularPermission : ITrackable, IIdentifiable, ISoftDelete
+    public class GranularPermission : ITrackable, ISoftDelete, IIdentifiable<string>
     {
         public GranularPermission()
         {
@@ -17,8 +17,6 @@ namespace Fabric.Authorization.Domain.Models
 
         public IEnumerable<Permission> AdditionalPermissions { get; set; } 
 
-        public string Identifier => Id;
-
         public bool IsDeleted { get; set; }
 
         public DateTime CreatedDateTimeUtc { get; set; }
@@ -31,7 +29,7 @@ namespace Fabric.Authorization.Domain.Models
 
         public override string ToString()
         {
-            return $"{Identifier}";
+            return $"{Id}";
         }
     }
 }

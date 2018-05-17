@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Fabric.Authorization.Domain.Models
 {
-    public class Group : ITrackable, IIdentifiable, ISoftDelete
+    public class Group : ITrackable, IIdentifiable<Guid>, ISoftDelete
     {
         public Group()
         {
@@ -24,8 +24,6 @@ namespace Fabric.Authorization.Domain.Models
         public ICollection<User> Users { get; set; }
 
         public string Source { get; set; }
-
-        public string Identifier => Id.ToString();
 
         public bool IsDeleted { get; set; }
 

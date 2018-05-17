@@ -34,17 +34,7 @@ namespace Fabric.Authorization.API.Configuration
 
             var appConfig = new AppConfiguration();
             ConfigurationBinder.Bind(config, appConfig);
-            DecryptEncryptedValues(appConfig);
             return appConfig;
-        }
-
-        private void DecryptEncryptedValues(IAppConfiguration appConfiguration)
-        {
-            if (appConfiguration.CouchDbSettings != null && IsEncrypted(appConfiguration.CouchDbSettings.Password))
-            {
-                appConfiguration.CouchDbSettings.Password =
-                    DecryptString(appConfiguration.CouchDbSettings.Password, appConfiguration);
-            }
         }
 
         private static bool IsEncrypted(string value)
@@ -56,7 +46,7 @@ namespace Fabric.Authorization.API.Configuration
         {
             var cert = _certificateService.GetCertificate(appConfiguration.EncryptionCertificateSettings);
             var encryptedPasswordAsBytes =
-                System.Convert.FromBase64String(
+                Convert.FromBase64String(
                     encryptedString.TrimStart(EncryptionPrefix.ToCharArray()));
             var decryptedPasswordAsBytes = cert.GetRSAPrivateKey()
                 .Decrypt(encryptedPasswordAsBytes, RSAEncryptionPadding.OaepSHA1);

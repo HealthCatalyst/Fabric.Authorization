@@ -3,7 +3,7 @@ using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.API.Models
 {
-    public class ClientApiModel : IIdentifiable, ITrackable
+    public class ClientApiModel : ITrackable, IIdentifiable<string>
     {
         public string Id { get; set; }
         public string Name { get; set; }
@@ -12,6 +12,5 @@ namespace Fabric.Authorization.API.Models
         public DateTime? ModifiedDateTimeUtc { get; set; }
         public string CreatedBy { get; set; }
         public string ModifiedBy { get; set; }
-        public string Identifier => Id;
     }
 }

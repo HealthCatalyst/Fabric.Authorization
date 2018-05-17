@@ -2,7 +2,7 @@
 
 namespace Fabric.Authorization.Domain.Models
 {
-    public class Permission : ITrackable, IIdentifiable, ISoftDelete
+    public class Permission : ITrackable, IIdentifiable<Guid>, ISoftDelete
     {
         public Guid Id { get; set; }
 
@@ -11,8 +11,6 @@ namespace Fabric.Authorization.Domain.Models
         public string SecurableItem { get; set; }
 
         public string Name { get; set; }
-
-        public string Identifier => Id.ToString();
 
         public bool IsDeleted { get; set; }
 

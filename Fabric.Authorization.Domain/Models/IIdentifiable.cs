@@ -1,7 +1,9 @@
-﻿namespace Fabric.Authorization.Domain.Models
+﻿using System;
+
+namespace Fabric.Authorization.Domain.Models
 {
-    public interface IIdentifiable
+    public interface IIdentifiable<out T>
     {
-        string Identifier { get; }
+        T Id { get; }
     }
 }

@@ -83,23 +83,6 @@ namespace Fabric.Authorization.UnitTests.Configuration
             Assert.Equal("test", config.EncryptionCertificateSettings.EncryptionCertificateThumbprint);
         }
 
-        [Fact]
-        public void GetConfiguration_GetsEncryptedConfiguration()
-        {
-            var certificateService = new Mock<ICertificateService>();
-            certificateService
-                .Setup(certService => certService.GetCertificate(It.IsAny<EncryptionCertificateSettings>()))
-                .Returns((EncryptionCertificateSettings settings) => GetCertificate());
-            var configProvider = new AuthorizationConfigurationProvider(certificateService.Object);
-
-            CreateDockerSecret("CouchDbSettings__Password", "!!enc!!:gczwrq53rqqMwA6y+4z0ThqU7DQLP9J2Lu+Yy0OpayMZrh73aOZLwS4WAqZ00HUcPsrNQWGxFel1UEuPYx4c8hztddYI6XRpbDgCYvDvJiIxMVnrsekpHwFv2vmVWbxXRw306Rv13oA9xdTbFMvavy2LYT5GgkOpJLAcAxX9b4F1svmiNDeroL6+tNIxN3lX8i2o9GzR94HJltQi+c1pgN3WRDy0Jrgk4dA174xkJuo47CiS0N3ePZMaHz98ok9sUio7lQ8OzL25xp+1mLLVXoywUcKzpJJ+PFTltMXamEzkeH4hNIu5HCngiNqDB09bQ22WElzESIA6dw3iVVjH6g==");
-
-            var config = configProvider.GetAppConfiguration(Directory.GetCurrentDirectory());
-            DeleteDockerSecret("CouchDbSettings__Password");
-
-            Assert.Equal("password", config.CouchDbSettings.Password);
-
-        }
         private void WriteAppSettingsToFile(string settings)
         {
             var appSettingsPath = "appsettings.json";
