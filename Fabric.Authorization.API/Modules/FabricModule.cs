@@ -64,10 +64,10 @@ namespace Fabric.Authorization.API.Modules
 
         protected string ClientId => Context.CurrentUser?.FindFirst(Claims.ClientId)?.Value;
 
-        protected Negotiator CreateSuccessfulPostResponse(IIdentifiable model,
+        protected Negotiator CreateSuccessfulPostResponse<TIdentifier>(IIdentifiable<TIdentifier> model,
             HttpStatusCode statusCode = HttpStatusCode.Created)
         {
-            return CreateSuccessfulPostResponse(model.Identifier, model, statusCode);
+            return CreateSuccessfulPostResponse(model.Id.ToString(), model, statusCode);
         }
 
         protected Negotiator CreateSuccessfulPostResponse(string identifier,

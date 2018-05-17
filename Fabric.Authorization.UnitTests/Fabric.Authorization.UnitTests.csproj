@@ -6,6 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Caching\**" />
+    <EmbeddedResource Remove="Caching\**" />
+    <None Remove="Caching\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Configuration\identity.test.pfx" />
   </ItemGroup>
 
@@ -33,7 +39,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Fabric.Authorization.API\Fabric.Authorization.API.csproj" />
     <ProjectReference Include="..\Fabric.Authorization.Domain\Fabric.Authorization.Domain.csproj" />
-    <ProjectReference Include="..\Fabric.Authorization.Persistence.InMemory\Fabric.Authorization.Persistence.InMemory.csproj" />
   </ItemGroup>
 
   <ItemGroup>

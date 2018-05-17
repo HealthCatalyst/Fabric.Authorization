@@ -3,7 +3,7 @@ using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.API.Models
 {
-    public class PermissionApiModel : IIdentifiable, ITrackable
+    public class PermissionApiModel : ITrackable, IIdentifiable<Guid?>
     {
         public Guid? Id { get; set; }
 
@@ -22,8 +22,6 @@ namespace Fabric.Authorization.API.Models
         public string ModifiedBy { get; set; }
 
         public PermissionAction PermissionAction { get; set; }
-
-        public string Identifier => Id.HasValue ? Id.ToString() : string.Empty;
 
         public override string ToString()
         {

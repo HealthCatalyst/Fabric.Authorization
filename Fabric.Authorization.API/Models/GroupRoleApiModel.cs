@@ -4,7 +4,7 @@ using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.API.Models
 {
-    public class GroupRoleApiModel : IIdentifiable
+    public class GroupRoleApiModel : IIdentifiable<Guid?>
     {
         public Guid? Id { get; set; }
 
@@ -20,7 +20,5 @@ namespace Fabric.Authorization.API.Models
         ///     Group source (e.g., Custom, Windows, Google). For custom groups, use "Custom".
         /// </summary>
         public string GroupSource { get; set; }
-
-        public string Identifier => Id.ToString();
     }
 }

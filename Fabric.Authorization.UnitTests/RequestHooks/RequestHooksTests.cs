@@ -4,10 +4,11 @@ using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.API.Services;
+using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Resolvers.Permissions;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
-using Fabric.Authorization.Persistence.InMemory.Stores;
+using Fabric.Authorization.UnitTests.Mocks;
 using Moq;
 using Nancy;
 using Nancy.Testing;
@@ -22,7 +23,10 @@ namespace Fabric.Authorization.UnitTests.RequestHooks
         private readonly Browser _browser;
         public RequestHooksTests()
         {
-            var store = new InMemoryClientStore();
+            var mockClientStore = new Mock<IClientStore>();
+
+            mockClientStore.SetupGetClient(new List<Client>());
+
             var logger = new Mock<ILogger>().Object;
             var mockUserStore = new Mock<IUserStore>().Object;
 
@@ -30,7 +34,7 @@ namespace Fabric.Authorization.UnitTests.RequestHooks
             var mockRoleStore = new Mock<IRoleStore>().Object;
             var mockSecurableItemStore = new Mock<ISecurableItemStore>().Object;
             var userService = new UserService(mockUserStore, mockRoleStore);
-            var clientService = new ClientService(store, mockSecurableItemStore);
+            var clientService = new ClientService(mockClientStore.Object, mockSecurableItemStore);
             var roleService = new RoleService(mockRoleStore, mockPermissionStore);
             var permissionService = new PermissionService(mockPermissionStore, roleService);
             var permissionResolverService = new PermissionResolverService(new List<IPermissionResolverService>(), logger);

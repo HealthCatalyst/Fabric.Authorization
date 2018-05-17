@@ -1,5 +1,4 @@
 ﻿using Fabric.Authorization.Persistence.SqlServer.Configuration;
-﻿using Fabric.Authorization.Persistence.CouchDb.Configuration;
 using Fabric.Platform.Shared.Configuration;
 
 namespace Fabric.Authorization.API.Configuration
@@ -11,7 +10,6 @@ namespace Fabric.Authorization.API.Configuration
         string AuthorizationAdmin { get; }
         ElasticSearchSettings ElasticSearchSettings { get; }
         IdentityServerConfidentialClientSettings IdentityServerConfidentialClientSettings { get; }
-        CouchDbSettings CouchDbSettings { get; }
         ApplicationInsights ApplicationInsights { get; }
         HostingOptions HostingOptions { get; }
         EncryptionCertificateSettings EncryptionCertificateSettings { get; }

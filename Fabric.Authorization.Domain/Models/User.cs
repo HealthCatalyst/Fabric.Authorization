@@ -4,20 +4,18 @@ using Fabric.Authorization.Domain.Models.Formatters;
 
 namespace Fabric.Authorization.Domain.Models
 {
-    public class User : IUser, ITrackable, IIdentifiable, ISoftDelete
+    public class User : IUser, ITrackable, ISoftDelete, IIdentifiable<string>
     {
         public User(string subjectId, string identityProvider)
         {
             SubjectId = subjectId;
             IdentityProvider = identityProvider;
-            Id = Identifier;
+            Id = new UserIdentifierFormatter().Format(this);
             Groups = new List<Group>();
             Roles = new List<Role>();
         }
 
         public string Id { get; set; }
-
-        public string Identifier => new UserIdentifierFormatter().Format(this);
 
         public string SubjectId { get; set; }
 

@@ -10,6 +10,9 @@
     <Version Condition=" '$(BUILD_BUILDNUMBER)' != '' ">$(BUILD_BUILDNUMBER)</Version>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="DependencyInjection\CouchDbConfigurator.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Content Remove="wwwroot/swagger\favicon-16x16.png" />
     <Content Remove="wwwroot/swagger\favicon-32x32.png" />
     <Content Remove="wwwroot/swagger\index.html" />
@@ -63,8 +66,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Fabric.Authorization.Domain\Fabric.Authorization.Domain.csproj" />
     <ProjectReference Include="..\Fabric.Authorization.LibOwin\Fabric.Authorization.LibOwin.csproj" />
-    <ProjectReference Include="..\Fabric.Authorization.Persistence.CouchDb\Fabric.Authorization.Persistence.CouchDb.csproj" />
-    <ProjectReference Include="..\Fabric.Authorization.Persistence.InMemory\Fabric.Authorization.Persistence.InMemory.csproj" />
     <ProjectReference Include="..\Fabric.Authorization.Persistence.SqlServer\Fabric.Authorization.Persistence.SqlServer.csproj" />
   </ItemGroup>
   <ItemGroup>

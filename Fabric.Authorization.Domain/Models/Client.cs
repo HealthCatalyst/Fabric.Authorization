@@ -2,7 +2,7 @@
 
 namespace Fabric.Authorization.Domain.Models
 {
-    public class Client : ITrackable, IIdentifiable, ISoftDelete
+    public class Client : ITrackable, ISoftDelete, IIdentifiable<string>
     {
         public string Id { get; set; }
         public string Name { get; set; }
@@ -12,7 +12,6 @@ namespace Fabric.Authorization.Domain.Models
         public DateTime? ModifiedDateTimeUtc { get; set; }
         public string CreatedBy { get; set; }
         public string ModifiedBy { get; set; }
-        public string Identifier => Id;
 
         public override string ToString()
         {

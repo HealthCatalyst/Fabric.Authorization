@@ -4,11 +4,9 @@ using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.API.Models
 {
-    public class GroupUserApiModel : IIdentifiable
+    public class GroupUserApiModel : IIdentifiable<Guid?>
     {
         public Guid? Id { get; set; }
-
-        public string Identifier => Id.ToString();
 
         public string GroupName { get; set; }
 

@@ -4,7 +4,7 @@ using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.API.Models
 {
-    public class RoleApiModel : IIdentifiable, ITrackable
+    public class RoleApiModel : ITrackable, IIdentifiable<Guid?>
     {
         public Guid? Id { get; set; }
 
@@ -33,7 +33,5 @@ namespace Fabric.Authorization.API.Models
         public string CreatedBy { get; set; }
 
         public string ModifiedBy { get; set; }
-
-        public string Identifier => Id.HasValue ? Id.ToString() : string.Empty;
     }
 }

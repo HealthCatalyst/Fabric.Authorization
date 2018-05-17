@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Fabric.Authorization.Domain.Models
 {
-    public class Role : ITrackable, IIdentifiable, ISoftDelete
+    public class Role : ITrackable, IIdentifiable<Guid>, ISoftDelete
     {
         public Role()
         {
@@ -48,8 +48,6 @@ namespace Fabric.Authorization.Domain.Models
 
         public string ModifiedBy { get; set; }
 
-        public string Identifier => Id.ToString();
-
         public override string ToString()
         {
             return $"{Grain}/{SecurableItem}.{Name}";
@@ -75,6 +73,8 @@ namespace Fabric.Authorization.Domain.Models
 
             return Id == role.Id;
         }
+
+        private string Identifier => Id.ToString();
 
         public override int GetHashCode()
         {

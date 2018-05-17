@@ -6,9 +6,8 @@ using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Infrastructure;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Stores;
-using Fabric.Authorization.Persistence.CouchDb.Services;
-using Fabric.Authorization.Persistence.CouchDb.Stores;
-using Fabric.Authorization.Persistence.InMemory.Stores;
+using Fabric.Authorization.Persistence.SqlServer.Services;
+using Fabric.Authorization.Persistence.SqlServer.Stores;
 using Fabric.Platform.Auth;
 using Fabric.Platform.Logging;
 using Fabric.Platform.Shared.Configuration;
@@ -70,12 +69,16 @@ namespace Fabric.Authorization.API
         public async Task<bool> HealthCheck()
         {
             var eventContextResolverService = new EventContextResolverService(new NancyContextWrapper(new NancyContext()));
-            var clientStore = _appConfig.StorageProvider.Equals(StorageProviders.InMemory, StringComparison.OrdinalIgnoreCase)
+            /*var clientStore = _appConfig.StorageProvider.Equals(StorageProviders.InMemory, StringComparison.OrdinalIgnoreCase)
                 ? (IClientStore)new InMemoryClientStore()
-                : new CouchDbClientStore(new CouchDbAccessService(_appConfig.CouchDbSettings, _logger), _logger, eventContextResolverService);
+                : new CouchDbClientStore(new CouchDbAccessService(_appConfig.CouchDbSettings, _logger), _logger, eventContextResolverService);*/
+
+/*            var clientStore =
+                new SqlServerClientStore(
+                    new AuthorizationDbContext(eventContextResolverService, _appConfig.ConnectionStrings, _logger), eventContextResolverService);
             
-            var result = await clientStore.GetAll();
-            return result.Any();
+            var result = await clientStore.GetAll();*/
+            return true;
         }
 
         private readonly string[] _allowedPaths =
