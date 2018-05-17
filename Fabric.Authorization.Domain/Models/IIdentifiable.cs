@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Fabric.Authorization.Domain.Models
+﻿namespace Fabric.Authorization.Domain.Models
 {
     public interface IIdentifiable<out T>
     {
