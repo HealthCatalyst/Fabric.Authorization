@@ -5,6 +5,8 @@ using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Infrastructure;
 using Fabric.Authorization.API.Services;
+using Fabric.Authorization.Domain.Events;
+using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Persistence.SqlServer.Services;
 using Fabric.Authorization.Persistence.SqlServer.Stores;
@@ -28,6 +30,7 @@ namespace Fabric.Authorization.API
         private readonly IAppConfiguration _appConfig;
         private readonly LoggingLevelSwitch _levelSwitch;
         private readonly ILogger _logger;
+        private ILoggerFactory _loggerFactory;
         private readonly IdentityServerConfidentialClientSettings _idServerSettings;
 
         public Startup(IHostingEnvironment env)
@@ -49,6 +52,7 @@ namespace Fabric.Authorization.API
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
+            _loggerFactory = loggerFactory;
             loggerFactory.AddSerilog(_logger);
             
             app.UseIdentityServerAuthentication(new IdentityServerAuthenticationOptions
@@ -68,17 +72,19 @@ namespace Fabric.Authorization.API
         // TODO: make this DB-agnostic
         public async Task<bool> HealthCheck()
         {
-            var eventContextResolverService = new EventContextResolverService(new NancyContextWrapper(new NancyContext()));
-            /*var clientStore = _appConfig.StorageProvider.Equals(StorageProviders.InMemory, StringComparison.OrdinalIgnoreCase)
-                ? (IClientStore)new InMemoryClientStore()
-                : new CouchDbClientStore(new CouchDbAccessService(_appConfig.CouchDbSettings, _logger), _logger, eventContextResolverService);*/
+            var eventContextResolverService =
+                new EventContextResolverService(new NancyContextWrapper(new NancyContext()));
 
-/*            var clientStore =
-                new SqlServerClientStore(
-                    new AuthorizationDbContext(eventContextResolverService, _appConfig.ConnectionStrings, _logger), eventContextResolverService);
-            
-            var result = await clientStore.GetAll();*/
-            return true;
+            var dbContext =
+                _appConfig.StorageProvider.Equals(StorageProviders.InMemory, StringComparison.OrdinalIgnoreCase)
+                    ? new InMemoryAuthorizationDbContext(eventContextResolverService, _appConfig.ConnectionStrings, _loggerFactory)
+                    : new AuthorizationDbContext(eventContextResolverService, _appConfig.ConnectionStrings, _loggerFactory);
+
+            var eventService = new EventService(eventContextResolverService, new SerilogEventWriter(_logger));
+            var clientStore = new SqlServerClientStore(dbContext, eventService, new SqlServerGrainStore(dbContext, eventService));
+
+            var results = await clientStore.GetAll();
+            return results.Any();
         }
 
         private readonly string[] _allowedPaths =
