@@ -73,17 +73,10 @@ namespace Fabric.Authorization.API
                 .UseNancy(opt => opt.Bootstrapper = _bootstrapper);
         }
 
-        // TODO: make this DB-agnostic
         public async Task<bool> HealthCheck()
         {
             var container = _bootstrapper.TinyIoCContainer;
-
             var clientStore = container.Resolve<IClientStore>();
-            if (clientStore == null)
-            {
-                throw new Exception("IClientStore has not been registered.");
-            }
-
             var results = await clientStore.GetAll();
             return results.Any();
         }
