@@ -39,6 +39,7 @@ namespace Fabric.Authorization.API
         private readonly IAppConfiguration _appConfig;
         private readonly ILogger _logger;
         private readonly LoggingLevelSwitch _loggingLevelSwitch;
+        public TinyIoCContainer TinyIoCContainer { get; private set; }
 
         public Bootstrapper(ILogger logger, IAppConfiguration appConfig, LoggingLevelSwitch levelSwitch, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
@@ -77,6 +78,8 @@ namespace Fabric.Authorization.API
         
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
         {
+            TinyIoCContainer = container;
+
             InitializeSwaggerMetadata();
 
             base.ApplicationStartup(container, pipelines);
