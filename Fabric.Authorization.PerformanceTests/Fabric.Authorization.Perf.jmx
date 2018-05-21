@@ -433,7 +433,6 @@
               <elementProp name="" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
                 <stringProp name="Argument.value">{&#xd;
-    &quot;id&quot;: &quot;FABRIC\\Health Catalyst Viewer&quot;,&#xd;
     &quot;groupName&quot;: &quot;FABRIC\\Health Catalyst Viewer&quot;,&#xd;
     &quot;groupSource&quot;: &quot;Custom&quot;&#xd;
 }</stringProp>
@@ -481,7 +480,6 @@
               <elementProp name="" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
                 <stringProp name="Argument.value">{&#xd;
-    &quot;id&quot;: &quot;FABRIC\\Health Catalyst Editor&quot;,&#xd;
     &quot;groupName&quot;: &quot;FABRIC\\Health Catalyst Editor&quot;&#xd;
     &quot;groupSource&quot;: &quot;Custom&quot;&#xd;
 }</stringProp>
