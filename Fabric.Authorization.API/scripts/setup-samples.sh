@@ -33,5 +33,5 @@ echo ""
 viewerRole="FABRIC\\\Health Catalyst Viewer"
 editorRole="FABRIC\\\Health Catalyst Editor"
 echo "setting up sample groups..."
-curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $accesstoken" -d "{ \"id\": \"$viewerRole\", \"groupName\": \"$viewerRole\", \"groupSource\": \"custom\"}" $authorizationbaseurl/groups/ 
-curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $accesstoken" -d "{ \"id\": \"$editorRole\", \"groupName\": \"$editorRole\", \"groupSource\": \"custom\"}" $authorizationbaseurl/groups/
+curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $accesstoken" -d "{ \"groupName\": \"$viewerRole\", \"groupSource\": \"custom\"}" $authorizationbaseurl/groups/ 
+curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $accesstoken" -d "{ \"groupName\": \"$editorRole\", \"groupSource\": \"custom\"}" $authorizationbaseurl/groups/

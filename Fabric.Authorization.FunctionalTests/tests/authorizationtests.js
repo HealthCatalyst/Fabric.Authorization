@@ -55,7 +55,6 @@ describe("authorization tests", function () {
     }
 
     var groupNonCustom = {
-        "id": "FABRIC\\\Health Catalyst Non-Custom",
         "groupName": "FABRIC\\\Health Catalyst Non-Custom",
         "groupSource": "Active Directory"
     }
@@ -68,17 +67,14 @@ describe("authorization tests", function () {
 
     // all of the groups below are set with Source="Custom" in the setup-samples.sh script
     var groupHcViewer = {
-        "id": "FABRIC\\\Health Catalyst Viewer",
         "groupName": "FABRIC\\\Health Catalyst Viewer"
     }
 
     var groupHcEditor = {
-        "id": "FABRIC\\\Health Catalyst Editor",
         "groupName": "FABRIC\\\Health Catalyst Editor"
     }
 
     var groupHcAdmin = {
-        "id": "FABRIC\\\Health Catalyst Admin",
         "groupName": "FABRIC\\\Health Catalyst Admin",
         "groupSource": "custom"
     }
