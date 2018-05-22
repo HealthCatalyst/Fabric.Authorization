@@ -21,7 +21,9 @@ docker run -d --name authz-functional-identity \
 echo "started identity"
 sleep 3
 
-output=$(curl -sSL https://raw.githubusercontent.com/HealthCatalyst/Fabric.Identity/master/Fabric.Identity.API/scripts/setup-samples.sh | sh /dev/stdin http://localhost:5001)
+#output=$(curl -sSL https://raw.githubusercontent.com/HealthCatalyst/Fabric.Identity/master/Fabric.Identity.API/scripts/setup-samples.sh | sh /dev/stdin http://localhost:5001)
+curl -sSL https://raw.githubusercontent.com/HealthCatalyst/Fabric.Identity/master/Fabric.Identity.API/scripts/setup-samples.sh > identity-setup-samples.sh
+output=$(. identity-setup-samples.sh)
 installerSecret=$(echo $output | grep -oP '(?<="installerSecret":")[^"]*')
 authClientSecret=$(echo $output | grep -oP '(?<="authClientSecret":")[^"]*')
 
@@ -42,11 +44,15 @@ docker run -d --name authz-functional-authorization \
 echo "started authorization"
 sleep 10 
 
-./scripts/setup-samples.sh $installerSecret
+cd scripts
+. setup-samples.sh $installerSecret
 
-cd ../Fabric.Authorization.FunctionalTests
+cd ../../Fabric.Authorization.FunctionalTests
 npm install
 npm test
+
+cd ../Fabric.Authorization.API/scripts
+rm identity-setup-samples.sh
 
 docker stop authz-functional-identity
 docker rm authz-functional-identity
