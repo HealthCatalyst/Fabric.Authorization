@@ -21,7 +21,6 @@ docker run -d --name authz-functional-identity \
 echo "started identity"
 sleep 3
 
-#output=$(curl -sSL https://raw.githubusercontent.com/HealthCatalyst/Fabric.Identity/master/Fabric.Identity.API/scripts/setup-samples.sh | sh /dev/stdin http://localhost:5001)
 curl -sSL https://raw.githubusercontent.com/HealthCatalyst/Fabric.Identity/master/Fabric.Identity.API/scripts/setup-samples.sh > identity-setup-samples.sh
 output=$(. identity-setup-samples.sh)
 installerSecret=$(echo $output | grep -oP '(?<="installerSecret":")[^"]*')
