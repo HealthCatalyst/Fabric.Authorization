@@ -25,8 +25,9 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task<Permission> Add(Permission permission)
         {
+            permission.Id = Guid.NewGuid();
             var permissionEntity = permission.ToEntity();
-            permissionEntity.PermissionId = Guid.NewGuid();
+
             permissionEntity.SecurableItem =
                 AuthorizationDbContext.SecurableItems.First(s => !s.IsDeleted && s.Name == permission.SecurableItem);
 
