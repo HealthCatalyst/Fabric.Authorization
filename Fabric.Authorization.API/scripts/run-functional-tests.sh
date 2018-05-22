@@ -41,7 +41,7 @@ docker run -d --name authz-functional-authorization \
 	--network="authz-functional-tests" \
 	authorization.functional.api
 echo "started authorization"
-sleep 10 
+sleep 5 
 
 cd scripts
 . setup-samples.sh $installerSecret
