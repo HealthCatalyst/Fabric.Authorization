@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using AutoMapper;
+﻿using AutoMapper;
 using Fabric.Authorization.Persistence.SqlServer.EntityModels;
 
 namespace Fabric.Authorization.Persistence.SqlServer.Mappers
@@ -13,7 +12,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Mappers
                 .ForMember(x => x.Roles, opt => opt.MapFrom(src => src.Roles))
                 .ForMember(x => x.Users, opt => opt.MapFrom(src => src.Users))
                 .ReverseMap()
-                .ForMember(x => x.GroupId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(x => x.Id, opt => opt.Ignore());
         }
     }
