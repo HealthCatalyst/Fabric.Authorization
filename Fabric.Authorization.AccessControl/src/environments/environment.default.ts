@@ -4,7 +4,7 @@ export const defaultEnvironment = {
   fabricAuthApiUri: 'http://localhost/authorization',
   fabricAuthApiVersionSegment: 'v1',
   fabricIdentityApiUri: 'http://localhost/identity',
-  fabricExternalIdPSearchApiUri: 'http://localhost:5009',
+  fabricExternalIdPSearchApiUri: 'http://localhost/IdentityProviderSearchService',
   fabricExternalIdPSearchApiVersionSegment: 'v1',
   applicationEndpoint: 'http://localhost:4200'
 };

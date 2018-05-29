@@ -1,12 +1,85 @@
 # Fabric.Authorization.AccessControl
 An Angular 5 routed module for managing access in Fabric.Authorization
 
+# Documentation
+[Requirements](https://healthcarequalitycatalyst.sharepoint.com/:o:/r/productdev/_layouts/15/WopiFrame.aspx?sourcedoc={32fa060b-915f-4641-a046-5f538a42f52b}&action=edit&wdLOR=&wd=target%28%2F%2FSprint%20Notes%2FFabricApp.one%7Cc10158a6-70a1-436e-b1be-cfe0af705094%2FAccess%20control%20portal%20Phase%201%7C470b5cf5-9bfa-4f42-b83d-78fd94fa3d17%2F%29)
+
+[Screen Mockups](https://healthcarequalitycatalyst.sharepoint.com/:o:/r/productdev/_layouts/15/WopiFrame.aspx?sourcedoc=%7B32fa060b-915f-4641-a046-5f538a42f52b%7D&action=edit&wdLOR=&wd=target%28%2F%2FSprint%20Notes%2FFabricApp.one%7Cc10158a6-70a1-436e-b1be-cfe0af705094%2FPhase%201%20Mockups%7C61a48748-9427-461e-b362-3887756dfe82%2F%29)
+
 # Installing
 Run `npm i --save @healthcatalyst/fabric-access-control-ui`
 
 This module requires Health Catalyst Cashmere so that should be installed as well
 
 [Cashmere](http://cashmere.healthcatalyst.net/guides/getting-started)
+
+# Fabric Identity & Authorization Setup
+You will need to set up a client in your local instance of Fabric.Identity and Fabric.Authorization.
+
+## Fabric.Identity Client
+
+Assuming your Fabric.Identity instance is running at `http://localhost/identity`, you can run the following `curl` command to create a Fabric.Identity client:
+
+`curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer {access_token}" -d @{identity_client.json} http://localhost/identity/api/client`
+
+where `{access_token}` is the JWT obtained per the instructions at [Retrieving an Access Token from Fabric.Identity](https://github.com/HealthCatalyst/Fabric.Identity/wiki/Retrieving-an-Access-Token-from-Fabric.Identity)
+
+and `{identity_client.json}` is a file containing the following payload:
+
+```
+{
+    "clientId": "fabric-accesscontrol",
+    "clientName": "Access Control UI Sample",
+    "allowedScopes": [
+        "openid",
+        "profile",
+        "fabric.profile",
+        "fabric/authorization.read",
+        "fabric/authorization.write",
+        "fabric/idprovider.searchusers",
+        "fabric/authorization.dos.write"
+    ],
+    "allowedGrantTypes": [
+        "implicit"
+    ],
+    "allowedCorsOrigins": [
+        "http://localhost:4200"
+    ],
+    "redirectUris": [
+        "http://localhost:4200/oidc-callback.html",
+        "http://localhost:4200/silent.html"
+    ],
+    "postLogoutRedirectUris": [
+        "http://localhost:4200"
+    ],
+    "allowOfflineAccess": false,
+    "requireConsent": false,
+    "allowAccessTokensViaBrowser": true,
+    "enableLocalLogin": false,
+    "accessTokenLifetime": 1200
+}
+```
+
+## Fabric.Authorization Client
+
+Assuming your Fabric.Authorization instance is running at `http://localhost/authorization`, you can run the following `curl` command to create a Fabric.Identity client:
+
+`curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer {access_token}" -d @{auth_client.json} http://localhost/authorization/v1/clients`
+
+where `{access_token}` is the JWT obtained per the instructions at [Retrieving an Access Token from Fabric.Identity](https://github.com/HealthCatalyst/Fabric.Identity/wiki/Retrieving-an-Access-Token-from-Fabric.Identity)
+
+and `{auth_client.json}` is a file containing the following payload:
+
+```
+{
+	"id": "fabric-accesscontrol",
+	"name": "Fabric Access Control Sample UI",
+	"topLevelSecurableItem": {"name": "fabric-accesscontrol"}	
+}
+```
+
+## IIS Configuration
+If you want to set up an IIS site to host the sample application, you will need to create an application pool and set the `.NET CLR version` parameter to `No Managed Code`.
 
 # Configuration
 The access control module is lazy loaded and should be imported into a module that will assist with loading it through the router and with providing the configuration data. A class that implements IAccessControlConfigService should be created and registered as a provider in this module. 
