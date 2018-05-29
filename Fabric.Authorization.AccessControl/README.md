@@ -82,7 +82,7 @@ and `{auth_client.json}` is a file containing the following payload:
 If you want to set up an IIS site to host the sample application, you will need to create an application pool and set the `.NET CLR version` parameter to `No Managed Code`.
 
 ## Environment Settings (environment.default.ts)
- You may need to change your `environment.default.ts` file if your services are not running at the locations specified. Below is a mapping of
+You may need to change your `environment.default.ts` file if your services are not running at the locations specified in that file.
 
 `fabricAuthApiUri` => Fabric.Authorization
 `fabricIdentityApiUri` => Fabric.Identity
