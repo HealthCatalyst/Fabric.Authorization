@@ -29,7 +29,7 @@ and `{identity_client.json}` is a file containing the following payload:
 ```
 {
     "clientId": "fabric-accesscontrol",
-    "clientName": "Access Control UI Sample",
+    "clientName": "Fabric Access Control Sample UI",
     "allowedScopes": [
         "openid",
         "profile",
@@ -80,6 +80,13 @@ and `{auth_client.json}` is a file containing the following payload:
 
 ## IIS Configuration
 If you want to set up an IIS site to host the sample application, you will need to create an application pool and set the `.NET CLR version` parameter to `No Managed Code`.
+
+## Environment Settings (environment.default.ts)
+ You may need to change your `environment.default.ts` file if your services are not running at the locations specified. Below is a mapping of
+
+`fabricAuthApiUri` => Fabric.Authorization
+`fabricIdentityApiUri` => Fabric.Identity
+`fabricExternalIdPSearchApiUri` => Fabric.IdentityProviderSearchService
 
 # Configuration
 The access control module is lazy loaded and should be imported into a module that will assist with loading it through the router and with providing the configuration data. A class that implements IAccessControlConfigService should be created and registered as a provider in this module. 
