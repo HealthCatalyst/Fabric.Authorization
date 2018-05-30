@@ -334,15 +334,16 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
-                this.RequiresClaims(AuthorizationWriteClaim);
+                Group group = await _groupService.GetGroup(parameters.GroupName);
+                await CheckGroupWriteAccess(group);
                 var userApiRequests = this.Bind<List<UserIdentifierApiRequest>>();
                 var validationResult = await ValidateGroupUserRequests(userApiRequests);
                 if (validationResult != null)
                 {
                     return validationResult;
                 }
-
-                Group group = await _groupService.AddUsersToGroup(parameters.GroupName, userApiRequests.Select(u => new User(u.SubjectId, u.IdentityProvider)).ToList());
+                
+                group = await _groupService.AddUsersToGroup(parameters.GroupName, userApiRequests.Select(u => new User(u.SubjectId, u.IdentityProvider)).ToList());
                 return CreateSuccessfulPostResponse(group.Name, group.ToGroupUserApiModel(), HttpStatusCode.OK);
             }
             catch (NotFoundException<Group> ex)
@@ -438,6 +439,21 @@ namespace Fabric.Authorization.API.Modules
                 return await CreateFailureResponse(messages, HttpStatusCode.BadRequest);
             }
             return null;
+        }
+
+        private async Task CheckGroupWriteAccess(Group group)
+        {
+            if (group.Roles != null && group.Roles.Any())
+            {
+                foreach (var role in group.Roles)
+                {
+                    await CheckWriteAccess(_clientService, _grainService, role.Grain, role.SecurableItem);
+                }
+            }
+            else
+            {
+                this.RequiresClaims(AuthorizationWriteClaim);
+            }
         }
     }
 }
