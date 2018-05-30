@@ -1,11 +1,6 @@
 # Fabric.Authorization.AccessControl
 An Angular 5 routed module for managing access in Fabric.Authorization
 
-# Documentation
-[Requirements](https://healthcarequalitycatalyst.sharepoint.com/:o:/r/productdev/_layouts/15/WopiFrame.aspx?sourcedoc={32fa060b-915f-4641-a046-5f538a42f52b}&action=edit&wdLOR=&wd=target%28%2F%2FSprint%20Notes%2FFabricApp.one%7Cc10158a6-70a1-436e-b1be-cfe0af705094%2FAccess%20control%20portal%20Phase%201%7C470b5cf5-9bfa-4f42-b83d-78fd94fa3d17%2F%29)
-
-[Screen Mockups](https://healthcarequalitycatalyst.sharepoint.com/:o:/r/productdev/_layouts/15/WopiFrame.aspx?sourcedoc=%7B32fa060b-915f-4641-a046-5f538a42f52b%7D&action=edit&wdLOR=&wd=target%28%2F%2FSprint%20Notes%2FFabricApp.one%7Cc10158a6-70a1-436e-b1be-cfe0af705094%2FPhase%201%20Mockups%7C61a48748-9427-461e-b362-3887756dfe82%2F%29)
-
 # Installing
 Run `npm i --save @healthcatalyst/fabric-access-control-ui`
 
