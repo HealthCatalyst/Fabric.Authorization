@@ -20,6 +20,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
     {
         protected readonly Browser Browser;
         private readonly DefaultPropertySettings _defaultPropertySettings;
+        private readonly IntegrationTestsFixture _fixture;
+        private readonly string _storageProvider;
+
         protected ClaimsPrincipal Principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
         {
             new Claim(Claims.Scope, Scopes.ManageClientsScope),
@@ -38,6 +41,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Browser = fixture.GetBrowser(Principal, storageProvider);
             _defaultPropertySettings = fixture.DefaultPropertySettings;
             fixture.CreateClient(Browser, "rolesprincipal");
+            _fixture = fixture;
+            _storageProvider = storageProvider;
         }
 
         [Theory]
@@ -753,9 +758,14 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         #region User->Group Mapping Tests 
 
-        protected async Task<BrowserResponse> SetupGroupUserMappingAsync(string groupName, string subjectId, string identityProvider)
+        protected async Task<BrowserResponse> SetupGroupUserMappingAsync(string groupName, string subjectId, string identityProvider, Browser browser = null)
         {
-            var response = await Browser.Post($"/groups/{groupName}/users", with =>
+            if (browser == null)
+            {
+                browser = Browser;
+            }
+
+            var response = await browser.Post($"/groups/{groupName}/users", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
@@ -770,6 +780,44 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             });
 
             return response;
+        }
+
+        [IntegrationTestsFixture.DisplayTestMethodName]
+        [Fact]
+        public async Task AddUserToGroup_NoPermissionsToRole_ForbiddenAsync()
+        {
+            // Setup a group
+            string group1Name = "Group1Name" + Guid.NewGuid();
+            await SetupGroupAsync(group1Name, "Custom");
+
+            string role1Name = "Role1Name" + Guid.NewGuid();
+            var role = await SetupRoleAsync(role1Name);
+
+            // Associate a role
+            await SetupGroupRoleMappingAsync(group1Name, role);
+
+
+            // Get a new browser with a user who doesn't have permissions to manage the above role
+            var userSubjectId = "user" + Guid.NewGuid();
+            var identityProvider = "idp1";
+
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
+            {
+                new Claim(Claims.Scope, Scopes.ManageClientsScope),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.Scope, Scopes.ManageDosScope),
+                new Claim(Claims.ClientId, "foreignclient"),
+                new Claim(Claims.Sub, userSubjectId),
+                new Claim(Claims.IdentityProvider, identityProvider)
+            }, "pwd"));
+
+            var browser = _fixture.GetBrowser(principal, _storageProvider);
+
+            // Attempt to add the user to the group
+            var mappingResponse = await SetupGroupUserMappingAsync(group1Name, userSubjectId, identityProvider, browser);
+            Assert.Equal(HttpStatusCode.Forbidden, mappingResponse.StatusCode);
+
         }
 
         [Fact]
