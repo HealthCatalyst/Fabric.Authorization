@@ -524,15 +524,15 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         }
 
-        protected async Task<Role> SetupRoleAsync(string roleName)
+        protected async Task<Role> SetupRoleAsync(string roleName, string grain = "app", string securableItem = "rolesprincipal")
         {
             var response = await Browser.Post("/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
                 {
-                    Grain = "app",
-                    SecurableItem = "rolesprincipal",
+                    Grain = grain,
+                    SecurableItem = securableItem,
                     Name = roleName
                 });
             });
@@ -548,9 +548,14 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             return role.ToRoleDomainModel();
         }
 
-        protected async Task<BrowserResponse> SetupGroupRoleMappingAsync(string groupName, Role role)
+        protected async Task<BrowserResponse> SetupGroupRoleMappingAsync(string groupName, Role role, Browser browser = null)
         {
-            var response = await Browser.Post($"/groups/{groupName}/roles", with =>
+            if (browser == null)
+            {
+                browser = Browser;
+            }
+
+            var response = await browser.Post($"/groups/{groupName}/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new[]
@@ -566,6 +571,48 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             });
 
             return response;
+        }
+
+        [Theory]
+        [MemberData(nameof(GetPrincipals))]
+        [IntegrationTestsFixture.DisplayTestMethodName]
+        public async Task AddRoleToGroup_NoPermissionsToManageSecurable_ForbiddenAsync(ClaimsPrincipal principal)
+        {
+            string groupName = "Group" + Guid.NewGuid();
+            await SetupGroupAsync(groupName, "Custom");
+            
+            var role = await SetupRoleAsync("Role" + Guid.NewGuid());
+
+            var browser = _fixture.GetBrowser(principal, _storageProvider);
+
+            var mappingResponse = await SetupGroupRoleMappingAsync(groupName, role, browser);
+            Assert.Equal(HttpStatusCode.Forbidden, mappingResponse.StatusCode);
+
+        }
+
+        public static IEnumerable<object[]> GetPrincipals()
+        {
+            return new List<object[]>
+            {
+                new object[] { new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
+                {
+                    new Claim(Claims.Scope, Scopes.ManageClientsScope),
+                    new Claim(Claims.Scope, Scopes.ReadScope),
+                    new Claim(Claims.Scope, Scopes.WriteScope),
+                    new Claim(Claims.Scope, Scopes.ManageDosScope),
+                    new Claim(Claims.ClientId, "foreignclient"),
+                    new Claim(Claims.Sub, "user" + Guid.NewGuid()),
+                    new Claim(Claims.IdentityProvider, "idp1")
+                }, "pwd")) },
+                new object[] {new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
+                {
+                    new Claim(Claims.Scope, Scopes.ManageClientsScope),
+                    new Claim(Claims.Scope, Scopes.ReadScope),
+                    new Claim(Claims.Scope, Scopes.WriteScope),
+                    new Claim(Claims.Scope, Scopes.ManageDosScope),
+                    new Claim(Claims.ClientId, "foreignclient")
+                }, "pwd"))}
+            };
         }
 
         [Fact]
@@ -792,41 +839,24 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [IntegrationTestsFixture.DisplayTestMethodName]
-        [Fact]
-        public async Task AddUserToGroup_NoPermissionsToRole_ForbiddenAsync()
+        [Theory]
+        [MemberData(nameof(GetPrincipals))]
+        public async Task AddUserToGroup_NoPermissionsToRole_ForbiddenAsync(ClaimsPrincipal principal)
         {
-            // Setup a group
-            string group1Name = "Group1Name" + Guid.NewGuid();
+            var group1Name = "Group1Name" + Guid.NewGuid();
             await SetupGroupAsync(group1Name, "Custom");
-
-            string role1Name = "Role1Name" + Guid.NewGuid();
-            var role = await SetupRoleAsync(role1Name);
-
-            // Associate a role
+            
+            var role = await SetupRoleAsync("Role1Name" + Guid.NewGuid());
+            
             await SetupGroupRoleMappingAsync(group1Name, role);
-
-
-            // Get a new browser with a user who doesn't have permissions to manage the above role
-            var userSubjectId = "user" + Guid.NewGuid();
-            var identityProvider = "idp1";
-
-            var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
-            {
-                new Claim(Claims.Scope, Scopes.ManageClientsScope),
-                new Claim(Claims.Scope, Scopes.ReadScope),
-                new Claim(Claims.Scope, Scopes.WriteScope),
-                new Claim(Claims.Scope, Scopes.ManageDosScope),
-                new Claim(Claims.ClientId, "foreignclient"),
-                new Claim(Claims.Sub, userSubjectId),
-                new Claim(Claims.IdentityProvider, identityProvider)
-            }, "pwd"));
 
             var browser = _fixture.GetBrowser(principal, _storageProvider);
 
             // Attempt to add the user to the group
+            var userSubjectId = "user" + Guid.NewGuid();
+            var identityProvider = "idp1";
             var mappingResponse = await SetupGroupUserMappingAsync(group1Name, userSubjectId, identityProvider, browser);
             Assert.Equal(HttpStatusCode.Forbidden, mappingResponse.StatusCode);
-
         }
 
         [Fact]

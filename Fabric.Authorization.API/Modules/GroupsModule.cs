@@ -267,12 +267,9 @@ namespace Fabric.Authorization.API.Modules
                 return errorResponse;
             }
 
-            foreach (var roleApiModel in apiRoles)
-            {
-                await CheckWriteAccess(_clientService, _grainService, roleApiModel.Grain, roleApiModel.SecurableItem);
-            }
-
             var domainRoles = apiRoles.Select(r => r.ToRoleDomainModel()).ToList();
+            await CheckWriteAccess(domainRoles);
+
             try
             {
                 Group group = await _groupService.AddRolesToGroup(domainRoles, parameters.groupName);
@@ -335,7 +332,7 @@ namespace Fabric.Authorization.API.Modules
             try
             {
                 Group group = await _groupService.GetGroup(parameters.GroupName);
-                await CheckGroupWriteAccess(group);
+                await CheckWriteAccess(group);
                 var userApiRequests = this.Bind<List<UserIdentifierApiRequest>>();
                 var validationResult = await ValidateGroupUserRequests(userApiRequests);
                 if (validationResult != null)
@@ -441,18 +438,23 @@ namespace Fabric.Authorization.API.Modules
             return null;
         }
 
-        private async Task CheckGroupWriteAccess(Group group)
+        private async Task CheckWriteAccess(Group group)
         {
             if (group.Roles != null && group.Roles.Any())
             {
-                foreach (var role in group.Roles)
-                {
-                    await CheckWriteAccess(_clientService, _grainService, role.Grain, role.SecurableItem);
-                }
+                await CheckWriteAccess(group.Roles);
             }
             else
             {
                 this.RequiresClaims(AuthorizationWriteClaim);
+            }
+        }
+
+        private async Task CheckWriteAccess(IEnumerable<Role> roles)
+        {
+            foreach (var role in roles)
+            {
+                await CheckWriteAccess(_clientService, _grainService, role.Grain, role.SecurableItem);
             }
         }
     }
