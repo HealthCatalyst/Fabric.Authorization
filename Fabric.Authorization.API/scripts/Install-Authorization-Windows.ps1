@@ -247,42 +247,6 @@ function Invoke-MonitorShallow($authorizationUrl) {
     Invoke-RestMethod -Method Get -Uri $url
 }
 
-function Get-EdwAdminUsersAndGroups($connectionString) {
-    $connection = New-Object System.Data.SqlClient.SqlConnection($connectionString)
-    $sql = "SELECT i.IdentityID, i.IdentityNM, r.RoleNM
-            FROM [CatalystAdmin].[RoleBASE] r
-            INNER JOIN [CatalystAdmin].[IdentityRoleBASE] ir
-                ON r.RoleID = ir.RoleID
-            INNER JOIN [CatalystAdmin].[IdentityBASE] i
-                ON ir.IdentityID = i.IdentityID
-            WHERE RoleNM = 'EDW Admin'";
-    $command = New-Object System.Data.SqlClient.SqlCommand($sql, $connection)
-
-    $usersAndGroups = @();
-    try {
-        $connection.Open()    
-        $reader = $command.ExecuteReader()
-        while ($reader.Read()) {
-            $usersAndGroups += $reader['IdentityNM']
-        }
-        $connection.Close()        
-
-    }
-    catch [System.Data.SqlClient.SqlException] {
-        Write-Error "An error ocurred while executing the command. Please ensure the connection string is correct and the metadata database has been setup. Connection String: $($connectionString). Error $($_.Exception.Message)"  -ErrorAction Stop
-    }    
-
-    return $usersAndGroups;
-}
-
-function Add-UsersAndGroupsToDosAdminRole($edwAdminUsersAndGroups, $domain, $connString, $authorizationServiceUrl, $accessToken) {
-
-    foreach ($edwAdmin in $edwAdminUsersAndGroups) {
-        Add-AccountToDosAdminRole -accountName $edwAdmin -domain $domain -authorizationServiceUrl $authorizationServiceUrl -accessToken $accessToken -connString $connString
-    }
-}
-
-
 if (!(Test-Path .\Fabric-Install-Utilities.psm1)) {
     Invoke-WebRequest -Uri https://raw.githubusercontent.com/HealthCatalyst/InstallScripts/master/common/Fabric-Install-Utilities.psm1 -OutFile Fabric-Install-Utilities.psm1
 }
@@ -744,11 +708,5 @@ if ($siteName) {Add-InstallationSetting "authorization" "siteName" "$siteName" |
 if ($adminAccount) {Add-InstallationSetting "authorization" "adminAccount" "$adminAccount" | Out-Null}
 
 Invoke-MonitorShallow "$authorizationServiceUrl"
-
-Write-Host "Upgrading all the users/groups with an 'EDW Admin' role to also have the dosadmin Fabric.Auth role"
-$edwAdminUsersAndGroups = Get-EdwAdminUsersAndGroups -connectionString $metadataConnStr
-Write-Host "There are $($edwAdminUsersAndGroups.Count) users/groups with this role"
-Write-Host ""
-Add-UsersAndGroupsToDosAdminRole -edwAdminUsersAndGroups $edwAdminUsersAndGroups -domain $currentUserDomain -connString $authorizationDbConnStr -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken
 
 Read-Host -Prompt "Installation complete, press Enter to exit"
