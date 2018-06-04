@@ -633,7 +633,7 @@ $body = @'
 '@
 
 Write-Host "Registering Fabric.Authorization Client."
-$authorizationClientSecret = Add-ClientRegistration -authUrl $identityServerUrl -body $body -accessToken $accessToken
+$authorizationClientSecret = ([string](Add-ClientRegistration -authUrl $identityServerUrl -body $body -accessToken $accessToken)).Trim()
 
 if (![string]::IsNullOrWhiteSpace($authorizationClientSecret) -and ![string]::IsNullOrEmpty($authorizationClientSecret)) {
     Write-Success "Fabric.Authorization clientSecret: $authorizationClientSecret"
