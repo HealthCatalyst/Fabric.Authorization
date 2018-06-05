@@ -614,7 +614,7 @@ $body = @'
 '@
 
 Write-Host "Registering Fabric.Authorization API."
-$authorizationApiSecret = Add-ApiRegistration -authUrl $identityServerUrl -body $body -accessToken $accessToken
+$authorizationApiSecret = ([string](Add-ApiRegistration -authUrl $identityServerUrl -body $body -accessToken $accessToken)).Trim()
 
 if ($authorizationApiSecret) {
     Write-Success "Fabric.Authorization apiSecret: $authorizationApiSecret"
