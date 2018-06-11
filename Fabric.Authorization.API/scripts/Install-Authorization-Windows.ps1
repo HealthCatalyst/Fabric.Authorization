@@ -247,6 +247,67 @@ function Invoke-MonitorShallow($authorizationUrl) {
     Invoke-RestMethod -Method Get -Uri $url
 }
 
+function Get-EdwAdminUsersAndGroups($connectionString) {	
+    $connection = New-Object System.Data.SqlClient.SqlConnection($connectionString)	
+    $sql = "SELECT i.IdentityID, i.IdentityNM, r.RoleNM	
+            FROM [CatalystAdmin].[RoleBASE] r	
+            INNER JOIN [CatalystAdmin].[IdentityRoleBASE] ir	
+                ON r.RoleID = ir.RoleID	
+            INNER JOIN [CatalystAdmin].[IdentityBASE] i	
+                ON ir.IdentityID = i.IdentityID	
+            WHERE RoleNM = 'EDW Admin'";	
+    $command = New-Object System.Data.SqlClient.SqlCommand($sql, $connection)	
+    
+    $usersAndGroups = @();	
+    try {	
+        $connection.Open()    	
+        $reader = $command.ExecuteReader()	
+        while ($reader.Read()) {	
+            $usersAndGroups += $reader['IdentityNM']	
+        }	
+        $connection.Close()        	
+    
+    }	
+    catch [System.Data.SqlClient.SqlException] {	
+        Write-Error "An error ocurred while executing the command. Please ensure the connection string is correct and the metadata database has been setup. Connection String: $($connectionString). Error $($_.Exception.Message)"  -ErrorAction Stop	
+    }    	
+    
+    return $usersAndGroups;	
+}	
+    	
+function Add-ListOfUsersToDosAdminRole($edwAdminUsers, $connString, $authorizationServiceUrl, $accessToken) {	   
+    # Get the role once, should be same for every user.
+    $role = Get-Role -name "dosadmin" -grain "dos" -securableItem "datamarts" -authorizationServiceUrl $authorizationServiceUrl -accessToken $accessToken
+
+    # For each user, loop and try to add the user to the API.  
+    # Do not validate it to AD like the Add-AccountToDosAdminRole function.
+    foreach ($edwAdmin in $edwAdminUsers) {	
+        if ([string]::IsNullOrWhiteSpace($edwAdmin)) {
+            continue
+        }
+
+        try {  
+            $user = Add-User -authUrl $authorizationServiceUrl -name $edwAdmin -accessToken $accessToken
+            Add-RoleToUser -role $role -user $user -connString $connString
+        }
+        catch {
+            # If there is an exception, the function will print the error. We will want to 
+            # continue with the next user, so we will catch and swallow the exception.
+            $exception = $_.Exception
+            if ($exception -ne $null -and $exception.Response -ne $null -and $exception.Response.StatusCode.value__ -eq 409) {
+                Write-Success "    User: $accountName has already been registered as dosadmin with Fabric.Authorization"
+                Write-Host ""
+            }
+            else {
+                if ($exception.Response -ne $null) {
+                    $error = Get-ErrorFromResponse -response $exception.Response
+                    Write-Error "    There was an error updating the resource: $error. "
+                }
+            }
+        }        
+    }	
+}
+
 if (!(Test-Path .\Fabric-Install-Utilities.psm1)) {
     Invoke-WebRequest -Uri https://raw.githubusercontent.com/HealthCatalyst/InstallScripts/master/common/Fabric-Install-Utilities.psm1 -OutFile Fabric-Install-Utilities.psm1
 }
@@ -708,5 +769,13 @@ if ($siteName) {Add-InstallationSetting "authorization" "siteName" "$siteName" |
 if ($adminAccount) {Add-InstallationSetting "authorization" "adminAccount" "$adminAccount" | Out-Null}
 
 Invoke-MonitorShallow "$authorizationServiceUrl"
+
+Write-Host "Upgrading all the users with an 'EDW Admin' role to also have the dosadmin Fabric.Auth role"
+# There are no groups that will have 'EDW Admin'.  Should be only users.
+# For more information check out PBI 143708
+$edwAdminUsers = Get-EdwAdminUsersAndGroups -connectionString $metadataConnStr	
+Write-Host "There are $($edwAdminUsers.Count) users with this role"	
+Write-Host ""	
+Add-ListOfUsersToDosAdminRole -edwAdminUsers $edwAdminUsers -connString $authorizationDbConnStr -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken
 
 Read-Host -Prompt "Installation complete, press Enter to exit"
