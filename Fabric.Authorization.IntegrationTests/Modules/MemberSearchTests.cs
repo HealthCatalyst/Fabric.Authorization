@@ -354,7 +354,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal("Brian", result2.LastName);
             Assert.NotNull(result2.LastLoginDateTimeUtc);
             Assert.Equal(lastLoginDate, result2.LastLoginDateTimeUtc.Value.ToUniversalTime());
-            Assert.Equal(2, result2.Roles.Count());
+            Assert.True(2 == result2.Roles.Count(), $"Role count = {result2.Roles.Count()}, roles = ${string.Join(",", result2.Roles)}");
             Assert.Contains(Fixture.ContributorAtlasRoleName, result2.Roles.Select(r => r.Name));
         }
 
