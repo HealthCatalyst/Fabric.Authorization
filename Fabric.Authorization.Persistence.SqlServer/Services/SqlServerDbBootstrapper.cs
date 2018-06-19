@@ -4,6 +4,7 @@ using AutoMapper;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Persistence.SqlServer.EntityModels;
 using Fabric.Authorization.Persistence.SqlServer.Mappers;
+using Microsoft.EntityFrameworkCore;
 
 namespace Fabric.Authorization.Persistence.SqlServer.Services
 {
@@ -37,7 +38,9 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
             var grains = _authorizationDbContext.Grains;
             foreach (var builtInGrain in _authorizationDefaults.Grains)
             {
-                var existingGrain = grains.FirstOrDefault(g => g.Name == builtInGrain.Name);
+                var existingGrain = grains.Include(g => g.SecurableItems)
+                    .FirstOrDefault(g => g.Name == builtInGrain.Name);
+
                 var incomingGrain = builtInGrain.ToEntity();
                 if (existingGrain == null)
                 {
@@ -47,13 +50,29 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
                 }
                 else
                 {
-                    if (existingGrain.IsShared != incomingGrain.IsShared ||
-                        existingGrain.IsDeleted != incomingGrain.IsDeleted ||
-                        existingGrain.RequiredWriteScopes != incomingGrain.RequiredWriteScopes)
+                    if (existingGrain.IsShared)
                     {
-                        existingGrain.IsShared = incomingGrain.IsShared;
-                        existingGrain.IsDeleted = incomingGrain.IsDeleted;
-                        existingGrain.RequiredWriteScopes = incomingGrain.RequiredWriteScopes;
+                        if (existingGrain.IsDeleted != incomingGrain.IsDeleted ||
+                            existingGrain.RequiredWriteScopes != incomingGrain.RequiredWriteScopes ||
+                            existingGrain.SecurableItems.Count != incomingGrain.SecurableItems.Count)
+                        {
+                            existingGrain.IsDeleted = incomingGrain.IsDeleted;
+                            existingGrain.RequiredWriteScopes = incomingGrain.RequiredWriteScopes;
+
+                            foreach (var incomingSecurableItem in incomingGrain.SecurableItems)
+                            {
+                                var existingSecurableItem =
+                                    existingGrain.SecurableItems.FirstOrDefault(
+                                        si => si.Name == incomingSecurableItem.Name);
+
+                                if (existingSecurableItem != null)
+                                {
+                                    continue;
+                                }
+
+                                existingGrain.SecurableItems.Add(incomingSecurableItem);
+                            }
+                        }
                     }
                 }
 
