@@ -32,6 +32,11 @@ namespace Fabric.Authorization.Domain.Defaults
                         {
                             Name = "datamarts",
                             ClientOwner = "dos-metadata-service"
+                        },
+                        new SecurableItem
+                        {
+                            Name = "dataprocessing",
+                            ClientOwner = "dos-dataprocessing-service"
                         }
                     }
                 }
