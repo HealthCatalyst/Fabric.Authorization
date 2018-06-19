@@ -3,7 +3,7 @@
 #
 param([switch]$noDiscoveryService)
 function Get-DiscoveryServiceUrl() {
-    return "https://$env:computername.$($env:userdnsdomain.tolower())/DiscoveryService"
+    return "https://$env:computername.$($env:userdnsdomain.tolower())/DiscoveryService/v1"
 }
 
 function Get-IdentityServiceUrl() {
@@ -29,7 +29,7 @@ function Add-DiscoveryRegistration($discoveryUrl, $serviceUrl, $credential) {
         Description   = "The Fabric.Authorization service provides centralized authorization across the Fabric ecosystem."
     }
 
-    $url = "$discoveryUrl/v1/Services"
+    $url = "$discoveryUrl/Services"
     $jsonBody = $registrationBody | ConvertTo-Json	
     try {
         Invoke-RestMethod -Method Post -Uri "$url" -Body "$jsonBody" -ContentType "application/json" -Credential $credential | Out-Null
