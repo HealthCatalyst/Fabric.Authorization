@@ -18,34 +18,6 @@ function Get-Headers($accessToken) {
     return $headers
 }
 
-function Add-DiscoveryRegistration($discoveryUrl, $serviceUrl, $credential) {	
-    $registrationBody = @{
-        ServiceName   = "AuthorizationService"
-        Version       = 1
-        ServiceUrl    = $serviceUrl
-        DiscoveryType = "Service"
-        IsHidden      = $true
-        FriendlyName  = "Fabric.Authorization"
-        Description   = "The Fabric.Authorization service provides centralized authorization across the Fabric ecosystem."
-    }
-
-    $url = "$discoveryUrl/Services"
-    $jsonBody = $registrationBody | ConvertTo-Json	
-    try {
-        Invoke-RestMethod -Method Post -Uri "$url" -Body "$jsonBody" -ContentType "application/json" -Credential $credential | Out-Null
-        Write-Success "Fabric.Authorization successfully registered with DiscoveryService."
-    }
-    catch {
-        $exception = $_.Exception
-        Write-Error "Unable to register Fabric.Authorization with DiscoveryService. Ensure that DiscoveryService is running at $discoveryUrl, that Windows Authentication is enabled for DiscoveryService and Anonymous Authentication is disabled for DiscoveryService. Error $($_.Exception.Message) Halting installation."
-        if ($exception.Response -ne $null) {
-            $error = Get-ErrorFromResponse -response $exception.Response
-            Write-Error "    There was an error updating the resource: $error."
-        }
-        throw
-    }
-}
-
 function Add-DatabaseLogin($userName, $connString) {
     $query = "USE master
             If Not exists (SELECT * FROM sys.server_principals
@@ -638,6 +610,13 @@ Write-Host ""
 Write-Host "Prerequisite checks complete...installing."
 Write-Host ""
 
+$appDirectory = [System.IO.Path]::Combine($webroot, $appName)
+New-AppRoot $appDirectory $iisUser
+Write-Host "App directory is: $appDirectory"
+New-AppPool $appName $iisUser $credential
+New-App $appName $siteName $appDirectory
+Publish-WebSite $zipPackage $appDirectory $appName
+Add-DatabaseSecurity $iisUser $authorizationDatabaseRole $authorizationDbConnStr
 
 if (!($noDiscoveryService)) {
     Write-Host ""
@@ -647,17 +626,14 @@ if (!($noDiscoveryService)) {
     Write-Host ""
     Write-Host "Registering with Discovery Service."
     Write-Host ""
-    Add-DiscoveryRegistration $discoveryServiceUrl "$authorizationServiceUrl/v1" $credential
+    $buildVersion = [System.Diagnostics.FileVersionInfo]::GetVersionInfo("$appDirectory\Fabric.Authorization.API.dll").FileVersion
+    $serviceName = "AuthorizationService"
+    $serviceVersion = 1
+    $friendlyName = "Fabric.Authorization"
+    $description = "The Fabric.Authorization service provides centralized authorization across the Fabric ecosystem."
+    Add-DiscoveryRegistration $discoveryServiceUrl "$authorizationServiceUrl/v1" $credential, $buildVersion, $serviceName, $serviceVersion, $friendlyName, $description
     Write-Host ""
 }
-
-$appDirectory = [System.IO.Path]::Combine($webroot, $appName)
-New-AppRoot $appDirectory $iisUser
-Write-Host "App directory is: $appDirectory"
-New-AppPool $appName $iisUser $credential
-New-App $appName $siteName $appDirectory
-Publish-WebSite $zipPackage $appDirectory $appName
-Add-DatabaseSecurity $iisUser $authorizationDatabaseRole $authorizationDbConnStr
 
 Set-Location $workingDirectory
 
