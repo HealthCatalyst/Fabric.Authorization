@@ -145,6 +145,22 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
+        public async Task MemberSearch_NoParams_BadRequestExceptionAsync()
+        {
+            Fixture.InitializeAtlasBrowser(new Mock<IIdentityServiceProvider>().Object);
+            var result = await Fixture.Browser.Get(
+                MemberSearchRoute,
+                with =>
+                {
+                    with.HttpRequest();
+                    with.Header("Accept", "application/json");
+                });
+
+            Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
+        }
+
+        [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task MemberSearch_ValidClientIdRequest_SuccessAsync()
         {
             var lastLoginDate = new DateTime(2017, 9, 15).ToUniversalTime();
@@ -186,7 +202,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             AssertValidRequest(results, lastLoginDate);
         }
 
-        [Fact(Skip = "Test")]
+        [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task MemberSearch_ValidGrainSecurableItemRequest_SuccessAsync()
         {
@@ -215,7 +231,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             AssertValidRequest(results, lastLoginDate);
         }
 
-        [Fact(Skip = "Test")]
+        [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task MemberSearch_ValidRequest_GroupWithMultipleRoles_SuccessAsync()
         {
@@ -299,22 +315,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.NotEmpty(resultModel.Results);
             Assert.Single(resultModel.Results);
             Assert.True(resultModel.TotalCount > resultModel.Results.Count());
-        }
-       
-        [Fact(Skip = "Test")]
-        [IntegrationTestsFixture.DisplayTestMethodName]
-        public async Task MemberSearch_NoParams_BadRequestExceptionAsync()
-        {
-            Fixture.InitializeAtlasBrowser(new Mock<IIdentityServiceProvider>().Object);
-            var result = await Fixture.Browser.Get(
-                MemberSearchRoute,
-                with =>
-                    {
-                        with.HttpRequest();
-                        with.Header("Accept", "application/json");
-                    });
-
-            Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
         }
 
         private IIdentityServiceProvider CreateIdentityServiceProviderMock(string clientId, DateTime? lastLoginDate)
