@@ -58,7 +58,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
 
                     // no changes occurred
                     if (existingGrain.IsDeleted == incomingGrain.IsDeleted &&
-                        existingGrain.RequiredWriteScopes == incomingGrain.RequiredWriteScopes ||
+                        existingGrain.RequiredWriteScopes == incomingGrain.RequiredWriteScopes &&
                         existingGrain.SecurableItems.Count == incomingGrain.SecurableItems.Count)
                     {
                         continue;
