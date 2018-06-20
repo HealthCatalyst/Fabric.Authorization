@@ -50,32 +50,35 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
                 }
                 else
                 {
-                    if (existingGrain.IsShared)
+                    // do no apply updates to non-shared grains (e.g., app)
+                    if (!existingGrain.IsShared)
                     {
-                        if (existingGrain.IsDeleted != incomingGrain.IsDeleted ||
-                            existingGrain.RequiredWriteScopes != incomingGrain.RequiredWriteScopes ||
-                            existingGrain.SecurableItems.Count != incomingGrain.SecurableItems.Count)
+                        continue;
+                    }
+
+                    // no changes occurred
+                    if (existingGrain.IsDeleted == incomingGrain.IsDeleted &&
+                        existingGrain.RequiredWriteScopes == incomingGrain.RequiredWriteScopes ||
+                        existingGrain.SecurableItems.Count == incomingGrain.SecurableItems.Count)
+                    {
+                        continue;
+                    }
+
+                    existingGrain.IsDeleted = incomingGrain.IsDeleted;
+                    existingGrain.RequiredWriteScopes = incomingGrain.RequiredWriteScopes;
+
+                    foreach (var incomingSecurableItem in incomingGrain.SecurableItems)
+                    {
+                        var existingSecurableItem =
+                            existingGrain.SecurableItems.FirstOrDefault(
+                                si => si.Name == incomingSecurableItem.Name);
+
+                        if (existingSecurableItem == null)
                         {
-                            existingGrain.IsDeleted = incomingGrain.IsDeleted;
-                            existingGrain.RequiredWriteScopes = incomingGrain.RequiredWriteScopes;
-
-                            foreach (var incomingSecurableItem in incomingGrain.SecurableItems)
-                            {
-                                var existingSecurableItem =
-                                    existingGrain.SecurableItems.FirstOrDefault(
-                                        si => si.Name == incomingSecurableItem.Name);
-
-                                if (existingSecurableItem != null)
-                                {
-                                    continue;
-                                }
-
-                                existingGrain.SecurableItems.Add(incomingSecurableItem);
-                            }
+                            existingGrain.SecurableItems.Add(incomingSecurableItem);
                         }
                     }
                 }
-
             }
         }
 
