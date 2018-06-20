@@ -626,12 +626,16 @@ if (!($noDiscoveryService)) {
     Write-Host ""
     Write-Host "Registering with Discovery Service."
     Write-Host ""
-    $buildVersion = [System.Diagnostics.FileVersionInfo]::GetVersionInfo("$appDirectory\Fabric.Authorization.API.dll").FileVersion
-    $serviceName = "AuthorizationService"
-    $serviceVersion = 1
-    $friendlyName = "Fabric.Authorization"
-    $description = "The Fabric.Authorization service provides centralized authorization across the Fabric ecosystem."
-    Add-DiscoveryRegistration $discoveryServiceUrl "$authorizationServiceUrl/v1" $credential, $buildVersion, $serviceName, $serviceVersion, $friendlyName, $description
+    $discoveryPostBody = @{
+        buildVersion = [System.Diagnostics.FileVersionInfo]::GetVersionInfo("$appDirectory\Fabric.Authorization.API.dll").FileVersion;
+        serviceName = "AuthorizationService";
+        serviceVersion = 1;
+        friendlyName = "Fabric.Authorization";
+        description = "The Fabric.Authorization service provides centralized authentication across the Fabric ecosystem.";
+        identityServerUrl = $identityServerUrl;
+        serviceUrl = "$authorizationServiceUrl/v1";
+    }
+    Add-DiscoveryRegistration $discoveryServiceUrl $credential $discoveryPostBody
     Write-Host ""
 }
 
