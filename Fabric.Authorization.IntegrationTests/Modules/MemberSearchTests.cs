@@ -266,7 +266,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         }
 
-        [Fact(Skip = "Test")]
+        [Fact]
         public async Task MemberSearch_ValidRequest_NoPageSize_TotalCountCorrect_SuccessAsync()
         {
             var lastLoginDate = new DateTime(2017, 9, 15).ToUniversalTime();
@@ -290,7 +290,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(resultModel.Results.Count(), resultModel.TotalCount);
         }
 
-        [Fact(Skip = "Test")]
+        [Fact]
         public async Task MemberSearch_ValidRequest_PageSizeSet_TotalCountCorrect_SuccessAsync()
         {
             var lastLoginDate = new DateTime(2017, 9, 15).ToUniversalTime();
