@@ -33,5 +33,10 @@ namespace Fabric.Authorization.API.Models
         public string CreatedBy { get; set; }
 
         public string ModifiedBy { get; set; }
+
+        public override string ToString()
+        {
+            return $"{Id} - {Grain}/{SecurableItem}.{Name}";
+        }
     }
 }

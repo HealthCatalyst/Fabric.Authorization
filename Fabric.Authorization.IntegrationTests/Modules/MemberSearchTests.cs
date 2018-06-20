@@ -145,6 +145,22 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
+        public async Task MemberSearch_NoParams_BadRequestExceptionAsync()
+        {
+            Fixture.InitializeAtlasBrowser(new Mock<IIdentityServiceProvider>().Object);
+            var result = await Fixture.Browser.Get(
+                MemberSearchRoute,
+                with =>
+                {
+                    with.HttpRequest();
+                    with.Header("Accept", "application/json");
+                });
+
+            Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
+        }
+
+        [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task MemberSearch_ValidClientIdRequest_SuccessAsync()
         {
             var lastLoginDate = new DateTime(2017, 9, 15).ToUniversalTime();
@@ -165,6 +181,22 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     with.Query("page_number", "1");
                     with.Query("page_size", "2");
                 });
+
+            var userResponse = await Fixture.Browser.Get($"/user/Windows/{Fixture.AtlasUserNoGroupName}",
+                with =>
+                {
+                    with.HttpRequest();
+                    with.Header("Accept", "application/json");
+                    with.Query("client_id", Fixture.AtlasClientId);
+                    with.Query("sort_key", "name");
+                    with.Query("sort_dir", "desc");
+                    with.Query("filter", "brian");
+                    with.Query("page_number", "1");
+                    with.Query("page_size", "2");
+                });
+
+            var userApiModel = userResponse.Body.DeserializeJson<UserApiModel>();
+            Assert.True(userApiModel.Roles.Count == 2, $"Role count = {userApiModel.Roles.Count}, roles = ${string.Join(",", userApiModel.Roles)}");
 
             var results = response.Body.DeserializeJson<MemberSearchResponseApiModel>();
             AssertValidRequest(results, lastLoginDate);
@@ -284,7 +316,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Single(resultModel.Results);
             Assert.True(resultModel.TotalCount > resultModel.Results.Count());
         }
-        
+
         private IIdentityServiceProvider CreateIdentityServiceProviderMock(string clientId, DateTime? lastLoginDate)
         {
             var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
@@ -334,7 +366,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         private void AssertValidRequest(MemberSearchResponseApiModel result, DateTime? lastLoginDate)
         {
-            var results = result.Results.ToList();            
+            var results = result.Results.ToList();
             Assert.Equal(2, results.Count);
 
             var result1 = results[0];
@@ -354,24 +386,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal("Brian", result2.LastName);
             Assert.NotNull(result2.LastLoginDateTimeUtc);
             Assert.Equal(lastLoginDate, result2.LastLoginDateTimeUtc.Value.ToUniversalTime());
-            Assert.Equal(2, result2.Roles.Count());
+            Assert.True(2 == result2.Roles.Count(), $"Role count = {result2.Roles.Count()}, roles = ${string.Join(",", result2.Roles)}");
             Assert.Contains(Fixture.ContributorAtlasRoleName, result2.Roles.Select(r => r.Name));
-        }
-
-        [Fact]
-        [IntegrationTestsFixture.DisplayTestMethodName]
-        public async Task MemberSearch_NoParams_BadRequestExceptionAsync()
-        {
-            Fixture.InitializeAtlasBrowser(new Mock<IIdentityServiceProvider>().Object);
-            var result = await Fixture.Browser.Get(
-                MemberSearchRoute,
-                with =>
-                    {
-                        with.HttpRequest();
-                        with.Header("Accept", "application/json");
-                    });
-
-            Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
         }
     }
 
