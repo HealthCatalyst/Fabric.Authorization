@@ -166,6 +166,23 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     with.Query("page_size", "2");
                 });
 
+            // ensure user has expected roles
+            var userResponse = await Fixture.Browser.Get($"/user/Windows/{Fixture.AtlasUserNoGroupName}",
+                with =>
+                {
+                    with.HttpRequest();
+                    with.Header("Accept", "application/json");
+                    with.Query("client_id", Fixture.AtlasClientId);
+                    with.Query("sort_key", "name");
+                    with.Query("sort_dir", "desc");
+                    with.Query("filter", "brian");
+                    with.Query("page_number", "1");
+                    with.Query("page_size", "2");
+                });
+
+            var userApiModel = userResponse.Body.DeserializeJson<UserApiModel>();
+            Assert.True(userApiModel.Roles.Count == 2, $"UserApiModel Role count = {userApiModel.Roles.Count}, UserApiModel.Roles = ${string.Join(",", userApiModel.Roles)}");
+
             var results = response.Body.DeserializeJson<MemberSearchResponseApiModel>();
             AssertValidRequest(results, lastLoginDate);
         }
@@ -354,7 +371,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal("Brian", result2.LastName);
             Assert.NotNull(result2.LastLoginDateTimeUtc);
             Assert.Equal(lastLoginDate, result2.LastLoginDateTimeUtc.Value.ToUniversalTime());
-            Assert.Equal(2, result2.Roles.Count());
+            Assert.True(2 == result2.Roles.Count(), $"Role count = {result2.Roles.Count()}, roles = ${string.Join(",", result2.Roles)}");
             Assert.Contains(Fixture.ContributorAtlasRoleName, result2.Roles.Select(r => r.Name));
         }
 
