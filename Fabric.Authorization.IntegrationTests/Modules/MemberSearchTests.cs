@@ -166,6 +166,22 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     with.Query("page_size", "2");
                 });
 
+            var userResponse = await Fixture.Browser.Get($"/user/Windows/{Fixture.AtlasUserNoGroupName}",
+                with =>
+                {
+                    with.HttpRequest();
+                    with.Header("Accept", "application/json");
+                    with.Query("client_id", Fixture.AtlasClientId);
+                    with.Query("sort_key", "name");
+                    with.Query("sort_dir", "desc");
+                    with.Query("filter", "brian");
+                    with.Query("page_number", "1");
+                    with.Query("page_size", "2");
+                });
+
+            var userApiModel = userResponse.Body.DeserializeJson<UserApiModel>();
+            Assert.True(userApiModel.Roles.Count == 2, $"Role count = {userApiModel.Roles.Count}, roles = ${string.Join(",", userApiModel.Roles)}");
+
             var results = response.Body.DeserializeJson<MemberSearchResponseApiModel>();
             AssertValidRequest(results, lastLoginDate);
         }
