@@ -32,7 +32,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Fixture.Initialize(StorageProviders.InMemory);
         }
 
-        [Fact(Skip = "Test")]
+        [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task MemberSearch_ClientIdDoesNotExist_NotFoundExceptionAsync()
         {
@@ -55,7 +55,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.NotFound, result.StatusCode);
         }
 
-        [Fact(Skip = "Test")]
+        [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task MemberSearch_ClientWithoutRoles_EmptyResponseAsync()
         {
@@ -81,7 +81,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Empty(results);
         }
 
-        [Fact(Skip = "Test")]
+        [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task MemberSearch_ClientWithRolesAndNoGroups_EmptyResponseAsync()
         {
@@ -107,7 +107,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Empty(results);
         }
 
-        [Fact(Skip = "Test")]
+        [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task MemberSearch_MissingRequiredRequestParameters_BadRequestExceptionAsync()
         {
@@ -124,7 +124,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
         }
 
-        [Fact(Skip="Test")]
+        [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task MemberSearch_BadRequestParameters_BadRequestExceptionAsync()
         {
