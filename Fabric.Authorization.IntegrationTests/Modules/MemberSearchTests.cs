@@ -172,12 +172,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 {
                     with.HttpRequest();
                     with.Header("Accept", "application/json");
-                    with.Query("client_id", Fixture.AtlasClientId);
-                    with.Query("sort_key", "name");
-                    with.Query("sort_dir", "desc");
-                    with.Query("filter", "brian");
-                    with.Query("page_number", "1");
-                    with.Query("page_size", "2");
                 });
 
             var userApiModel = userResponse.Body.DeserializeJson<UserApiModel>();
