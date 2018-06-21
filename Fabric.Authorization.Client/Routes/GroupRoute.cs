@@ -39,22 +39,22 @@
             _groupRoute = new GroupRoute();
         }
 
-        public GroupRoute Name(string name)
+        public GroupRouteBuilder Name(string name)
         {
             _groupRoute.Name = name;
-            return _groupRoute;
+            return this;
         }
 
-        public GroupRoute Grain(string grain)
+        public GroupRouteBuilder Grain(string grain)
         {
             _groupRoute.Grain = grain;
-            return _groupRoute;
+            return this;
         }
 
-        public GroupRoute SecurableItem(string securableItem)
+        public GroupRouteBuilder SecurableItem(string securableItem)
         {
             _groupRoute.SecurableItem = securableItem;
-            return _groupRoute;
+            return this;
         }
 
         public string Route => _groupRoute.ToString();

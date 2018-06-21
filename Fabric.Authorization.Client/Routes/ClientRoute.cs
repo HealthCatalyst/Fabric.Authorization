@@ -23,10 +23,10 @@
             _clientRoute = new ClientRoute();
         }
 
-        public ClientRoute ClientId(string clientId)
+        public ClientRouteBuilder ClientId(string clientId)
         {
             _clientRoute.ClientId = clientId;
-            return _clientRoute;
+            return this;
         }
 
         public string Route => _clientRoute.ToString();

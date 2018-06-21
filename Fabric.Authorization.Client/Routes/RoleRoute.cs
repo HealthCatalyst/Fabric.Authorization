@@ -45,28 +45,28 @@
             _roleRoute = new RoleRoute();
         }
 
-        public RoleRoute RoleId(string roleId)
+        public RoleRouteBuilder RoleId(string roleId)
         {
             _roleRoute.RoleId = roleId;
-            return _roleRoute;
+            return this;
         }
 
-        public RoleRoute Grain(string grain)
+        public RoleRouteBuilder Grain(string grain)
         {
             _roleRoute.Grain = grain;
-            return _roleRoute;
+            return this;
         }
 
-        public RoleRoute SecurableItem(string securableItem)
+        public RoleRouteBuilder SecurableItem(string securableItem)
         {
             _roleRoute.SecurableItem = securableItem;
-            return _roleRoute;
+            return this;
         }
 
-        public RoleRoute Name(string name)
+        public RoleRouteBuilder Name(string name)
         {
             _roleRoute.Name = name;
-            return _roleRoute;
+            return this;
         }
 
         public string Route => _roleRoute.ToString();
