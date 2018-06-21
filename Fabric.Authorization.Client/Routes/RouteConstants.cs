@@ -3,6 +3,7 @@
     internal static class RouteConstants
     {
         public const string UserRoute = "user";
+        public const string UserCollectionRoute = "users";
         public const string ClientCollectionRoute = "clients";
         public const string PermissionCollectionRoute = "permissions";
         public const string GroupCollectionRoute = "groups";

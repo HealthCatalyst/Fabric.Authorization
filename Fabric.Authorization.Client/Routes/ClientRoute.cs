@@ -2,14 +2,15 @@
 {
     internal class ClientRoute : BaseRoute
     {
-        public string BaseRoute { get; } = $"/{RouteConstants.ClientCollectionRoute}";
+        protected override string CollectionType { get; } = RouteConstants.ClientCollectionRoute;
+
         public string ClientId { get; set; }
 
         public override string ToString()
         {
-            return string.IsNullOrEmpty(ClientId)
-                ? $"{BaseRoute}"
-                : $"{BaseRoute}/{ClientId}";
+            return !string.IsNullOrEmpty(ClientId)
+                ? $"{BaseRouteSegment}/{ClientId}"
+                : $"{BaseRouteSegment}";
         }
     }
 
