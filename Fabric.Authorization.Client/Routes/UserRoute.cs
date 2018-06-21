@@ -27,16 +27,16 @@
             _userRoute = new UserRoute();
         }
 
-        public UserRoute IdentityProvider(string identityProvider)
+        public UserRouteBuilder IdentityProvider(string identityProvider)
         {
             _userRoute.IdentityProvider = identityProvider;
-            return _userRoute;
+            return this;
         }
 
-        public UserRoute SubjectId(string subjectId)
+        public UserRouteBuilder SubjectId(string subjectId)
         {
             _userRoute.SubjectId = subjectId;
-            return _userRoute;
+            return this;
         }
 
         public string Route => _userRoute.ToString();

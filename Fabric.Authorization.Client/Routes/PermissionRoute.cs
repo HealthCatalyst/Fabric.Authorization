@@ -42,28 +42,28 @@
             _permissionRoute = new PermissionRoute();
         }
 
-        public PermissionRoute PermissionId(string permissionId)
+        public PermissionRouteBuilder PermissionId(string permissionId)
         {
             _permissionRoute.PermissionId = permissionId;
-            return _permissionRoute;
+            return this;
         }
 
-        public PermissionRoute Grain(string grain)
+        public PermissionRouteBuilder Grain(string grain)
         {
             _permissionRoute.Grain = grain;
-            return _permissionRoute;
+            return this;
         }
 
-        public PermissionRoute SecurableItem(string securableItem)
+        public PermissionRouteBuilder SecurableItem(string securableItem)
         {
             _permissionRoute.SecurableItem = securableItem;
-            return _permissionRoute;
+            return this;
         }
 
-        public PermissionRoute Name(string name)
+        public PermissionRouteBuilder Name(string name)
         {
             _permissionRoute.Name = name;
-            return _permissionRoute;
+            return this;
         }
 
         public string Route => _permissionRoute.ToString();

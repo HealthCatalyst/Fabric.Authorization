@@ -23,10 +23,12 @@
             _securableItemRoute = new SecurableItemRoute();
         }
 
-        public SecurableItemRoute SecurableItemId(string securableItemId)
+        public SecurableItemRouteBuilder SecurableItemId(string securableItemId)
         {
             _securableItemRoute.SecurableItemId = securableItemId;
-            return _securableItemRoute;
+            return this;
         }
+
+        public string Route => _securableItemRoute.ToString();
     }
 }
