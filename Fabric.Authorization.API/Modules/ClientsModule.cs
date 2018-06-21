@@ -23,7 +23,7 @@ namespace Fabric.Authorization.API.Modules
 
         public ClientsModule(ClientService clientService, ClientValidator validator, ILogger logger,
             AccessService accessService, RoleService roleService, PermissionService permissionService) : base(
-            "/v1/Clients", logger, validator, accessService)
+            "/v1/clients", logger, validator, accessService)
         {
             //private members
             _clientService = clientService ?? throw new ArgumentNullException(nameof(clientService));
