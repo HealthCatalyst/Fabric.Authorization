@@ -24,7 +24,7 @@ namespace Fabric.Authorization.API.Modules
             AccessService accessService,
             ClientService clientService,
             GrainService grainService,
-            ILogger logger) : base("/v1/SecurableItems", logger, validator, accessService)
+            ILogger logger) : base("/v1/securableitems", logger, validator, accessService)
         {
             _clientService = clientService ??
                             throw new ArgumentNullException(nameof(clientService));

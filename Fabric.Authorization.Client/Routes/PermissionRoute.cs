@@ -2,7 +2,7 @@
 {
     internal class PermissionRoute : BaseRoute
     {
-        public static string BaseRoute { get; } = $"/{RouteConstants.PermissionCollectionRoute}";
+        protected override string CollectionType { get; } = RouteConstants.PermissionCollectionRoute;
 
         public string PermissionId { get; set; }
         public string Grain { get; set; }
@@ -13,7 +13,7 @@
         {
             if (!string.IsNullOrEmpty(Grain))
             {
-                var route = $"{BaseRoute}/{Grain}";
+                var route = $"{BaseRouteSegment}/{Grain}";
                 if (!string.IsNullOrEmpty(SecurableItem))
                 {
                     route = $"{route}/{SecurableItem}";
@@ -27,12 +27,9 @@
                 return route;
             }
 
-            if (!string.IsNullOrEmpty(PermissionId))
-            {
-                return $"{BaseRoute}/{PermissionId}";
-            }
-
-            return BaseRoute;
+            return !string.IsNullOrEmpty(PermissionId)
+                ? $"{BaseRouteSegment}/{PermissionId}"
+                : BaseRouteSegment;
         }
     }
 

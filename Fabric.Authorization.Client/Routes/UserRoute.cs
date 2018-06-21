@@ -2,7 +2,7 @@
 {
     internal class UserRoute : BaseRoute
     {
-        public static string BaseRoute { get; } = $"/{RouteConstants.UserRoute}";
+        protected override string CollectionType { get; } = RouteConstants.UserRoute;
 
         public string IdentityProvider { get; set; }
         public string SubjectId { get; set; }
@@ -11,10 +11,10 @@
         {
             if (string.IsNullOrEmpty(IdentityProvider) && string.IsNullOrEmpty(SubjectId))
             {
-                return BaseRoute;
+                return BaseRouteSegment;
             }
 
-            return $"{BaseRoute}/{IdentityProvider}/{SubjectId}";
+            return $"{BaseRouteSegment}/{IdentityProvider}/{SubjectId}";
         }
     }
 

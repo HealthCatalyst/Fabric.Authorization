@@ -1,7 +1,9 @@
 ﻿namespace Fabric.Authorization.Client.Routes
 {
-    public abstract class BaseRoute
+    internal abstract class BaseRoute
     {
-        
+        protected abstract string CollectionType { get; }
+
+        protected virtual string BaseRouteSegment => $"/{CollectionType}";
     }
 }
