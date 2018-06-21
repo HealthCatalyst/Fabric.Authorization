@@ -1,6 +1,6 @@
-﻿using System;
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Threading.Tasks;
+using Fabric.Authorization.Client.Routes;
 using Fabric.Authorization.Models;
 using Newtonsoft.Json;
 
@@ -17,7 +17,7 @@ namespace Fabric.Authorization.Client
 
         public async Task<UserApiModel> GetPermissionsForCurrentUser()
         {
-            var route = AuthorizationRoutes.GetUserPermissionUrl();
+            var route = new UserRouteBuilder().UserPermissionsRoute;
             var message = new HttpRequestMessage(HttpMethod.Get, route);
             return await SendAndParseJson<UserApiModel>(message).ConfigureAwait(false);
         }

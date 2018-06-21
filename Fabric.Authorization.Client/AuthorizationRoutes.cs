@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Fabric.Authorization.Client
+﻿namespace Fabric.Authorization.Client
 {
     internal static class AuthorizationRoutes
     {
