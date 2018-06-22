@@ -300,7 +300,7 @@ namespace Fabric.Authorization.Client
                 throw new AuthorizationException(new Error
                 {
                     Code = response.StatusCode.ToString(),
-                    Message = "Unknown error occurred"
+                    Message = response.ReasonPhrase
                 });
             }
         }
