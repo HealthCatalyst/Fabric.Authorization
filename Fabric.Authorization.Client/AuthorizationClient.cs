@@ -291,7 +291,7 @@ namespace Fabric.Authorization.Client
 
             if (!response.IsSuccessStatusCode)
             {
-                if (response.StatusCode <= HttpStatusCode.InternalServerError)
+                if (response.StatusCode < HttpStatusCode.InternalServerError)
                 {
                     var error = JsonConvert.DeserializeObject<Error>(stringResponse);
                     throw new AuthorizationException(error);
