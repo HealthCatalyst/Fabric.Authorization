@@ -609,6 +609,13 @@ Write-Host ""
 Write-Host "Prerequisite checks complete...installing."
 Write-Host ""
 
+$appDirectory = [System.IO.Path]::Combine($webroot, $appName)
+New-AppRoot $appDirectory $iisUser
+Write-Host "App directory is: $appDirectory"
+New-AppPool $appName $iisUser $credential
+New-App $appName $siteName $appDirectory
+Publish-WebSite $zipPackage $appDirectory $appName
+Add-DatabaseSecurity $iisUser $authorizationDatabaseRole $authorizationDbConnStr
 
 if (!($noDiscoveryService)) {
     Write-Host ""
@@ -630,14 +637,6 @@ if (!($noDiscoveryService)) {
     Add-DiscoveryRegistration $discoveryServiceUrl  $credential $discoveryPostBody
     Write-Host ""
 }
-
-$appDirectory = [System.IO.Path]::Combine($webroot, $appName)
-New-AppRoot $appDirectory $iisUser
-Write-Host "App directory is: $appDirectory"
-New-AppPool $appName $iisUser $credential
-New-App $appName $siteName $appDirectory
-Publish-WebSite $zipPackage $appDirectory $appName
-Add-DatabaseSecurity $iisUser $authorizationDatabaseRole $authorizationDbConnStr
 
 Set-Location $workingDirectory
 
