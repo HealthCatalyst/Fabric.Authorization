@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Fabric.Authorization.Client.Extensions;
@@ -290,8 +291,17 @@ namespace Fabric.Authorization.Client
 
             if (!response.IsSuccessStatusCode)
             {
-                var error = JsonConvert.DeserializeObject<Error>(stringResponse);
-                throw new AuthorizationException(error);
+                if (response.StatusCode <= HttpStatusCode.InternalServerError)
+                {
+                    var error = JsonConvert.DeserializeObject<Error>(stringResponse);
+                    throw new AuthorizationException(error);
+                }
+
+                throw new AuthorizationException(new Error
+                {
+                    Code = response.StatusCode.ToString(),
+                    Message = "Unknown error occurred"
+                });
             }
         }
     }
