@@ -143,7 +143,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
         }
 
-        [Fact(Skip="Flaky test ignoring until fixed in master")]
+        [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task MemberSearch_ValidClientIdRequest_SuccessAsync()
         {
