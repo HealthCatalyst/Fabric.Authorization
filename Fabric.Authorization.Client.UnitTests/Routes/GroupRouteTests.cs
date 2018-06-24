@@ -20,13 +20,6 @@ namespace Fabric.Authorization.Client.UnitTests.Routes
         }
 
         [Fact]
-        public void GroupRouteBuilderRolesRoute_WithGroupName_Success()
-        {
-            var route = new GroupRouteBuilder().Name("groupName").Grain("app").GroupRolesRoute;
-            Assert.Equal($"/{RouteConstants.GroupCollectionRoute}/groupName/app/roles", route);
-        }
-
-        [Fact]
         public void GroupRouteBuilderRolesRoute_WithGroupNameAndGrainAndSecurableItem_Success()
         {
             var route = new GroupRouteBuilder().Name("groupName").Grain("app").SecurableItem("patientsafety").GroupRolesRoute;
