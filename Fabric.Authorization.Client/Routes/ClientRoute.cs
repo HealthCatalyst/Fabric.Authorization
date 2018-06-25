@@ -1,8 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-
-[assembly: InternalsVisibleTo("Fabric.Authorization.Client.UnitTests")]
-
-namespace Fabric.Authorization.Client.Routes
+﻿namespace Fabric.Authorization.Client.Routes
 {
     internal class ClientRoute : BaseRoute
     {
