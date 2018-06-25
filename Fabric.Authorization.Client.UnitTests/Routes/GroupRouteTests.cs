@@ -23,21 +23,21 @@ namespace Fabric.Authorization.Client.UnitTests.Routes
         public void GroupRouteBuilderRolesRoute_WithGroupNameAndGrainAndSecurableItem_Success()
         {
             var route = new GroupRouteBuilder().Name("groupName").Grain("app").SecurableItem("patientsafety").GroupRolesRoute;
-            Assert.Equal($"/{RouteConstants.GroupCollectionRoute}/groupName/app/patientsafety/roles", route);
+            Assert.Equal($"/{RouteConstants.GroupCollectionRoute}/groupName/app/patientsafety/{RouteConstants.RoleCollectionRoute}", route);
         }
 
         [Fact]
         public void GroupRouteBuilderRolesRoute_WithGroupNameAndSecurableItemAndNoGrain_Success()
         {
             var route = new GroupRouteBuilder().Name("groupName").SecurableItem("patientsafety").GroupRolesRoute;
-            Assert.Equal($"/{RouteConstants.GroupCollectionRoute}/groupName/roles", route);
+            Assert.Equal($"/{RouteConstants.GroupCollectionRoute}/groupName/{RouteConstants.RoleCollectionRoute}", route);
         }
 
         [Fact]
         public void GroupRouteBuilderUsersRoute_WithGroupName_Success()
         {
             var route = new GroupRouteBuilder().Name("groupName").GroupUsersRoute;
-            Assert.Equal($"/{RouteConstants.GroupCollectionRoute}/groupName/users", route);
+            Assert.Equal($"/{RouteConstants.GroupCollectionRoute}/groupName/{RouteConstants.UserCollectionRoute}", route);
         }
     }
 }
