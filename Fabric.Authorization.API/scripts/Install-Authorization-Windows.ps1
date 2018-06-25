@@ -634,7 +634,12 @@ if (!($noDiscoveryService)) {
         serviceUrl = "$authorizationServiceUrl/v1"
     }
 
-    Add-DiscoveryRegistration $discoveryServiceUrl  $credential $discoveryPostBody
+    $discoveryRegisterUrl = $discoveryServiceUrl
+    # append default /v1 if version does not exist
+    if($discoveryRegisterUrl -notmatch '/v\d+/*$') {
+        $discoveryRegisterUrl = "$discoveryRegisterUrl/v1"
+    }
+    Add-DiscoveryRegistration $discoveryRegisterUrl  $credential $discoveryPostBody
     Write-Host ""
 }
 
