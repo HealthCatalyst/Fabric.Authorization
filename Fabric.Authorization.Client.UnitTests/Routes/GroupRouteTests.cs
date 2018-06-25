@@ -6,14 +6,14 @@ namespace Fabric.Authorization.Client.UnitTests.Routes
     public class GroupRouteTests
     {
         [Fact]
-        public void GroupRouteBuilderRoute_NoParameters_Success()
+        public void GroupRouteBuilder_NoParameters_Success()
         {
             var route = new GroupRouteBuilder().Route;
             Assert.Equal($"/{RouteConstants.GroupCollectionRoute}", route);
         }
 
         [Fact]
-        public void GroupRouteBuilderRoute_WithGroupName_Success()
+        public void GroupRouteBuilder_WithGroupName_Success()
         {
             var route = new GroupRouteBuilder().Name("groupName").Route;
             Assert.Equal($"/{RouteConstants.GroupCollectionRoute}/groupName", route);
