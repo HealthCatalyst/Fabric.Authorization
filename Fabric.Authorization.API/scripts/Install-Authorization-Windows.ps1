@@ -499,6 +499,7 @@ if (!($noDiscoveryService)) {
         $discoveryServiceUrl = $userEnteredDiscoveryServiceUrl
     }
 
+    $discoveryServiceUrl = $discoveryServiceUrl.TrimEnd('/')
 }
 
 
