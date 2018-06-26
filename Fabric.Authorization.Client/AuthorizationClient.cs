@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -31,14 +32,18 @@ namespace Fabric.Authorization.Client
             return await SendAndParseJson<UserApiModel>(message).ConfigureAwait(false);
         }
 
-        public async Task<UserApiModel> GetPermissionsForCurrentUser(string accessToken)
+        public async Task<UserPermissionsApiModel> GetPermissionsForCurrentUser(string accessToken)
         {
+            CheckIfNull(accessToken, nameof(accessToken));
+
             var route = new UserRouteBuilder().UserPermissionsRoute;
-            var message = new HttpRequestMessage(HttpMethod.Get, route).AddBearerToken(accessToken);
+            var message = new HttpRequestMessage(HttpMethod.Get, route)
+                .AddBearerToken(accessToken)
+                .AddAcceptHeader(ClientConstants.ApplicationJson);
 
-            return await SendAndParseJson<UserApiModel>(message).ConfigureAwait(false);
+            return await SendAndParseJson<UserPermissionsApiModel>(message).ConfigureAwait(false);
         }
-
+        
         public async Task<List<PermissionApiModel>> GetUserPermissions(string accessToken, string identityProvider, string subjectId)
         {
             var message = new HttpRequestMessage(HttpMethod.Get,
@@ -270,6 +275,19 @@ namespace Fabric.Authorization.Client
 
         #endregion
 
+        private void CheckIfNull(string value, string name)
+        {
+            if(string.IsNullOrEmpty(value))
+            {
+                var errorMessage = new Error()
+                {
+                     Message = $"Value {name} cannot be null or empty."
+                };
+
+                throw new AuthorizationException(errorMessage);
+            }
+        }
+
         private async Task<T> SendAndParseJson<T>(HttpRequestMessage message)
         {
             var response = await client.SendAsync(message).ConfigureAwait(false);
@@ -280,8 +298,28 @@ namespace Fabric.Authorization.Client
                 return JsonConvert.DeserializeObject<T>(stringResponse);
             }
 
-            var error = JsonConvert.DeserializeObject<Error>(stringResponse);
-            throw new AuthorizationException(error);
+            try
+            {
+                var error = JsonConvert.DeserializeObject<Error>(stringResponse);
+                if (error == null)
+                {
+                    error = new Error()
+                    {
+                        Message = stringResponse,
+                        Code = response.StatusCode.ToString()
+                    };
+                }
+                throw new AuthorizationException(error);
+            }
+            catch(JsonSerializationException)
+            {
+                var error = new Error()
+                {
+                     Code = response.StatusCode.ToString(),
+                     Message = stringResponse
+                };
+                throw new AuthorizationException(error);
+            }
         }
 
         private async Task SendRequest(HttpRequestMessage message)
