@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp1.1</TargetFramework>
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Fabric.Authorization.Client\Fabric.Authorization.Client.csproj" />
+    <ProjectReference Include="..\Fabric.Authorization.Models\Fabric.Authorization.Models.csproj" />
   </ItemGroup>
 
 </Project>
