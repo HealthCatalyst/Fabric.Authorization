@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -14,11 +15,11 @@ namespace Fabric.Authorization.Client
     public class AuthorizationClient
     {
         
-        private readonly HttpClient client;
+        private readonly HttpClient _client;
 
         public AuthorizationClient(HttpClient client)
         {
-            this.client = client;
+            this._client = client;
         }
 
         #region Users
@@ -32,18 +33,42 @@ namespace Fabric.Authorization.Client
             return await SendAndParseJson<UserApiModel>(message).ConfigureAwait(false);
         }
 
-        public async Task<UserPermissionsApiModel> GetPermissionsForCurrentUser(string accessToken)
+        public async Task<UserPermissionsApiModel> GetPermissionsForCurrentUser(string accessToken, string grain = "", string securableItem = "")
         {
-            CheckIfNull(accessToken, nameof(accessToken));
+            CheckIfStringNullOrEmpty(accessToken, nameof(accessToken));
 
-            var route = new UserRouteBuilder().UserPermissionsRoute;
+            var route = new UserRouteBuilder()
+                            .Grain(grain)
+                            .SecurableItem(securableItem)
+                            .UserPermissionsRoute;
             var message = new HttpRequestMessage(HttpMethod.Get, route)
                 .AddBearerToken(accessToken)
                 .AddAcceptHeader(ClientConstants.ApplicationJson);
 
             return await SendAndParseJson<UserPermissionsApiModel>(message).ConfigureAwait(false);
         }
-        
+
+        public async Task<bool> DoesUserHavePermission(string accessToken, string permission)
+        {
+            CheckIfStringNullOrEmpty(accessToken, nameof(accessToken));
+            CheckIfStringNullOrEmpty(permission, nameof(permission));
+
+            var userPermissions = await this.GetPermissionsForCurrentUser(accessToken).ConfigureAwait(false);
+            return DoesUserHavePermission(userPermissions, permission);
+        }
+
+        public bool DoesUserHavePermission(UserPermissionsApiModel userPermissions, string permission)
+        {
+            if(userPermissions == null)
+            {
+                return false;
+            }
+
+            CheckIfStringNullOrEmpty(permission, nameof(permission));
+
+            return userPermissions.Permissions.Any(p => p == permission);
+        }
+
         public async Task<List<PermissionApiModel>> GetUserPermissions(string accessToken, string identityProvider, string subjectId)
         {
             var message = new HttpRequestMessage(HttpMethod.Get,
@@ -94,7 +119,6 @@ namespace Fabric.Authorization.Client
         }
 
         #endregion
-
 
         #region Clients
 
@@ -275,7 +299,7 @@ namespace Fabric.Authorization.Client
 
         #endregion
 
-        private void CheckIfNull(string value, string name)
+        private void CheckIfStringNullOrEmpty(string value, string name)
         {
             if(string.IsNullOrEmpty(value))
             {
@@ -288,9 +312,22 @@ namespace Fabric.Authorization.Client
             }
         }
 
+        private void CheckIfNull(object value, string name)
+        {
+            if (value == null)
+            {
+                var errorMessage = new Error()
+                {
+                    Message = $"Value {name} cannot be null or empty."
+                };
+
+                throw new AuthorizationException(errorMessage);
+            }
+        }
+
         private async Task<T> SendAndParseJson<T>(HttpRequestMessage message)
         {
-            var response = await client.SendAsync(message).ConfigureAwait(false);
+            var response = await _client.SendAsync(message).ConfigureAwait(false);
             var stringResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             if (response.IsSuccessStatusCode)
@@ -324,7 +361,7 @@ namespace Fabric.Authorization.Client
 
         private async Task SendRequest(HttpRequestMessage message)
         {
-            var response = await client.SendAsync(message).ConfigureAwait(false);
+            var response = await _client.SendAsync(message).ConfigureAwait(false);
             var stringResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)

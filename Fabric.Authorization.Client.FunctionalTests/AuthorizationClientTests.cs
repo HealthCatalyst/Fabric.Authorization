@@ -1,8 +1,7 @@
-namespace Fabric.Authorization.Client.IntegrationTests
+namespace Fabric.Authorization.Client.FunctionalTests
 {
     using Fabric.Authorization.Models.Enums;
     using System.Linq;
-    using Fabric.Authorization.Client.FunctionalTests;
     using Fabric.Authorization.Models;
     using System;
     using System.Net.Http;
@@ -75,5 +74,65 @@ namespace Fabric.Authorization.Client.IntegrationTests
             Assert.True(result.Permissions.Any<string>());
             Assert.True(result.PermissionRequestContexts.Any<PermissionRequestContext>());
         }
+
+        [Fact]
+        public async Task GetPermissionsForCurrentUser_GrainAndSecurableItems_GetValidUser_OK()
+        {
+            // arrange
+            string token = await this.fixture.GetUserAccessToken(FunctionalTestConstants.BobUserName, FunctionalTestConstants.BobPassword);
+
+            // act
+            var result = await this._subject.GetPermissionsForCurrentUser(token, FunctionalTestConstants.Grain, FunctionalTestConstants.IdentityTestUser);
+
+            // assert
+            Assert.NotNull(result);
+            Assert.True(result.Permissions.Any<string>());
+            Assert.True(result.PermissionRequestContexts.Any<PermissionRequestContext>());
+        }
+
+        [Fact]
+        public async Task GetPermissionsForCurrentUser_InvalidGrain_RetrievesNoPermissions()
+        {
+            // arrange
+            string token = await this.fixture.GetUserAccessToken(FunctionalTestConstants.BobUserName, FunctionalTestConstants.BobPassword);
+
+            // act
+            var result = await this._subject.GetPermissionsForCurrentUser(token, "EmptyApp", "EmptyApp");
+
+            // assert
+            Assert.NotNull(result);
+            Assert.False(result.Permissions.Any<string>());
+            Assert.False(result.PermissionRequestContexts.Any<PermissionRequestContext>());
+        }
+
+        [Fact]
+        public async Task DoesUserHavePermission_UserCanView_True()
+        {
+            // arrange
+            string token = await this.fixture.GetUserAccessToken(FunctionalTestConstants.BobUserName, FunctionalTestConstants.BobPassword);
+            string permissions = $"{FunctionalTestConstants.Grain}/{FunctionalTestConstants.IdentityTestUser}.userCanView";
+
+            // act
+            var result = await this._subject.DoesUserHavePermission(token, permissions);
+
+            // assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public async Task DoesUserHavePermission_InvalidPermission_False()
+        {
+            // arrange
+            string token = await this.fixture.GetUserAccessToken(FunctionalTestConstants.BobUserName, FunctionalTestConstants.BobPassword);
+            var userPermissions = await this._subject.GetPermissionsForCurrentUser(token);
+            string permissions = $"{FunctionalTestConstants.Grain}/{FunctionalTestConstants.IdentityTestUser}.userCanView2";
+
+            // act
+            var result = this._subject.DoesUserHavePermission(userPermissions, permissions);
+
+            // assert
+            Assert.False(result);
+        }
+
     }
 }
