@@ -1,4 +1,7 @@
-﻿namespace Fabric.Authorization.Client.Routes
+﻿using System;
+using System.Collections.Generic;
+
+namespace Fabric.Authorization.Client.Routes
 {
     internal class UserRoute : BaseRoute
     {
@@ -21,10 +24,12 @@
     internal class UserRouteBuilder
     {
         private readonly UserRoute _userRoute;
+        private readonly IDictionary<string, string> _queryParameters;
 
         public UserRouteBuilder()
         {
             _userRoute = new UserRoute();
+            _queryParameters = new Dictionary<string, string>();
         }
 
         public UserRouteBuilder IdentityProvider(string identityProvider)
@@ -39,9 +44,27 @@
             return this;
         }
 
+        public UserRouteBuilder Grain(string grain)
+        {
+            this._queryParameters.Add(ClientConstants.Grain, grain);
+            return this;
+        }
+
+        public UserRouteBuilder SecurableItem(string securableItem)
+        {
+            this._queryParameters.Add(ClientConstants.SecurableItem, securableItem);
+            return this;
+        }
+
         public string Route => _userRoute.ToString();
-        public string UserPermissionsRoute => $"{Route}/{RouteConstants.PermissionCollectionRoute}";
+        public string UserPermissionsRoute => AppendQueryParameters($"{Route}/{RouteConstants.PermissionCollectionRoute}");
         public string UserRolesRoute => $"{Route}/{RouteConstants.RoleCollectionRoute}";
         public string UserGroupsRoute => $"{Route}/{RouteConstants.GroupCollectionRoute}";
+
+
+        protected string AppendQueryParameters(string url)
+        {
+            return Microsoft.AspNetCore.WebUtilities.QueryHelpers.AddQueryString(url, _queryParameters);
+        }
     }
 }

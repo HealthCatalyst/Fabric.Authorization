@@ -46,6 +46,7 @@
             tokenForAuthClient.Wait();
             this._authAccessToken = tokenForAuthClient.Result;
 
+            // comment these out if you have ran them once locally.  
             Task.Run(async () => await this.RegisterClient()).Wait();
             Task.Run(async () => await this.RegisterViewPermissions()).Wait();
             Task.Run(async () => await this.RegisterEditPermissions()).Wait();
@@ -55,14 +56,14 @@
             Task.Run(async () => await this.AssociateUserWithGroup()).Wait();
             Task.Run(async () => await this.AssociateRolesWithPermissions()).Wait();
         }
-        
+
         private void GetParameters()
         {
             this.args = new FunctionalTestSettings();
-            this.args.IdentityBaseUrl = Environment.GetEnvironmentVariable("FABRIC_IDENTITY_URL");
-            this.args.AuthorizationBaseUrl = Environment.GetEnvironmentVariable("FABRIC_AUTH_URL");
-            this.args.InstallerClientSecret = Environment.GetEnvironmentVariable("FABRIC_INSTALLER_SECRET");
-            this.args.AuthClientSecret = Environment.GetEnvironmentVariable("FABRIC_AUTH_SECRET");
+            this.args.IdentityBaseUrl = Environment.GetEnvironmentVariable("FABRIC_IDENTITY_URL") ?? "http://localhost:5001/";
+            this.args.AuthorizationBaseUrl = Environment.GetEnvironmentVariable("FABRIC_AUTH_URL") ?? "http://localhost:5004/";
+            this.args.InstallerClientSecret = Environment.GetEnvironmentVariable("FABRIC_INSTALLER_SECRET") ?? "rXe89lgOd0eUr5RJ";
+            this.args.AuthClientSecret = Environment.GetEnvironmentVariable("FABRIC_AUTH_SECRET") ?? "78hL/jkKZEmL/5Zz";
             Console.WriteLine(string.Format("Test configured with: {0}={1}", (object)"FABRIC_IDENTITY_URL", (object)this.args.IdentityBaseUrl));
             Console.WriteLine(string.Format("Test configured with: {0}={1}", (object)"FABRIC_AUTH_URL", (object)this.args.AuthorizationBaseUrl));
             Console.WriteLine(string.Format("Test configured with: {0}={1}", (object)"FABRIC_INSTALLER_SECRET", (object)this.args.InstallerClientSecret));

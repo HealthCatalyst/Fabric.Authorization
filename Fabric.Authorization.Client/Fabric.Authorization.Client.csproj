@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="1.1.2" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Fabric.Authorization.Models\Fabric.Authorization.Models.csproj" />
   </ItemGroup>
 

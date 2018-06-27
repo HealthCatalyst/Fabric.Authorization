@@ -1,35 +1,104 @@
 namespace Fabric.Authorization.Client.UnitTests
 {
+    using Fabric.Authorization.Models;
+    using System;
+    using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
     using Xunit;
 
     public class AuthorizationClientTests
     {
-        private AuthorizationClient subject;
-        private HttpClient client;
+        private AuthorizationClient _subject;
+        private HttpClient _client;
+        private UserPermissionsApiModel _userPermission;
 
         /// <summary>
         /// This is the test initializer.
         /// </summary>
         public AuthorizationClientTests()
         {
-            client = new HttpClient();
-            subject = new AuthorizationClient(client);
+            _client = new HttpClient();
+            _subject = new AuthorizationClient(_client);
+            _userPermission = new UserPermissionsApiModel()
+            {
+                PermissionRequestContexts = new List<PermissionRequestContext>()
+                 {
+                     new PermissionRequestContext()
+                     {
+                          RequestedGrain = "app",
+                          RequestedSecurableItem = "unit-test"
+                     }
+                 },
+                Permissions = new List<string>()
+                {
+                    "edit",
+                    "view"
+                }
+            };
         }
 
         [Fact]
-        public async Task Test1()
+        public async Task DoesUserHavePermission_NullPermission_ThrowAuthorizationException()
         {
             // Arrange
-            // Todo: Change this to have a mocked httpclient
-            client = new HttpClient();
+            string permission = null;
+            var userPermissions = new UserPermissionsApiModel();
 
             // Act
-            //var result = await subject.GetPermissionsForCurrentUser("");
+            try
+            {
+                _subject.DoesUserHavePermission(userPermissions, permission);
+            }
+            catch (Exception exc)
+            {
+                // Assert
+                var authorizationException = exc as AuthorizationException;
+                Assert.NotNull(authorizationException);
+                Assert.Contains("Value permission cannot be null or empty.", exc.Message);
+            }
+        }
 
-            // Assert
-            //Assert.NotNull(result);
+        [Fact]
+        public async Task DoesUserHavePermission_NullUserPermissions_False()
+        {
+            // Arrange
+            string permission = "awesomepermission";
+            UserPermissionsApiModel userPermissions = null;
+
+            // Act
+            var result = _subject.DoesUserHavePermission(userPermissions, permission);
+
+            //Assert
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task DoesUserHavePermission_InvalidUserPermissions_False()
+        {
+            // Arrange
+            string permission = "admin";
+            var userPermissions = _userPermission;
+
+            // Act
+            var result = _subject.DoesUserHavePermission(userPermissions, permission);
+
+            //Assert
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task DoesUserHavePermission_MatchUserPermissions_True()
+        {
+            // Arrange
+            string permission = "edit";
+            var userPermissions = _userPermission;
+
+            // Act
+            var result = _subject.DoesUserHavePermission(userPermissions, permission);
+
+            //Assert
+            Assert.True(result);
         }
     }
 }

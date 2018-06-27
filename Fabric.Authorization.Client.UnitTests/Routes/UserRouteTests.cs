@@ -46,5 +46,41 @@ namespace Fabric.Authorization.Client.UnitTests.Routes
             var route = new UserRouteBuilder().IdentityProvider("windows").SubjectId("first.last").UserRolesRoute;
             Assert.Equal($"/{RouteConstants.UserRoute}/windows/first.last/{RouteConstants.RoleCollectionRoute}", route);
         }
+
+        [Fact]
+        public void UserPermissionsRouteBuilder_NoOptions_Success()
+        {
+            var actualRoute = new UserRouteBuilder().UserPermissionsRoute;
+            var expectedRoute = $"/{RouteConstants.UserRoute}/{RouteConstants.PermissionCollectionRoute}";
+            Assert.Equal(expectedRoute, actualRoute);
+        }
+
+        [Fact]
+        public void UserPermissionsRouteBuilder_WithSecurableItem_Success()
+        {
+            var securableItem = "unit-test";
+            var actualRoute = new UserRouteBuilder().SecurableItem(securableItem).UserPermissionsRoute;
+            var expectedRoute = $"/{RouteConstants.UserRoute}/{RouteConstants.PermissionCollectionRoute}?{ClientConstants.SecurableItem}={securableItem}";
+            Assert.Equal(expectedRoute, actualRoute);
+        }
+
+        [Fact]
+        public void UserPermissionsRouteBuilder_WithGrain_Success()
+        {
+            var grain = "app";
+            var actualRoute = new UserRouteBuilder().Grain(grain).UserPermissionsRoute;
+            var expectedRoute = $"/{RouteConstants.UserRoute}/{RouteConstants.PermissionCollectionRoute}?{ClientConstants.Grain}={grain}";
+            Assert.Equal(expectedRoute, actualRoute);
+        }
+
+        [Fact]
+        public void UserPermissionsRouteBuilder_WithGrainAndSecurableItem_Success()
+        {
+            var grain = "app";
+            var securableItem = "unit-test";
+            var actualRoute = new UserRouteBuilder().Grain(grain).SecurableItem(securableItem).UserPermissionsRoute;
+            var expectedRoute = $"/{RouteConstants.UserRoute}/{RouteConstants.PermissionCollectionRoute}?{ClientConstants.Grain}={grain}&{ClientConstants.SecurableItem}={securableItem}";
+            Assert.Equal(expectedRoute, actualRoute);
+        }
     }
 }
