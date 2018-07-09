@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Fabric.Authorization.Client\Fabric.Authorization.Client.csproj" />
+    <ProjectReference Include="..\Fabric.Authorization.Models\Fabric.Authorization.Models.csproj" />
   </ItemGroup>
 
 </Project>
