@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Fabric.Authorization.Models.Enums
+﻿namespace Fabric.Authorization.Models.Enums
 {
     //
     // Summary:

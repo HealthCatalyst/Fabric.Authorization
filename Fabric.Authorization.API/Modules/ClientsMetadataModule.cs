@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Fabric.Authorization.API.Models;
 using Nancy;
 using Nancy.Swagger;
@@ -20,7 +22,7 @@ namespace Fabric.Authorization.API.Modules
         };
 
         private readonly Tag _clientsTag =
-            new Tag {Name = "Clients", Description = "Operations for managing clients"};
+            new Tag {Name = "clients", Description = "Operations for managing clients"};
 
         public ClientsMetadataModule(ISwaggerModelCatalog modelCatalog, ISwaggerTagCatalog tagCatalog)
             : base(modelCatalog, tagCatalog)
@@ -28,9 +30,27 @@ namespace Fabric.Authorization.API.Modules
             modelCatalog.AddModels(
                 typeof(Guid),
                 typeof(Guid?),
+                typeof(ClientApiModel),
+                //typeof(IEnumerable<ClientApiModel>),
                 typeof(SecurableItemApiModel),
                 typeof(DateTime?),
                 typeof(InnerError));
+
+            var smd = modelCatalog.GetModelForType<ClientApiModel>();
+
+            var swaggerModelData = SwaggerModelData.ForType<ClientApiModel>(p =>
+            {
+                p.Property(model => model.Id)
+                    .Required(true)
+                    .Description("Unique client ID - required for all operations except for POST")
+                    .Default("abc");
+            });
+
+           // var swaggerModelData2 = modelCatalog.AddModel<ClientApiModel>();
+            var clientIdProperty = smd.Properties.Single(p => p.Name == "Id");
+            clientIdProperty.Required = true;
+            clientIdProperty.Description = "Unique client ID - required for all operations except for POST";
+            clientIdProperty.DefaultValue = "abc";
 
             RouteDescriber.DescribeRoute(
                 "GetClients",
@@ -38,7 +58,7 @@ namespace Fabric.Authorization.API.Modules
                 "Gets all registered clients",
                 new[]
                 {
-                    new HttpResponseMetadata<ClientApiModel> {Code = (int) HttpStatusCode.OK, Message = "OK"},
+                    new HttpResponseMetadata<IEnumerable<ClientApiModel>> {Code = (int) HttpStatusCode.OK, Message = "OK"},
                     new HttpResponseMetadata
                     {
                         Code = (int) HttpStatusCode.Forbidden,
