@@ -325,7 +325,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .SingleOrDefaultAsync(gu =>
                     gu.SubjectId == user.SubjectId &&
                     gu.IdentityProvider == user.IdentityProvider &&
-                    gu.GroupId == group.Id);
+                    gu.GroupId == group.Id && !gu.IsDeleted);
 
             if (groupUser == null)
             {
