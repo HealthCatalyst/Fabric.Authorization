@@ -1130,7 +1130,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             userList = responseEntity.ToList();
             Assert.Empty(userList);
 
-            // ensure the deletion is reflected in the user model
             response = await Browser.Get($"/user/{identityProvider}/{subject1Id}/groups", with =>
             {
                 with.HttpRequest();
