@@ -1048,6 +1048,103 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
+        public async Task DeleteUserFromGroup_UserSoftDeletedTwice_SuccessAsync()
+        {
+            string group1Name = "Group1Name" + Guid.NewGuid();
+            await SetupGroupAsync(group1Name, "Custom");
+            string subject1Id = "Subject1Id" + Guid.NewGuid();
+            const string identityProvider = "idP1";
+
+            // Act 1 - Adding and Deleting a user in a group
+
+            var response = await SetupGroupUserMappingAsync(group1Name, subject1Id, identityProvider);
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            // First deletion of User from Group
+            response = await Browser.Delete($"/groups/{group1Name}/users", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    SubjectId = subject1Id,
+                    IdentityProvider = identityProvider
+                });
+
+            });
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            // ensure the deletion is reflected in the user and group user models
+            response = await Browser.Get($"/groups/{group1Name}/users", with =>
+            {
+                with.HttpRequest();
+            });
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            
+            var responseEntity = response.Body.DeserializeJson<IEnumerable<UserApiModel>>();
+            var userList = responseEntity.ToList();
+            Assert.Empty(userList);
+
+            response = await Browser.Get($"/user/{identityProvider}/{subject1Id}/groups", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            });
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var groups = response.Body.DeserializeJson<GroupUserApiModel[]>();
+            Assert.Empty(groups);
+
+            // Act 2 - Adding and Deleting the same user in a group
+
+            response = await SetupGroupUserMappingAsync(group1Name, subject1Id, identityProvider);
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            // Second deletion of User from Group
+            response = await Browser.Delete($"/groups/{group1Name}/users", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    SubjectId = subject1Id,
+                    IdentityProvider = identityProvider
+                });
+
+            });
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            // ensure the deletion is reflected in the user and group user models
+            response = await Browser.Get($"/groups/{group1Name}/users", with =>
+            {
+                with.HttpRequest();
+            });
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            responseEntity = response.Body.DeserializeJson<IEnumerable<UserApiModel>>();
+            userList = responseEntity.ToList();
+            Assert.Empty(userList);
+
+            // ensure the deletion is reflected in the user model
+            response = await Browser.Get($"/user/{identityProvider}/{subject1Id}/groups", with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+            });
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            groups = response.Body.DeserializeJson<GroupUserApiModel[]>();
+            Assert.Empty(groups);
+        }
+
+        [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task DeleteUserFromGroup_NonExistentGroup_NotFoundAsync()
         {
             var response = await Browser.Delete("/groups/invalidGroup/users", with =>
