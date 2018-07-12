@@ -180,15 +180,6 @@ namespace Fabric.Authorization.Client
             return await SendAndParseJson<RoleApiModel>(message).ConfigureAwait(false);
         }
 
-        public async Task<List<RoleApiModel>> GetRole(string accessToken, string roleId)
-        {
-            var message = new HttpRequestMessage(HttpMethod.Get, new RoleRouteBuilder().RoleId(roleId).Route)
-                .AddAcceptHeader()
-                .AddBearerToken(accessToken);
-
-            return await SendAndParseJson<List<RoleApiModel>>(message).ConfigureAwait(false);
-        }
-
         public async Task<List<RoleApiModel>> GetRole(string accessToken, string grain, string securableItem, string roleName = null)
         {
             var message = new HttpRequestMessage(HttpMethod.Get,
