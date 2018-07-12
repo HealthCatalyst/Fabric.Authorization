@@ -13,17 +13,15 @@ namespace Fabric.Authorization.Client.Extensions
             return httpRequestMessage;
         }
 
-        public static HttpRequestMessage AddAcceptHeader(this HttpRequestMessage httpRequestMessage, string contentType)
+        public static HttpRequestMessage AddAcceptHeader(this HttpRequestMessage httpRequestMessage, string mediaType = ClientConstants.ApplicationJson)
         {
-            httpRequestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(contentType));
+            httpRequestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(mediaType));
             return httpRequestMessage;
         }
 
-        public static HttpRequestMessage AddContent<T>(this HttpRequestMessage httpRequestMessage, T model)
+        public static HttpRequestMessage AddContent<T>(this HttpRequestMessage httpRequestMessage, T model, string mediaType = ClientConstants.ApplicationJson)
         {
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8,
-                ClientConstants.ApplicationJson);
-
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, mediaType);
             return httpRequestMessage;
         }
     }
