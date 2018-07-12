@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using Fabric.Authorization.Models;
 using Xunit;
 
@@ -12,7 +13,7 @@ namespace Fabric.Authorization.Client.FunctionalTests
         }
 
         [Fact]
-        public async void AddClient_ValidRequest_Success()
+        public async void AddAndGetClient_ValidRequest_Success()
         {
             var accessToken = await fixture.GetAccessTokenForInstaller();
 
@@ -25,18 +26,25 @@ namespace Fabric.Authorization.Client.FunctionalTests
             });
 
             Assert.NotNull(client);
+
+            client = await _authorizationClient.GetClient(accessToken, clientId);
+            Assert.NotNull(client);
+            Assert.Equal(clientId, client.Id);
+            Assert.Equal(clientId, client.Name);
         }
 
         [Fact]
-        public void AddClient_InvalidRequest_Failure()
+        public async void AddClient_InvalidRequest_Exception()
         {
-            
-        }
-
-        [Fact]
-        public void GetClient_ValidRequest_Success()
-        {
-
+            try
+            {
+                var accessToken = await fixture.GetAccessTokenForInstaller();
+                await _authorizationClient.AddClient(accessToken, new ClientApiModel());
+            }
+            catch (AuthorizationException e)
+            {
+                Assert.Equal(e.Details.Code, HttpStatusCode.BadRequest.ToString());
+            }
         }
     }
 }
