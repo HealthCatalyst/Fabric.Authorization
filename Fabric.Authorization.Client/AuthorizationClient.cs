@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -28,6 +27,7 @@ namespace Fabric.Authorization.Client
         {
             var message = new HttpRequestMessage(HttpMethod.Post, new UserRouteBuilder().Route)
                 .AddContent(userModel)
+                .AddAcceptHeader()
                 .AddBearerToken(accessToken);
 
             return await SendAndParseJson<UserApiModel>(message).ConfigureAwait(false);
@@ -43,7 +43,7 @@ namespace Fabric.Authorization.Client
                             .UserPermissionsRoute;
             var message = new HttpRequestMessage(HttpMethod.Get, route)
                 .AddBearerToken(accessToken)
-                .AddAcceptHeader(ClientConstants.ApplicationJson);
+                .AddAcceptHeader();
 
             return await SendAndParseJson<UserPermissionsApiModel>(message).ConfigureAwait(false);
         }
@@ -73,6 +73,7 @@ namespace Fabric.Authorization.Client
         {
             var message = new HttpRequestMessage(HttpMethod.Get,
                     new UserRouteBuilder().IdentityProvider(identityProvider).SubjectId(subjectId).UserPermissionsRoute)
+                .AddAcceptHeader()
                 .AddBearerToken(accessToken);
 
             return await SendAndParseJson<List<PermissionApiModel>>(message).ConfigureAwait(false);
@@ -83,6 +84,7 @@ namespace Fabric.Authorization.Client
             var message = new HttpRequestMessage(HttpMethod.Post,
                 new UserRouteBuilder().IdentityProvider(identityProvider).SubjectId(subjectId).UserPermissionsRoute)
                 .AddContent(permissionModels)
+                .AddAcceptHeader()
                 .AddBearerToken(accessToken);
 
             await SendRequest(message).ConfigureAwait(false);
@@ -93,6 +95,7 @@ namespace Fabric.Authorization.Client
             var message = new HttpRequestMessage(HttpMethod.Delete,
                     new UserRouteBuilder().IdentityProvider(identityProvider).SubjectId(subjectId).UserPermissionsRoute)
                 .AddContent(permissionModels)
+                .AddAcceptHeader()
                 .AddBearerToken(accessToken);
 
             await SendRequest(message).ConfigureAwait(false);
@@ -103,6 +106,7 @@ namespace Fabric.Authorization.Client
             var message = new HttpRequestMessage(HttpMethod.Post,
                     new UserRouteBuilder().IdentityProvider(identityProvider).SubjectId(subjectId).UserRolesRoute)
                 .AddContent(roleModels)
+                .AddAcceptHeader()
                 .AddBearerToken(accessToken);
 
             return await SendAndParseJson<UserApiModel>(message).ConfigureAwait(false);
@@ -113,6 +117,7 @@ namespace Fabric.Authorization.Client
             var message = new HttpRequestMessage(HttpMethod.Delete,
                     new UserRouteBuilder().IdentityProvider(identityProvider).SubjectId(subjectId).UserRolesRoute)
                 .AddContent(roleModels)
+                .AddAcceptHeader()
                 .AddBearerToken(accessToken);
 
             return await SendAndParseJson<UserApiModel>(message).ConfigureAwait(false);
@@ -126,6 +131,7 @@ namespace Fabric.Authorization.Client
         {
             var message = new HttpRequestMessage(HttpMethod.Post, new ClientRouteBuilder().Route)
                 .AddContent(clientModel)
+                .AddAcceptHeader()
                 .AddBearerToken(accessToken);
 
             return await SendAndParseJson<ClientApiModel>(message).ConfigureAwait(false);
@@ -134,6 +140,7 @@ namespace Fabric.Authorization.Client
         public async Task<ClientApiModel> GetClient(string accessToken, string clientId)
         {
             var message = new HttpRequestMessage(HttpMethod.Get, new ClientRouteBuilder().ClientId(clientId).Route)
+                .AddAcceptHeader()
                 .AddBearerToken(accessToken);
 
             return await SendAndParseJson<ClientApiModel>(message).ConfigureAwait(false);
@@ -147,6 +154,7 @@ namespace Fabric.Authorization.Client
         {
             var message = new HttpRequestMessage(HttpMethod.Post, new RoleRouteBuilder().Route)
                 .AddContent(roleModel)
+                .AddAcceptHeader()
                 .AddBearerToken(accessToken);
 
             return await SendAndParseJson<RoleApiModel>(message).ConfigureAwait(false);
@@ -156,6 +164,7 @@ namespace Fabric.Authorization.Client
         {
             var message = new HttpRequestMessage(HttpMethod.Post, new RoleRouteBuilder().RoleId(roleId).Route)
                 .AddContent(permissionModels)
+                .AddAcceptHeader()
                 .AddBearerToken(accessToken);
 
             return await SendAndParseJson<RoleApiModel>(message).ConfigureAwait(false);
@@ -165,6 +174,7 @@ namespace Fabric.Authorization.Client
         {
             var message = new HttpRequestMessage(HttpMethod.Delete, new RoleRouteBuilder().RoleId(roleId).Route)
                 .AddContent(permissionModels)
+                .AddAcceptHeader()
                 .AddBearerToken(accessToken);
 
             return await SendAndParseJson<RoleApiModel>(message).ConfigureAwait(false);
@@ -173,6 +183,7 @@ namespace Fabric.Authorization.Client
         public async Task<List<RoleApiModel>> GetRole(string accessToken, string roleId)
         {
             var message = new HttpRequestMessage(HttpMethod.Get, new RoleRouteBuilder().RoleId(roleId).Route)
+                .AddAcceptHeader()
                 .AddBearerToken(accessToken);
 
             return await SendAndParseJson<List<RoleApiModel>>(message).ConfigureAwait(false);
@@ -182,6 +193,7 @@ namespace Fabric.Authorization.Client
         {
             var message = new HttpRequestMessage(HttpMethod.Get,
                     new RoleRouteBuilder().Grain(grain).SecurableItem(securableItem).Name(roleName).Route)
+                .AddAcceptHeader()
                 .AddBearerToken(accessToken);
 
             return await SendAndParseJson<List<RoleApiModel>>(message).ConfigureAwait(false);
@@ -195,6 +207,7 @@ namespace Fabric.Authorization.Client
         {
             var message = new HttpRequestMessage(HttpMethod.Post, new PermissionRouteBuilder().Route)
                 .AddContent(permissionModel)
+                .AddAcceptHeader()
                 .AddBearerToken(accessToken);
 
             return await SendAndParseJson<PermissionApiModel>(message).ConfigureAwait(false);
@@ -204,6 +217,7 @@ namespace Fabric.Authorization.Client
         {
             var message = new HttpRequestMessage(HttpMethod.Get,
                     new PermissionRouteBuilder().PermissionId(permissionId).Route)
+                .AddAcceptHeader()
                 .AddBearerToken(accessToken);
 
             return await SendAndParseJson<PermissionApiModel>(message).ConfigureAwait(false);
@@ -213,6 +227,7 @@ namespace Fabric.Authorization.Client
         {
             var message = new HttpRequestMessage(HttpMethod.Get,
                     new PermissionRouteBuilder().Grain(grain).SecurableItem(securableItem).Name(permissionName).Route)
+                .AddAcceptHeader()
                 .AddBearerToken(accessToken);
 
             return await SendAndParseJson<List<PermissionApiModel>>(message).ConfigureAwait(false);
@@ -225,6 +240,7 @@ namespace Fabric.Authorization.Client
         public async Task<GroupRoleApiModel> GetGroup(string accessToken, string groupName)
         {
             var message = new HttpRequestMessage(HttpMethod.Get, new GroupRouteBuilder().Name(groupName).Route)
+                .AddAcceptHeader()
                 .AddBearerToken(accessToken);
 
             return await SendAndParseJson<GroupRoleApiModel>(message).ConfigureAwait(false);
@@ -234,6 +250,7 @@ namespace Fabric.Authorization.Client
         {
             var message =
                 new HttpRequestMessage(HttpMethod.Get, new GroupRouteBuilder().Name(groupName).GroupRolesRoute)
+                    .AddAcceptHeader()
                     .AddBearerToken(accessToken);
 
             return await SendAndParseJson<List<RoleApiModel>>(message).ConfigureAwait(false);
@@ -243,6 +260,7 @@ namespace Fabric.Authorization.Client
         {
             var message =
                 new HttpRequestMessage(HttpMethod.Get, new GroupRouteBuilder().Name(groupName).GroupRolesRoute)
+                    .AddAcceptHeader()
                     .AddBearerToken(accessToken);
 
             return await SendAndParseJson<List<RoleApiModel>>(message).ConfigureAwait(false);
@@ -252,6 +270,7 @@ namespace Fabric.Authorization.Client
         {
             var message = new HttpRequestMessage(HttpMethod.Post, new GroupRouteBuilder().Route)
                 .AddContent(groupModel)
+                .AddAcceptHeader()
                 .AddBearerToken(accessToken);
 
             return await SendAndParseJson<GroupRoleApiModel>(message).ConfigureAwait(false);
@@ -262,6 +281,7 @@ namespace Fabric.Authorization.Client
             var message = new HttpRequestMessage(HttpMethod.Post,
                     new GroupRouteBuilder().Name(groupName).GroupRolesRoute)
                 .AddContent(roleModels)
+                .AddAcceptHeader()
                 .AddBearerToken(accessToken);
 
             return await SendAndParseJson<GroupRoleApiModel>(message).ConfigureAwait(false);
@@ -272,6 +292,7 @@ namespace Fabric.Authorization.Client
             var message = new HttpRequestMessage(HttpMethod.Delete,
                     new GroupRouteBuilder().Name(groupName).GroupRolesRoute)
                 .AddContent(roleIds)
+                .AddAcceptHeader()
                 .AddBearerToken(accessToken);
 
             return await SendAndParseJson<GroupRoleApiModel>(message).ConfigureAwait(false);
@@ -282,6 +303,7 @@ namespace Fabric.Authorization.Client
             var message = new HttpRequestMessage(HttpMethod.Post,
                     new GroupRouteBuilder().Name(groupName).GroupUsersRoute)
                 .AddContent(userIds)
+                .AddAcceptHeader()
                 .AddBearerToken(accessToken);
 
             return await SendAndParseJson<GroupUserApiModel>(message).ConfigureAwait(false);
@@ -292,6 +314,7 @@ namespace Fabric.Authorization.Client
             var message = new HttpRequestMessage(HttpMethod.Delete,
                     new GroupRouteBuilder().Name(groupName).GroupUsersRoute)
                 .AddContent(user)
+                .AddAcceptHeader()
                 .AddBearerToken(accessToken);
 
             return await SendAndParseJson<GroupUserApiModel>(message).ConfigureAwait(false);
@@ -338,19 +361,18 @@ namespace Fabric.Authorization.Client
             try
             {
                 var error = JsonConvert.DeserializeObject<Error>(stringResponse);
-                if (error == null)
+
+                error = error ?? new Error
                 {
-                    error = new Error()
-                    {
-                        Message = stringResponse,
-                        Code = response.StatusCode.ToString()
-                    };
-                }
+                    Message = stringResponse,
+                    Code = response.StatusCode.ToString()
+                };
+
                 throw new AuthorizationException(error);
             }
             catch(JsonSerializationException)
             {
-                var error = new Error()
+                var error = new Error
                 {
                      Code = response.StatusCode.ToString(),
                      Message = stringResponse
