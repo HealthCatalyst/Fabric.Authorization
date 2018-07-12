@@ -33,7 +33,7 @@
             this._identityClient = new HttpClient();
             this._identityClient.BaseAddress = new Uri(this.args.IdentityBaseUrl);
 
-            var tokenForInstaller = Task.Run(async () => await this.GetAccessTokenForInstaller(this.args.InstallerClientSecret));
+            var tokenForInstaller = Task.Run(async () => await this.GetAccessTokenForInstaller());
             tokenForInstaller.Wait();
             this._installerAccessToken = tokenForInstaller.Result;
 
@@ -42,7 +42,7 @@
             client.Wait();
             this._funcTestClientSecret = client.Result;
 
-            Task<string> tokenForAuthClient = Task.Run(async () => await this.GetAccessTokenForAuthClient(this._funcTestClientSecret));
+            Task<string> tokenForAuthClient = Task.Run(async () => await GetAccessTokenForAuthClient());
             tokenForAuthClient.Wait();
             this._authAccessToken = tokenForAuthClient.Result;
 
@@ -62,8 +62,8 @@
             this.args = new FunctionalTestSettings();
             this.args.IdentityBaseUrl = Environment.GetEnvironmentVariable("FABRIC_IDENTITY_URL") ?? "http://localhost:5001/";
             this.args.AuthorizationBaseUrl = Environment.GetEnvironmentVariable("FABRIC_AUTH_URL") ?? "http://localhost:5004/";
-            this.args.InstallerClientSecret = Environment.GetEnvironmentVariable("FABRIC_INSTALLER_SECRET") ?? "rXe89lgOd0eUr5RJ";
-            this.args.AuthClientSecret = Environment.GetEnvironmentVariable("FABRIC_AUTH_SECRET") ?? "78hL/jkKZEmL/5Zz";
+            this.args.InstallerClientSecret = "IFTf2x+0NEC/aeM6";
+            this.args.AuthClientSecret = Environment.GetEnvironmentVariable("FABRIC_AUTH_SECRET") ?? "dNroi6auXEysfRYG";
             Console.WriteLine(string.Format("Test configured with: {0}={1}", (object)"FABRIC_IDENTITY_URL", (object)this.args.IdentityBaseUrl));
             Console.WriteLine(string.Format("Test configured with: {0}={1}", (object)"FABRIC_AUTH_URL", (object)this.args.AuthorizationBaseUrl));
             Console.WriteLine(string.Format("Test configured with: {0}={1}", (object)"FABRIC_INSTALLER_SECRET", (object)this.args.InstallerClientSecret));
@@ -81,28 +81,28 @@
             return accessToken;
         }
 
-        public async Task<string> GetAccessTokenForAuthClient(string clientSecret)
+        public async Task<string> GetAccessTokenForAuthClient()
         {
-            string accessToken = await this.GetAccessToken(new HttpRequestMessage()
+            string accessToken = await this.GetAccessToken(new HttpRequestMessage
             {
                 Content = new FormUrlEncodedContent(
                     FunctionalTestHelpers.GetAccessTokenKeyValuePair(
                         FunctionalTestConstants.IdentityTestUser,
-                        clientSecret,
+                        _funcTestClientSecret,
                         "client_credentials",
                         "fabric/authorization.read fabric/authorization.write"))
             }).ConfigureAwait(false);
             return accessToken;
         }
 
-        public async Task<string> GetAccessTokenForInstaller(string fabricInstallerSecret)
+        public async Task<string> GetAccessTokenForInstaller()
         {
-            string accessToken = await this.GetAccessToken(new HttpRequestMessage()
+            string accessToken = await this.GetAccessToken(new HttpRequestMessage
             {
                 Content = new FormUrlEncodedContent(
                     FunctionalTestHelpers.GetAccessTokenKeyValuePair(
                         "fabric-installer",
-                        fabricInstallerSecret,
+                        this.args.InstallerClientSecret,
                         "client_credentials",
                         "fabric/identity.manageresources fabric/authorization.read fabric/authorization.write fabric/authorization.manageclients"))
             }).ConfigureAwait(false);
@@ -113,7 +113,7 @@
         {
             string stringToEncode = $"{FunctionalTestConstants.IdentityTestUser}:{this._funcTestClientSecret}";
             string encodedData = stringToEncode.ToBase64Encoded();
-            string accessToken = await this.GetAccessToken(new HttpRequestMessage()
+            string accessToken = await this.GetAccessToken(new HttpRequestMessage
             {
                 Headers = {
                   Authorization = new AuthenticationHeaderValue(FunctionalTestConstants.Basic, encodedData)

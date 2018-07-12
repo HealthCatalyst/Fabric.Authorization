@@ -1,10 +1,9 @@
 namespace Fabric.Authorization.Client.UnitTests
 {
-    using Fabric.Authorization.Models;
+    using Models;
     using System;
     using System.Collections.Generic;
     using System.Net.Http;
-    using System.Threading.Tasks;
     using Xunit;
 
     public class AuthorizationClientTests
@@ -20,17 +19,17 @@ namespace Fabric.Authorization.Client.UnitTests
         {
             _client = new HttpClient();
             _subject = new AuthorizationClient(_client);
-            _userPermission = new UserPermissionsApiModel()
+            _userPermission = new UserPermissionsApiModel
             {
-                PermissionRequestContexts = new List<PermissionRequestContext>()
+                PermissionRequestContexts = new List<PermissionRequestContext>
                  {
-                     new PermissionRequestContext()
+                     new PermissionRequestContext
                      {
                           RequestedGrain = "app",
                           RequestedSecurableItem = "unit-test"
                      }
                  },
-                Permissions = new List<string>()
+                Permissions = new List<string>
                 {
                     "edit",
                     "view"
@@ -39,7 +38,7 @@ namespace Fabric.Authorization.Client.UnitTests
         }
 
         [Fact]
-        public async Task DoesUserHavePermission_NullPermission_ThrowAuthorizationException()
+        public void DoesUserHavePermission_NullPermission_ThrowAuthorizationException()
         {
             // Arrange
             string permission = null;
@@ -60,7 +59,7 @@ namespace Fabric.Authorization.Client.UnitTests
         }
 
         [Fact]
-        public async Task DoesUserHavePermission_NullUserPermissions_False()
+        public void DoesUserHavePermission_NullUserPermissions_False()
         {
             // Arrange
             string permission = "awesomepermission";
@@ -74,7 +73,7 @@ namespace Fabric.Authorization.Client.UnitTests
         }
 
         [Fact]
-        public async Task DoesUserHavePermission_InvalidUserPermissions_False()
+        public void DoesUserHavePermission_InvalidUserPermissions_False()
         {
             // Arrange
             string permission = "admin";
@@ -88,7 +87,7 @@ namespace Fabric.Authorization.Client.UnitTests
         }
 
         [Fact]
-        public async Task DoesUserHavePermission_MatchUserPermissions_True()
+        public void DoesUserHavePermission_MatchUserPermissions_True()
         {
             // Arrange
             string permission = "edit";
