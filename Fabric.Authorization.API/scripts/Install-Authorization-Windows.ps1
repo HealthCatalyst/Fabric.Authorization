@@ -292,7 +292,7 @@ if (!(Test-IsRunAsAdministrator)) {
 
 $installSettings = Get-InstallationSettings "authorization"
 $zipPackage = $installSettings.zipPackage
-$webroot = $installSettings.webroot 
+$webroot = $installSettings.webroot
 $appName = $installSettings.appName
 $iisUser = $installSettings.iisUser
 $encryptionCertificateThumbprint = $installSettings.encryptionCertificateThumbprint -replace '[^a-zA-Z0-9]', ''
@@ -305,7 +305,7 @@ $authorizationDbName = $installSettings.authorizationDbName
 $authorizationDatabaseRole = $installSettings.authorizationDatabaseRole
 $fabricInstallerSecret = $installSettings.fabricInstallerSecret
 $hostUrl = $installSettings.hostUrl
-$authorizationServiceUrl = $installSettings.authorizationSerivce
+$authorizationServiceUrl = $installSettings.authorizationService
 $storedIisUser = $installSettings.iisUser
 $adminAccount = $installSettings.adminAccount
 $currentUserDomain = $env:userdnsdomain
@@ -325,11 +325,11 @@ else {
     $identityServerUrl = $installSettings.identityService
 }
 
-if ([string]::IsNullOrEmpty($installSettings.authorizationSerivce)) {
+if ([string]::IsNullOrEmpty($installSettings.authorizationService)) {
     $authorizationServiceUrl = "https://$env:computername.$($env:userdnsdomain.tolower())/Authorization"
 }
 else {
-    $authorizationServiceUrl = $installSettings.authorizationSerivce
+    $authorizationServiceUrl = $installSettings.authorizationService
 }
 
 Write-Host ""
