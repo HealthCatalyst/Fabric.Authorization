@@ -4,7 +4,8 @@
     <TargetFramework>netstandard1.6</TargetFramework>
     <Authors>Fabric.Authorization.Client</Authors>
     <Company>Health Catalyst</Company>
-    <Version>1.0.0.0</Version>
+    <Version Condition=" '$(BUILD_BUILDNUMBER)' == '' ">1.0.0.0-local</Version>
+    <Version Condition=" '$(BUILD_BUILDNUMBER)' != '' ">$(BUILD_BUILDNUMBER)</Version>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Description />
     <Copyright>Copyright © 2018</Copyright>
