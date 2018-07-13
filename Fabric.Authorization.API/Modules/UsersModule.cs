@@ -33,7 +33,7 @@ namespace Fabric.Authorization.API.Modules
             "No roles present in payload, please ensure you are posting an array of RoleApiModels.";
 
         public static string InvalidRoleApiModelMessage =
-            "The role: {0} is missing an Id, Grain or SecurableItem and cannot be added";
+            "The role: {0} is missing an Id, Grain or SecurableItem and cannot be {1}";
 
         public UsersModule(
             ClientService clientService,
@@ -339,7 +339,7 @@ namespace Fabric.Authorization.API.Modules
         private async Task<dynamic> AddRolesToUser(dynamic param)
         {
             var apiRoles = this.Bind<List<RoleApiModel>>();
-            var errorResponse = await ValidateRoles(apiRoles);
+            var errorResponse = await ValidateRoles(apiRoles, "added");
             if (errorResponse != null)
             {
                 return errorResponse;
@@ -373,7 +373,7 @@ namespace Fabric.Authorization.API.Modules
         private async Task<dynamic> DeleteRolesFromUser(dynamic param)
         {
             var apiRoles = this.Bind<List<RoleApiModel>>();
-            var errorResponse = await ValidateRoles(apiRoles);
+            var errorResponse = await ValidateRoles(apiRoles, "removed");
             if(errorResponse != null)
             {
                 return errorResponse;
@@ -418,7 +418,7 @@ namespace Fabric.Authorization.API.Modules
             }
         }
 
-        private async Task<Negotiator> ValidateRoles(List<RoleApiModel> apiRoles)
+        private async Task<Negotiator> ValidateRoles(List<RoleApiModel> apiRoles, string action)
         {
             if (apiRoles.Count == 0)
             {
@@ -428,7 +428,7 @@ namespace Fabric.Authorization.API.Modules
 
             var messages = apiRoles.Where(r => !r.Id.HasValue || r.Id.Value == Guid.Empty || string.IsNullOrEmpty(r.Grain) ||
                                                string.IsNullOrEmpty(r.SecurableItem))
-                .Select(r => String.Format(InvalidRoleApiModelMessage, r.Name)).ToList();
+                .Select(r => string.Format(InvalidRoleApiModelMessage, r.Name, action)).ToList();
 
             if (messages.Any())
             { 
