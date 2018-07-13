@@ -59,15 +59,20 @@
 
         private void GetParameters()
         {
-            this.args = new FunctionalTestSettings();
-            this.args.IdentityBaseUrl = Environment.GetEnvironmentVariable("FABRIC_IDENTITY_URL") ?? "http://localhost:5001/";
-            this.args.AuthorizationBaseUrl = Environment.GetEnvironmentVariable("FABRIC_AUTH_URL") ?? "http://localhost:5004/";
-            this.args.InstallerClientSecret = "IFTf2x+0NEC/aeM6";
-            this.args.AuthClientSecret = Environment.GetEnvironmentVariable("FABRIC_AUTH_SECRET") ?? "dNroi6auXEysfRYG";
-            Console.WriteLine(string.Format("Test configured with: {0}={1}", (object)"FABRIC_IDENTITY_URL", (object)this.args.IdentityBaseUrl));
-            Console.WriteLine(string.Format("Test configured with: {0}={1}", (object)"FABRIC_AUTH_URL", (object)this.args.AuthorizationBaseUrl));
-            Console.WriteLine(string.Format("Test configured with: {0}={1}", (object)"FABRIC_INSTALLER_SECRET", (object)this.args.InstallerClientSecret));
-            Console.WriteLine(string.Format("Test configured with: {0}={1}", (object)"FABRIC_AUTH_SECRET", (object)this.args.AuthClientSecret));
+            this.args = new FunctionalTestSettings
+            {
+                IdentityBaseUrl = Environment.GetEnvironmentVariable("FABRIC_IDENTITY_URL") ?? "http://localhost:5001/",
+                AuthorizationBaseUrl =
+                    Environment.GetEnvironmentVariable("FABRIC_AUTH_URL") ?? "http://localhost:5004/",
+                InstallerClientSecret =
+                    Environment.GetEnvironmentVariable("FABRIC_INSTALLER_SECRET"), // replace with local secret when running through VSTS
+                AuthClientSecret = Environment.GetEnvironmentVariable("FABRIC_AUTH_SECRET") // replace with local secret when running through VSTS
+            };
+
+            Console.WriteLine($"Test configured with: {0}={1}", (object)"FABRIC_IDENTITY_URL", (object)this.args.IdentityBaseUrl);
+            Console.WriteLine($"Test configured with: {0}={1}", (object)"FABRIC_AUTH_URL", (object)this.args.AuthorizationBaseUrl);
+            Console.WriteLine($"Test configured with: {0}={1}", (object)"FABRIC_INSTALLER_SECRET", (object)this.args.InstallerClientSecret);
+            Console.WriteLine($"Test configured with: {0}={1}", (object)"FABRIC_AUTH_SECRET", (object)this.args.AuthClientSecret);
         }
 
         public async Task<string> GetAccessToken(HttpRequestMessage message)
