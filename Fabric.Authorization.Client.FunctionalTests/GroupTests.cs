@@ -48,7 +48,7 @@ namespace Fabric.Authorization.Client.FunctionalTests
             catch (AuthorizationException e)
             {
                 Assert.Equal(e.Details.Code, HttpStatusCode.BadRequest.ToString());
-                Assert.Equal("Please specify a Name for this Group", e.Details.Message);
+                Assert.Equal("Please specify a Name for this Group.", e.Details.Message);
             }
         }
 
