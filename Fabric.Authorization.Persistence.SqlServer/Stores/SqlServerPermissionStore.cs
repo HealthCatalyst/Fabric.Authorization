@@ -233,6 +233,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             return new GranularPermission
             {
+                Id = $"{subjectId}:{identityProvider}",
                 AdditionalPermissions = allowedUserPermissions.Select(aup => aup.Permission.ToModel()),
                 DeniedPermissions = deniedUserPermissions.Select(dup => dup.Permission.ToModel())
             };
