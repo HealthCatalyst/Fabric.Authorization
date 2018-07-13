@@ -162,7 +162,7 @@ namespace Fabric.Authorization.Client
 
         public async Task<RoleApiModel> AddPermissionToRole(string accessToken, string roleId, List<PermissionApiModel> permissionModels)
         {
-            var message = new HttpRequestMessage(HttpMethod.Post, new RoleRouteBuilder().RoleId(roleId).Route)
+            var message = new HttpRequestMessage(HttpMethod.Post, new RoleRouteBuilder().RoleId(roleId).RolePermissionsRoute)
                 .AddContent(permissionModels)
                 .AddAcceptHeader()
                 .AddBearerToken(accessToken);
@@ -172,7 +172,7 @@ namespace Fabric.Authorization.Client
 
         public async Task<RoleApiModel> DeletePermissionsFromRole(string accessToken, string roleId, List<PermissionApiModel> permissionModels)
         {
-            var message = new HttpRequestMessage(HttpMethod.Delete, new RoleRouteBuilder().RoleId(roleId).Route)
+            var message = new HttpRequestMessage(HttpMethod.Delete, new RoleRouteBuilder().RoleId(roleId).RolePermissionsRoute)
                 .AddContent(permissionModels)
                 .AddAcceptHeader()
                 .AddBearerToken(accessToken);
