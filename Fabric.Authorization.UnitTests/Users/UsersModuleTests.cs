@@ -209,7 +209,7 @@ namespace Fabric.Authorization.UnitTests.Users
                 new Claim(Claims.Scope, Scopes.ReadScope),
                 new Claim(Claims.ClientId, existingClient.Id)
             );
-            var actualUserResponse = usersModule.Get($"/user/windows/nouser").Result;
+            var actualUserResponse = usersModule.Get("/user/windows/nouser").Result;
             Assert.Equal(HttpStatusCode.NotFound, actualUserResponse.StatusCode);
         }
 
@@ -222,7 +222,7 @@ namespace Fabric.Authorization.UnitTests.Users
                 new Claim(Claims.Scope, Scopes.ReadScope),
                 new Claim(Claims.ClientId, existingClient.Id)
             );
-            var getRolesForUser = usersModule.Get($"/user/windows/nouser/roles").Result;
+            var getRolesForUser = usersModule.Get("/user/windows/nouser/roles").Result;
             Assert.Equal(HttpStatusCode.NotFound, getRolesForUser.StatusCode);
         }
 
@@ -426,7 +426,7 @@ namespace Fabric.Authorization.UnitTests.Users
             }).Result;
             Assert.Equal(HttpStatusCode.BadRequest, deleteRolesFromUserResponse.StatusCode);
             var error = deleteRolesFromUserResponse.Body.DeserializeJson<Error>();
-            Assert.Equal(String.Format(UsersModule.InvalidRoleApiModelMessage, role.Name), error.Message);
+            Assert.Equal(string.Format(UsersModule.InvalidRoleApiModelMessage, role.Name, "removed"), error.Message);
         }
 
         [Fact]
@@ -439,7 +439,7 @@ namespace Fabric.Authorization.UnitTests.Users
                 new Claim(Claims.ClientId, existingClient.Id)
             );
             var roles = AddExistingRoles(existingClient.TopLevelSecurableItem.Name);
-            var addRolesToUserResponse = usersModule.Post($"/user/windows/nouser/roles", with =>
+            var addRolesToUserResponse = usersModule.Post("/user/windows/nouser/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new[]
@@ -543,7 +543,7 @@ namespace Fabric.Authorization.UnitTests.Users
             }).Result;
             Assert.Equal(HttpStatusCode.BadRequest, addRolesToUserResponse.StatusCode);
             var error = addRolesToUserResponse.Body.DeserializeJson<Error>();
-            Assert.Equal(String.Format(UsersModule.InvalidRoleApiModelMessage, role.Name), error.Message);
+            Assert.Equal(string.Format(UsersModule.InvalidRoleApiModelMessage, role.Name, "added"), error.Message);
         }
 
 
