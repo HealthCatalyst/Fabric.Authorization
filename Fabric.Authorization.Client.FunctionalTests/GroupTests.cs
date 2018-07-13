@@ -116,7 +116,7 @@ namespace Fabric.Authorization.Client.FunctionalTests
 
             // create user
             const string identityProvider = "windows";
-            const string subjectId = @"hqcatalyst\first.last";
+            var subjectId = Guid.NewGuid().ToString();
             var user = await _authorizationClient.AddUser(accessToken, new UserApiModel
             {
                 IdentityProvider = identityProvider,
