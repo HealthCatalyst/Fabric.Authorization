@@ -10,6 +10,12 @@
     <Version Condition=" '$(BUILD_BUILDNUMBER)' != '' ">$(BUILD_BUILDNUMBER)</Version>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="client\**" />
+    <Content Remove="client\**" />
+    <EmbeddedResource Remove="client\**" />
+    <None Remove="client\**" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Remove="DependencyInjection\CouchDbConfigurator.cs" />
   </ItemGroup>
   <ItemGroup>
