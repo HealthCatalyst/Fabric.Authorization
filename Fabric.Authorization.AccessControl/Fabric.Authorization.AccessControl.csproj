@@ -1,0 +1,145 @@
+﻿<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{FD533A6C-CA43-4F5F-84EC-B743364A5B15}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <NoStandardLibraries>false</NoStandardLibraries>
+    <AssemblyName>ClassLibrary</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".angular-cli.json" />
+    <None Include=".editorconfig" />
+    <None Include="e2e\tsconfig.e2e.json" />
+    <None Include="ng-package.json" />
+    <None Include="package-lock.json" />
+    <None Include="package.json" />
+    <None Include="README.md" />
+    <None Include="src\app\modules\access-control\access-control.scss" />
+    <None Include="src\app\modules\access-control\custom-group\custom-group.component.scss" />
+    <None Include="src\app\modules\access-control\member-list\member-list.component.scss" />
+    <None Include="src\app\modules\access-control\member\member.component.scss" />
+    <None Include="src\assets\.gitkeep" />
+    <None Include="src\styles.scss" />
+    <None Include="src\tsconfig.app.json" />
+    <None Include="src\tsconfig.spec.json" />
+    <None Include="tsconfig.json" />
+    <None Include="tslint.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include=".gitignore" />
+    <Content Include="karma.conf.js" />
+    <Content Include="protractor.conf.js" />
+    <Content Include="src\app\app.component.html" />
+    <Content Include="src\app\home\home.component.html" />
+    <Content Include="src\app\login\login.component.html" />
+    <Content Include="src\app\logout\logout.component.html" />
+    <Content Include="src\app\modules\access-control\custom-group\custom-group.component.html" />
+    <Content Include="src\app\modules\access-control\member-list\member-list.component.html" />
+    <Content Include="src\app\modules\access-control\member\member.component.html" />
+    <Content Include="src\assets\oidc-client.min.js" />
+    <Content Include="src\favicon.ico" />
+    <Content Include="src\index.html" />
+    <Content Include="src\oidc-callback.html" />
+    <Content Include="src\silent.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="e2e\app.e2e-spec.ts" />
+    <TypeScriptCompile Include="e2e\app.po.ts" />
+    <TypeScriptCompile Include="public_api.ts" />
+    <TypeScriptCompile Include="src\app\app-routing.module.ts" />
+    <TypeScriptCompile Include="src\app\app.component.spec.ts" />
+    <TypeScriptCompile Include="src\app\app.component.ts" />
+    <TypeScriptCompile Include="src\app\app.module.ts" />
+    <TypeScriptCompile Include="src\app\home\home.component.ts" />
+    <TypeScriptCompile Include="src\app\login\login.component.ts" />
+    <TypeScriptCompile Include="src\app\logout\logout.component.ts" />
+    <TypeScriptCompile Include="src\app\models\authMemberSearchRequest.model.ts" />
+    <TypeScriptCompile Include="src\app\models\authMemberSearchResult.model.ts" />
+    <TypeScriptCompile Include="src\app\models\changedDataEventArgs.model.ts" />
+    <TypeScriptCompile Include="src\app\models\exception.model.ts" />
+    <TypeScriptCompile Include="src\app\models\fabricPrincipal.model.ts" />
+    <TypeScriptCompile Include="src\app\models\group.model.ts" />
+    <TypeScriptCompile Include="src\app\models\idpSearchResult.model.ts" />
+    <TypeScriptCompile Include="src\app\models\role.model.ts" />
+    <TypeScriptCompile Include="src\app\models\user.model.ts" />
+    <TypeScriptCompile Include="src\app\modules\access-control\access-control-routing.module.ts" />
+    <TypeScriptCompile Include="src\app\modules\access-control\access-control.module.ts" />
+    <TypeScriptCompile Include="src\app\modules\access-control\custom-group\custom-group.component.spec.ts" />
+    <TypeScriptCompile Include="src\app\modules\access-control\custom-group\custom-group.component.ts" />
+    <TypeScriptCompile Include="src\app\modules\access-control\member-list\member-list.component.spec.ts" />
+    <TypeScriptCompile Include="src\app\modules\access-control\member-list\member-list.component.ts" />
+    <TypeScriptCompile Include="src\app\modules\access-control\member\member.component.spec.ts" />
+    <TypeScriptCompile Include="src\app\modules\access-control\member\member.component.ts" />
+    <TypeScriptCompile Include="src\app\modules\access-control\services.mock.module.ts" />
+    <TypeScriptCompile Include="src\app\services\access-control-config.service.mock.ts" />
+    <TypeScriptCompile Include="src\app\services\access-control-config.service.ts" />
+    <TypeScriptCompile Include="src\app\services\fabric-auth-group.service.mock.ts" />
+    <TypeScriptCompile Include="src\app\services\fabric-auth-group.service.spec.ts" />
+    <TypeScriptCompile Include="src\app\services\fabric-auth-group.service.ts" />
+    <TypeScriptCompile Include="src\app\services\fabric-auth-member-search.service.mock.ts" />
+    <TypeScriptCompile Include="src\app\services\fabric-auth-member-search.service.spec.ts" />
+    <TypeScriptCompile Include="src\app\services\fabric-auth-member-search.service.ts" />
+    <TypeScriptCompile Include="src\app\services\fabric-auth-role.service.mock.ts" />
+    <TypeScriptCompile Include="src\app\services\fabric-auth-role.service.spec.ts" />
+    <TypeScriptCompile Include="src\app\services\fabric-auth-role.service.ts" />
+    <TypeScriptCompile Include="src\app\services\fabric-auth-user.service.mock.ts" />
+    <TypeScriptCompile Include="src\app\services\fabric-auth-user.service.spec.ts" />
+    <TypeScriptCompile Include="src\app\services\fabric-auth-user.service.ts" />
+    <TypeScriptCompile Include="src\app\services\fabric-base.service.spec.ts" />
+    <TypeScriptCompile Include="src\app\services\fabric-base.service.ts" />
+    <TypeScriptCompile Include="src\app\services\fabric-external-idp-search.service.mock.ts" />
+    <TypeScriptCompile Include="src\app\services\fabric-external-idp-search.service.spec.ts" />
+    <TypeScriptCompile Include="src\app\services\fabric-external-idp-search.service.ts" />
+    <TypeScriptCompile Include="src\app\services\global\auth.service.spec.ts" />
+    <TypeScriptCompile Include="src\app\services\global\auth.service.ts" />
+    <TypeScriptCompile Include="src\app\services\global\client-access-control-config.service.spec.ts" />
+    <TypeScriptCompile Include="src\app\services\global\client-access-control-config.service.ts" />
+    <TypeScriptCompile Include="src\app\services\interceptors\fabric-http-error-handler-interceptor.service.spec.ts" />
+    <TypeScriptCompile Include="src\app\services\interceptors\fabric-http-error-handler-interceptor.service.ts" />
+    <TypeScriptCompile Include="src\app\services\interceptors\fabric-http-request-interceptor.service.spec.ts" />
+    <TypeScriptCompile Include="src\app\services\interceptors\fabric-http-request-interceptor.service.ts" />
+    <TypeScriptCompile Include="src\app\services\interceptors\index.ts" />
+    <TypeScriptCompile Include="src\environments\environment.default.ts" />
+    <TypeScriptCompile Include="src\environments\environment.dev.ts" />
+    <TypeScriptCompile Include="src\environments\environment.prod.ts" />
+    <TypeScriptCompile Include="src\environments\environment.test.ts" />
+    <TypeScriptCompile Include="src\environments\environment.ts" />
+    <TypeScriptCompile Include="src\main.ts" />
+    <TypeScriptCompile Include="src\polyfills.ts" />
+    <TypeScriptCompile Include="src\test.ts" />
+    <TypeScriptCompile Include="src\typings.d.ts" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSHARP.Targets" />
+  <ProjectExtensions>
+    <VisualStudio AllowExistingFolder="true" />
+  </ProjectExtensions>
+</Project>
