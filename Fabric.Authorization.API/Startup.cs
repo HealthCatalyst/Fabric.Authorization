@@ -24,7 +24,10 @@ namespace Fabric.Authorization.API
         {
             "/swagger/ui/index",
             "/swagger/ui/index.html",
-            "/swagger/ui/swagger.json"
+            "/swagger/ui/swagger.json",
+            "/",
+            "/client",
+            "/client/index.html"
         };
 
         private readonly IAppConfiguration _appConfig;
