@@ -178,11 +178,6 @@ namespace Fabric.Authorization.API
 
             nancyConventions.StaticContentsConventions.Add(
                 StaticContentConventionBuilder.AddDirectory("/swagger/ui"));
-
-            /*nancyConventions.StaticContentsConventions.Add(
-                StaticContentConventionBuilder.AddDirectory("/client"));
-
-            nancyConventions.StaticContentsConventions.AddDirectory("/", "/client/index.html");*/
         }
     }
 }
