@@ -79,8 +79,8 @@ If you want to set up an IIS site to host the sample application, you will need 
 ## Environment Settings (environment.default.ts)
 You may need to change your `environment.default.ts` file if your services are not running at the locations specified in that file.
 
-`fabricAuthApiUri` => Fabric.Authorization
-`fabricIdentityApiUri` => Fabric.Identity
+`fabricAuthApiUri` => Fabric.Authorization  
+`fabricIdentityApiUri` => Fabric.Identity  
 `fabricExternalIdPSearchApiUri` => Fabric.IdentityProviderSearchService
 
 # Configuration
@@ -99,7 +99,7 @@ import { Subject } from 'rxjs/Subject';
 import { Config } from './app.module';
 
 @Injectable()
-class AccessControlConfig implements IAccessControlConfigService {
+class AccessControlConfigService implements IAccessControlConfigService {
     dataChanged: Subject<IDataChangedEventArgs> = new Subject<IDataChangedEventArgs>();
     errorRaised: Subject<Exception> = new Subject<Exception>();
 
