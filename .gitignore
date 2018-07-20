@@ -254,6 +254,7 @@ paket-files/
 .idea/
 *.sln.iml
 /Fabric.Authorization.API/logs
+/Fabric.Authorization.API/wwwroot/client
 
 # Gradle
 .gradle/
