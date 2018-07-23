@@ -12,10 +12,11 @@ import { IAccessControlConfigService } from './services/access-control-config.se
 import { ClientAccessControlConfigService } from './services/global/client-access-control-config.service';
 
 import { ButtonModule, ProgressIndicatorsModule, NavbarModule, PopoverModule, AppSwitcherModule, IconModule, MockAppSwitcherService, ListModule } from '@healthcatalyst/cashmere';
+import { NavbarComponent } from './navbar/navbar.component';
 
 @NgModule({
-  declarations: [AppComponent],
-  imports: [BrowserModule, AppRoutingModule, HttpClientModule, ButtonModule, ProgressIndicatorsModule, BrowserAnimationsModule, NavbarModule, PopoverModule, AppSwitcherModule.forRoot({discoveryServiceUri: 'https://hc2234.hqcatalyst.local/DiscoveryService'}), IconModule],
+  declarations: [AppComponent, NavbarComponent],
+  imports: [BrowserModule, AppRoutingModule, HttpClientModule, ButtonModule, ProgressIndicatorsModule, BrowserAnimationsModule, NavbarModule, PopoverModule, AppSwitcherModule, IconModule],
   providers: [
     AuthService,
     {
