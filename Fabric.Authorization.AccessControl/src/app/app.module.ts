@@ -11,14 +11,10 @@ import { AuthService } from '../app/services/global/auth.service';
 import { IAccessControlConfigService } from './services/access-control-config.service';
 import { ClientAccessControlConfigService } from './services/global/client-access-control-config.service';
 
-import { LoginComponent } from './login/login.component';
-import { HomeComponent } from './home/home.component';
-import { LogoutComponent } from './logout/logout.component';
-
 import { ButtonModule, ProgressIndicatorsModule } from '@healthcatalyst/cashmere';
 
 @NgModule({
-  declarations: [AppComponent, LoginComponent, HomeComponent, LogoutComponent],
+  declarations: [AppComponent],
   imports: [BrowserModule, AppRoutingModule, HttpClientModule, ButtonModule, ProgressIndicatorsModule, BrowserAnimationsModule],
   providers: [
     AuthService,
