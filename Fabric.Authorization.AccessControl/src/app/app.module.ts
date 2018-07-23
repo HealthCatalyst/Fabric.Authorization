@@ -11,16 +11,20 @@ import { AuthService } from '../app/services/global/auth.service';
 import { IAccessControlConfigService } from './services/access-control-config.service';
 import { ClientAccessControlConfigService } from './services/global/client-access-control-config.service';
 
-import { ButtonModule, ProgressIndicatorsModule } from '@healthcatalyst/cashmere';
+import { ButtonModule, ProgressIndicatorsModule, NavbarModule, PopoverModule, AppSwitcherModule, IconModule, MockAppSwitcherService, ListModule } from '@healthcatalyst/cashmere';
 
 @NgModule({
   declarations: [AppComponent],
-  imports: [BrowserModule, AppRoutingModule, HttpClientModule, ButtonModule, ProgressIndicatorsModule, BrowserAnimationsModule],
+  imports: [BrowserModule, AppRoutingModule, HttpClientModule, ButtonModule, ProgressIndicatorsModule, BrowserAnimationsModule, NavbarModule, PopoverModule, AppSwitcherModule.forRoot({discoveryServiceUri: 'https://hc2234.hqcatalyst.local/DiscoveryService'}), IconModule],
   providers: [
     AuthService,
     {
       provide: 'IAccessControlConfigService',
       useClass: ClientAccessControlConfigService
+    },
+    {
+      provide: 'IAppSwitcherService',
+      useClass: MockAppSwitcherService
     },
     httpInterceptorProviders
   ],
