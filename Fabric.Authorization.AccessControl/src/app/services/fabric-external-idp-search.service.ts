@@ -1,9 +1,7 @@
+import { switchMap, filter, distinctUntilChanged, debounceTime, catchError, retry } from 'rxjs/operators';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, Inject } from '@angular/core';
-import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
-import { catchError, retry } from 'rxjs/operators';
-import { environment } from '../../environments/environment';
 
 import { FabricBaseService } from './fabric-base.service';
 import { IAccessControlConfigService } from './access-control-config.service';
@@ -32,21 +30,19 @@ export class FabricExternalIdpSearchService extends FabricBaseService {
   }
 
   public search(searchText: Observable<string>, type: string): Observable<IdPSearchResult> {
-    return searchText.debounceTime(250)
-      .distinctUntilChanged()
-      .filter((term: string) =>  term && term.length > 2)
-      .switchMap((term) => {
-        let params = new HttpParams()
-          .set('searchText', term);
+    return searchText.pipe(
+      debounceTime(250),
+      distinctUntilChanged(),
+      filter((term: string) => term && term.length >= 2),
+      switchMap(term => {
+          let params: HttpParams = new HttpParams().set('searchText', term);
 
-        if (type) {
-          params = params.set('type', type);
-        }
+          if (type) {
+              params = params.set('type', type);
+          }
 
-        return this.httpClient.get<IdPSearchResult>(
-          FabricExternalIdpSearchService.idPServiceBaseUrl,
-          { params }
-        );
-      });
+          return this.httpClient.get<IdPSearchResult>(FabricExternalIdpSearchService.idPServiceBaseUrl, { params });
+      })
+  );
   }
 }
