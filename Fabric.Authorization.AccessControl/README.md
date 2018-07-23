@@ -4,9 +4,7 @@ An Angular 5 routed module for managing access in Fabric.Authorization
 # Installing
 Run `npm i --save @healthcatalyst/fabric-access-control-ui`
 
-This module requires Health Catalyst Cashmere so that should be installed as well
-
-[Cashmere](http://cashmere.healthcatalyst.net/guides/getting-started)
+This module requires [Health Catalyst Cashmere](http://cashmere.healthcatalyst.net/guides/getting-started).
 
 # Fabric Identity & Authorization Setup
 You will need to set up a client in your local instance of Fabric.Identity and Fabric.Authorization.
