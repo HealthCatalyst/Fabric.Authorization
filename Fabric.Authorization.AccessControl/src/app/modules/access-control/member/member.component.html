@@ -20,9 +20,10 @@
           <hc-checkbox [id]="principal.subjectId + principal.principalType" [(ngModel)]="principal.selected" (change)="selectPrincipal(principal)">
           </hc-checkbox>
         </td>
-        <label [for]="principal.subjectId + principal.principalType">
-          {{ principal.subjectId }} ({{ principal.principalType }})
-        </label>
+        <td [innerText] = "principal.subjectId">
+        </td>
+        <td [innerText] = "principal.principalType">
+        </td>
       </tr>
     </tbody>
   </table>
@@ -39,7 +40,7 @@
     <tbody>
       <tr *ngFor="let role of roles">
         <td>
-          <hc-checkbox [id]="role.id" [(ngModel)]="role.selected" [disabled]="!principalSelected && !editMode">
+          <hc-checkbox [id]="role.id" [(ngModel)]="role.selected" [disabled]="!this.selectedPrincipal">
           </hc-checkbox>
         </td>
         <td [innerText]="role.name">
@@ -48,7 +49,7 @@
     </tbody>
   </table>
   <div class="buttons">
-    <button hc-button (click)="save()" class="btn-save" color="primary" [disabled]="!principalSelected && !editMode">Save</button>
+    <button hc-button (click)="save()" class="btn-save" color="primary" [disabled]="!this.selectedPrincipal">Save</button>
     <a hc-button routerLink="/access-control" color="secondary">Cancel</a>
   </div>
 </div>
