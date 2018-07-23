@@ -19,15 +19,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fabric.Authorization.Persis
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fabric.Authorization.LibOwin", "Fabric.Authorization.LibOwin\Fabric.Authorization.LibOwin.csproj", "{915460EA-ED17-4820-9174-D3C76A6FD8D0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fabric.Authorization.Client", "Fabric.Authorization.Client\Fabric.Authorization.Client.csproj", "{8FD018AA-1EC6-4B8A-8DEA-2A891EF2FCBF}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fabric.Authorization.Client.UnitTests", "Fabric.Authorization.Client.UnitTests\Fabric.Authorization.Client.UnitTests.csproj", "{91C96910-CED8-4BA0-9129-21DBED06E4DE}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fabric.Authorization.Models", "Fabric.Authorization.Models\Fabric.Authorization.Models.csproj", "{7D6C392A-DD6B-40B4-832A-19AD11F8327A}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fabric.Authorization.Client.FunctionalTests", "Fabric.Authorization.Client.FunctionalTests\Fabric.Authorization.Client.FunctionalTests.csproj", "{4C2ED41B-EB7D-49D8-A4EB-130B2F399037}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fabric.Authorization.AccessControl", "Fabric.Authorization.AccessControl\Fabric.Authorization.AccessControl.csproj", "{47E07C65-6563-42AD-9724-CAFD4433AF22}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Catalyst.Fabric.Authorization.Client", "Catalyst.Fabric.Authorization.Client\Catalyst.Fabric.Authorization.Client.csproj", "{9F5916AE-D16C-4BA8-A5B9-944F956318BB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Catalyst.Fabric.Authorization.Client.FunctionalTests", "Catalyst.Fabric.Authorization.Client.FunctionalTests\Catalyst.Fabric.Authorization.Client.FunctionalTests.csproj", "{970A31A3-6C58-4D66-86C0-FC1282AAEF4F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Catalyst.Fabric.Authorization.Client.UnitTests", "Catalyst.Fabric.Authorization.Client.UnitTests\Catalyst.Fabric.Authorization.Client.UnitTests.csproj", "{70B62B77-54C9-4885-A636-7355F1AE194A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Catalyst.Fabric.Authorization.Models", "Catalyst.Fabric.Authorization.Models\Catalyst.Fabric.Authorization.Models.csproj", "{3DB2486B-4171-403D-BE01-47B26E325C02}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -69,26 +69,26 @@ Global
 		{915460EA-ED17-4820-9174-D3C76A6FD8D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{915460EA-ED17-4820-9174-D3C76A6FD8D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{915460EA-ED17-4820-9174-D3C76A6FD8D0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8FD018AA-1EC6-4B8A-8DEA-2A891EF2FCBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8FD018AA-1EC6-4B8A-8DEA-2A891EF2FCBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8FD018AA-1EC6-4B8A-8DEA-2A891EF2FCBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8FD018AA-1EC6-4B8A-8DEA-2A891EF2FCBF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{91C96910-CED8-4BA0-9129-21DBED06E4DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{91C96910-CED8-4BA0-9129-21DBED06E4DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{91C96910-CED8-4BA0-9129-21DBED06E4DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{91C96910-CED8-4BA0-9129-21DBED06E4DE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7D6C392A-DD6B-40B4-832A-19AD11F8327A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7D6C392A-DD6B-40B4-832A-19AD11F8327A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7D6C392A-DD6B-40B4-832A-19AD11F8327A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7D6C392A-DD6B-40B4-832A-19AD11F8327A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4C2ED41B-EB7D-49D8-A4EB-130B2F399037}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4C2ED41B-EB7D-49D8-A4EB-130B2F399037}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4C2ED41B-EB7D-49D8-A4EB-130B2F399037}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4C2ED41B-EB7D-49D8-A4EB-130B2F399037}.Release|Any CPU.Build.0 = Release|Any CPU
 		{47E07C65-6563-42AD-9724-CAFD4433AF22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{47E07C65-6563-42AD-9724-CAFD4433AF22}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{47E07C65-6563-42AD-9724-CAFD4433AF22}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{47E07C65-6563-42AD-9724-CAFD4433AF22}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F5916AE-D16C-4BA8-A5B9-944F956318BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F5916AE-D16C-4BA8-A5B9-944F956318BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F5916AE-D16C-4BA8-A5B9-944F956318BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F5916AE-D16C-4BA8-A5B9-944F956318BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{970A31A3-6C58-4D66-86C0-FC1282AAEF4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{970A31A3-6C58-4D66-86C0-FC1282AAEF4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{970A31A3-6C58-4D66-86C0-FC1282AAEF4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{970A31A3-6C58-4D66-86C0-FC1282AAEF4F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70B62B77-54C9-4885-A636-7355F1AE194A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70B62B77-54C9-4885-A636-7355F1AE194A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70B62B77-54C9-4885-A636-7355F1AE194A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70B62B77-54C9-4885-A636-7355F1AE194A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3DB2486B-4171-403D-BE01-47B26E325C02}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3DB2486B-4171-403D-BE01-47B26E325C02}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3DB2486B-4171-403D-BE01-47B26E325C02}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3DB2486B-4171-403D-BE01-47B26E325C02}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
