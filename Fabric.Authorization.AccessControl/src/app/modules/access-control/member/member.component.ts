@@ -9,6 +9,7 @@ import 'rxjs/add/operator/catch';
 import 'rxjs/add/observable/throw';
 import 'rxjs/add/observable/zip';
 import 'rxjs/add/operator/mergeMap';
+import 'rxjs/add/operator/distinctUntilChanged';
 
 import { inherits } from 'util';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -73,6 +74,8 @@ export class MemberComponent implements OnInit, OnDestroy {
     this.searchTextSubject
       .takeUntil(this.ngUnsubscribe)
       .filter((term) => !this.editMode)
+      .distinctUntilChanged()
+      .debounceTime(500)
       .do((term) => {
         this.roles.map(r => r.selected = false);
         this.principals.map(p => p.selected = false);
@@ -90,7 +93,19 @@ export class MemberComponent implements OnInit, OnDestroy {
       .takeUntil(this.ngUnsubscribe)
       .subscribe(result => {
         this.searching = false;
-        this.principals = result.principals.map(principal => <IFabricPrincipal>principal);
+        this.principals =
+          result.principals.length === 0
+              ? [
+                    {
+                        subjectId: this.searchText,
+                        principalType: 'group'
+                    },
+                    {
+                        subjectId: this.searchText,
+                        principalType: 'user'
+                    }
+                ]
+              : result.principals;
       });
   }
 

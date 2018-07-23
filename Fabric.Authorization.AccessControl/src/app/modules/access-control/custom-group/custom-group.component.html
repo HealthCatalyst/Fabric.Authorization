@@ -42,8 +42,9 @@
                                 <hc-checkbox [id]="principal.subjectId" [(ngModel)]="principal.selected">
                                 </hc-checkbox>
                             </td>
-                            <td [innerText]="principal.subjectId">
-                            </td>
+                            <label  [for]="principal.subjectId">
+                                {{ principal.subjectId }}
+                            </label>
                         </tr>
                     </tbody>
                 </table>

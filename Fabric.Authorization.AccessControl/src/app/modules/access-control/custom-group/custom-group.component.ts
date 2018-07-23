@@ -128,12 +128,22 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
       .takeUntil(this.ngUnsubscribe)
       .subscribe(result => {
         this.searching = false;
+        const returnedPrincipals: IFabricPrincipal[] =
+          result.principals.length === 0
+              ? [
+                    {
+                        subjectId: this.searchTerm,
+                        principalType: 'user'
+                    }
+                ]
+              : result.principals;
+
         if (this.associatedPrincipals && this.associatedPrincipals.length > 0) {
-          this.principals = result.principals
-            .filter(principal => this.associatedPrincipals
+          this.principals = returnedPrincipals.filter(principal =>
+            this.associatedPrincipals
               .some(associatedPrincipal => associatedPrincipal.subjectId !== principal.subjectId));
         } else {
-          this.principals = result.principals;
+          this.principals = returnedPrincipals;
         }
       });
   }
