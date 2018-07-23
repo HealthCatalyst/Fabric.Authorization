@@ -32,12 +32,9 @@ export class MemberComponent implements OnInit, OnDestroy {
   public principals: Array<IFabricPrincipal> = [];
   public roles: Array<IRole> = [];
   public searching = false;
-  public principalSelected = false;
   public searchTextSubject = new Subject<string>();
   public searchText: string;
-  public entityType = '';
-  public subjectId = '';
-  public editMode = false;
+  public selectedPrincipal?: IFabricPrincipal;
 
   private ngUnsubscribe: any = new Subject();
 
@@ -53,9 +50,16 @@ export class MemberComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.subjectId = this.route.snapshot.paramMap.get('subjectid');
-    this.entityType = (this.route.snapshot.paramMap.get('type') || '').toLowerCase();
-    this.editMode = !!this.subjectId;
+    const subjectId: string = this.route.snapshot.paramMap.get('subjectid');
+    const principalType: string = (this.route.snapshot.paramMap.get('type') || '').toLowerCase();
+
+    this.searchText = subjectId;
+        if (subjectId && principalType) {
+            this.selectedPrincipal = {
+                subjectId,
+                principalType
+            };
+        }
 
     // Roles
     this.roleService
@@ -66,17 +70,20 @@ export class MemberComponent implements OnInit, OnDestroy {
       .takeUntil(this.ngUnsubscribe)
       .mergeMap((roles: IRole[]) => {
         this.roles = roles.map(role => <IRole>role);
-        return this.bindExistingRoles(this.subjectId, this.entityType);
+        return this.bindExistingRoles(this.selectedPrincipal);
       })
       .subscribe();
 
     // Search text
     this.searchTextSubject
       .takeUntil(this.ngUnsubscribe)
-      .filter((term) => !this.editMode)
       .distinctUntilChanged()
       .debounceTime(500)
       .do((term) => {
+        if (this.selectedPrincipal && term !== this.selectedPrincipal.subjectId) {
+          this.selectedPrincipal = null;
+        }
+
         this.roles.map(r => r.selected = false);
         this.principals.map(p => p.selected = false);
         if (term && term.length > 2) {
@@ -115,35 +122,22 @@ export class MemberComponent implements OnInit, OnDestroy {
   }
 
   selectPrincipal(principal: IFabricPrincipal): Subscription {
-    for (const otherPrincal of this.principals.filter((p) => p.subjectId !== principal.subjectId)) {
-      otherPrincal.selected = false;
-    }
-    this.principalSelected = !principal.selected;
-    if (this.principalSelected) {
-      return this
-        .bindExistingRoles(principal.subjectId, principal.principalType)
-        .subscribe();
-    } else {
-      this.roles.map(role => role.selected = false);
-      return Subscription.EMPTY;
-    }
+    this.principals = [];
+    this.selectedPrincipal = principal;
+    this.searchText = principal.subjectId;
+    return this.bindExistingRoles(principal).subscribe();
   }
 
   save(): Subscription {
-    const selectedPrincipal: IFabricPrincipal = this.principals.find(p => p.selected);
-    const selectedType = selectedPrincipal ? selectedPrincipal.principalType : this.entityType;
-    const selectedSubjectId = selectedPrincipal ? selectedPrincipal.subjectId : this.subjectId;
-    const selectedRoles = this.roles.filter(r => r.selected);
+    const selectedRoles: IRole[] = this.roles.filter(r => r.selected);
 
-    const saveObservable = selectedType === 'user' ?
-      this.saveUser(selectedSubjectId, selectedRoles) :
-      this.saveGroup(selectedSubjectId, selectedRoles);
+    const saveObservable: Observable<any> =
+        this.selectedPrincipal.principalType === 'user'
+            ? this.saveUser(this.selectedPrincipal.subjectId, selectedRoles)
+            : this.saveGroup(this.selectedPrincipal.subjectId, selectedRoles);
 
-    return saveObservable.subscribe(null, (error) => {
-      // TODO: Error handling
-      console.error(error);
-    }, () => {
-      this.router.navigate(['/access-control']);
+    return saveObservable.subscribe(null, null, () => {
+        this.router.navigate(['/access-control']);
     });
   }
 
@@ -218,20 +212,21 @@ export class MemberComponent implements OnInit, OnDestroy {
       });
   }
 
-  private bindExistingRoles(subjectId: string, principalType: string): Observable<any> {
-    if (!this.subjectId) {
-      return Observable.of(undefined);
+  private bindExistingRoles(principal: IFabricPrincipal): Observable<any> {
+    if (!principal || !principal.subjectId) {
+        return Observable.of(undefined);
     }
-    const roleObservable = principalType === 'user' ?
-      this.userService.getUserRoles(this.configService.identityProvider, subjectId) :
-      this.groupService.getGroupRoles(subjectId, this.configService.grain, this.configService.securableItem);
+    const roleObservable: Observable<any> =
+        principal.principalType === 'user'
+            ? this.userService.getUserRoles(this.configService.identityProvider, principal.subjectId)
+            : this.groupService.getGroupRoles(principal.subjectId, this.configService.grain, this.configService.securableItem);
 
     return roleObservable.do((existingRoles: IRole[]) => {
-      if (!existingRoles) {
-        this.roles.map(role => role.selected = false);
-      } else {
-        this.roles.map(role => role.selected = existingRoles.some(userRole => userRole.id === role.id));
-      }
+        if (!existingRoles) {
+            this.roles.map(role => (role.selected = false));
+        } else {
+            this.roles.map(role => (role.selected = existingRoles.some(userRole => userRole.id === role.id)));
+        }
     });
-  }
+}
 }
