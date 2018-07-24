@@ -1,0 +1,44 @@
+#!/bin/bash
+
+secret=$1
+
+if ! [ $secret ]; then
+  echo "Usage: 'setup-access-control.sh [fabric-installer-client-secret]'. You must supply the Fabric Installer client secret."
+  exit
+fi
+
+if [ $2 ]; then
+	identitybaseurl=$2
+fi
+
+if [ $3 ]; then
+	authorizationbaseurl=$3
+fi
+
+if ! [ $identitybaseurl ]; then
+	identitybaseurl=http://localhost:5001
+fi
+
+if ! [ $authorizationbaseurl ]; then
+	authorizationbaseurl=http://localhost:5004
+fi
+
+# add node setup steps
+
+echo "getting access token for installer..."
+accesstokenresponse=$(curl -k $identitybaseurl/connect/token --data "client_id=fabric-installer&grant_type=client_credentials" --data-urlencode "client_secret=$secret")
+echo $accesstokenresponse
+accesstoken=$(echo $accesstokenresponse | grep -oP '(?<="access_token":")[^"]*')
+echo ""
+
+# register the access control UI in identity
+echo "registering Fabric Authorization Access Control client with Fabric.Identity..."
+clientresponse=$(curl -k -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $accesstoken" -d "{ \"clientId\": \"fabric-access-control\", \"clientName\": \"Fabric Authorization Access Control\", \"requireConsent\": false, \"allowedGrantTypes\": [\"implicit\"], \"redirectUris\": [\"http://localhost:4200/oidc-callback.html\", \"http://localhost:4200/silent.html\"], \"postLogoutRedirectUris\": [ \"http://localhost:4200\"], \"allowOfflineAccess\": false, \"allowAccessTokensViaBrowser\": true, \"allowedCorsOrigins\":[\"http://localhost:4200\"], \"requireConsent\": false, \"allowedScopes\": [\"openid\", \"profile\", \"fabric.profile\", \"fabric/authorization.read\", \"fabric/authorization.write\", \"fabric/idprovider.searchusers\", \"fabric/authorization.dos.write\"]}" $identitybaseurl/api/client)
+echo $clientresponse
+echo ""
+
+# register the access control UI in authorization
+echo "registering Fabric Authorization Access Control client with Fabric.Authorization..."
+curl -k -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $accesstoken" -d "{ \"id\": \"fabric-access-control\", \"name\": \"Fabric Authorization Access Control\", \"topLevelSecurableItem\": { \"name\":\"fabric-access-control\"}}" $authorizationbaseurl/clients/
+echo ""
+
