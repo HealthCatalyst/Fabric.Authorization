@@ -1,4 +1,5 @@
 ﻿using Nancy;
+using Fabric.Authorization.API.Constants;
 
 namespace Fabric.Authorization.API.Modules
 {
@@ -11,7 +12,7 @@ namespace Fabric.Authorization.API.Modules
 
         private dynamic Redirect()
         {
-            return Response.AsRedirect("/client/index.html");
+            return Response.AsRedirect($"/{AccessControl.Path}/index.html");
         }
     }
 }

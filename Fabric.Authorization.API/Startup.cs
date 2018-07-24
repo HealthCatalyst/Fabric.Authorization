@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
+using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Platform.Auth;
@@ -26,8 +27,8 @@ namespace Fabric.Authorization.API
             "/swagger/ui/index.html",
             "/swagger/ui/swagger.json",
             "/",
-            "/client",
-            "/client/index.html"
+            $"/{AccessControl.Path}",
+            $"/{AccessControl.Path}/index.html"
         };
 
         private readonly IAppConfiguration _appConfig;
