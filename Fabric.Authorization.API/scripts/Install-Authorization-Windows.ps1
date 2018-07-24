@@ -299,7 +299,7 @@ $encryptionCertificateThumbprint = $installSettings.encryptionCertificateThumbpr
 $appInsightsInstrumentationKey = $installSettings.appInsightsInstrumentationKey
 $siteName = $installSettings.siteName
 $sqlServerAddress = $installSettings.sqlServerAddress
-$identityServerUrl = $installSettings.identityService
+$identityServiceUrl = $installSettings.identityService
 $metadataDbName = $installSettings.metadataDbName
 $authorizationDbName = $installSettings.authorizationDbName
 $authorizationDatabaseRole = $installSettings.authorizationDatabaseRole
@@ -319,10 +319,10 @@ else {
 }
 
 if ([string]::IsNullOrEmpty($installSettings.identityService)) {
-    $identityServerUrl = Get-IdentityServiceUrl
+    $identityServiceUrl = Get-IdentityServiceUrl
 }
 else {
-    $identityServerUrl = $installSettings.identityService
+    $identityServiceUrl = $installSettings.identityService
 }
 
 if ([string]::IsNullOrEmpty($installSettings.authorizationService)) {
@@ -487,10 +487,10 @@ if (![string]::IsNullOrEmpty($userEnteredAuthorizationServiceUrl)) {
     $authorizationServiceUrl = $userEnteredAuthorizationServiceUrl
 }
 
-$userEnteredIdentityServiceUrl = Read-Host  "Enter the URL for the Identity Service or hit enter to accept the default [$identityServerUrl]"
+$userEnteredIdentityServiceUrl = Read-Host  "Enter the URL for the Identity Service or hit enter to accept the default [$identityServiceUrl]"
 Write-Host ""
 if (![string]::IsNullOrEmpty($userEnteredIdentityServiceUrl)) {   
-    $identityServerUrl = $userEnteredIdentityServiceUrl
+    $identityServiceUrl = $userEnteredIdentityServiceUrl
 }
 
 if (!($noDiscoveryService)) {
@@ -632,7 +632,7 @@ if (!($noDiscoveryService)) {
         serviceVersion = 1;
         friendlyName = "Fabric.Authorization";
         description = "The Fabric.Authorization service provides centralized authentication across the Fabric ecosystem.";
-        identityServerUrl = $identityServerUrl;
+        identityServerUrl = $identityServiceUrl;
         serviceUrl = "$authorizationServiceUrl/v1";
     }
     Add-DiscoveryRegistration $discoveryServiceUrl $credential $discoveryPostBody
@@ -642,8 +642,8 @@ if (!($noDiscoveryService)) {
 Set-Location $workingDirectory
 
 Write-Host ""
-Write-Host "Getting access token for installer, at URL: $identityServerUrl"
-$accessToken = Get-AccessToken $identityServerUrl "fabric-installer" "fabric/identity.manageresources" $fabricInstallerSecret
+Write-Host "Getting access token for installer, at URL: $identityServiceUrl"
+$accessToken = Get-AccessToken $identityServiceUrl "fabric-installer" "fabric/identity.manageresources" $fabricInstallerSecret
 
 #Register authorization api
 $body = @'
@@ -655,7 +655,7 @@ $body = @'
 '@
 
 Write-Host "Registering Fabric.Authorization API."
-$authorizationApiSecret = ([string](Add-ApiRegistration -authUrl $identityServerUrl -body $body -accessToken $accessToken)).Trim()
+$authorizationApiSecret = ([string](Add-ApiRegistration -authUrl $identityServiceUrl -body $body -accessToken $accessToken)).Trim()
 
 if (![string]::IsNullOrWhiteSpace($authorizationApiSecret) -and ![string]::IsNullOrEmpty($authorizationApiSecret)) {
     Write-Success "Fabric.Authorization apiSecret: $authorizationApiSecret"
@@ -674,7 +674,7 @@ $body = @'
 '@
 
 Write-Host "Registering Fabric.Authorization Client."
-$authorizationClientSecret = ([string](Add-ClientRegistration -authUrl $identityServerUrl -body $body -accessToken $accessToken)).Trim()
+$authorizationClientSecret = ([string](Add-ClientRegistration -authUrl $identityServiceUrl -body $body -accessToken $accessToken)).Trim()
 
 if (![string]::IsNullOrWhiteSpace($authorizationClientSecret) -and ![string]::IsNullOrEmpty($authorizationClientSecret)) {
     Write-Success "Fabric.Authorization clientSecret: $authorizationClientSecret"
@@ -703,7 +703,7 @@ if ($authorizationClientSecret) {
     $environmentVariables.Add("IdentityServerConfidentialClientSettings__ClientSecret", $encryptedSecret)
 }
 
-$environmentVariables.Add("IdentityServerConfidentialClientSettings__Authority", $identityServerUrl)
+$environmentVariables.Add("IdentityServerConfidentialClientSettings__Authority", $identityServiceUrl)
 
 if ($authorizationDbConnStr) {
     $environmentVariables.Add("ConnectionStrings__AuthorizationDatabase", $authorizationDbConnStr)
@@ -717,8 +717,7 @@ if ($adminAccountIsUser) {
     $environmentVariables.Add("AdminAccount__Type", "user")
 }
 else {
-    $environmentVariables.Add("AdminAccount__Type", "group")
-}
+    $environmentVariables.Add("AdminAccount__Type", "group")}
 
 if ($authorizationApiSecret) {
     $encryptedSecret = Get-EncryptedString $encryptionCert $authorizationApiSecret
@@ -729,7 +728,7 @@ Set-EnvironmentVariables $appDirectory $environmentVariables | Out-Null
 Write-Host ""
 
 Write-Host "Setting up Admin account."
-$accessToken = Get-AccessToken $identityServerUrl "fabric-installer" "fabric/authorization.read fabric/authorization.write fabric/authorization.dos.write fabric/authorization.manageclients" $fabricInstallerSecret
+$accessToken = Get-AccessToken $identityServiceUrl "fabric-installer" "fabric/identity.manageresources fabric/authorization.read fabric/authorization.write fabric/authorization.dos.write fabric/authorization.manageclients" $fabricInstallerSecret
 Add-AccountToDosAdminRole -accountName $adminAccount -domain $currentUserDomain -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken -connString $authorizationDbConnStr
 
 Set-Location $workingDirectory
@@ -740,7 +739,7 @@ if ($encryptionCertificateThumbprint) { Add-InstallationSetting "authorization" 
 if ($appInsightsInstrumentationKey) { Add-InstallationSetting "authorization" "appInsightsInstrumentationKey" "$appInsightsInstrumentationKey" | Out-Null}
 if ($sqlServerAddress) { Add-InstallationSetting "common" "sqlServerAddress" "$sqlServerAddress" | Out-Null}
 if ($metadataDbName) { Add-InstallationSetting "common" "metadataDbName" "$metadataDbName" | Out-Null}
-if ($identityServerUrl) { Add-InstallationSetting "common" "identityService" "$identityServerUrl" | Out-Null}
+if ($identityServiceUrl) { Add-InstallationSetting "common" "identityService" "$identityServiceUrl" | Out-Null}
 if ($discoveryServiceUrl) { Add-InstallationSetting "common" "discoveryService" "$discoveryServiceUrl" | Out-Null}
 if ($authorizationServiceUrl) { Add-InstallationSetting "authorization" "authorizationService" "$authorizationServiceUrl" | Out-Null}
 if ($authorizationServiceUrl) { Add-InstallationSetting "common" "authorizationService" "$authorizationServiceUrl" | Out-Null}
@@ -757,5 +756,29 @@ $edwAdminUsers = Get-EdwAdminUsersAndGroups -connectionString $metadataConnStr
 Write-Host "There are $($edwAdminUsers.Count) users with this role"	
 Write-Host ""	
 Add-ListOfUsersToDosAdminRole -edwAdminUsers $edwAdminUsers -connString $authorizationDbConnStr -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken
+
+#Register Fabric.Authorization.AccessControl client
+$body = @'
+{
+    "clientId":"fabric-access-control", 
+    "clientName":"Fabric Authorization Access Control Client", 
+    "requireConsent":"false", 
+    "allowedGrantTypes": ["implicit"], 
+    "allowedScopes": ["openid", "profile", "fabric.profile", "fabric/authorization.read", "fabric/authorization.write", "fabric/idprovider.searchusers", "fabric/authorization.dos.write"],
+	"allowedCorsOrigins": ["$authorizationServiceUrl/v1"],
+	"redirectUris": ["$authorizationServiceUrl/v1/oidc-callback.html", "$authorizationServiceUrl/v1/silent.html"],
+	"postLogoutRedirectUris": ["$authorizationServiceUrl/v1"],
+	"allowOfflineAccess": false,
+    "allowAccessTokensViaBrowser": true,
+    "enableLocalLogin": false,
+    "accessTokenLifetime": 1200
+}
+'@
+
+Write-Host "Registering Fabric.Authorization.AccessControl Client with Fabric.Identity."
+Add-ClientRegistration -authUrl $identityServiceUrl -body $body -accessToken $accessToken
+
+Write-Host "Registering Fabric.Authorization.AccessControl Client with Fabric.Authorization."
+Add-AuthorizationRegistration -authUrl $authorizationServiceUrl/v1 -clientId $body.clientId -clientName $body.clientName -accessToken $accessToken
 
 Read-Host -Prompt "Installation complete, press Enter to exit"
