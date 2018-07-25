@@ -6,7 +6,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 
- import { httpInterceptorProviders } from './services/interceptors';
+import { httpInterceptorProviders } from './services/interceptors';
 import { AuthService } from '../app/services/global/auth.service';
 import { IAccessControlConfigService } from './services/access-control-config.service';
 import { ClientAccessControlConfigService } from './services/global/client-access-control-config.service';

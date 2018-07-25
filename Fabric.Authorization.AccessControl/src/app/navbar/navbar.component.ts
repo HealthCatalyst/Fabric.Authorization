@@ -1,4 +1,5 @@
 import { Component, OnInit, Inject } from '@angular/core';
+import { User } from 'oidc-client';
 
 import { AuthService } from '../services/global/auth.service';
 
@@ -15,15 +16,19 @@ export class NavbarComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.authService.getUser().then(result => {
-      if (result && result.profile) {
-        debugger;
-        if(result.profile.family_name && result.profile.given_name){
-          this.userDisplayName = result.profile.given_name + ' ' + result.profile.family_name;
-        }else{
-          this.userDisplayName = result.profile.name;
-        }
-      }
+    this.authService.getUser().then(user => {
+      this.userDisplayName = this.getUserDisplayName(user);
     });
+  }
+
+  getUserDisplayName(user: User): string {
+    if(user && user.profile){
+      if(user.profile.family_name && user.profile.given_name){
+        return (user.profile.given_name + ' ' + user.profile.family_name);
+      }else{
+        return user.profile.name;
+      }
+    }
+    return "";
   }
 }
