@@ -3,35 +3,146 @@
 <head>
   <meta charset="utf-8" />
   <title>Fabric.AccessControl</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+      html,
+      body {
+          background-color: #F0F3F6;
+          font-family: sans-serif;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          font-size: 14px;
+          margin: 0;
+      }
+
+      h1 {
+          font-family: "Open Sans", sans-serif;
+          font-size: 36px;
+          font-weight: 600;
+          line-height: 2.625em;
+          color: #000000;
+      }
+
+      * {
+          box-sizing: border-box;
+      }
+
+      .navbar {
+          height: 53px;
+          background-color: #384855;
+      }
+
+      .navbar-brand-background {
+          background-color: #00ABF9;
+          width: 55px;
+          float: left;
+      }
+
+      .navbar-logo {
+          margin: 8px 0 3px 16px;
+          height: 38px;
+          width: 23px;
+      }
+
+      .navbar-app-background {
+          float: left;
+          width: 55px;
+      }
+
+      .navbar-app {
+          margin: 12px 30px 11px 30px;
+          height: 27px;
+      }
+
+      .hc-spinner-container {
+          flex: 1 0 0;
+      }
+      .hc-spinner-container {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100%;
+          flex-direction: column;
+      }
+
+      .hc-spinner {
+          animation: rotator 1.4s linear infinite;
+      }
+
+      @keyframes rotator {
+          0% {
+              transform: rotate(0deg);
+          }
+          100% {
+              transform: rotate(270deg);
+          }
+      }
+
+      .hc-spinner-path {
+          stroke-dasharray: 187;
+          stroke-dashoffset: 0;
+          transform-origin: center;
+          stroke: #51C193;
+          animation: dash 1.4s ease-in-out infinite, colors 5.6s ease-in-out infinite;
+      }
+
+      @keyframes dash {
+          0% {
+              stroke-dashoffset: 187;
+          }
+          50% {
+              stroke-dashoffset: 46.75;
+              transform: rotate(135deg);
+          }
+          100% {
+              stroke-dashoffset: 187;
+              transform: rotate(450deg);
+          }
+      }
+  </style>
 </head>
 <body>
-  <h1 id="waiting">Authenticating...</h1>
-  <div id="error"></div>
+  <nav class="navbar">
+      <div class="navbar-brand-background">
+          <img class="navbar-logo" src="./assets/TriFlame.svg">
+      </div>
+      <div class="navbar-app-background">
+          <img class="navbar-app" src="./assets/AccessControlLogo.svg">
+      </div>
+  </nav>
+  <div class="hc-spinner-container">
+    <h1 id="waiting">Authenticating...</h1>
+    <div id="error"></div>
+    <svg id="spinner" class="hc-spinner" width="99px" height="99px" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <circle class="hc-spinner-path" fill="none" stroke-width="10" stroke-linecap="round" cx="50" cy="50" r="45"></circle>
+    </svg>
+  </div>
   <script src="assets/oidc-client.min.js"></script>
-<script>
-  debugger;
-  Oidc.Log.logger = console;
-  new Oidc.UserManager().signinRedirectCallback().then(function (user) {
-      if (user == null) {
-        document.getElementById("waiting").style.display = "none";
-        document.getElementById("error").innerText = "No sign-in request pending.";
-        console.log("at oidc-callback, but user is null");
-      }
-      else {
-        console.log("user is not null, redirecting to index");
-        var url = sessionStorage.getItem('redirect');
-        if (url) {
-          sessionStorage.removeItem('redirect');
-          window.location = url;
-        } else {
-          window.location = window.location.href.slice(0, window.location.href.indexOf("/oidc-callback.html", "")) + "/access-control";;
+  <script>
+    debugger;
+    Oidc.Log.logger = console;
+    new Oidc.UserManager().signinRedirectCallback().then(function (user) {
+        if (user == null) {
+          document.getElementById("waiting").style.display = "none";
+          document.getElementById("error").innerText = "No sign-in request pending.";
+          console.log("at oidc-callback, but user is null");
         }
-      }
-    })
-    .catch(function (er) {
-      document.getElementById("waiting").style.display = "none";
-      document.getElementById("error").innerText = er.message;
-    });
-</script>
+        else {
+          console.log("user is not null, redirecting to index");
+          var url = sessionStorage.getItem('redirect');
+          if (url) {
+            sessionStorage.removeItem('redirect');
+            window.location = url;
+          } else {
+            window.location = window.location.href.slice(0, window.location.href.indexOf("/oidc-callback.html", "")) + "/access-control";;
+          }
+        }
+      })
+      .catch(function (er) {
+        document.getElementById("waiting").style.display = "none";
+        document.getElementById("error").innerText = er.message;
+      });
+  </script>
 </body>
 </html>
