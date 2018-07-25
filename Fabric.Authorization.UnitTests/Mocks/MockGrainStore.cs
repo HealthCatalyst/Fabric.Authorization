@@ -26,5 +26,13 @@ namespace Fabric.Authorization.UnitTests.Mocks
 
             return mockGrainStore;
         }
+
+        public static Mock<IGrainStore> SetupGetAllGrain(this Mock<IGrainStore> mockGrainStore, IEnumerable<Grain> grains)
+        {
+            mockGrainStore.Setup(grainStore => grainStore.GetAll())
+                .Returns(Task.FromResult(grains));
+
+            return mockGrainStore;
+        }
     }
 }

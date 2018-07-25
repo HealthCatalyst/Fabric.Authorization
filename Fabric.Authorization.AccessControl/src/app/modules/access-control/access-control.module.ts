@@ -12,7 +12,9 @@ import {
   SelectModule,
   ProgressIndicatorsModule,
   PaginationModule,
-  ModalModule
+  ModalModule,
+  ListModule,
+  TileModule
 } from '@healthcatalyst/cashmere';
 
 import { AccessControlRoutingModule } from './access-control-routing.module';
@@ -23,6 +25,7 @@ import { FabricAuthUserService } from '../../services/fabric-auth-user.service';
 import { FabricExternalIdpSearchService } from '../../services/fabric-external-idp-search.service';
 import { FabricAuthRoleService } from '../../services/fabric-auth-role.service';
 import { IAccessControlConfigService } from '../../services/access-control-config.service';
+import { FabricAuthGrainService } from '../../services/fabric-auth-grain.service';
 
 import { MemberListComponent } from './member-list/member-list.component';
 import { MemberComponent } from './member/member.component';
@@ -43,7 +46,9 @@ import { CustomGroupComponent } from './custom-group/custom-group.component';
     ProgressIndicatorsModule,
     LabelModule,
     PaginationModule,
-    ModalModule
+    ModalModule,
+    ListModule,
+    TileModule
   ],
   declarations: [
     MemberListComponent,
@@ -56,7 +61,8 @@ import { CustomGroupComponent } from './custom-group/custom-group.component';
     FabricAuthMemberSearchService,
     FabricAuthUserService,
     FabricExternalIdpSearchService,
-    FabricAuthRoleService
+    FabricAuthRoleService,
+    FabricAuthGrainService
   ],
 })
 export class AccessControlModule { }

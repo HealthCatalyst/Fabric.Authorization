@@ -3,7 +3,7 @@ import { AppComponent } from './app.component';
 import {RouterTestingModule} from '@angular/router/testing';
 import { NavbarComponent } from './navbar/navbar.component';
 import { NavbarModule, PopoverModule, IconModule } from '@healthcatalyst/cashmere';
-import { AuthService } from '../app/services/global/auth.service';
+import { AuthService } from './services/global/auth.service';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 describe('AppComponent', () => {

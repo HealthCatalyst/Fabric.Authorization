@@ -38,6 +38,28 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return grain.ToModel();
         }
 
+        public Task<IEnumerable<Grain>> GetAll()
+        {
+            var grains = AuthorizationDbContext.Grains
+                .Include(g => g.SecurableItems)
+                .Where(g => !g.IsDeleted);
+
+            foreach (var grain in grains)
+            {
+                foreach (var securableItem in grain.SecurableItems)
+                {
+                    LoadChildrenRecursive(securableItem);
+                }
+            }
+
+            var result = grains.Select(g => g.ToModel())
+                .AsEnumerable();
+
+            // Following the same pattern to expose functions as 
+            // Task results.
+            return Task.FromResult(result);
+        }
+
         public Task<IEnumerable<Grain>> GetSharedGrains()
         {
             var sharedGrains = AuthorizationDbContext.Grains
@@ -51,11 +73,13 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         private void LoadChildrenRecursive(SecurableItem securableItem)
         {
+            if (securableItem.IsDeleted) return;
+
             AuthorizationDbContext.Entry(securableItem)
                 .Collection(s => s.SecurableItems)
                 .Load();
 
-            foreach (var childSecurableItem in securableItem.SecurableItems)
+            foreach (var childSecurableItem in securableItem.SecurableItems.Where(p => !p.IsDeleted))
             {
                 LoadChildrenRecursive(childSecurableItem);
             }

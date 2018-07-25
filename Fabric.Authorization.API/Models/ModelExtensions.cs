@@ -234,6 +234,29 @@ namespace Fabric.Authorization.API.Models
             return clientModel;
         }
 
+        public static IEnumerable<GrainApiModel> ToGrainApiModels(this IEnumerable<Grain> grains)
+        {
+            return grains.Select(g => g.ToGrainApiModel());
+        }
+
+        public static GrainApiModel ToGrainApiModel(this Grain grain)
+        {
+            var grainApiModel = new GrainApiModel
+            {
+                Id = grain.Id,
+                Name = grain.Name,
+                SecurableItems = grain.SecurableItems?.Select(s => s.ToSecurableItemApiModel()).ToList(),
+                CreatedDateTimeUtc = grain.CreatedDateTimeUtc,
+                CreatedBy = grain.CreatedBy,
+                ModifiedDateTimeUtc = grain.ModifiedDateTimeUtc,
+                ModifiedBy = grain.ModifiedBy,
+                RequiredWriteScopes = grain.RequiredWriteScopes,
+                IsShared = grain.IsShared
+            };
+
+            return grainApiModel;
+        }
+
         public static SecurableItemApiModel ToSecurableItemApiModel(this SecurableItem securableItem)
         {
             var securableItemApiModel = new SecurableItemApiModel
