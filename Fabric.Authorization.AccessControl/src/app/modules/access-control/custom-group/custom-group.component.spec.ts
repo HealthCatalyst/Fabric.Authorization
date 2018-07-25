@@ -12,10 +12,14 @@ import { Observable } from 'rxjs/Observable';
 import { mockRolesResponse } from '../../../services/fabric-auth-user.service.mock';
 import { ButtonModule, IconModule, PopoverModule, InputModule, LabelModule, CheckboxModule } from '@healthcatalyst/cashmere';
 import { FabricExternalIdpSearchServiceMock, mockExternalIdpSearchResult } from '../../../services/fabric-external-idp-search.service.mock';
+import { IdPSearchResult } from '../../../models/idpSearchResult.model';
+import { Subject } from 'rxjs/Subject';
 
 describe('CustomGroupComponent', () => {
   let component: CustomGroupComponent;
   let fixture: ComponentFixture<CustomGroupComponent>;
+  let IdpSearchResultsSubject: Subject<IdPSearchResult>;
+  let searchService: FabricExternalIdpSearchServiceMock;
 
   beforeEach(
     async(() => {
@@ -38,8 +42,14 @@ describe('CustomGroupComponent', () => {
       groupService.getGroupUsers.and.returnValue(Observable.of(mockUsersResponse));
       groupService.getGroupRoles.and.returnValue(Observable.of(mockRolesResponse));
       groupService.search.and.returnValue(Observable.of(mockGroupsResponse));
+
       roleService.getRolesBySecurableItemAndGrain.and.returnValue(Observable.of(mockRolesResponse));
-      search.search.and.returnValue(Observable.of(mockExternalIdpSearchResult));
+      searchService = search;
+
+      IdpSearchResultsSubject = new Subject<IdPSearchResult>();
+        searchService.search.and.callFake((searchText: Observable<string>, type: string) => {
+            return IdpSearchResultsSubject;
+        });
     }));
 
   beforeEach(() => {
@@ -50,5 +60,59 @@ describe('CustomGroupComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('search users', () => {
+    it('returns groups on search', async(() => {
+        // act
+        component.searchTermSubject.next('bar');
+        IdpSearchResultsSubject.next(mockExternalIdpSearchResult);
+
+        // assert
+        expect(searchService.search).toHaveBeenCalled();
+        expect(component.principals.length).toBe(mockExternalIdpSearchResult.principals.length);
+    }));
+
+    it('adds a user when none have returned', async(() => {
+        // act
+        component.searchTerm = 'asdf';
+        IdpSearchResultsSubject.next({resultCount: 0, principals: []});
+
+        // assert
+        expect(component.principals.length).toBe(1);
+        expect(component.principals[0].subjectId).toBe('asdf');
+    }));
+  });
+
+  describe('associateUsers', () => {
+    it('returns groups on search', async(() => {
+        // arrange
+        component.principals = mockExternalIdpSearchResult.principals;
+        component.principals[0].selected = true;
+
+        // act
+        component.associateUsers();
+
+        // assert
+        expect(component.principals.length).toBe(mockExternalIdpSearchResult.principals.length - 1);
+        expect(component.associatedPrincipals.length).toBe(1);
+    }));
+  });
+
+  describe('unAssociateUsers', () => {
+    it('returns groups on search', async(() => {
+        // arrange
+        component.principals = mockExternalIdpSearchResult.principals;
+        component.associatedPrincipals.push({
+            subjectId: 'sub789',
+            selected: true
+        });
+
+        // act
+        component.unAssociateUsers();
+
+        // assert
+        expect(component.principals.length).toBe(mockExternalIdpSearchResult.principals.length + 1);
+    }));
   });
 });
