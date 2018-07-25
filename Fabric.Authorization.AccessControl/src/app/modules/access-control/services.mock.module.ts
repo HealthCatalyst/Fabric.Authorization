@@ -7,6 +7,7 @@ import { FabricAuthRoleService } from '../../services/fabric-auth-role.service';
 import { FabricAuthUserService } from '../../services/fabric-auth-user.service';
 import { FabricAuthGroupService } from '../../services/fabric-auth-group.service';
 import { FabricAuthMemberSearchService } from '../../services/fabric-auth-member-search.service';
+import { FabricAuthGrainService } from '../../services/fabric-auth-grain.service';
 import { ClientAccessControlConfigService } from '../../services/global/client-access-control-config.service';
 import { IDataChangedEventArgs } from '../../models/changedDataEventArgs.model';
 import { MockAccessControlConfigService } from '../../services/access-control-config.service.mock';
@@ -16,6 +17,7 @@ import { FabricAuthGroupServiceMock } from '../../services/fabric-auth-group.ser
 import { RouterTestingModule } from '@angular/router/testing';
 import { FabricAuthMemberSearchServiceMock } from '../../services/fabric-auth-member-search.service.mock';
 import { FabricAuthRoleServiceMock } from '../../services/fabric-auth-role.service.mock';
+import { FabricAuthGrainServiceMock } from '../../services/fabric-auth-grain.service.mock';
 
 @NgModule({
     providers: [
@@ -42,6 +44,10 @@ import { FabricAuthRoleServiceMock } from '../../services/fabric-auth-role.servi
         {
             provide: FabricAuthMemberSearchService,
             useClass: FabricAuthMemberSearchServiceMock
+        },
+        {
+            provide: FabricAuthGrainService,
+            useClass: FabricAuthGrainServiceMock
         }
     ],
     imports: [RouterTestingModule]

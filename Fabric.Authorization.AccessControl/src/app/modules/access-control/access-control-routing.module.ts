@@ -1,9 +1,9 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 
-import { MemberListComponent } from './member-list/member-list.component';
 import { MemberComponent } from './member/member.component';
 import { CustomGroupComponent } from './custom-group/custom-group.component';
+import { MemberListComponent } from './member-list/member-list.component';
 
 const routes: Routes = [
   {

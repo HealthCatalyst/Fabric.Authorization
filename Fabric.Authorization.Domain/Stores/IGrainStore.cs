@@ -8,5 +8,6 @@ namespace Fabric.Authorization.Domain.Stores
     {
         Task<Grain> Get(string name);
         Task<IEnumerable<Grain>> GetSharedGrains();
+        Task<IEnumerable<Grain>> GetAll();
     }
 }

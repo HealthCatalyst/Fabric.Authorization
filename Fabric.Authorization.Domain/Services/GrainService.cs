@@ -20,6 +20,11 @@ namespace Fabric.Authorization.Domain.Services
             return await _grainStore.Get(name);
         }
 
+        public async Task<IEnumerable<Grain>> GetAllGrains()
+        {
+            return await _grainStore.GetAll();
+        }
+
         public async Task<IEnumerable<Grain>> GetSharedGrains()
         {
             return await _grainStore.GetSharedGrains();

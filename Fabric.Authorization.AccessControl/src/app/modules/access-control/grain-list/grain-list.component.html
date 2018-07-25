@@ -1,0 +1,14 @@
+<div ng-show="isGrainVisible" class="sidenav">
+  <div *ngFor="let grain of grains" class="item" >
+    <a (click)="getMemberListForGrain(grain)">+ {{grain.name}}</a>
+
+    <!-- need to switch up for securible items instead-->
+    <div *ngFor="let securableItem of grain['securableItems']" class="item-sub" >
+      <a (click)="getMemberListForSecurableItem(securableItem)">-- {{securableItem.name}}</a>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+</div>
