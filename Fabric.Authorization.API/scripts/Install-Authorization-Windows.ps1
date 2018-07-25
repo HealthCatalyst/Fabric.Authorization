@@ -2,12 +2,17 @@
 # Install_Authorization_Windows.ps1
 #
 param([switch]$noDiscoveryService)
+
+function Get-FullyQualifiedMachineName() {
+	return "https://$env:computername.$($env:userdnsdomain.tolower())"
+}
+
 function Get-DiscoveryServiceUrl() {
-    return "https://$env:computername.$($env:userdnsdomain.tolower())/DiscoveryService/v1"
+    return "$(Get-FullyQualifiedMachineName)/DiscoveryService/v1"
 }
 
 function Get-IdentityServiceUrl() {
-    return "https://$env:computername.$($env:userdnsdomain.tolower())/Identity"
+    return "$(Get-FullyQualifiedMachineName)/Identity"
 }
 
 function Get-Headers($accessToken) {
@@ -757,23 +762,27 @@ Write-Host "There are $($edwAdminUsers.Count) users with this role"
 Write-Host ""	
 Add-ListOfUsersToDosAdminRole -edwAdminUsers $edwAdminUsers -connString $authorizationDbConnStr -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken
 
+
+$corsOrigin = Get-FullyQualifiedMachineName
+
 #Register Fabric.Authorization.AccessControl client
-$body = @'
-{
-    "clientId":"fabric-access-control", 
-    "clientName":"Fabric Authorization Access Control Client", 
-    "requireConsent":"false", 
-    "allowedGrantTypes": ["implicit"], 
-    "allowedScopes": ["openid", "profile", "fabric.profile", "fabric/authorization.read", "fabric/authorization.write", "fabric/idprovider.searchusers", "fabric/authorization.dos.write"],
-	"allowedCorsOrigins": ["$authorizationServiceUrl/v1"],
-	"redirectUris": ["$authorizationServiceUrl/v1/oidc-callback.html", "$authorizationServiceUrl/v1/silent.html"],
-	"postLogoutRedirectUris": ["$authorizationServiceUrl/v1"],
-	"allowOfflineAccess": false,
-    "allowAccessTokensViaBrowser": true,
-    "enableLocalLogin": false,
-    "accessTokenLifetime": 1200
-}
-'@
+$accessControlClient = @{
+		clientId = "fabric-access-control"
+		clientName = "Fabric Authorization Access Control Client"
+		requireConsent = "false"
+		allowedScopes = "openid", "profile", "fabric.profile", "fabric/authorization.read", "fabric/authorization.write", "fabric/idprovider.searchusers", "fabric/authorization.dos.write"
+		allowOfflineAccess = $false
+		allowAccessTokensViaBrowser = $true
+		enableLocalLogin = $false
+		accessTokenLifetime = 1200
+    }
+
+$accessControlClient.allowedGrantTypes = @("implicit")
+$accessControlClient.redirectUris = "$authorizationServiceUrl/oidc-callback.html", "$authorizationServiceUrl/silent.html"
+$accessControlClient.allowedCorsOrigins = @("$corsOrigin")
+$accessControlClient.postLogoutRedirectUris = @("$authorizationServiceUrl")
+
+$body = $accessControlClient | ConvertTo-Json
 
 Write-Host "Registering Fabric.Authorization.AccessControl Client with Fabric.Identity."
 Add-ClientRegistration -authUrl $identityServiceUrl -body $body -accessToken $accessToken
