@@ -15,6 +15,7 @@ export class AuthenticationGuard implements CanActivate {
       if (result) {
         return true;
       } else {
+        sessionStorage.setItem('redirect', window.location.href);
         this.authService.login();
         return false;
       }

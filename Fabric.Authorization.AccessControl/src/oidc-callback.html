@@ -2,13 +2,14 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title></title>
+  <title>Fabric.AccessControl</title>
 </head>
 <body>
-  <h1 id="waiting">Waiting...</h1>
+  <h1 id="waiting">Authenticating...</h1>
   <div id="error"></div>
   <script src="assets/oidc-client.min.js"></script>
 <script>
+  debugger;
   Oidc.Log.logger = console;
   new Oidc.UserManager().signinRedirectCallback().then(function (user) {
       if (user == null) {
@@ -18,12 +19,12 @@
       }
       else {
         console.log("user is not null, redirecting to index");
-        var url = sessionStorage.getItem('redirect', window.location.href);
+        var url = sessionStorage.getItem('redirect');
         if (url) {
           sessionStorage.removeItem('redirect');
           window.location = url;
         } else {
-          window.location = "/";
+          window.location = window.location.href.slice(0, window.location.href.indexOf("/oidc-callback.html", "")) + "/access-control";;
         }
       }
     })
