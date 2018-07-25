@@ -778,7 +778,4 @@ $body = @'
 Write-Host "Registering Fabric.Authorization.AccessControl Client with Fabric.Identity."
 Add-ClientRegistration -authUrl $identityServiceUrl -body $body -accessToken $accessToken
 
-Write-Host "Registering Fabric.Authorization.AccessControl Client with Fabric.Authorization."
-Add-AuthorizationRegistration -authUrl $authorizationServiceUrl/v1 -clientId $body.clientId -clientName $body.clientName -accessToken $accessToken
-
 Read-Host -Prompt "Installation complete, press Enter to exit"
