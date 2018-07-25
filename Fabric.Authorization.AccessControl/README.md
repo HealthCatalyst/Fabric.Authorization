@@ -6,12 +6,8 @@ Run `npm i --save @healthcatalyst/fabric-access-control-ui`
 
 This module requires [Health Catalyst Cashmere](http://cashmere.healthcatalyst.net/guides/getting-started).
 
-# Fabric Identity & Authorization Setup
-You will need to set up a client in your local instance of Fabric.Identity and Fabric.Authorization.
-
-## Fabric.Identity Client
-
-Assuming your Fabric.Identity instance is running at `http://localhost/identity`, you can run the following `curl` command to create a Fabric.Identity client:
+# Fabric Identity Setup
+You will need to set up a client in your local instance of Fabric.Identity and Fabric.Authorization. Assuming your Fabric.Identity instance is running at `http://localhost/identity`, you can run the following `curl` command to create a Fabric.Identity client:
 
 `curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer {access_token}" -d @{identity_client.json} http://localhost/identity/api/client`
 
@@ -21,7 +17,7 @@ and `{identity_client.json}` is a file containing the following payload:
 
 ```
 {
-    "clientId": "fabric-accesscontrol",
+    "clientId": "fabric-access-control",
     "clientName": "Fabric Access Control Sample UI",
     "allowedScopes": [
         "openid",
@@ -50,24 +46,6 @@ and `{identity_client.json}` is a file containing the following payload:
     "allowAccessTokensViaBrowser": true,
     "enableLocalLogin": false,
     "accessTokenLifetime": 1200
-}
-```
-
-## Fabric.Authorization Client
-
-Assuming your Fabric.Authorization instance is running at `http://localhost/authorization`, you can run the following `curl` command to create a Fabric.Identity client:
-
-`curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer {access_token}" -d @{auth_client.json} http://localhost/authorization/v1/clients`
-
-where `{access_token}` is the JWT obtained per the instructions at [Retrieving an Access Token from Fabric.Identity](https://github.com/HealthCatalyst/Fabric.Identity/wiki/Retrieving-an-Access-Token-from-Fabric.Identity)
-
-and `{auth_client.json}` is a file containing the following payload:
-
-```
-{
-	"id": "fabric-accesscontrol",
-	"name": "Fabric Access Control Sample UI",
-	"topLevelSecurableItem": {"name": "fabric-accesscontrol"}	
 }
 ```
 
