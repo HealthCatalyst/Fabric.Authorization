@@ -16,14 +16,14 @@ export class AuthService {
   authority: string;
 
   constructor(private httpClient: HttpClient) {
-    this.clientId = 'fabric-accesscontrol';
+    this.clientId = 'fabric-access-control';
     this.authority = environment.fabricIdentityApiUri;
 
     const clientSettings: any = {
       authority: this.authority,
       client_id: this.clientId,
-      redirect_uri: `${environment.applicationEndpoint}/oidc-callback.html`,
-      post_logout_redirect_uri: `${environment.applicationEndpoint}/logged-out`,
+      redirect_uri: `${environment.applicationEndpoint}/client/oidc-callback.html`,
+      post_logout_redirect_uri: environment.applicationEndpoint,
       response_type: 'id_token token',
       scope: [
         'openid',
@@ -34,7 +34,7 @@ export class AuthService {
         'fabric/idprovider.searchusers',
         'fabric/authorization.dos.write'
       ].join(' '),
-      silent_redirect_uri: `${environment.applicationEndpoint}/silent.html`,
+      silent_redirect_uri: `${environment.applicationEndpoint}/client/silent.html`,
       automaticSilentRenew: true,
       filterProtocolClaims: true,
       loadUserInfo: true
