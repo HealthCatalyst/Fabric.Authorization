@@ -23,7 +23,7 @@ export class AuthService {
       authority: this.authority,
       client_id: this.clientId,
       redirect_uri: `${environment.applicationEndpoint}/client/oidc-callback.html`,
-      post_logout_redirect_uri: environment.applicationEndpoint,
+      post_logout_redirect_uri: `${environment.applicationEndpoint}/client/logged-out`,
       response_type: 'id_token token',
       scope: [
         'openid',
