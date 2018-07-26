@@ -742,6 +742,7 @@ if ($fabricInstallerSecret) { Add-SecureInstallationSetting "common" "fabricInst
 if ($encryptionCertificateThumbprint) { Add-InstallationSetting "common" "encryptionCertificateThumbprint" $encryptionCertificateThumbprint | Out-Null}
 if ($encryptionCertificateThumbprint) { Add-InstallationSetting "authorization" "encryptionCertificateThumbprint" $encryptionCertificateThumbprint | Out-Null}
 if ($appInsightsInstrumentationKey) { Add-InstallationSetting "authorization" "appInsightsInstrumentationKey" "$appInsightsInstrumentationKey" | Out-Null}
+if ($appInsightsInstrumentationKey) { Add-InstallationSetting "common" "appInsightsInstrumentationKey" "$appInsightsInstrumentationKey" | Out-Null}
 if ($sqlServerAddress) { Add-InstallationSetting "common" "sqlServerAddress" "$sqlServerAddress" | Out-Null}
 if ($metadataDbName) { Add-InstallationSetting "common" "metadataDbName" "$metadataDbName" | Out-Null}
 if ($identityServiceUrl) { Add-InstallationSetting "common" "identityService" "$identityServiceUrl" | Out-Null}
