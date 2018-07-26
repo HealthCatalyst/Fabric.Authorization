@@ -2,6 +2,9 @@
   <hc-navbar-icon>
       <hc-icon fontSet="fa" fontIcon="fa-question-circle-o" [hcPopover]="options" popperPlacement="bottom"></hc-icon>
   </hc-navbar-icon>
+  <hc-navbar-icon *ngIf="userIsAuthenticated">
+      <hc-icon fontSet="fa" fontIcon="fa-sign-out" (click)="logout()"></hc-icon>
+  </hc-navbar-icon>
 </hc-navbar>
 
 <hc-popover-content #options>

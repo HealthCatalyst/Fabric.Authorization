@@ -10,6 +10,7 @@ import { AuthService } from '../services/global/auth.service';
 })
 export class NavbarComponent implements OnInit {
   userDisplayName: string;
+  userIsAuthenticated: boolean;
 
   constructor(
     private authService: AuthService
@@ -19,6 +20,14 @@ export class NavbarComponent implements OnInit {
     this.authService.getUser().then(user => {
       this.userDisplayName = this.getUserDisplayName(user);
     });
+
+    this.authService.isUserAuthenticated().then(result =>{
+      this.userIsAuthenticated = result;
+    })
+  }
+
+  logout(): void {
+    this.authService.logout();
   }
 
   getUserDisplayName(user: User): string {
