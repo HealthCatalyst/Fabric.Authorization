@@ -120,7 +120,6 @@
   </div>
   <script src="assets/oidc-client.min.js"></script>
   <script>
-    debugger;
     Oidc.Log.logger = console;
     new Oidc.UserManager().signinRedirectCallback().then(function (user) {
         if (user == null) {
