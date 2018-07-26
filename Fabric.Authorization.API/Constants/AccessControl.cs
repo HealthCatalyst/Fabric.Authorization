@@ -2,6 +2,6 @@
 {
     public static class AccessControl
     {
-        public static readonly string Path = "accesscontrol";
+        public static readonly string Path = "client";
     }
 }

@@ -28,7 +28,10 @@ namespace Fabric.Authorization.API
             "/swagger/ui/swagger.json",
             "/",
             $"/{AccessControl.Path}",
-            $"/{AccessControl.Path}/index.html"
+            $"/{AccessControl.Path}/index.html",
+            $"/{AccessControl.Path}/oidc-callback.html",
+            $"/{AccessControl.Path}/silent.html",
+            $"/{AccessControl.Path}/logged-out"
         };
 
         private readonly IAppConfiguration _appConfig;
