@@ -3,6 +3,7 @@ import { Routes, RouterModule } from '@angular/router';
 
 import { AuthenticationGuard } from './services/guards/authentication.guard';
 import { AuthService } from './services/global/auth.service';
+import {LoggedOutComponent } from './logged-out/logged-out.component';
 
 const routes: Routes = [
   {
@@ -15,6 +16,10 @@ const routes: Routes = [
     path: '',
     redirectTo: 'access-control',
     pathMatch: 'full'
+  },
+  {
+    path: 'logged-out',
+    component: LoggedOutComponent
   }
 ];
 

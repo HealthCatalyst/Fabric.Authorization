@@ -779,9 +779,9 @@ $accessControlClient = @{
     }
 
 $accessControlClient.allowedGrantTypes = @("implicit")
-$accessControlClient.redirectUris = "$authorizationServiceUrl/oidc-callback.html", "$authorizationServiceUrl/silent.html"
+$accessControlClient.redirectUris = "$authorizationServiceUrl/client/oidc-callback.html", "$authorizationServiceUrl/client/silent.html"
 $accessControlClient.allowedCorsOrigins = @("$corsOrigin")
-$accessControlClient.postLogoutRedirectUris = @("$authorizationServiceUrl")
+$accessControlClient.postLogoutRedirectUris = @("$authorizationServiceUrl/client/logged-out")
 
 $body = $accessControlClient | ConvertTo-Json
 

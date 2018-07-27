@@ -16,14 +16,14 @@ export class AuthService {
   authority: string;
 
   constructor(private httpClient: HttpClient) {
-    this.clientId = 'fabric-accesscontrol';
+    this.clientId = 'fabric-access-control';
     this.authority = environment.fabricIdentityApiUri;
 
     const clientSettings: any = {
       authority: this.authority,
       client_id: this.clientId,
-      redirect_uri: `${environment.applicationEndpoint}/oidc-callback.html`,
-      post_logout_redirect_uri: environment.applicationEndpoint,
+      redirect_uri: `${environment.applicationEndpoint}/client/oidc-callback.html`,
+      post_logout_redirect_uri: `${environment.applicationEndpoint}/client/logged-out`,
       response_type: 'id_token token',
       scope: [
         'openid',
@@ -34,7 +34,7 @@ export class AuthService {
         'fabric/idprovider.searchusers',
         'fabric/authorization.dos.write'
       ].join(' '),
-      silent_redirect_uri: `${environment.applicationEndpoint}/silent.html`,
+      silent_redirect_uri: `${environment.applicationEndpoint}/client/silent.html`,
       automaticSilentRenew: true,
       filterProtocolClaims: true,
       loadUserInfo: true
@@ -52,6 +52,11 @@ export class AuthService {
     this.userManager.events.addAccessTokenExpired(() => {
       console.log('access token expired');
       // when access token expires logout the user
+      this.logout();
+    });
+
+    this.userManager.events.addUserSignedOut(() => {
+      console.log('user logged out at the Idp, logging out');
       this.logout();
     });
   }
@@ -84,14 +89,11 @@ export class AuthService {
     return this.userManager.getUser();
   }
 
-  isUserAuthenticated() {
+  isUserAuthenticated(): Promise<boolean> {
     return this.userManager.getUser().then(function(user) {
       if (user) {
-        console.log('signin redirect done. ');
-        console.log(user.profile);
         return true;
       } else {
-        console.log('User is not logged in');
         return false;
       }
     });

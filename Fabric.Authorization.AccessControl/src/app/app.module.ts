@@ -13,9 +13,10 @@ import { ClientAccessControlConfigService } from './services/global/client-acces
 
 import { ButtonModule, ProgressIndicatorsModule, NavbarModule, PopoverModule, AppSwitcherModule, IconModule, MockAppSwitcherService, ListModule } from '@healthcatalyst/cashmere';
 import { NavbarComponent } from './navbar/navbar.component';
+import { LoggedOutComponent } from './logged-out/logged-out.component';
 
 @NgModule({
-  declarations: [AppComponent, NavbarComponent],
+  declarations: [AppComponent, NavbarComponent, LoggedOutComponent],
   imports: [BrowserModule, AppRoutingModule, HttpClientModule, ButtonModule, ProgressIndicatorsModule, BrowserAnimationsModule, NavbarModule, PopoverModule, AppSwitcherModule, IconModule],
   providers: [
     AuthService,
