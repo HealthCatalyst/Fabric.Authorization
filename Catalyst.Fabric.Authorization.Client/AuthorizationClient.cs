@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -18,9 +19,9 @@ namespace Catalyst.Fabric.Authorization.Client
 
         public AuthorizationClient(HttpClient client)
         {
-            this._client = client;
+            this._client = client.FormatBaseUrl();
         }
-
+        
         #region Users
 
         public async Task<UserApiModel> AddUser(string accessToken, UserApiModel userModel)
@@ -359,6 +360,15 @@ namespace Catalyst.Fabric.Authorization.Client
                     Code = response.StatusCode.ToString()
                 };
 
+                throw new AuthorizationException(error);
+            }
+            catch (JsonReaderException)
+            {
+                var error = new Error
+                {
+                    Code = response.StatusCode.ToString(),
+                    Message = stringResponse
+                };
                 throw new AuthorizationException(error);
             }
             catch(JsonSerializationException)

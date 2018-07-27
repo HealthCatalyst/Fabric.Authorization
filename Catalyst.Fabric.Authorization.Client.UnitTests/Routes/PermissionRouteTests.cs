@@ -10,7 +10,7 @@ namespace Catalyst.Fabric.Authorization.Client.UnitTests.Routes
         public void PermissionRouteBuilder_NoParameters_Success()
         {
             var route = new PermissionRouteBuilder().Route;
-            Assert.Equal($"/{RouteConstants.PermissionCollectionRoute}", route);
+            Assert.Equal($"{RouteConstants.PermissionCollectionRoute}", route);
         }
 
         [Fact]
@@ -18,21 +18,21 @@ namespace Catalyst.Fabric.Authorization.Client.UnitTests.Routes
         {
             var id = Guid.NewGuid();
             var route = new PermissionRouteBuilder().PermissionId(id.ToString()).Route;
-            Assert.Equal($"/{RouteConstants.PermissionCollectionRoute}/{id}", route);
+            Assert.Equal($"{RouteConstants.PermissionCollectionRoute}/{id}", route);
         }
 
         [Fact]
         public void PermissionRouteBuilder_WithGrainAndSecurableItem_Success()
         {
             var route = new PermissionRouteBuilder().Grain("app").SecurableItem("patientsafety").Route;
-            Assert.Equal($"/{RouteConstants.PermissionCollectionRoute}/app/patientsafety", route);
+            Assert.Equal($"{RouteConstants.PermissionCollectionRoute}/app/patientsafety", route);
         }
 
         [Fact]
         public void PermissionRouteBuilder_WithGrainAndSecurableItemAndName_Success()
         {
             var route = new PermissionRouteBuilder().Grain("app").SecurableItem("patientsafety").Name("permissionName").Route;
-            Assert.Equal($"/{RouteConstants.PermissionCollectionRoute}/app/patientsafety/permissionName", route);
+            Assert.Equal($"{RouteConstants.PermissionCollectionRoute}/app/patientsafety/permissionName", route);
         }
     }
 }

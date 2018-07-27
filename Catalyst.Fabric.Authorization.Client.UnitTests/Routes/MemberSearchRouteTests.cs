@@ -9,7 +9,7 @@ namespace Catalyst.Fabric.Authorization.Client.UnitTests.Routes
         public void MemberSearchBuilderRoute_NoParameters_Success()
         {
             var route = new MemberSearchRouteBuilder().Route;
-            Assert.Equal($"/{RouteConstants.MemberCollectionRoute}", route);
+            Assert.Equal($"{RouteConstants.MemberCollectionRoute}", route);
         }
     }
 }
