@@ -9,49 +9,49 @@ namespace Catalyst.Fabric.Authorization.Client.UnitTests.Routes
         public void UserRouteBuilder_NoParameters_Success()
         {
             var route = new UserRouteBuilder().Route;
-            Assert.Equal($"/{RouteConstants.UserRoute}", route);
+            Assert.Equal($"{RouteConstants.UserRoute}", route);
         }
 
         [Fact]
         public void UserRouteBuilder_WithUserId_Success()
         {
             var route = new UserRouteBuilder().IdentityProvider("windows").SubjectId("first.last").Route;
-            Assert.Equal($"/{RouteConstants.UserRoute}/windows/first.last", route);
+            Assert.Equal($"{RouteConstants.UserRoute}/windows/first.last", route);
         }
 
         [Fact]
         public void UserRouteBuilderPermissionsRoute_NoParameters_Success()
         {
             var route = new UserRouteBuilder().UserPermissionsRoute;
-            Assert.Equal($"/{RouteConstants.UserRoute}/{RouteConstants.PermissionCollectionRoute}", route);
+            Assert.Equal($"{RouteConstants.UserRoute}/{RouteConstants.PermissionCollectionRoute}", route);
         }
 
         [Fact]
         public void UserRouteBuilderPermissionsRoute_WithUserId_Success()
         {
             var route = new UserRouteBuilder().IdentityProvider("windows").SubjectId("first.last").UserPermissionsRoute;
-            Assert.Equal($"/{RouteConstants.UserRoute}/windows/first.last/{RouteConstants.PermissionCollectionRoute}", route);
+            Assert.Equal($"{RouteConstants.UserRoute}/windows/first.last/{RouteConstants.PermissionCollectionRoute}", route);
         }
 
         [Fact]
         public void UserRouteBuilderGroupsRoute_WithUserId_Success()
         {
             var route = new UserRouteBuilder().IdentityProvider("windows").SubjectId("first.last").UserGroupsRoute;
-            Assert.Equal($"/{RouteConstants.UserRoute}/windows/first.last/{RouteConstants.GroupCollectionRoute}", route);
+            Assert.Equal($"{RouteConstants.UserRoute}/windows/first.last/{RouteConstants.GroupCollectionRoute}", route);
         }
 
         [Fact]
         public void UserRouteBuilderRolesRoute_WithUserId_Success()
         {
             var route = new UserRouteBuilder().IdentityProvider("windows").SubjectId("first.last").UserRolesRoute;
-            Assert.Equal($"/{RouteConstants.UserRoute}/windows/first.last/{RouteConstants.RoleCollectionRoute}", route);
+            Assert.Equal($"{RouteConstants.UserRoute}/windows/first.last/{RouteConstants.RoleCollectionRoute}", route);
         }
 
         [Fact]
         public void UserPermissionsRouteBuilder_NoOptions_Success()
         {
             var actualRoute = new UserRouteBuilder().UserPermissionsRoute;
-            var expectedRoute = $"/{RouteConstants.UserRoute}/{RouteConstants.PermissionCollectionRoute}";
+            var expectedRoute = $"{RouteConstants.UserRoute}/{RouteConstants.PermissionCollectionRoute}";
             Assert.Equal(expectedRoute, actualRoute);
         }
 
@@ -60,7 +60,7 @@ namespace Catalyst.Fabric.Authorization.Client.UnitTests.Routes
         {
             var securableItem = "unit-test";
             var actualRoute = new UserRouteBuilder().SecurableItem(securableItem).UserPermissionsRoute;
-            var expectedRoute = $"/{RouteConstants.UserRoute}/{RouteConstants.PermissionCollectionRoute}?{ClientConstants.SecurableItem}={securableItem}";
+            var expectedRoute = $"{RouteConstants.UserRoute}/{RouteConstants.PermissionCollectionRoute}?{ClientConstants.SecurableItem}={securableItem}";
             Assert.Equal(expectedRoute, actualRoute);
         }
 
@@ -69,7 +69,7 @@ namespace Catalyst.Fabric.Authorization.Client.UnitTests.Routes
         {
             var grain = "app";
             var actualRoute = new UserRouteBuilder().Grain(grain).UserPermissionsRoute;
-            var expectedRoute = $"/{RouteConstants.UserRoute}/{RouteConstants.PermissionCollectionRoute}?{ClientConstants.Grain}={grain}";
+            var expectedRoute = $"{RouteConstants.UserRoute}/{RouteConstants.PermissionCollectionRoute}?{ClientConstants.Grain}={grain}";
             Assert.Equal(expectedRoute, actualRoute);
         }
 
@@ -79,7 +79,7 @@ namespace Catalyst.Fabric.Authorization.Client.UnitTests.Routes
             var grain = "app";
             var securableItem = "unit-test";
             var actualRoute = new UserRouteBuilder().Grain(grain).SecurableItem(securableItem).UserPermissionsRoute;
-            var expectedRoute = $"/{RouteConstants.UserRoute}/{RouteConstants.PermissionCollectionRoute}?{ClientConstants.Grain}={grain}&{ClientConstants.SecurableItem}={securableItem}";
+            var expectedRoute = $"{RouteConstants.UserRoute}/{RouteConstants.PermissionCollectionRoute}?{ClientConstants.Grain}={grain}&{ClientConstants.SecurableItem}={securableItem}";
             Assert.Equal(expectedRoute, actualRoute);
         }
     }

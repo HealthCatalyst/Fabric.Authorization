@@ -18,6 +18,7 @@ namespace Catalyst.Fabric.Authorization.Client.UnitTests
         public AuthorizationClientTests()
         {
             _client = new HttpClient();
+            _client.BaseAddress = new Uri("https://example.com/authorization2/");
             _subject = new AuthorizationClient(_client);
             _userPermission = new UserPermissionsApiModel
             {
@@ -35,6 +36,36 @@ namespace Catalyst.Fabric.Authorization.Client.UnitTests
                     "view"
                 }
             };
+        }
+
+        [Fact]
+        public void Constructor_HttpClientBase_AppendsForwardSlash()
+        {
+            // Arrange
+            var url = "http://example.com/authorization2";
+            var newHttpClient = new HttpClient();
+            newHttpClient.BaseAddress = new Uri(url);
+
+            // Act
+            var newSubject = new AuthorizationClient(newHttpClient);
+
+            // Assert
+            Assert.Equal($"{url}/", newHttpClient.BaseAddress.OriginalString);
+        }
+
+        [Fact]
+        public void Constructor_HttpClientBase_DoesNotAppendsForwardSlash()
+        {
+            // Arrange
+            var url = "http://example.com/authorization2/";
+            var newHttpClient = new HttpClient();
+            newHttpClient.BaseAddress = new Uri(url);
+
+            // Act
+            var newSubject = new AuthorizationClient(newHttpClient);
+
+            // Assert
+            Assert.Equal(url, newHttpClient.BaseAddress.OriginalString);
         }
 
         [Fact]
