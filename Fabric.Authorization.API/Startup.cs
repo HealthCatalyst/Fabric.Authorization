@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
@@ -31,7 +32,8 @@ namespace Fabric.Authorization.API
             $"/{AccessControl.Path}/index.html",
             $"/{AccessControl.Path}/oidc-callback.html",
             $"/{AccessControl.Path}/silent.html",
-            $"/{AccessControl.Path}/logged-out"
+            $"/{AccessControl.Path}/logged-out",
+            $"/{AccessControl.Path}/access-control"
         };
 
         private readonly IAppConfiguration _appConfig;
@@ -70,6 +72,19 @@ namespace Fabric.Authorization.API
                 Authority = _idServerSettings.Authority,
                 RequireHttpsMetadata = false,
                 ApiName = _idServerSettings.ClientId
+            });
+
+            app.Use(async (context, next) =>
+            {
+                await next();
+                var accessControlPath = $"/{AccessControl.Path}/";
+                if (context.Response.StatusCode == 404 &&
+                    !Path.HasExtension(context.Request.Path.Value) &&
+                    context.Request.Path.Value.StartsWith(accessControlPath))
+                {
+                    context.Request.Path = $"{accessControlPath}{AccessControl.Index}";
+                    await next();
+                }
             });
 
             app.UseStaticFiles()
