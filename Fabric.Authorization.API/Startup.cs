@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
+using Fabric.Authorization.API.Infrastructure.Middleware;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Platform.Auth;
@@ -29,6 +30,7 @@ namespace Fabric.Authorization.API
             "/swagger/ui/swagger.json",
             "/",
             $"/{AccessControl.Path}",
+            $"/{AccessControl.Path}/",
             $"/{AccessControl.Path}/index.html",
             $"/{AccessControl.Path}/oidc-callback.html",
             $"/{AccessControl.Path}/silent.html",
@@ -74,20 +76,8 @@ namespace Fabric.Authorization.API
                 ApiName = _idServerSettings.ClientId
             });
 
-            app.Use(async (context, next) =>
-            {
-                await next();
-                var accessControlPath = $"/{AccessControl.Path}/";
-                if (context.Response.StatusCode == 404 &&
-                    !Path.HasExtension(context.Request.Path.Value) &&
-                    context.Request.Path.Value.StartsWith(accessControlPath))
-                {
-                    context.Request.Path = $"{accessControlPath}{AccessControl.Index}";
-                    await next();
-                }
-            });
-
-            app.UseStaticFiles()
+            app.UseAngular()
+                .UseStaticFiles()
                 .UseOwin()
                 .UseFabricLoggingAndMonitoring(_logger, HealthCheck, _levelSwitch)
                 .UseAuthPlatform(_idServerSettings.Scopes, _allowedPaths)
