@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Constants;
 using Microsoft.AspNetCore.Http;
@@ -21,7 +19,7 @@ namespace Fabric.Authorization.API.Infrastructure.Middleware
         {
             await _next(context);
             var accessControlPath = $"/{AccessControl.Path}/";
-            if (context.Response.StatusCode == 404 &&
+            if (context.Response.StatusCode ==  (int)HttpStatusCode.NotFound &&
                 !Path.HasExtension(context.Request.Path.Value) &&
                 context.Request.Path.Value.StartsWith(accessControlPath))
             {
