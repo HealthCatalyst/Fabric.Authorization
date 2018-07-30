@@ -8,6 +8,7 @@ namespace Fabric.Authorization.API.Modules
         public RootModule(): base("/v1")
         {
             Get("/", _ => Redirect(), null, "Redirect");
+            Get("/client", _ => Redirect(), null, "Redirect");
         }
 
         private dynamic Redirect()
