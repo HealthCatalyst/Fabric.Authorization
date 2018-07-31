@@ -4,7 +4,7 @@
 param([switch]$noDiscoveryService)
 
 function Get-FullyQualifiedMachineName() {
-	return "https://$env:computername.$($env:userdnsdomain.tolower())"
+	return "https://$env:computername.$((Get-WmiObjectWin32_ComputerSystem).Domain.tolower())"
 }
 
 function Get-DiscoveryServiceUrl() {
