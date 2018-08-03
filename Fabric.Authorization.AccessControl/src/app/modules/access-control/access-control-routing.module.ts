@@ -4,11 +4,12 @@ import { Routes, RouterModule } from '@angular/router';
 import { MemberComponent } from './member/member.component';
 import { CustomGroupComponent } from './custom-group/custom-group.component';
 import { MemberListComponent } from './member-list/member-list.component';
+import { GrainListComponent } from './grain-list/grain-list.component';
 
 const routes: Routes = [
   {
     path: '',
-    component: MemberListComponent
+    component: GrainListComponent
   },
   {
     path: 'member',
@@ -25,6 +26,10 @@ const routes: Routes = [
   {
     path: 'customgroup/:subjectid',
     component: CustomGroupComponent
+  },
+  {
+    path: 'grain',
+    component: GrainListComponent
   }
 ];
 

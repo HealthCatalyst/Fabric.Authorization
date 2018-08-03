@@ -44,3 +44,4 @@ echo "registering Fabric Authorization Access Control client with Fabric.Authori
 curl -k -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $accesstoken" -d "{ \"id\": \"fabric-access-control\", \"name\": \"Fabric Authorization Access Control\", \"topLevelSecurableItem\": { \"name\":\"fabric-access-control\"}}" $authorizationbaseurl/clients/
 echo ""
 
+ng serve
