@@ -2,6 +2,9 @@ import { NgModule, ModuleWithProviders, Type } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { MatTreeModule } from '@angular/material/tree';
+import { CdkTreeModule } from '@angular/cdk/tree';
+
 import {
   ButtonModule,
   IconModule,
@@ -30,6 +33,7 @@ import { FabricAuthGrainService } from '../../services/fabric-auth-grain.service
 import { MemberListComponent } from './member-list/member-list.component';
 import { MemberComponent } from './member/member.component';
 import { CustomGroupComponent } from './custom-group/custom-group.component';
+import { GrainListComponent } from './grain-list/grain-list.component';
 
 @NgModule({
   imports: [
@@ -48,9 +52,12 @@ import { CustomGroupComponent } from './custom-group/custom-group.component';
     PaginationModule,
     ModalModule,
     ListModule,
-    TileModule
+    TileModule,
+    MatTreeModule,
+    CdkTreeModule
   ],
   declarations: [
+    GrainListComponent,
     MemberListComponent,
     MemberComponent,
     CustomGroupComponent
