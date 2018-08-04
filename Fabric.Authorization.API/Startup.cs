@@ -76,7 +76,7 @@ namespace Fabric.Authorization.API
                 ApiName = _idServerSettings.ClientId
             });
 
-            app.UseAngular(_appConfig)
+            app.UseAngular(_appConfig, env)
                 .UseStaticFiles()
                 .UseOwin()
                 .UseFabricLoggingAndMonitoring(_logger, HealthCheck, _levelSwitch)
