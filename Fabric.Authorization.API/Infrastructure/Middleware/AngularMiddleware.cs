@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 
 namespace Fabric.Authorization.API.Infrastructure.Middleware
@@ -14,11 +15,13 @@ namespace Fabric.Authorization.API.Infrastructure.Middleware
         private readonly RequestDelegate _next;
         private static string _indexContent;
         private readonly IAppConfiguration _appConfiguration;
+        private readonly IHostingEnvironment _hostingEnvironment;
 
-        public AngularMiddleware(RequestDelegate next, IAppConfiguration appConfiguration)
+        public AngularMiddleware(RequestDelegate next, IAppConfiguration appConfiguration, IHostingEnvironment hostingEnvironment)
         {
             _next = next;
             _appConfiguration = appConfiguration;
+            _hostingEnvironment = hostingEnvironment;
         }
 
         public async Task Invoke(HttpContext context)
@@ -26,17 +29,17 @@ namespace Fabric.Authorization.API.Infrastructure.Middleware
             var accessControlPath = $"/{AccessControl.Path}/";
             var indexPath = $"{accessControlPath}{AccessControl.Index}";
 
-            // load index.html into memory
-            // replace tokens and cache in _indexContent
-            // modify response body (make sure RootModule uses this modified response)
+            // replace tokens, cache in _indexContent, and rewrite index.html with replaced tokensq
             if (string.IsNullOrEmpty(_indexContent))
             {
-                var httpClient = new HttpClient();
-                var result = await httpClient.GetAsync(indexPath);
-                _indexContent = await result.Content.ReadAsStringAsync();
+                var fullPath = Path.Combine(_hostingEnvironment.WebRootPath, AccessControl.Path, AccessControl.Index);
+                _indexContent = File.ReadAllText(fullPath);
+
                 var discoveryServiceSettings = _appConfiguration.AccessControlSettings.DiscoveryServiceSettings;
                 _indexContent = _indexContent.Replace(discoveryServiceSettings.Token,
                     discoveryServiceSettings.Value);
+
+                File.WriteAllText(fullPath, _indexContent);
             }
 
             await _next(context);
