@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
@@ -77,7 +76,7 @@ namespace Fabric.Authorization.API
                 ApiName = _idServerSettings.ClientId
             });
 
-            app.UseAngular()
+            app.UseAngular(_appConfig)
                 .UseStaticFiles()
                 .UseOwin()
                 .UseFabricLoggingAndMonitoring(_logger, HealthCheck, _levelSwitch)
