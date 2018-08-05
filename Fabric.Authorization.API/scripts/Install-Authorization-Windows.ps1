@@ -733,6 +733,10 @@ if ($authorizationServiceUrl) {
     $environmentVariables.Add("ApplicationEndpoint", $authorizationServiceUrl)
 }
 
+if ($discoveryServiceUrl) {
+	$environmentVariables.Add("AccessControlSettings__DiscoveryServiceSettings__Value", $discoveryServiceUrl)
+}
+
 Set-EnvironmentVariables $appDirectory $environmentVariables | Out-Null
 Write-Host ""
 
