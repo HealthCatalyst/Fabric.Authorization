@@ -11,19 +11,25 @@ import { AuthService } from './services/global/auth.service';
 import { IAccessControlConfigService } from './services/access-control-config.service';
 import { ClientAccessControlConfigService } from './services/global/client-access-control-config.service';
 
-import { ButtonModule, ProgressIndicatorsModule, NavbarModule, PopoverModule, AppSwitcherModule, IconModule, MockAppSwitcherService, ListModule } from '@healthcatalyst/cashmere';
+import { ButtonModule, ProgressIndicatorsModule, NavbarModule, PopoverModule, AppSwitcherModule, IconModule,
+  MockAppSwitcherService, ListModule } from '@healthcatalyst/cashmere';
 import { NavbarComponent } from './navbar/navbar.component';
 import { LoggedOutComponent } from './logged-out/logged-out.component';
+import { ServicesService } from './services/global/services.service';
+import { ConfigService } from './services/global/config.service';
 
 @NgModule({
   declarations: [AppComponent, NavbarComponent, LoggedOutComponent],
-  imports: [BrowserModule, AppRoutingModule, HttpClientModule, ButtonModule, ProgressIndicatorsModule, BrowserAnimationsModule, NavbarModule, PopoverModule, AppSwitcherModule, IconModule],
+  imports: [BrowserModule, AppRoutingModule, HttpClientModule, ButtonModule, ProgressIndicatorsModule, BrowserAnimationsModule,
+    NavbarModule, PopoverModule, AppSwitcherModule, IconModule],
   providers: [
     AuthService,
     {
       provide: 'IAccessControlConfigService',
       useClass: ClientAccessControlConfigService
     },
+    ServicesService,
+    ConfigService,
     {
       provide: 'IAppSwitcherService',
       useClass: MockAppSwitcherService
