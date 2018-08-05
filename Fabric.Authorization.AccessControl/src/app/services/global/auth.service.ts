@@ -5,8 +5,7 @@ import { UserManager, User, Log } from 'oidc-client';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/map';
-import { log } from 'util';
-import { environment } from '../../../environments/environment';
+import { ServicesService } from './services.service';
 
 @Injectable()
 export class AuthService {
@@ -15,15 +14,15 @@ export class AuthService {
   clientId: string;
   authority: string;
 
-  constructor(private httpClient: HttpClient) {
+  constructor(private httpClient: HttpClient, private servicesService: ServicesService) {
     this.clientId = 'fabric-access-control';
-    this.authority = environment.fabricIdentityApiUri;
+    this.authority = this.servicesService.identityServiceEndpoint;
 
     const clientSettings: any = {
       authority: this.authority,
       client_id: this.clientId,
-      redirect_uri: `${environment.applicationEndpoint}/client/oidc-callback.html`,
-      post_logout_redirect_uri: `${environment.applicationEndpoint}/client/logged-out`,
+      redirect_uri: `${this.servicesService.authorizationServiceEndpoint}/client/oidc-callback.html`,
+      post_logout_redirect_uri: `${this.servicesService.authorizationServiceEndpoint}/client/logged-out`,
       response_type: 'id_token token',
       scope: [
         'openid',
@@ -34,7 +33,7 @@ export class AuthService {
         'fabric/idprovider.searchusers',
         'fabric/authorization.dos.write'
       ].join(' '),
-      silent_redirect_uri: `${environment.applicationEndpoint}/client/silent.html`,
+      silent_redirect_uri: `${this.servicesService.authorizationServiceEndpoint}/client/silent.html`,
       automaticSilentRenew: true,
       filterProtocolClaims: true,
       loadUserInfo: true

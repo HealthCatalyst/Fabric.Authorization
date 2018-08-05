@@ -1,18 +1,17 @@
 import { Injectable } from '@angular/core';
 import { AuthService } from './auth.service';
 import { IAccessControlConfigService } from '../access-control-config.service';
-import { environment } from '../../../environments/environment';
 import { IDataChangedEventArgs } from '../../models/changedDataEventArgs.model';
-import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { Exception } from '../../models/exception.model';
+import { ServicesService } from './services.service';
 
 @Injectable()
 export class ClientAccessControlConfigService implements IAccessControlConfigService {
   dataChanged = new Subject<IDataChangedEventArgs>();
   errorRaised = new Subject<Exception>();
 
-  constructor(private authService: AuthService) {
+  constructor(private authService: AuthService, private servicesService: ServicesService) {
     this.dataChanged.subscribe((eventArgs: IDataChangedEventArgs) => {
       console.log(`some data changed: ${JSON.stringify(eventArgs)}`);
     });
@@ -26,6 +25,6 @@ export class ClientAccessControlConfigService implements IAccessControlConfigSer
   identityProvider = 'windows';
   grain = 'dos';
   securableItem = 'datamarts';
-  fabricAuthApiUrl = `${environment.fabricAuthApiUri}/${environment.fabricAuthApiVersionSegment}`;
-  fabricExternalIdpSearchApiUrl = `${environment.fabricExternalIdPSearchApiUri}/${environment.fabricExternalIdPSearchApiVersionSegment}`;
+  fabricAuthApiUrl = this.servicesService.authorizationServiceEndpoint;
+  fabricExternalIdpSearchApiUrl = this.servicesService.identityProviderSearchServiceEndpoint;
 }
