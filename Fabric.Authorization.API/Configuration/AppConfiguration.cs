@@ -16,5 +16,6 @@ namespace Fabric.Authorization.API.Configuration
         public DefaultPropertySettings DefaultPropertySettings{ get; set; }
         public ConnectionStrings ConnectionStrings { get; set; }
         public EntityFrameworkSettings EntityFrameworkSettings { get; set; }
+        public string ApplicationEndpoint { get; set; }
     }
 }
