@@ -29,7 +29,7 @@ namespace Fabric.Authorization.API.Infrastructure.Middleware
             var accessControlPath = $"/{AccessControl.Path}/";
             var indexPath = $"{accessControlPath}{AccessControl.Index}";
 
-            // replace tokens, cache in _indexContent, and rewrite index.html with replaced tokensq
+            // replace tokens, cache in _indexContent, and rewrite index.html with replaced tokens
             if (string.IsNullOrEmpty(_indexContent))
             {
                 var fullPath = Path.Combine(_hostingEnvironment.WebRootPath, AccessControl.Path, AccessControl.Index);

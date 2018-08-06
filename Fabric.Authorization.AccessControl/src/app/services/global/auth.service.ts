@@ -16,6 +16,10 @@ export class AuthService {
 
   constructor(private httpClient: HttpClient, private servicesService: ServicesService) {
     this.clientId = 'fabric-access-control';
+
+    console.log('auth service constructor');
+    servicesService.initialize();
+
     this.authority = this.servicesService.identityServiceEndpoint;
 
     const clientSettings: any = {
@@ -38,6 +42,7 @@ export class AuthService {
       filterProtocolClaims: true,
       loadUserInfo: true
     };
+
     this.userManager = new UserManager(clientSettings);
 
     this.userManager.events.addAccessTokenExpiring(function() {

@@ -1,8 +1,3 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs/Observable';
-
-import { FabricBaseService } from './fabric-base.service';
 import { IRole } from '../models/role.model';
 
 export const mockRoles: IRole[] = [

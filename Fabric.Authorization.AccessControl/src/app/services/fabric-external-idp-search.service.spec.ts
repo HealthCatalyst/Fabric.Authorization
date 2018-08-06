@@ -1,7 +1,5 @@
 import {
   HttpClient,
-  HttpErrorResponse,
-  HttpHeaders,
   HTTP_INTERCEPTORS
 } from '@angular/common/http';
 import {
@@ -9,14 +7,11 @@ import {
   HttpTestingController
 } from '@angular/common/http/testing';
 import { TestBed, inject, async } from '@angular/core/testing';
-import { Observable } from 'rxjs/Observable';
 
-import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { FabricHttpErrorHandlerInterceptorService } from './interceptors/fabric-http-error-handler-interceptor.service';
 import { mockExternalIdpSearchResult } from './fabric-external-idp-search.service.mock';
 import { Subject } from 'rxjs/Subject';
 import { FabricExternalIdpSearchService } from './fabric-external-idp-search.service';
-import { IAccessControlConfigService } from './access-control-config.service';
 import { MockAccessControlConfigService } from './access-control-config.service.mock';
 
 describe('FabricExternalIdpSearchService', () => {

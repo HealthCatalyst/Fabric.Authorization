@@ -1,7 +1,6 @@
 import { TestBed, inject } from '@angular/core/testing';
 
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { IAccessControlConfigService } from './access-control-config.service';
 import { FabricBaseService } from './fabric-base.service';
 import { MockAccessControlConfigService } from './access-control-config.service.mock';
 

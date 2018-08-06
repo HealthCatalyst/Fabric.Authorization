@@ -7,11 +7,13 @@ import {
   HttpClient } from '@angular/common/http';
 import { FabricHttpRequestInterceptorService } from './fabric-http-request-interceptor.service';
 import { AuthService } from '../global/auth.service';
+import { ServicesService } from '../global/services.service';
+import { ConfigService } from '../global/config.service';
 
 describe('FabricHttpRequestInterceptorService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [FabricHttpRequestInterceptorService, AuthService, HttpClient, HttpHandler]
+      providers: [FabricHttpRequestInterceptorService, AuthService, HttpClient, HttpHandler, ServicesService, ConfigService]
     });
   });
 

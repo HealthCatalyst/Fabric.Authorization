@@ -3,12 +3,14 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 import { AuthenticationGuard } from './authentication.guard';
 import { AuthService } from '../global/auth.service';
+import { ServicesService } from '../global/services.service';
+import { ConfigService } from '../global/config.service';
 
 describe('AuthenticationGuard', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [AuthenticationGuard, AuthService]
+      providers: [AuthenticationGuard, AuthService, ServicesService, ConfigService]
     });
   });
 
