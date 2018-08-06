@@ -729,6 +729,10 @@ if ($authorizationApiSecret) {
     $environmentVariables.Add("IdentityServerApiSettings__ApiSecret", $encryptedSecret)
 }
 
+if ($authorizationServiceUrl) {
+    $environmentVariables.Add("ApplicationEndpoint", $authorizationServiceUrl)
+}
+
 Set-EnvironmentVariables $appDirectory $environmentVariables | Out-Null
 Write-Host ""
 
