@@ -8,8 +8,10 @@ export const mockSecurableItemDos: ISecurableItem[] = [];
 export const mockRequiredScopesDos: string[] = [];
 
 export const mockGrains: IGrain[] = [
-    { id: 'app', name: 'app', securableItems: mockSecurableItemApp, createdBy: 'me', modifiedBy: 'me', requiredWriteScopes: mockRequiredScopesApp, isShared: false },
-    { id: 'dos', name: 'dos', securableItems: mockSecurableItemDos, createdBy: 'dosAdmin', modifiedBy: 'me', requiredWriteScopes:mockRequiredScopesDos, isShared: true }
+    { id: 'app', name: 'app', securableItems: mockSecurableItemApp, createdBy: 'me',
+      modifiedBy: 'me', requiredWriteScopes: mockRequiredScopesApp, isShared: false },
+    { id: 'dos', name: 'dos', securableItems: mockSecurableItemDos, createdBy: 'dosAdmin',
+      modifiedBy: 'me', requiredWriteScopes:mockRequiredScopesDos, isShared: true }
 ];
 
 export class FabricAuthGrainServiceMock {

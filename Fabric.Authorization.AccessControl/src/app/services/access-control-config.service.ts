@@ -1,6 +1,4 @@
-import { Injectable } from '@angular/core';
 import { IDataChangedEventArgs } from '../models/changedDataEventArgs.model';
-import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { Exception } from '../models/exception.model';
 

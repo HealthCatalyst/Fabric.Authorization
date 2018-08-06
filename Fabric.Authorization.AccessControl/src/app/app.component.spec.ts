@@ -5,6 +5,8 @@ import { NavbarComponent } from './navbar/navbar.component';
 import { NavbarModule, PopoverModule, IconModule } from '@healthcatalyst/cashmere';
 import { AuthService } from './services/global/auth.service';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { ServicesService } from './services/global/services.service';
+import { ConfigService } from './services/global/config.service';
 
 describe('AppComponent', () => {
   beforeEach(
@@ -12,7 +14,7 @@ describe('AppComponent', () => {
       TestBed.configureTestingModule({
         declarations: [AppComponent, NavbarComponent],
         imports: [RouterTestingModule, NavbarModule, PopoverModule, IconModule, HttpClientTestingModule],
-        providers: [AuthService]
+        providers: [AuthService, ServicesService, ConfigService]
       }).compileComponents();
     })
   );

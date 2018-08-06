@@ -6,6 +6,8 @@ import { NavbarModule, PopoverModule, IconModule } from '@healthcatalyst/cashmer
 import { NavbarComponent } from './navbar.component';
 import { User } from 'oidc-client';
 import { AuthService } from '../services/global/auth.service';
+import { ServicesService } from '../services/global/services.service';
+import { ConfigService } from '../services/global/config.service';
 
 describe('NavbarComponent', () => {
   let component: NavbarComponent;
@@ -15,7 +17,7 @@ describe('NavbarComponent', () => {
     TestBed.configureTestingModule({
       declarations: [ NavbarComponent ],
       imports: [RouterTestingModule, NavbarModule, PopoverModule, IconModule, HttpClientTestingModule],
-      providers: [AuthService]
+      providers: [AuthService, ServicesService, ConfigService]
     })
     .compileComponents();
   }));
@@ -31,24 +33,24 @@ describe('NavbarComponent', () => {
   });
 
   it('getUserDisplayName() should return displayName for valid User with given_name and family_name', () => {
-    let user = <User>{};
+    const user = <User>{};
     user.profile = {family_name: 'user', given_name: 'test', name: 'domain\test.user'};
     expect(component.getUserDisplayName(user)).toBe('test user');
   });
 
   it('getUserDisplayName() should return displayName for valid User with name', () => {
-    let user = <User>{};
+    const user = <User>{};
     user.profile = {name: 'domain\test.user'};
     expect(component.getUserDisplayName(user)).toBe('domain\test.user');
   });
 
   it('getUserDisplayName() should return empty string for null User', () => {
-    let user = null;
+    const user = null;
     expect(component.getUserDisplayName(user)).toBe('');
   });
 
   it('getUserDisplayName() should return empty string for null profile on User', () => {
-    let user = <User>{};
+    const user = <User>{};
     expect(component.getUserDisplayName(user)).toBe('');
   });
 });

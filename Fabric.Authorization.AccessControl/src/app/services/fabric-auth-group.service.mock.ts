@@ -1,7 +1,6 @@
 import { IUser } from '../models/user.model';
 import { IRole } from '../models/role.model';
 import { IGroup } from '../models/group.model';
-import { Observable } from 'rxjs/Observable';
 
 const groupName = 'DosAdminGroup';
 const groupSource = 'Custom';

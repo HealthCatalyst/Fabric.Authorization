@@ -1,6 +1,5 @@
 import { IAccessControlConfigService } from './access-control-config.service';
 import { IDataChangedEventArgs } from '../models/changedDataEventArgs.model';
-import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { Exception } from '../models/exception.model';
 

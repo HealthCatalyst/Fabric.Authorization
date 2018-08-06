@@ -1,5 +1,4 @@
 import { IdPSearchResult } from '../models/idpSearchResult.model';
-import { Observable } from 'rxjs/Observable';
 
 export const mockExternalIdpSearchResult: IdPSearchResult = {
     resultCount: 2,

@@ -1,5 +1,4 @@
 import { IGroup } from '../models/group.model';
-import { Observable } from 'rxjs/Observable';
 import { IRole } from '../models/role.model';
 import { IUser } from '../models/user.model';
 

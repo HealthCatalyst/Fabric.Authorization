@@ -1,26 +1,21 @@
 import {
   HttpClient,
-  HttpErrorResponse,
-  HttpHeaders,
   HTTP_INTERCEPTORS
 } from '@angular/common/http';
 import {
   HttpClientTestingModule,
   HttpTestingController
 } from '@angular/common/http/testing';
-import { Pipe, PipeTransform } from '@angular/core';
 import { TestBed, inject, async } from '@angular/core/testing';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/of';
 
-import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { FabricHttpErrorHandlerInterceptorService } from './interceptors/fabric-http-error-handler-interceptor.service';
 import { mockGroupsResponse, mockRolesResponse, mockUserResponse } from './fabric-auth-user.service.mock';
 import { FabricAuthUserService } from './fabric-auth-user.service';
 import { IRole } from '../models/role.model';
 import { IUser } from '../models/user.model';
 import { IGroup } from '../models/group.model';
-import { IAccessControlConfigService } from './access-control-config.service';
 import { MockAccessControlConfigService } from './access-control-config.service.mock';
 
 describe('FabricAuthUserService', () => {

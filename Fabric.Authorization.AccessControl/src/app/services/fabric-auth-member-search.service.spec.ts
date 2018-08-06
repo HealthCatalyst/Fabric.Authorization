@@ -1,23 +1,16 @@
 import {
   HttpClient,
-  HttpErrorResponse,
-  HttpHeaders,
   HTTP_INTERCEPTORS
 } from '@angular/common/http';
 import {
   HttpClientTestingModule,
   HttpTestingController
 } from '@angular/common/http/testing';
-import { Pipe, PipeTransform } from '@angular/core';
 import { TestBed, inject, async } from '@angular/core/testing';
-import { Observable } from 'rxjs/Observable';
 
-
-import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { FabricHttpErrorHandlerInterceptorService } from './interceptors/fabric-http-error-handler-interceptor.service';
 import { mockAuthSearchResult } from './fabric-auth-member-search.service.mock';
 import { FabricAuthMemberSearchService } from './fabric-auth-member-search.service';
-import { IAccessControlConfigService } from './access-control-config.service';
 import { IAuthMemberSearchRequest } from '../models/authMemberSearchRequest.model';
 import { MockAccessControlConfigService } from './access-control-config.service.mock';
 
