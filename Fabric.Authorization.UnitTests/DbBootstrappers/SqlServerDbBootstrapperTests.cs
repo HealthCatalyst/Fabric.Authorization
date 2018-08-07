@@ -53,6 +53,11 @@ namespace Fabric.Authorization.UnitTests.DbBootstrappers
             Assert.Equal("dos-dataprocessing-service", dataProcessingSecurableItem.ClientOwner);
             Assert.Equal("dataprocessing", dataProcessingSecurableItem.Name);
 
+            var valuesetsSecurableItem = dbContext.SecurableItems.FirstOrDefault(si => si.Name == "valuesets");
+            Assert.NotNull(valuesetsSecurableItem);
+            Assert.Equal("terminology-service", valuesetsSecurableItem.ClientOwner);
+            Assert.Equal("valuesets", valuesetsSecurableItem.Name);
+
             var roles = dbContext.Roles
                 .Include(r => r.RolePermissions)
                 .ThenInclude(rp => rp.Permission)
