@@ -21,9 +21,9 @@ export class NavbarComponent implements OnInit {
       this.userDisplayName = this.getUserDisplayName(user);
     });
 
-    this.authService.isUserAuthenticated().then(result =>{
+    this.authService.isUserAuthenticated().then(result => {
       this.userIsAuthenticated = result;
-    })
+    });
   }
 
   logout(): void {
@@ -31,13 +31,13 @@ export class NavbarComponent implements OnInit {
   }
 
   getUserDisplayName(user: User): string {
-    if(user && user.profile){
-      if(user.profile.family_name && user.profile.given_name){
+    if (user && user.profile) {
+      if (user.profile.family_name && user.profile.given_name) {
         return (user.profile.given_name + ' ' + user.profile.family_name);
-      }else{
+      }else {
         return user.profile.name;
       }
     }
-    return "";
+    return '';
   }
 }

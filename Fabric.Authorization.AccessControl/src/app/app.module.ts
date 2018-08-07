@@ -1,6 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { NgModule } from '@angular/core';
+import { NgModule, APP_INITIALIZER } from '@angular/core';
 import { HttpClientModule } from '@angular/common/http';
 
 import { AppComponent } from './app.component';
@@ -34,8 +34,18 @@ import { ConfigService } from './services/global/config.service';
       provide: 'IAppSwitcherService',
       useClass: MockAppSwitcherService
     },
+    {
+        provide: APP_INITIALIZER,
+        useFactory: initAuthService,
+        deps: [AuthService],
+        multi: true
+    },
     httpInterceptorProviders
   ],
   bootstrap: [AppComponent]
 })
 export class AppModule {}
+
+export function initAuthService(authService: AuthService) {
+  return () => authService.initialize();
+}
