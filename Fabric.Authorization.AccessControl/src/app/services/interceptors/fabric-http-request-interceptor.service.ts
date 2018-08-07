@@ -23,16 +23,17 @@ export class FabricHttpRequestInterceptorService implements HttpInterceptor {
     req: HttpRequest<any>,
     next: HttpHandler
   ): Observable<HttpEvent<any>> {
-    const tokenObservable = Observable.fromPromise(
-      this.authService.getUser()
-        .then(user => {
-          if (user) {
-            return user.access_token;
-          }
-        })
-    );
 
     if (this.servicesService.needsAuthToken(req.url)) {
+      const tokenObservable = Observable.fromPromise(
+        this.authService.getUser()
+          .then(user => {
+            if (user) {
+              return user.access_token;
+            }
+          })
+      );
+
       return tokenObservable.mergeMap(accessToken => {
         const modifiedRequest = req.clone({
           setHeaders: {
@@ -47,7 +48,6 @@ export class FabricHttpRequestInterceptorService implements HttpInterceptor {
         return next.handle(modifiedRequest);
       });
     } else {
-      return tokenObservable.mergeMap(accessToken => {
         const modifiedRequest = req.clone({
           setHeaders: {
             'Accept': FabricHttpRequestInterceptorService.AcceptHeader,
@@ -56,7 +56,6 @@ export class FabricHttpRequestInterceptorService implements HttpInterceptor {
         });
 
         return next.handle(modifiedRequest);
-      });
     }
   }
 }
