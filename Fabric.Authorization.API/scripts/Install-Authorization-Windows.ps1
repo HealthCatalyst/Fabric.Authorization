@@ -629,18 +629,32 @@ if (!($noDiscoveryService)) {
     Write-Host ""
     Add-ServiceUserToDiscovery $credential.UserName $metadataConnStr
     Write-Host ""
-    Write-Host "Registering with Discovery Service."
+    Write-Host "Registering Fabric.Authorization with Discovery Service."
     Write-Host ""
-    $discoveryPostBody = @{
+    $discoveryAuthorizationPostBody = @{
         buildVersion = [System.Diagnostics.FileVersionInfo]::GetVersionInfo("$appDirectory\Fabric.Authorization.API.dll").FileVersion;
         serviceName = "AuthorizationService";
         serviceVersion = 1;
         friendlyName = "Fabric.Authorization";
         description = "The Fabric.Authorization service provides centralized authentication across the Fabric ecosystem.";
-        identityServerUrl = $identityServiceUrl;
         serviceUrl = "$authorizationServiceUrl/v1";
     }
-    Add-DiscoveryRegistration $discoveryServiceUrl $credential $discoveryPostBody
+    Add-DiscoveryRegistration $discoveryServiceUrl $credential $discoveryAuthorizationPostBody
+    Write-Host ""
+
+    Write-Host "Registering Fabric.AccessControl with Discovery Service."
+    Write-Host ""
+    $discoveryAccessControlPostBody = @{
+        buildVersion = [System.Diagnostics.FileVersionInfo]::GetVersionInfo("$appDirectory\Fabric.Authorization.API.dll").FileVersion;
+        serviceName = "AccessControl";
+        serviceVersion = 1;
+        friendlyName = "Fabric.AccessControl";
+        description = "Fabric.AccessControl provides a UI to manage permissions across DOS.";
+        serviceUrl = "$authorizationServiceUrl";
+        discoveryType = "Application";
+        isHidden = $false;
+    }
+    Add-DiscoveryRegistration $discoveryServiceUrl $credential $discoveryAccessControlPostBody
     Write-Host ""
 }
 
