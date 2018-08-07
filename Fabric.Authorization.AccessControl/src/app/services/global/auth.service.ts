@@ -1,11 +1,12 @@
 ﻿import { Injectable } from '@angular/core';
-import { Response, Headers, RequestOptions } from '@angular/http';
+import { Response } from '@angular/http';
 import { HttpClient } from '@angular/common/http';
 import { UserManager, User, Log } from 'oidc-client';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/map';
 import { ServicesService } from './services.service';
+import { tap } from '../../../../node_modules/rxjs/operators';
 
 @Injectable()
 export class AuthService {
@@ -16,53 +17,54 @@ export class AuthService {
 
   constructor(private httpClient: HttpClient, private servicesService: ServicesService) {
     this.clientId = 'fabric-access-control';
+  }
 
-    console.log('auth service constructor');
-    servicesService.initialize();
+  initialize(): Promise<any> {
+    return this.servicesService.initialize().pipe(tap(url => {
+      this.authority = url; // this.servicesService.identityServiceEndpoint;
 
-    this.authority = this.servicesService.identityServiceEndpoint;
+      const clientSettings: any = {
+        authority: this.authority,
+        client_id: this.clientId,
+        redirect_uri: `${this.servicesService.authorizationServiceEndpoint}/client/oidc-callback.html`,
+        post_logout_redirect_uri: `${this.servicesService.authorizationServiceEndpoint}/client/logged-out`,
+        response_type: 'id_token token',
+        scope: [
+          'openid',
+          'profile',
+          'fabric.profile',
+          'fabric/authorization.read',
+          'fabric/authorization.write',
+          'fabric/idprovider.searchusers',
+          'fabric/authorization.dos.write'
+        ].join(' '),
+        silent_redirect_uri: `${this.servicesService.authorizationServiceEndpoint}/client/silent.html`,
+        automaticSilentRenew: true,
+        filterProtocolClaims: true,
+        loadUserInfo: true
+      };
 
-    const clientSettings: any = {
-      authority: this.authority,
-      client_id: this.clientId,
-      redirect_uri: `${this.servicesService.authorizationServiceEndpoint}/client/oidc-callback.html`,
-      post_logout_redirect_uri: `${this.servicesService.authorizationServiceEndpoint}/client/logged-out`,
-      response_type: 'id_token token',
-      scope: [
-        'openid',
-        'profile',
-        'fabric.profile',
-        'fabric/authorization.read',
-        'fabric/authorization.write',
-        'fabric/idprovider.searchusers',
-        'fabric/authorization.dos.write'
-      ].join(' '),
-      silent_redirect_uri: `${this.servicesService.authorizationServiceEndpoint}/client/silent.html`,
-      automaticSilentRenew: true,
-      filterProtocolClaims: true,
-      loadUserInfo: true
-    };
+      this.userManager = new UserManager(clientSettings);
 
-    this.userManager = new UserManager(clientSettings);
+      this.userManager.events.addAccessTokenExpiring(function() {
+        console.log('access token expiring');
+      });
 
-    this.userManager.events.addAccessTokenExpiring(function() {
-      console.log('access token expiring');
-    });
+      this.userManager.events.addSilentRenewError(function(e) {
+        console.log('silent renew error: ' + e.message);
+      });
 
-    this.userManager.events.addSilentRenewError(function(e) {
-      console.log('silent renew error: ' + e.message);
-    });
+      this.userManager.events.addAccessTokenExpired(() => {
+        console.log('access token expired');
+        // when access token expires logout the user
+        this.logout();
+      });
 
-    this.userManager.events.addAccessTokenExpired(() => {
-      console.log('access token expired');
-      // when access token expires logout the user
-      this.logout();
-    });
-
-    this.userManager.events.addUserSignedOut(() => {
-      console.log('user logged out at the Idp, logging out');
-      this.logout();
-    });
+      this.userManager.events.addUserSignedOut(() => {
+        console.log('user logged out at the Idp, logging out');
+        this.logout();
+      });
+    })).toPromise().then(() => console.log('finished initialize'));
   }
 
   login() {
