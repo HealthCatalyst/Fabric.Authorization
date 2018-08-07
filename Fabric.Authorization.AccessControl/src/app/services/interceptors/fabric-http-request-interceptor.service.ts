@@ -9,6 +9,7 @@ import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/fromPromise';
 import 'rxjs/add/operator/mergeMap';
 import { AuthService } from '../global/auth.service';
+import { ServicesService } from '../global/services.service';
 
 @Injectable()
 export class FabricHttpRequestInterceptorService implements HttpInterceptor {
@@ -16,7 +17,7 @@ export class FabricHttpRequestInterceptorService implements HttpInterceptor {
   protected static readonly ContentTypeHeader = 'application/json';
   protected static AuthorizationHeader = `Bearer`;
 
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService, private servicesService: ServicesService) {}
 
   intercept(
     req: HttpRequest<any>,
@@ -30,17 +31,32 @@ export class FabricHttpRequestInterceptorService implements HttpInterceptor {
           }
         })
     );
-    return tokenObservable.mergeMap(accessToken => {
-      const modifiedRequest = req.clone({
-        setHeaders: {
-          Authorization: `${
-            FabricHttpRequestInterceptorService.AuthorizationHeader
-          } ${accessToken}`,
-          Accept: FabricHttpRequestInterceptorService.AcceptHeader,
-          'Content-Type': FabricHttpRequestInterceptorService.ContentTypeHeader
-        }
+
+    if (this.servicesService.needsAuthToken(req.url)) {
+      return tokenObservable.mergeMap(accessToken => {
+        const modifiedRequest = req.clone({
+          setHeaders: {
+            Authorization: `${
+              FabricHttpRequestInterceptorService.AuthorizationHeader
+            } ${accessToken}`,
+            'Accept': FabricHttpRequestInterceptorService.AcceptHeader,
+            'Content-Type': FabricHttpRequestInterceptorService.ContentTypeHeader
+          }
+        });
+
+        return next.handle(modifiedRequest);
       });
-      return next.handle(modifiedRequest);
-    });
+    } else {
+      return tokenObservable.mergeMap(accessToken => {
+        const modifiedRequest = req.clone({
+          setHeaders: {
+            'Accept': FabricHttpRequestInterceptorService.AcceptHeader,
+            'Content-Type': FabricHttpRequestInterceptorService.ContentTypeHeader
+          }
+        });
+
+        return next.handle(modifiedRequest);
+      });
+    }
   }
 }
