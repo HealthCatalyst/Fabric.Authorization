@@ -33,6 +33,10 @@ export class ServicesService {
         {
             name: 'IdentityProviderSearchService',
             requireAuthToken: true
+        },
+        {
+            name: 'AccessControl',
+            requireAuthToken: false
         }
     ];
 
@@ -73,6 +77,10 @@ export class ServicesService {
 
     get identityProviderSearchServiceEndpoint(): string {
         return this.services.find(s => s.name === 'IdentityProviderSearchService').url;
+    }
+
+    get accessControlEndpoint(): string {
+        return this.services.find(s => s.name === 'AccessControl').url;
     }
 
     public needsAuthToken(url: string) {

@@ -1,4 +1,4 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Response } from '@angular/http';
 import { HttpClient } from '@angular/common/http';
 import { UserManager, User, Log } from 'oidc-client';
@@ -22,12 +22,11 @@ export class AuthService {
   initialize(): Promise<any> {
     return this.servicesService.initialize().pipe(tap(url => {
       this.authority = url; // this.servicesService.identityServiceEndpoint;
-
       const clientSettings: any = {
         authority: this.authority,
         client_id: this.clientId,
-        redirect_uri: `${this.servicesService.authorizationServiceEndpoint}/client/oidc-callback.html`,
-        post_logout_redirect_uri: `${this.servicesService.authorizationServiceEndpoint}/client/logged-out`,
+        redirect_uri: `${this.servicesService.accessControlEndpoint}/client/oidc-callback.html`,
+        post_logout_redirect_uri: `${this.servicesService.accessControlEndpoint}/client/logged-out`,
         response_type: 'id_token token',
         scope: [
           'openid',
@@ -38,7 +37,7 @@ export class AuthService {
           'fabric/idprovider.searchusers',
           'fabric/authorization.dos.write'
         ].join(' '),
-        silent_redirect_uri: `${this.servicesService.authorizationServiceEndpoint}/client/silent.html`,
+        silent_redirect_uri: `${this.servicesService.accessControlEndpoint}/client/silent.html`,
         automaticSilentRenew: true,
         filterProtocolClaims: true,
         loadUserInfo: true
