@@ -39,7 +39,7 @@ namespace Fabric.Authorization.UnitTests.DbBootstrappers
         {
             var grains = dbContext.Grains.ToList();
             Assert.Equal(2, grains.Count);
-            Assert.Equal(2, dbContext.SecurableItems.Count());
+            Assert.Equal(3, dbContext.SecurableItems.Count());
             Assert.Equal(1, dbContext.Roles.Count());
             Assert.Equal(1, dbContext.Permissions.Count());
 
