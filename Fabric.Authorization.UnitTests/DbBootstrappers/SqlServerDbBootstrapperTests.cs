@@ -39,7 +39,7 @@ namespace Fabric.Authorization.UnitTests.DbBootstrappers
         {
             var grains = dbContext.Grains.ToList();
             Assert.Equal(2, grains.Count);
-            Assert.Equal(2, dbContext.SecurableItems.Count());
+            Assert.Equal(3, dbContext.SecurableItems.Count());
             Assert.Equal(1, dbContext.Roles.Count());
             Assert.Equal(1, dbContext.Permissions.Count());
 
@@ -52,6 +52,11 @@ namespace Fabric.Authorization.UnitTests.DbBootstrappers
             Assert.NotNull(dataProcessingSecurableItem);
             Assert.Equal("dos-dataprocessing-service", dataProcessingSecurableItem.ClientOwner);
             Assert.Equal("dataprocessing", dataProcessingSecurableItem.Name);
+
+            var valuesetsSecurableItem = dbContext.SecurableItems.FirstOrDefault(si => si.Name == "valuesets");
+            Assert.NotNull(valuesetsSecurableItem);
+            Assert.Equal("terminology-service", valuesetsSecurableItem.ClientOwner);
+            Assert.Equal("valuesets", valuesetsSecurableItem.Name);
 
             var roles = dbContext.Roles
                 .Include(r => r.RolePermissions)

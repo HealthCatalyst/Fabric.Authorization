@@ -37,6 +37,11 @@ namespace Fabric.Authorization.Domain.Defaults
                         {
                             Name = "dataprocessing",
                             ClientOwner = "dos-dataprocessing-service"
+                        },
+                        new SecurableItem
+                        {
+                            Name = "valuesets",
+                            ClientOwner = "terminology-service"
                         }
                     }
                 }
