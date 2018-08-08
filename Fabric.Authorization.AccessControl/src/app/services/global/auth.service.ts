@@ -8,8 +8,21 @@ import 'rxjs/add/operator/map';
 import { ServicesService } from './services.service';
 import { tap } from '../../../../node_modules/rxjs/operators';
 
+export interface IAuthService {
+  userManager: UserManager;
+  identityClientSettings: any;
+  clientId: string;
+  authority: string;
+  initialize(): Promise<any>;
+  login();
+  logout();
+  handleSigninRedirectCallback();
+  getUser(): Promise<User>;
+  isUserAuthenticated(): Promise<boolean>;
+}
+
 @Injectable()
-export class AuthService {
+export class AuthService implements IAuthService {
   userManager: UserManager;
   identityClientSettings: any;
   clientId: string;

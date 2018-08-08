@@ -7,7 +7,7 @@ import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 
 import { httpInterceptorProviders } from './services/interceptors';
-import { AuthService } from './services/global/auth.service';
+import { AuthService, IAuthService } from './services/global/auth.service';
 import { IAccessControlConfigService } from './services/access-control-config.service';
 import { ClientAccessControlConfigService } from './services/global/client-access-control-config.service';
 
@@ -23,7 +23,10 @@ import { ConfigService } from './services/global/config.service';
   imports: [BrowserModule, AppRoutingModule, HttpClientModule, ButtonModule, ProgressIndicatorsModule, BrowserAnimationsModule,
     NavbarModule, PopoverModule, AppSwitcherModule, IconModule],
   providers: [
-    AuthService,
+    {
+      provide: 'IAuthService',
+      useClass: AuthService
+    },
     {
       provide: 'IAccessControlConfigService',
       useClass: ClientAccessControlConfigService
@@ -46,6 +49,6 @@ import { ConfigService } from './services/global/config.service';
 })
 export class AppModule {}
 
-export function initAuthService(authService: AuthService) {
+export function initAuthService(authService: IAuthService) {
   return () => authService.initialize();
 }

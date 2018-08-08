@@ -4,8 +4,9 @@ import {RouterTestingModule} from '@angular/router/testing';
 
 import { NavbarModule, PopoverModule, IconModule } from '@healthcatalyst/cashmere';
 import { NavbarComponent } from './navbar.component';
-import { User } from 'oidc-client';
-import { AuthService } from '../services/global/auth.service';
+import { UserManager, User } from 'oidc-client';
+import { IAuthService } from '../services/global/auth.service';
+import { MockAuthService } from '../services/global/auth.service.mock';
 import { ServicesService } from '../services/global/services.service';
 import { ConfigService } from '../services/global/config.service';
 
@@ -14,18 +15,23 @@ describe('NavbarComponent', () => {
   let fixture: ComponentFixture<NavbarComponent>;
 
   beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ NavbarComponent ],
-      imports: [RouterTestingModule, NavbarModule, PopoverModule, IconModule, HttpClientTestingModule],
-      providers: [AuthService, ServicesService, ConfigService]
-    })
-    .compileComponents();
+     TestBed.configureTestingModule({
+       declarations: [ NavbarComponent ],
+       imports: [RouterTestingModule, NavbarModule, PopoverModule, IconModule, HttpClientTestingModule],
+       providers: [
+         {
+         provide: 'IAuthService',
+         useClass: MockAuthService
+        }
+      ]
+     })
+     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(NavbarComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+     fixture = TestBed.createComponent(NavbarComponent);
+     component = fixture.componentInstance;
+     fixture.detectChanges();
   });
 
   it('should create', () => {

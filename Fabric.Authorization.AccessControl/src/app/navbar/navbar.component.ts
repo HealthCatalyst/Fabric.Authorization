@@ -1,7 +1,7 @@
 import { Component, OnInit, Inject } from '@angular/core';
 import { User } from 'oidc-client';
 
-import { AuthService } from '../services/global/auth.service';
+import { IAuthService } from '../services/global/auth.service';
 
 @Component({
   selector: 'app-navbar',
@@ -13,7 +13,7 @@ export class NavbarComponent implements OnInit {
   userIsAuthenticated: boolean;
 
   constructor(
-    private authService: AuthService
+    @Inject('IAuthService')private authService: IAuthService
   ) {}
 
   ngOnInit() {
