@@ -3,7 +3,7 @@ import { AppComponent } from './app.component';
 import {RouterTestingModule} from '@angular/router/testing';
 import { NavbarComponent } from './navbar/navbar.component';
 import { NavbarModule, PopoverModule, IconModule } from '@healthcatalyst/cashmere';
-import { AuthService } from './services/global/auth.service';
+import { AuthService, IAuthService } from './services/global/auth.service';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ServicesService } from './services/global/services.service';
 import { ConfigService } from './services/global/config.service';
@@ -14,7 +14,13 @@ describe('AppComponent', () => {
       TestBed.configureTestingModule({
         declarations: [AppComponent, NavbarComponent],
         imports: [RouterTestingModule, NavbarModule, PopoverModule, IconModule, HttpClientTestingModule],
-        providers: [AuthService, ServicesService, ConfigService]
+        providers: [
+          {
+          provide: 'IAuthService',
+          useClass: AuthService
+          }, 
+          ServicesService, 
+          ConfigService]
       }).compileComponents();
     })
   );
