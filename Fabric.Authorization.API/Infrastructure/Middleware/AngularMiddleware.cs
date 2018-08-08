@@ -49,11 +49,6 @@ namespace Fabric.Authorization.API.Infrastructure.Middleware
                 context.Request.Path.Value.StartsWith(accessControlPath))
             {
                 context.Request.Path = indexPath;
-                using (var ms = new MemoryStream(Encoding.ASCII.GetBytes(_indexContent)))
-                {
-                    context.Response.Body = ms;
-                }
-                 
                 await _next(context);
             }
         }
