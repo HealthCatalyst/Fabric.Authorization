@@ -13,7 +13,17 @@ import { ConfigService } from '../global/config.service';
 describe('FabricHttpRequestInterceptorService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [FabricHttpRequestInterceptorService, AuthService, HttpClient, HttpHandler, ServicesService, ConfigService]
+      providers: [
+        FabricHttpRequestInterceptorService,
+        HttpClient, 
+        HttpHandler, 
+        ServicesService, 
+        ConfigService, 
+        {
+          provide: 'IAuthService', 
+          useClass: AuthService
+        }
+      ]
     });
   });
 

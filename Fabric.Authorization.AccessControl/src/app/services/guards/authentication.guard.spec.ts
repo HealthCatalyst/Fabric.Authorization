@@ -10,7 +10,15 @@ describe('AuthenticationGuard', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [AuthenticationGuard, AuthService, ServicesService, ConfigService]
+      providers: [
+        AuthenticationGuard, 
+        ServicesService, 
+        ConfigService, 
+        {
+          provide: 'IAuthService', 
+          useClass: AuthService
+        }
+      ]
     });
   });
 

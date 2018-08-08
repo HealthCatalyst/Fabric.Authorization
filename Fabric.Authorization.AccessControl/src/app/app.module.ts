@@ -17,6 +17,7 @@ import { NavbarComponent } from './navbar/navbar.component';
 import { LoggedOutComponent } from './logged-out/logged-out.component';
 import { ServicesService } from './services/global/services.service';
 import { ConfigService } from './services/global/config.service';
+import { InitializerService } from './services/global/initializer.service';
 
 @NgModule({
   declarations: [AppComponent, NavbarComponent, LoggedOutComponent],
@@ -33,14 +34,15 @@ import { ConfigService } from './services/global/config.service';
     },
     ServicesService,
     ConfigService,
+    InitializerService,
     {
       provide: 'IAppSwitcherService',
       useClass: MockAppSwitcherService
     },
     {
         provide: APP_INITIALIZER,
-        useFactory: initAuthService,
-        deps: [AuthService],
+        useFactory: initialize,
+        deps: [InitializerService],
         multi: true
     },
     httpInterceptorProviders
@@ -49,6 +51,6 @@ import { ConfigService } from './services/global/config.service';
 })
 export class AppModule {}
 
-export function initAuthService(authService: IAuthService) {
-  return () => authService.initialize();
+export function initialize(initializer: InitializerService) {
+  return () => initializer.initialize();
 }
