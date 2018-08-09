@@ -17,6 +17,7 @@
         "silent.html"
       ],
       "index": "index.html",
+      "baseHref": "./",
       "main": "main.ts",
       "polyfills": "polyfills.ts",
       "test": "test.ts",
