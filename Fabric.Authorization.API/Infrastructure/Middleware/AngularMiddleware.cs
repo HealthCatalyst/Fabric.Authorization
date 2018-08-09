@@ -17,7 +17,7 @@ namespace Fabric.Authorization.API.Infrastructure.Middleware
         private static string _indexContent;
         private readonly IAppConfiguration _appConfiguration;
         private readonly IHostingEnvironment _hostingEnvironment;
-        private static string _htmlContentType = "text/html";
+        private const string HtmlContentType = "text/html";
 
         public AngularMiddleware(RequestDelegate next, IAppConfiguration appConfiguration, IHostingEnvironment hostingEnvironment)
         {
@@ -68,7 +68,7 @@ namespace Fabric.Authorization.API.Infrastructure.Middleware
                 {
                     context.Response.Body = memoryStream;
                     context.Response.ContentLength = memoryStream.Length;
-                    context.Response.ContentType = _htmlContentType;
+                    context.Response.ContentType = HtmlContentType;
                     memoryStream.Seek(0, SeekOrigin.Begin);
                     await memoryStream.CopyToAsync(originalResponse);
                 }
