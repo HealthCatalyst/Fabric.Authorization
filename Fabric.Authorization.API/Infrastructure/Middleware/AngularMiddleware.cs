@@ -38,18 +38,40 @@ namespace Fabric.Authorization.API.Infrastructure.Middleware
                 var discoveryServiceSettings = _appConfiguration.AccessControlSettings.DiscoveryServiceSettings;
                 _indexContent = _indexContent.Replace(discoveryServiceSettings.Token,
                     discoveryServiceSettings.Value);
-
-                File.WriteAllText(fullPath, _indexContent);
             }
 
-            await _next(context);
-            
-            if (context.Response.StatusCode == (int) HttpStatusCode.NotFound &&
-                !Path.HasExtension(context.Request.Path.Value) &&
-                context.Request.Path.Value.StartsWith(accessControlPath))
+            if (context.Request.Path == indexPath)
             {
-                context.Request.Path = indexPath;
+                await WriteIndexResponse(context);
+            }
+            else
+            {
                 await _next(context);
+                if (context.Response.StatusCode == (int)HttpStatusCode.NotFound &&
+                    !Path.HasExtension(context.Request.Path.Value) &&
+                    context.Request.Path.Value.StartsWith(accessControlPath))
+                {
+                    context.Request.Path = indexPath;
+                    await WriteIndexResponse(context);
+                }
+            }
+        }
+
+        private async Task WriteIndexResponse(HttpContext context)
+        {
+            using (var memoryStream = new MemoryStream(Encoding.ASCII.GetBytes(_indexContent)))
+            {
+                var originalResponse = context.Response.Body;
+                try
+                {
+                    context.Response.Body = memoryStream;
+                    memoryStream.Seek(0, SeekOrigin.Begin);
+                    await memoryStream.CopyToAsync(originalResponse);
+                }
+                finally
+                {
+                    context.Response.Body = originalResponse;
+                }
             }
         }
     }

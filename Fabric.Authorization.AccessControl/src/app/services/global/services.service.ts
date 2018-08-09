@@ -49,7 +49,7 @@ export class ServicesService {
                     `${discoveryServiceRoot}/Services?$filter=` +
                     this.services.map(service => `ServiceName eq \'${service.name}\'`).join(' or ') +
                     `&$select=ServiceUrl,Version,ServiceName`;
-                return this.http.get<OData.IArray<IDiscoveryService>>(url);
+                return this.http.get<OData.IArray<IDiscoveryService>>(url, {withCredentials: true});
             }),
             map(response => {
                 for (const service of this.services) {
