@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -16,6 +17,7 @@ namespace Fabric.Authorization.API.Infrastructure.Middleware
         private static string _indexContent;
         private readonly IAppConfiguration _appConfiguration;
         private readonly IHostingEnvironment _hostingEnvironment;
+        private static string _htmlContentType = "text/html";
 
         public AngularMiddleware(RequestDelegate next, IAppConfiguration appConfiguration, IHostingEnvironment hostingEnvironment)
         {
@@ -40,7 +42,7 @@ namespace Fabric.Authorization.API.Infrastructure.Middleware
                     discoveryServiceSettings.Value);
             }
 
-            if (context.Request.Path == indexPath)
+            if (context.Request.Path.Equals(indexPath, StringComparison.OrdinalIgnoreCase))
             {
                 await WriteIndexResponse(context);
             }
@@ -65,6 +67,8 @@ namespace Fabric.Authorization.API.Infrastructure.Middleware
                 try
                 {
                     context.Response.Body = memoryStream;
+                    context.Response.ContentLength = memoryStream.Length;
+                    context.Response.ContentType = _htmlContentType;
                     memoryStream.Seek(0, SeekOrigin.Begin);
                     await memoryStream.CopyToAsync(originalResponse);
                 }
