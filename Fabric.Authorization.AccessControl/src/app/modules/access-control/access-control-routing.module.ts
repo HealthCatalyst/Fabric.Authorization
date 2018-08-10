@@ -12,19 +12,19 @@ const routes: Routes = [
     component: GrainListComponent
   },
   {
-    path: 'member',
+    path: 'member/:grain/:securableItem',
     component: MemberComponent
   },
   {
-    path: 'member/:subjectid/:type',
+    path: 'member/:grain/:securableItem/:subjectid/:type',
     component: MemberComponent
   },
   {
-    path: 'customgroup',
+    path: 'customgroup/:grain/:securableItem',
     component: CustomGroupComponent
   },
   {
-    path: 'customgroup/:subjectid',
+    path: 'customgroup/:grain/:securableItem/:subjectid',
     component: CustomGroupComponent
   },
   {

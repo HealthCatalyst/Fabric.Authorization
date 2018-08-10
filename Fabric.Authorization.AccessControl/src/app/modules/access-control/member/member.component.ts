@@ -35,6 +35,8 @@ export class MemberComponent implements OnInit, OnDestroy {
   public searchTextSubject = new Subject<string>();
   public searchText: string;
   public selectedPrincipal?: IFabricPrincipal;
+  private grain: string;
+  private securableItem: string;
 
   private ngUnsubscribe: any = new Subject();
 
@@ -52,6 +54,8 @@ export class MemberComponent implements OnInit, OnDestroy {
   ngOnInit() {
     const subjectId: string = this.route.snapshot.paramMap.get('subjectid');
     const principalType: string = (this.route.snapshot.paramMap.get('type') || '').toLowerCase();
+    this.grain = this.route.snapshot.paramMap.get('grain');
+    this.securableItem = this.route.snapshot.paramMap.get('securableItem');
 
     this.searchText = subjectId;
         if (subjectId && principalType) {
@@ -64,8 +68,8 @@ export class MemberComponent implements OnInit, OnDestroy {
     // Roles
     this.roleService
       .getRolesBySecurableItemAndGrain(
-        this.configService.grain,
-        this.configService.securableItem
+        this.grain,
+        this.securableItem
       )
       .takeUntil(this.ngUnsubscribe)
       .mergeMap((roles: IRole[]) => {
@@ -200,8 +204,8 @@ export class MemberComponent implements OnInit, OnDestroy {
       })
       .mergeMap((newGroup: IGroup) => {
         return this.groupService.getGroupRoles(group.groupName,
-          this.configService.grain,
-          this.configService.securableItem);
+          this.grain,
+          this.securableItem);
       })
       .mergeMap((groupRoles: IRole[]) => {
         const rolesToAdd = selectedRoles.filter(userRole => !groupRoles.some(selectedRole => userRole.id === selectedRole.id));
@@ -219,7 +223,7 @@ export class MemberComponent implements OnInit, OnDestroy {
     const roleObservable: Observable<any> =
         principal.principalType === 'user'
             ? this.userService.getUserRoles(this.configService.identityProvider, principal.subjectId)
-            : this.groupService.getGroupRoles(principal.subjectId, this.configService.grain, this.configService.securableItem);
+            : this.groupService.getGroupRoles(principal.subjectId, this.grain, this.securableItem);
 
     return roleObservable.do((existingRoles: IRole[]) => {
         if (!existingRoles) {

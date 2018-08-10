@@ -45,6 +45,9 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
 
   private ngUnsubscribe: any = new Subject();
 
+  private grain: string;
+  private securableItem: string;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -57,6 +60,8 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.groupName = this.route.snapshot.paramMap.get('subjectid');
+    this.grain = this.route.snapshot.paramMap.get('grain');
+    this.securableItem = this.route.snapshot.paramMap.get('securableItem');
     this.editMode = !!this.groupName;
 
     if (this.editMode) {
@@ -74,8 +79,8 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
 
       this.roleService
         .getRolesBySecurableItemAndGrain(
-          this.configService.grain,
-          this.configService.securableItem
+          this.grain,
+          this.securableItem
         )
         .do((roles: IRole[]) => {
           this.roles = roles;
@@ -161,15 +166,15 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   getGroupRoles(): Observable<IRole[]> {
     const rolesObservable = this.roleService
       .getRolesBySecurableItemAndGrain(
-        this.configService.grain,
-        this.configService.securableItem
+        this.grain,
+        this.securableItem
       );
 
     const groupRolesObservable = this.groupService
       .getGroupRoles(
         this.groupName,
-        this.configService.grain,
-        this.configService.securableItem
+        this.grain,
+        this.securableItem
       );
 
     return Observable.zip(rolesObservable, groupRolesObservable)
@@ -232,7 +237,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     return groupObservable
       .mergeMap((group) => {
         const groupRolesObservable = this.groupService
-          .getGroupRoles(this.groupName, this.configService.grain, this.configService.securableItem);
+          .getGroupRoles(this.groupName, this.grain, this.securableItem);
         const groupUsersObservable = this.getGroupUsers();
 
         return Observable.zip(groupRolesObservable, groupUsersObservable)
