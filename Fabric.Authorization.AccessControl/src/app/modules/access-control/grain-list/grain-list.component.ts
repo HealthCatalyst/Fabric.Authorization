@@ -21,6 +21,7 @@ export class GrainListComponent implements OnInit {
 
   grains: IGrain[];
   isGrainVisible: boolean = false;
+  selectedNode: GrainFlatNode;
 
   constructor(
       private grainService: FabricAuthGrainService
@@ -34,7 +35,7 @@ export class GrainListComponent implements OnInit {
   }
 
   transformer = (node: GrainNode, level: number) => {
-    return new GrainFlatNode(!!node.children, node.grainName, level);
+    return new GrainFlatNode(!!node.children, node.name, node.parentName, level);
   }
 
   private _getLevel = (node: GrainFlatNode) => node.level;
@@ -59,34 +60,40 @@ export class GrainListComponent implements OnInit {
 
     for(let item of data) {
       var node = new GrainNode();
-      node.grainName = item.name;
-      node.children = this.AddSecurableItemToGrainNode(item.securableItems);
+      node.name = item.name;
+      node.children = this.AddSecurableItemToGrainNode(item.securableItems, item.name);
       result.push(node);
     }
 
     return result;
   }
 
-  AddSecurableItemToGrainNode(data: ISecurableItem[]): GrainNode[] {
+  AddSecurableItemToGrainNode(data: ISecurableItem[], parentName: string): GrainNode[] {
     var result: GrainNode[] = [];
 
     for(let item of data) {
       var node = new GrainNode();
-      node.grainName = item.name;
-      node.children = this.AddSecurableItemToGrainNode(item.securableItems);
+      node.name = item.name;
+      node.parentName = parentName
+      node.children = this.AddSecurableItemToGrainNode(item.securableItems, item.name);
       result.push(node);
     }
 
     return result;
+  }
+
+  onSelect(node: GrainFlatNode): void {
+    this.selectedNode = node;
   }
 }
 
 export class GrainNode {
   children: GrainNode[];
-  grainName: string;
+  name: string;
+  parentName: string;
 }
 
 export class GrainFlatNode {
   constructor(
-    public expandable: boolean, public name: string, public level: number) {}
+    public expandable: boolean, public name: string, public parentName: string, public level: number) {}
 }
