@@ -1,4 +1,6 @@
 import { async, ComponentFixture, TestBed, inject } from '@angular/core/testing';
+import { Router } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
 
 import { MemberListComponent } from './member-list.component';
 import { ServicesMockModule } from '../services.mock.module';
@@ -25,6 +27,7 @@ describe('MemberListComponent', () => {
           PopoverModule,
           ProgressIndicatorsModule,
           SelectModule,
+          RouterTestingModule,
         ]
       }).compileComponents();
     })
