@@ -34,6 +34,8 @@ export class MemberListComponent implements OnInit, OnChanges {
   sortKey: SortKey = 'name';
   sortDirection: SortDirection = 'asc';
   searchesInProgress = 0;
+  grain: string = this.configService.grain;
+  securableItem: string = this.configService.securableItem;
   @Input() selectedNode: GrainFlatNode;
 
   @ViewChild('confirmDialog')
@@ -100,12 +102,10 @@ export class MemberListComponent implements OnInit, OnChanges {
   }
 
   getMembers() {
-    var grain = this.configService.grain;
-    var securableItem = this.configService.securableItem;
     
     if(this.selectedNode){
-      grain = this.selectedNode.parentName;
-      securableItem = this.selectedNode.name;
+      this.grain = this.selectedNode.parentName;
+      this.securableItem = this.selectedNode.name;
     }
 
     const searchRequest: IAuthMemberSearchRequest = {
@@ -115,11 +115,11 @@ export class MemberListComponent implements OnInit, OnChanges {
       sortKey: this.sortKey,
       sortDirection: this.sortDirection,
 
-      grain: grain,
-      securableItem: securableItem
+      grain: this.grain,
+      securableItem: this.securableItem
     };
-    searchRequest.grain = grain;
-    searchRequest.securableItem = securableItem;
+    searchRequest.grain = this.grain;
+    searchRequest.securableItem = this.securableItem;
 
     this.searchesInProgress++;
     return this.memberSearchService
@@ -165,12 +165,16 @@ export class MemberListComponent implements OnInit, OnChanges {
     if (member.entityType !== 'CustomGroup') {
       this.router.navigate([
         '/access-control/member',
+        this.grain,
+        this.securableItem,
         member.subjectId,
         member.entityType
       ]);
     } else {
       this.router.navigate([
         '/access-control/customgroup',
+        this.grain,
+        this.securableItem,
         member.subjectId
       ]);
     }

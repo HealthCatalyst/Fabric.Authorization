@@ -18,10 +18,10 @@
     <hc-popover-content #options>
       <ul class="list-options">
         <li>
-          <a routerLink="/access-control/member">Directory Group or User</a>
+          <a [routerLink]="['/access-control/member', grain, securableItem]">Directory Group or User</a>
         </li>
         <li>
-          <a routerLink="/access-control/customgroup">Custom Group</a>
+          <a [routerLink]="['/access-control/customgroup', grain, securableItem]">Custom Group</a>
         </li>
       </ul>
     </hc-popover-content>
