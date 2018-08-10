@@ -1,10 +1,22 @@
 import { async, ComponentFixture, TestBed, inject } from '@angular/core/testing';
+import { Router } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
+
+import { MatTreeFlatDataSource, MatTreeFlattener, MatTreeModule } from '@angular/material/tree';
+import { FlatTreeControl } from '@angular/cdk/tree';
+
 import { ServicesMockModule } from '../services.mock.module';
 import { GrainListComponent } from './grain-list.component';
+import { MemberListComponent } from '../member-list/member-list.component'
 import { Observable } from 'rxjs/Observable';
 
 import { FabricAuthGrainServiceMock, mockGrains } from '../../../services/fabric-auth-grain.service.mock';
 import { FabricAuthGrainService } from '../../../services/fabric-auth-grain.service';
+
+import { PopoverModule, IconModule, ProgressIndicatorsModule, SelectModule, ModalModule, PaginationModule } from '@healthcatalyst/cashmere';
+import { FabricAuthMemberSearchServiceMock, mockAuthSearchResult } from '../../../services/fabric-auth-member-search.service.mock';
+import { FormsModule } from '@angular/forms';
+import { FabricAuthMemberSearchService } from '../../../services/fabric-auth-member-search.service';
 
 describe('GrainListComponent', () => {
   let component: GrainListComponent;
@@ -12,8 +24,17 @@ describe('GrainListComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ GrainListComponent ],
-      imports: [ServicesMockModule]
+      declarations: [ GrainListComponent, MemberListComponent ],
+      imports: [ServicesMockModule, 
+        MatTreeModule,
+        FormsModule,
+        IconModule,
+        ModalModule,
+        PaginationModule,
+        PopoverModule,
+        ProgressIndicatorsModule,
+        SelectModule,
+        RouterTestingModule]
     })
     .compileComponents();
   }));
@@ -21,6 +42,10 @@ describe('GrainListComponent', () => {
   beforeEach(inject([FabricAuthGrainService], (grainService: FabricAuthGrainServiceMock) => {
     grainService.getAllGrains.and.returnValue((Observable.of(mockGrains)));
     grainService.isGrainVisible.and.returnValue(true);
+  }));
+
+  beforeEach(inject([FabricAuthMemberSearchService], (memberSearchService: FabricAuthMemberSearchServiceMock) => {
+    memberSearchService.searchMembers.and.returnValue(Observable.of(mockAuthSearchResult));
   }));
 
   beforeEach(() => {
