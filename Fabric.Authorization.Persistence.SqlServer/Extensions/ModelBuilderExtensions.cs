@@ -527,5 +527,31 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .HasColumnType("datetime");
             });
         }
+
+        public static void ConfigureChildGroup(this ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<ChildGroup>(entity =>
+            {
+                entity.ToTable("ChildGroups");
+
+                entity.HasOne(e => e.Parent)
+                    .WithMany(e => e.ChildGroups)
+                    .HasForeignKey(e => e.ParentId);
+
+                entity.HasOne(e => e.Child)
+                    .WithMany(e => e.ChildGroups)
+                    .HasForeignKey(e => e.ChildId);
+
+                entity.Property(e => e.CreatedBy)
+                    .IsRequired();
+
+                entity.Property(e => e.CreatedDateTimeUtc)
+                    .HasColumnType("datetime")
+                    .IsRequired();
+
+                entity.Property(e => e.ModifiedDateTimeUtc)
+                    .HasColumnType("datetime");
+            });
+        }
     }
 }

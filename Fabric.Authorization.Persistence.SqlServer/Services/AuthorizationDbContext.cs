@@ -43,6 +43,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
         public DbSet<GroupUser> GroupUsers { get; set; }
         public DbSet<RoleUser> RoleUsers { get; set; }
         public DbSet<UserPermission> UserPermissions { get; set; }
+        public DbSet<ChildGroup> ChildGroups { get; set; }
 
         public async Task<int> SaveChangesAsync()
         {
@@ -103,6 +104,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
             modelBuilder.ConfigureRolePermission();
             modelBuilder.ConfigureUserPermission();
             modelBuilder.ConfigureRoleUser();
+            modelBuilder.ConfigureChildGroup();
 
             base.OnModelCreating(modelBuilder);
         }
