@@ -12,6 +12,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
         {
             GroupRoles = new List<GroupRole>();
             GroupUsers = new List<GroupUser>();
+            ChildGroups = new List<ChildGroup>();
         }
 
         public int Id { get; set; }
@@ -29,11 +30,18 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
 
         public ICollection<GroupRole> GroupRoles{ get; set; }
         public ICollection<GroupUser> GroupUsers { get; set; }
+        public ICollection<ChildGroup> ChildGroups { get; set; }
 
         [NotMapped]
         public ICollection<Role> Roles => GroupRoles.Where(gr => !gr.IsDeleted).Select(gr => gr.Role).ToList();
 
         [NotMapped]
         public ICollection<User> Users => GroupUsers.Where(gu => !gu.IsDeleted).Select(gu => gu.User).ToList();
+
+        [NotMapped]
+        public ICollection<Group> Children => ChildGroups.Where(cg => !cg.IsDeleted).Select(cg => cg.Child).ToList();
+
+        [NotMapped]
+        public ICollection<Group> Parents => ChildGroups.Where(cg => !cg.IsDeleted).Select(cg => cg.Parent).ToList();
     }
 }
