@@ -28,7 +28,7 @@ const routes: Routes = [
     component: CustomGroupComponent
   },
   {
-    path: 'grain',
+    path: 'grain/:grain/:securableItem',
     component: GrainListComponent
   }
 ];
