@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
 import { FlatTreeControl } from '@angular/cdk/tree';
 import { Observable } from 'rxjs';
@@ -22,20 +23,31 @@ export class GrainListComponent implements OnInit {
   grains: IGrain[];
   isGrainVisible: boolean = false;
   selectedNode: GrainFlatNode;
+  selectedGrain: string;
+  selectedSecurableItem: string;
 
   constructor(
+      private route: ActivatedRoute,
       private grainService: FabricAuthGrainService
   ) {
-    this.isGrainVisible = grainService.isGrainVisible();
-    var database = this.getGrains();
-
     this.treeFlattener = new MatTreeFlattener(this.transformer, this._getLevel, this._isExpandable, this._getChildren);
     this.treeControl = new FlatTreeControl<GrainFlatNode>(this._getLevel, this._isExpandable);
     this.dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
+
+    this.isGrainVisible = grainService.isGrainVisible();
+    var database = this.getGrains();
   }
 
   transformer = (node: GrainNode, level: number) => {
-    return new GrainFlatNode(!!node.children, node.name, node.parentName, level);
+    var result = new GrainFlatNode(!!node.children, node.name, node.parentName, level);
+
+    if(this.selectedSecurableItem == node.name) {
+      if(this.selectedGrain == node.parentName) {
+        this.selectedNode = result;
+      }
+    }
+
+    return result;
   }
 
   private _getLevel = (node: GrainFlatNode) => node.level;
@@ -50,6 +62,9 @@ export class GrainListComponent implements OnInit {
   }
 
   getGrains() {
+    this.selectedGrain = this.route.snapshot.params['grain'];
+    this.selectedSecurableItem = this.route.snapshot.paramMap.get('securableItem');
+
     return this.grainService.getAllGrains().subscribe(response => {
       this.dataSource.data = this.AddGrainToGrainNode(response);
     });
@@ -74,7 +89,8 @@ export class GrainListComponent implements OnInit {
     for(let item of data) {
       var node = new GrainNode();
       node.name = item.name;
-      node.parentName = parentName
+      node.parentName = parentName;
+
       node.children = this.AddSecurableItemToGrainNode(item.securableItems, item.name);
       result.push(node);
     }
@@ -85,7 +101,28 @@ export class GrainListComponent implements OnInit {
   onSelect(node: GrainFlatNode): void {
     this.selectedNode = node;
   }
+
+  getIcon(node: GrainFlatNode) {
+    var value = "";
+    if(node.expandable && !node.parentName) {
+      value = "fa-plus-square-o";
+    }
+    else {
+      value = "fa-minus-square-o";
+    }
+
+    if(node == this.selectedNode) {
+      value = "fa-caret-square-o-right"
+    }
+
+    return value;
+  }
+
+  isSelectedNode(myNode: GrainFlatNode) {
+    return this.selectedNode === myNode ? 'selected' : '';
+  }
 }
+
 
 export class GrainNode {
   children: GrainNode[];
