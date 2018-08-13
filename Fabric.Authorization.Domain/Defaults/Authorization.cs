@@ -51,8 +51,8 @@ namespace Fabric.Authorization.Domain.Defaults
             {
                 new Role
                 {
-                    Name = "dosadmin",
-                    DisplayName = "DOS Admin",
+                    Name = "datamartadmin",
+                    DisplayName = "Datamart Admin",
                     Description = "Create, read, update, and delete Metadata and System Attributes. Read access to Metadata Audit logs.",
                     Grain = DosGrain,
                     SecurableItem = "datamarts",
