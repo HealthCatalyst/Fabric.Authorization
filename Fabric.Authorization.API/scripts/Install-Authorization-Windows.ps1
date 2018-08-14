@@ -331,7 +331,7 @@ else {
 }
 
 if ([string]::IsNullOrEmpty($installSettings.authorizationService)) {
-    $authorizationServiceUrl = "https://$env:computername.$($env:userdnsdomain.tolower())/Authorization"
+    $authorizationServiceUrl = "https://$env:computername.$((Get-WmiObjectWin32_ComputerSystem).Domain.tolower())/Authorization"
 }
 else {
     $authorizationServiceUrl = $installSettings.authorizationService
