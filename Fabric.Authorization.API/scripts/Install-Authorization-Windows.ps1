@@ -85,6 +85,11 @@ function Invoke-Post($url, $body, $accessToken) {
     return $postResponse
 }
 
+function Get-Group($name, $authorizationServiceUrl, $accessToken){
+    $url = "$authorizationServiceUrl/groups/$name"
+    $group = Invoke-Get -url $url -accessToken $accessToken
+}
+
 function Get-Role($name, $grain, $securableItem, $authorizationServiceUrl, $accessToken) {
     $url = "$authorizationServiceUrl/roles/$grain/$securableItem/$name"
     $role = Invoke-Get -url $url -accessToken $accessToken
@@ -121,6 +126,29 @@ function Add-RoleToUser($role, $user, $connString) {
     $identityProvider = $user.identityProvider
     $subjectId = $user.subjectId
     Invoke-Sql $connString $query @{roleId = $roleId; identityProvider = $identityProvider; subjectId = $subjectId} | Out-Null
+}
+
+function Add-UserToGroup($group, $user, $connString)
+{
+    $query = "INSERT INTO GroupUsers
+             (CreatedBy, CreatedDateTimeUtc, GroupId, IdentityProvider, SubjectId)
+             VALUES('fabric-installer', GETUTCDATE(), @groupId, @identityProvider, @subjectId)"
+
+    $groupId = $group.Id
+    $identityProvider = $user.identityProvider
+    $subjectId = $user.subjectId
+    Invoke-Sql $connString $query @{groupId = $groupId; identityProvider = $identityProvider; subjectId = $subjectId} | Out-Null
+}
+
+function Add-GroupToGroup($parentGroup, $childGroup, $connString)
+{
+    $query = "INSERT INTO ChildGroups
+              (ParentGroupId, ChildGroupId, CreatedBy, CreatedDateTimeUtc)
+              VALUES(@parentGroupId, @childGroupId, 'fabric-installer', GETDATEUTC()"
+
+    $parentGroupId = $parentGroup.Id
+    $childGroupId = $childGroup.Id
+    Invoke-Sql $connString $query @{parentGroupId = $parentGroupId; childGroupId = $childGroupId} | Out-Null
 }
 
 function Add-RoleToGroup($role, $group, $connString) {
@@ -170,13 +198,13 @@ function Get-SamAccountFromAccountName($accountName) {
     return $samAccountName
 }
 
-function Add-AccountToDosAdminRole($accountName, $domain, $authorizationServiceUrl, $accessToken, $connString) {
+function Add-AccountToDosAdminGroup($accountName, $domain, $authorizationServiceUrl, $accessToken, $connString) {
     $samAccountName = Get-SamAccountFromAccountName -accountName $accountName
-    $role = Get-Role -name "dosadmin" -grain "dos" -securableItem "datamarts" -authorizationServiceUrl $authorizationServiceUrl -accessToken $accessToken
+    $group = Get-Group -name "Dos Admins" -authorizationServiceUrl $authorizationServiceUrl -accessToken $accessToken
     if (Test-IsUser -samAccountName $samAccountName -domain $domain) {
         try {
             $user = Add-User -authUrl $authorizationServiceUrl -name $accountName -accessToken $accessToken
-            Add-RoleToUser -role $role -user $user -connString $connString
+            Add-UserToGroup -group $group -user $user -connString $connString
         }
         catch {
             $exception = $_.Exception
@@ -195,8 +223,8 @@ function Add-AccountToDosAdminRole($accountName, $domain, $authorizationServiceU
     }
     elseif (Test-IsGroup -samAccountName $samAccountName -domain $domain) {
         try {
-            $group = Add-Group -authUrl $authorizationServiceUrl -name $accountName -source "Windows" -accessToken $accessToken
-            Add-RoleToGroup -role $role -group $group -connString $connString
+            $childGroup = Add-Group -authUrl $authorizationServiceUrl -name $accountName -source "Windows" -accessToken $accessToken
+            Add-GroupToGroup -parentGroup $group -childGroup $childGroup -connString $connString
         }
         catch {
             $exception = $_.Exception
@@ -253,11 +281,11 @@ function Get-EdwAdminUsersAndGroups($connectionString) {
 }	
     	
 function Add-ListOfUsersToDosAdminRole($edwAdminUsers, $connString, $authorizationServiceUrl, $accessToken) {	   
-    # Get the role once, should be same for every user.
-    $role = Get-Role -name "dosadmin" -grain "dos" -securableItem "datamarts" -authorizationServiceUrl $authorizationServiceUrl -accessToken $accessToken
+    # Get the group once, should be same for every user.
+    $group = Get-Group -name "Dos Admins" -authorizationServiceUrl $authorizationServiceUrl -accessToken $accessToken
 
     # For each user, loop and try to add the user to the API.  
-    # Do not validate it to AD like the Add-AccountToDosAdminRole function.
+    # Do not validate it to AD like the Add-AccountToDosAdminGroup function.
     foreach ($edwAdmin in $edwAdminUsers) {	
         if ([string]::IsNullOrWhiteSpace($edwAdmin)) {
             continue
@@ -265,7 +293,7 @@ function Add-ListOfUsersToDosAdminRole($edwAdminUsers, $connString, $authorizati
 
         try {  
             $user = Add-User -authUrl $authorizationServiceUrl -name $edwAdmin -accessToken $accessToken
-            Add-RoleToUser -role $role -user $user -connString $connString
+            Add-UserToGroup -group $group -user $user -connString $connString
         }
         catch {
             # If there is an exception, the function will print the error. We will want to 
@@ -285,30 +313,22 @@ function Add-ListOfUsersToDosAdminRole($edwAdminUsers, $connString, $authorizati
     }	
 }
 
-function Add-DosAdminGroup($connectionString)
+function Add-DosAdminGroup($authUrl, $accessToken)
 {
-    $sql = "INSERT INTO Groups
-            (GroupId, Name, Source, CreatedBy, CreatedDateTimeUtc)
-            Values (@newGroupId, 'Dos Admins', 'custom', 'fabric-installer', GETUTCDATE())"
-
-    Invoke-Sql $connectionString $sql | Out-Null
+    $group = Add-Group -authUrl $authUrl -name "Dos Admins" -source = "custom" -accessToken $accessToken
+    return $group
 }
 
-function Add-DosAdminRoleUsersToDosAdminGroup($connectionString)
+function Add-DosAdminRoleUsersToDosAdminGroup($groupId, $connectionString)
 {
-    $sql = "DECLARE @dosAdminGroupId uniqueidentifier;
-            SELECT @dosAdminGroupId = GroupId
-            FROM Groups
-            WHERE [Name] = 'Dos Admins';
-            
-            INSERT INTO GroupUsers
-            (CreatedBy, CreatedDateTimeUtc, GroupId, IdentityProvider, SubjectId)
-            SELECT 'fabric-installer', GETUTCDATE(), @dosAdminGroupId, u.IdentityProvider, ru.subjectid from RoleUsers ru
-            INNER JOIN Roles r ON r.RoleId = ru.RoleId
-            INNER JOIN Users u ON u.SubjectId = ru.SubjectId
-            WHERE r.Name = 'dosadmin';"
+    $query = "INSERT INTO GroupUsers
+              (CreatedBy, CreatedDateTimeUtc, GroupId, IdentityProvider, SubjectId)
+              SELECT 'fabric-installer', GETUTCDATE(), @dosAdminGroupId, u.IdentityProvider, ru.subjectid from RoleUsers ru
+              INNER JOIN Roles r ON r.RoleId = ru.RoleId
+              INNER JOIN Users u ON u.SubjectId = ru.SubjectId
+              WHERE r.Name = 'dosadmin';"
 
-    Invoke-Sql $connectionString $sql | Out-Null
+    Invoke-Sql $connString $query @{dosAdminGroupId = $groupId;} | Out-Null
 }
 
 function Remove-UsersFromDosAdminRole($connectionString)
@@ -320,21 +340,16 @@ function Remove-UsersFromDosAdminRole($connectionString)
     Invoke-Sql $connectionString $sql | Out-Null
 }
 
-function Add-DosAdminGroupRolesToDosAdminChildGroups($connectionString)
+function Add-DosAdminGroupRolesToDosAdminChildGroups($groupId, $connectionString)
 {
-    $sql = "DECLARE @dosAdminGroupId uniqueidentifier;
-            SELECT @dosAdminGroupId = GroupId
-            FROM Groups
-            WHERE [Name] = 'Dos Admins';
-            
-            INSERT INTO ChildGroups
-            (ParentGroupId, ChildGroupId, CreatedBy, CreatedDateTimeUtc)
-            SELECT @dosAdminGroupId, g.GroupId, 'fabric-installer', GETDATEUTC(), from GroupRoles gr
-            INNER JOIN Roles r ON r.RoleId = gr.RoleId
-            INNER JOIN Groups g ON g.GroupId = gr.GroupId
-            WHERE r.Name = 'dosadmin' and g.Source != 'custom';"
+    $query = "INSERT INTO ChildGroups
+              (ParentGroupId, ChildGroupId, CreatedBy, CreatedDateTimeUtc)
+              SELECT @dosAdminGroupId, g.GroupId, 'fabric-installer', GETDATEUTC(), from GroupRoles gr
+              INNER JOIN Roles r ON r.RoleId = gr.RoleId
+              INNER JOIN Groups g ON g.GroupId = gr.GroupId
+              WHERE r.Name = 'dosadmin' and g.Source != 'custom';"
 
-    Invoke-Sql $connectionString $sql | Out-Null
+    Invoke-Sql $connString $query @{dosAdminGroupId = $groupId;} | Out-Null
 }
 
 function Remove-GroupsFromDosAdminRole($connectionString)
@@ -346,20 +361,15 @@ function Remove-GroupsFromDosAdminRole($connectionString)
     Invoke-Sql $connectionString $sql | Out-Null
 }
 
-function Add-DosAdminRoleToDosAdminGroup($connectionString)
+function Add-DosAdminRoleToDosAdminGroup($groupId, $connectionString)
 {
-    $sql = "DECLARE @dosAdminGroupId uniqueidentifier;
-            SELECT @dosAdminGroupId = GroupId
-            FROM Groups
-            WHERE [Name] = 'Dos Admins';
-    
-            INSERT INTO GroupRoles
-            (CreatedBy, CreatedDateTimeUtc, GroupId, RoleId)
-            SELECT 'fabric-installer', GETUTCDATE(), @dosAdminGroupId, r.RoleId
-            FROM Roles r
-            WHERE r.[Name] = 'dosadmin';"
+    $query = "INSERT INTO GroupRoles
+              (CreatedBy, CreatedDateTimeUtc, GroupId, RoleId)
+              SELECT 'fabric-installer', GETUTCDATE(), @dosAdminGroupId, r.RoleId
+              FROM Roles r
+              WHERE r.[Name] = 'dosadmin';"
 
-    Invoke-Sql $connectionString $sql | Out-Null
+    Invoke-Sql $connString $query @{dosAdminGroupId = $groupId;} | Out-Null
 }
 
 function Update-DosAdminRoleToDataMartAdmin($connectionString)
@@ -371,16 +381,15 @@ function Update-DosAdminRoleToDataMartAdmin($connectionString)
     Invoke-Sql $connectionString $sql | Out-Null
 }
 
-function Move-DosAdminRoleToDosAdminGroup($connectionString)
+function Move-DosAdminRoleToDosAdminGroup($authUrl, $accessToken, $connectionString)
 {
-    Add-DosAdminGroup $connectionString
-    Add-DosAdminRoleUsersToDosAdminGroup $connectionString
+    $group = Add-DosAdminGroup -authUrl $authUrl -accessToken $accessToken
+    Add-DosAdminRoleUsersToDosAdminGroup -groupId $group.Id -connectionString $connectionString
     Remove-UsersFromDosAdminRole $connectionString
-    Add-DosAdminGroupRolesToDosAdminChildGroups $connectionString
+    Add-DosAdminGroupRolesToDosAdminChildGroups -groupId $group.Id -connectionString $connectionString
     Remove-GroupsFromDosAdminRole $connectionString
-    Add-DosAdminRoleToDosAdminGroup $connectionString
+    Add-DosAdminRoleToDosAdminGroup -groupId $group.Id -connectionString $connectionString
     Update-DosAdminRoleToDataMartAdmin $connectionString
-
 }
 
 if (!(Test-Path .\Fabric-Install-Utilities.psm1)) {
@@ -582,7 +591,6 @@ else {
     Write-Host "Could not find file or directory $zipPackage, please verify that the zipPackage configuration setting in install.config is the path to a valid zip file that exists. Halting installation."
     exit 1
 }
-
 
 $userEnteredAuthorizationServiceUrl = Read-Host  "Enter the URL for the Authorization Service or hit enter to accept the default [$authorizationServiceUrl]"
 Write-Host ""
@@ -857,7 +865,7 @@ Move-DosAdminRoleToDosAdminGroup $authorizationDbConnStr
 
 Write-Host "Setting up Admin account."
 $accessToken = Get-AccessToken $identityServiceUrl "fabric-installer" "fabric/identity.manageresources fabric/authorization.read fabric/authorization.write fabric/authorization.dos.write fabric/authorization.manageclients" $fabricInstallerSecret
-Add-AccountToDosAdminRole -accountName $adminAccount -domain $currentUserDomain -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken -connString $authorizationDbConnStr
+Add-AccountToDosAdminGroup -accountName $adminAccount -domain $currentUserDomain -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken -connString $authorizationDbConnStr
 
 Set-Location $workingDirectory
 
