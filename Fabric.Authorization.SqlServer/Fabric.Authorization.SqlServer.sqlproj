@@ -87,6 +87,7 @@
     <Build Include="Tables\RoleUsers.sql" />
     <Build Include="Security\AuthorizationServiceRole.sql" />
     <Build Include="Tables\EventLogs.sql" />
+    <Build Include="Tables\ChildGroups.sql" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Storage\HCFabricAuthorizationData1.sql" />
