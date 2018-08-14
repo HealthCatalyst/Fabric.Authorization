@@ -85,6 +85,15 @@ function Invoke-Post($url, $body, $accessToken) {
     return $postResponse
 }
 
+function Add-AuthorizationRegistration($clientId, $clientName, $authorizationServiceUrl, $accessToken){
+    $url = "$authorizationServiceUrl/clients"
+    $body = @{
+        id = "$clientId"
+        name = $clientName
+    }
+    return Invoke-Post -url $url -body $body -accessToken $accessToken
+}
+
 function Get-Group($name, $authorizationServiceUrl, $accessToken){
     $url = "$authorizationServiceUrl/groups/$name"
     $group = Invoke-Get -url $url -accessToken $accessToken
@@ -879,9 +888,9 @@ Set-EnvironmentVariables $appDirectory $environmentVariables | Out-Null
 Write-Host ""
 
 Write-Host "Setting up Dos Admin group and associating users..."
-Move-DosAdminRoleToDosAdminGroup $authorizationDbConnStr
+Move-DosAdminRoleToDosAdminGroup -authUrl "$authorizationServiceUrl/v1" -accessToken $accessToken -connectionString $authorizationDbConnStr
 
-Write-Host "Setting up Admin account."
+Write-Host "Setting up Default Dos Admin account."
 $accessToken = Get-AccessToken $identityServiceUrl "fabric-installer" "fabric/identity.manageresources fabric/authorization.read fabric/authorization.write fabric/authorization.dos.write fabric/authorization.manageclients" $fabricInstallerSecret
 Add-AccountToDosAdminGroup -accountName $adminAccount -domain $currentUserDomain -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken -connString $authorizationDbConnStr
 
@@ -936,5 +945,6 @@ $body = $accessControlClient | ConvertTo-Json
 
 Write-Host "Registering Fabric.Authorization.AccessControl Client with Fabric.Identity."
 Add-ClientRegistration -authUrl $identityServiceUrl -body $body -accessToken $accessToken
+Add-AuthorizationRegistration -clientId "fabric-access-control" -clientName "Fabric.AccessControl" -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken
 
 Read-Host -Prompt "Installation complete, press Enter to exit"
