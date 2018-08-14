@@ -285,6 +285,104 @@ function Add-ListOfUsersToDosAdminRole($edwAdminUsers, $connString, $authorizati
     }	
 }
 
+function Add-DosAdminGroup($connectionString)
+{
+    $sql = "INSERT INTO Groups
+            (GroupId, Name, Source, CreatedBy, CreatedDateTimeUtc)
+            Values (@newGroupId, 'Dos Admins', 'custom', 'fabric-installer', GETUTCDATE())"
+
+    Invoke-Sql $connectionString $sql | Out-Null
+}
+
+function Add-DosAdminRoleUsersToDosAdminGroup($connectionString)
+{
+    $sql = "DECLARE @dosAdminGroupId uniqueidentifier;
+            SELECT @dosAdminGroupId = GroupId
+            FROM Groups
+            WHERE [Name] = 'Dos Admins';
+            
+            INSERT INTO GroupUsers
+            (CreatedBy, CreatedDateTimeUtc, GroupId, IdentityProvider, SubjectId)
+            SELECT 'fabric-installer', GETUTCDATE(), @dosAdminGroupId, u.IdentityProvider, ru.subjectid from RoleUsers ru
+            INNER JOIN Roles r ON r.RoleId = ru.RoleId
+            INNER JOIN Users u ON u.SubjectId = ru.SubjectId
+            WHERE r.Name = 'dosadmin';"
+
+    Invoke-Sql $connectionString $sql | Out-Null
+}
+
+function Remove-UsersFromDosAdminRole($connectionString)
+{
+    $sql = "DELETE ru from roleusers ru
+            INNER JOIN roles r ON ru.RoleId = r.RoleId
+            WHERE r.[Name] = 'dosadmin';"
+
+    Invoke-Sql $connectionString $sql | Out-Null
+}
+
+function Add-DosAdminGroupRolesToDosAdminChildGroups($connectionString)
+{
+    $sql = "DECLARE @dosAdminGroupId uniqueidentifier;
+            SELECT @dosAdminGroupId = GroupId
+            FROM Groups
+            WHERE [Name] = 'Dos Admins';
+            
+            INSERT INTO ChildGroups
+            (ParentGroupId, ChildGroupId, CreatedBy, CreatedDateTimeUtc)
+            SELECT @dosAdminGroupId, g.GroupId, 'fabric-installer', GETDATEUTC(), from GroupRoles gr
+            INNER JOIN Roles r ON r.RoleId = gr.RoleId
+            INNER JOIN Groups g ON g.GroupId = gr.GroupId
+            WHERE r.Name = 'dosadmin' and g.Source != 'custom';"
+
+    Invoke-Sql $connectionString $sql | Out-Null
+}
+
+function Remove-GroupsFromDosAdminRole($connectionString)
+{
+    $sql = "DELETE gr from GroupRoles gr
+            INNER JOIN Roles r ON gr.RoleId = r.RoleId
+            WHERE r.[Name] = 'dosadmin';"
+
+    Invoke-Sql $connectionString $sql | Out-Null
+}
+
+function Add-DosAdminRoleToDosAdminGroup($connectionString)
+{
+    $sql = "DECLARE @dosAdminGroupId uniqueidentifier;
+            SELECT @dosAdminGroupId = GroupId
+            FROM Groups
+            WHERE [Name] = 'Dos Admins';
+    
+            INSERT INTO GroupRoles
+            (CreatedBy, CreatedDateTimeUtc, GroupId, RoleId)
+            SELECT 'fabric-installer', GETUTCDATE(), @dosAdminGroupId, r.RoleId
+            FROM Roles r
+            WHERE r.[Name] = 'dosadmin';"
+
+    Invoke-Sql $connectionString $sql | Out-Null
+}
+
+function Update-DosAdminRoleToDataMartAdmin($connectionString)
+{
+    $sql = "UPDATE Roles
+            SET [Name]  = 'DataMartAdmin', DisplayName = 'DataMart Admin'
+            WHERE [Name] = 'dosadmin';"
+
+    Invoke-Sql $connectionString $sql | Out-Null
+}
+
+function Move-DosAdminRoleToDosAdminGroup($connectionString)
+{
+    Add-DosAdminGroup $connectionString
+    Add-DosAdminRoleUsersToDosAdminGroup $connectionString
+    Remove-UsersFromDosAdminRole $connectionString
+    Add-DosAdminGroupRolesToDosAdminChildGroups $connectionString
+    Remove-GroupsFromDosAdminRole $connectionString
+    Add-DosAdminRoleToDosAdminGroup $connectionString
+    Update-DosAdminRoleToDataMartAdmin $connectionString
+
+}
+
 if (!(Test-Path .\Fabric-Install-Utilities.psm1)) {
     Invoke-WebRequest -Uri https://raw.githubusercontent.com/HealthCatalyst/InstallScripts/master/common/Fabric-Install-Utilities.psm1 -OutFile Fabric-Install-Utilities.psm1
 }
@@ -753,6 +851,9 @@ if ($discoveryServiceUrl) {
 
 Set-EnvironmentVariables $appDirectory $environmentVariables | Out-Null
 Write-Host ""
+
+Write-Host "Setting up Dos Admin group and associating users..."
+Move-DosAdminRoleToDosAdminGroup $authorizationDbConnStr
 
 Write-Host "Setting up Admin account."
 $accessToken = Get-AccessToken $identityServiceUrl "fabric-installer" "fabric/identity.manageresources fabric/authorization.read fabric/authorization.write fabric/authorization.dos.write fabric/authorization.manageclients" $fabricInstallerSecret
