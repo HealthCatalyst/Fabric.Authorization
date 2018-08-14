@@ -368,27 +368,36 @@ function Add-DosAdminRoleUsersToDosAdminGroup([GUID]$groupId, $connectionString)
               SELECT 'fabric-installer', GETUTCDATE(), @dosAdminGroupId, u.IdentityProvider, ru.subjectid, 0 from RoleUsers ru
               INNER JOIN Roles r ON r.RoleId = ru.RoleId
               INNER JOIN Users u ON u.SubjectId = ru.SubjectId
-              WHERE r.Name = 'dosadmin';"
+              INNER JOIN SecurableItems s on r.SecurableItemId = s.SecurableItemId
+              WHERE r.[Name] = 'dosadmin'
+              AND s.[Name] = 'datamarts'
+              AND ru.IsDeleted = 0;"
     try{
         Write-Host "Migrating dosadmin role users to Dos Admin group..."
         Invoke-Sql -connectionString $connectionString -sql $query -parameters @{dosAdminGroupId=$groupId;} | Out-Null
     }catch{
-        Write-Host $_.Exception
+        Write-Error $_.Exception
         throw $_.Exception
     }
 }
 
 function Remove-UsersFromDosAdminRole($connectionString)
 {
-    $sql = "DELETE ru from roleusers ru
+    $sql = "UPDATE ru 
+            SET ru.IsDeleted = 1,
+                ru.ModifiedBy = 'fabric-installer',
+                ru.ModifiedDateTimeUtc = GETUTCDATE()
+            FROM roleusers ru
             INNER JOIN roles r ON ru.RoleId = r.RoleId
-            WHERE r.[Name] = 'dosadmin';"
+            INNER JOIN SecurableItems s on r.SecurableItemId = s.SecurableItemId
+            WHERE r.[Name] = 'dosadmin'
+            AND s.[Name] = 'datamarts';"
     
     Write-Host "Removing users from dosadmin role..."
     try{
         Invoke-Sql $connectionString $sql | Out-Null
     }catch{
-        Write-Host $_.Exception
+        Write-Error $_.Exception
         throw $_.Exception
     }
 }
@@ -397,31 +406,43 @@ function Add-DosAdminGroupRolesToDosAdminChildGroups([GUID]$groupId, $connection
 {
     $query = "INSERT INTO ChildGroups
               (ParentGroupId, ChildGroupId, CreatedBy, CreatedDateTimeUtc, IsDeleted)
-              SELECT @dosAdminGroupId, g.GroupId, 'fabric-installer', GETUTCDATE(), 0 from GroupRoles gr
+              SELECT @dosAdminGroupId, g.GroupId, 'fabric-installer', GETUTCDATE(), 0 
+              FROM GroupRoles gr
               INNER JOIN Roles r ON r.RoleId = gr.RoleId
               INNER JOIN Groups g ON g.GroupId = gr.GroupId
-              WHERE r.Name = 'dosadmin' and g.Source != 'custom';"
+              INNER JOIN SecurableItems s on r.SecurableItemId = s.SecurableItemId
+              WHERE r.[Name] = 'dosadmin'
+              AND s.[Name] = 'datamarts'
+              AND g.Source != 'custom'
+              AND r.IsDeleted = 0;"
 
     try{
         Write-Host "Migrating dosadmin role groups to Dos Admin group..."
         Invoke-Sql $connectionString $query @{dosAdminGroupId = $groupId;} | Out-Null
     }catch{
-        Write-Host $_.Exception
+        Write-Error $_.Exception
         throw
     }
 }
 
 function Remove-GroupsFromDosAdminRole($connectionString)
 {
-    $sql = "DELETE gr from GroupRoles gr
+    $sql = "UPDATE gr
+            SET gr.IsDeleted = 1, 
+                gr.ModifiedBy = 'fabric-installer', 
+                gr.ModifiedDateTimeUtc = GETUTCDATE()
+            FROM GroupRoles gr
             INNER JOIN Roles r ON gr.RoleId = r.RoleId
-            WHERE r.[Name] = 'dosadmin';"
+            INNER JOIN SecurableItems s on r.SecurableItemId = s.SecurableItemId
+            WHERE r.[Name] = 'dosadmin'
+            AND s.[Name] = 'datamarts'
+            AND gr.IsDeleted = 0;"
 
     Write-Host "Removing groups from dosadmin role..."
     try{
         Invoke-Sql $connectionString $sql | Out-Null
     }catch{
-        Write-Host $_.Exception
+        Write-Error $_.Exception
         throw $_.Exception
     }
 }
@@ -432,27 +453,37 @@ function Add-DosAdminRoleToDosAdminGroup([GUID]$groupId, $connectionString)
               (CreatedBy, CreatedDateTimeUtc, GroupId, RoleId, IsDeleted)
               SELECT 'fabric-installer', GETUTCDATE(), @dosAdminGroupId, r.RoleId, 0
               FROM Roles r
-              WHERE r.[Name] = 'dosadmin';"
+              INNER JOIN SecurableItems s on r.SecurableItemId = s.SecurableItemId
+              WHERE r.[Name] = 'dosadmin'
+              AND s.[Name] = 'datamarts'
+              AND r.IsDeleted = 0;"
     try{
         Write-Host "Associating dosadmin role to Dos Admin group..."
         Invoke-Sql $connectionString $query @{dosAdminGroupId = $groupId;} | Out-Null
     }catch{
-        Write-Host $_.Exception
+        Write-Error $_.Exception
         throw
     }
 }
 
 function Update-DosAdminRoleToDataMartAdmin($connectionString)
 {
-    $sql = "UPDATE Roles
-            SET [Name]  = 'DataMartAdmin', DisplayName = 'DataMart Admin'
-            WHERE [Name] = 'dosadmin';"
+    $sql = "UPDATE r
+            SET r.[Name]  = 'DataMartAdmin', 
+                r.DisplayName = 'DataMart Admin', 
+                r.ModifiedBy = 'fabric-installer', 
+                r.ModifiedDateTimeUtc = GETUTCDATE()
+            FROM Roles r
+            INNER JOIN SecurableItems s on r.SecurableItemId = s.SecurableItemId
+            WHERE r.[Name] = 'dosadmin'
+            AND s.[Name] = 'datamarts'
+            AND r.IsDeleted = 0;"
 
     Write-Host "Renaming dosadmin role to DataMartAdmin..."
     try{
         Invoke-Sql $connectionString $sql | Out-Null
     }catch{
-        Write-Host $_.Exception
+        Write-Error $_.Exception
         throw
     }
 }
