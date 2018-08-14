@@ -109,8 +109,8 @@ function Add-Group($authUrl, $name, $source, $accessToken) {
     Write-Host "Adding Group $($name)"
     $url = "$authUrl/groups"
     $body = @{
-        id          = "$name"
-        groupName   = "$name"
+        groupName     = "$name"
+        displayName   = "$name"
         groupSource = "$source"
     }
     return Invoke-Post $url $body $accessToken
@@ -326,13 +326,15 @@ function Add-DosAdminGroup($authUrl, $accessToken)
 {
     $groupName = "Dos Admins"
     try {
-        $group = Add-Group -authUrl $authUrl -name $groupName -source = "custom" -accessToken $accessToken
+        $group = Add-Group -authUrl $authUrl -name $groupName -source "custom" -accessToken $accessToken
+        Write-Success "Dos Admin group created..."
         return $group
     }
     catch {
         $exception = $_.Exception
         if ($exception -ne $null -and $exception.Response -ne $null -and $exception.Response.StatusCode.value__ -eq 409) {
             $group = Get-Group -authorizationServiceUrl $authUrl -name $groupName -accessToken $accessToken
+            Write-Success "Dos Admin group already exists..."
             return $group;
         }
         else{
@@ -345,16 +347,21 @@ function Add-DosAdminGroup($authUrl, $accessToken)
     }
 }
 
-function Add-DosAdminRoleUsersToDosAdminGroup($groupId, $connectionString)
+function Add-DosAdminRoleUsersToDosAdminGroup([GUID]$groupId, $connectionString)
 {
     $query = "INSERT INTO GroupUsers
-              (CreatedBy, CreatedDateTimeUtc, GroupId, IdentityProvider, SubjectId)
-              SELECT 'fabric-installer', GETUTCDATE(), @dosAdminGroupId, u.IdentityProvider, ru.subjectid from RoleUsers ru
+              (CreatedBy, CreatedDateTimeUtc, GroupId, IdentityProvider, SubjectId, IsDeleted)
+              SELECT 'fabric-installer', GETUTCDATE(), @dosAdminGroupId, u.IdentityProvider, ru.subjectid, 0 from RoleUsers ru
               INNER JOIN Roles r ON r.RoleId = ru.RoleId
               INNER JOIN Users u ON u.SubjectId = ru.SubjectId
               WHERE r.Name = 'dosadmin';"
-
-    Invoke-Sql $connString $query @{dosAdminGroupId = $groupId;} | Out-Null
+    try{
+        Write-Host "Migrating dosadmin role users to Dos Admin group..."
+        Invoke-Sql -connectionString $connectionString -sql $query -parameters @{dosAdminGroupId=$groupId;} | Out-Null
+    }catch{
+        Write-Host $_.Exception
+        throw $_.Exception
+    }
 }
 
 function Remove-UsersFromDosAdminRole($connectionString)
@@ -362,20 +369,27 @@ function Remove-UsersFromDosAdminRole($connectionString)
     $sql = "DELETE ru from roleusers ru
             INNER JOIN roles r ON ru.RoleId = r.RoleId
             WHERE r.[Name] = 'dosadmin';"
-
+    
+    Write-Host "Removing users from dosadmin role..."
     Invoke-Sql $connectionString $sql | Out-Null
 }
 
-function Add-DosAdminGroupRolesToDosAdminChildGroups($groupId, $connectionString)
+function Add-DosAdminGroupRolesToDosAdminChildGroups([GUID]$groupId, $connectionString)
 {
     $query = "INSERT INTO ChildGroups
-              (ParentGroupId, ChildGroupId, CreatedBy, CreatedDateTimeUtc)
-              SELECT @dosAdminGroupId, g.GroupId, 'fabric-installer', GETDATEUTC(), from GroupRoles gr
+              (ParentGroupId, ChildGroupId, CreatedBy, CreatedDateTimeUtc, IsDeleted)
+              SELECT @dosAdminGroupId, g.GroupId, 'fabric-installer', GETUTCDATE(), 0 from GroupRoles gr
               INNER JOIN Roles r ON r.RoleId = gr.RoleId
               INNER JOIN Groups g ON g.GroupId = gr.GroupId
               WHERE r.Name = 'dosadmin' and g.Source != 'custom';"
 
-    Invoke-Sql $connString $query @{dosAdminGroupId = $groupId;} | Out-Null
+    try{
+        Write-Host "Migrating dosadmin role groups to Dos Admin group..."
+        Invoke-Sql $connectionString $query @{dosAdminGroupId = $groupId;} | Out-Null
+    }catch{
+        Write-Host $_.Exception
+        throw
+    }
 }
 
 function Remove-GroupsFromDosAdminRole($connectionString)
@@ -384,18 +398,24 @@ function Remove-GroupsFromDosAdminRole($connectionString)
             INNER JOIN Roles r ON gr.RoleId = r.RoleId
             WHERE r.[Name] = 'dosadmin';"
 
+    Write-Host "Removing groups from dosadmin role..."
     Invoke-Sql $connectionString $sql | Out-Null
 }
 
-function Add-DosAdminRoleToDosAdminGroup($groupId, $connectionString)
+function Add-DosAdminRoleToDosAdminGroup([GUID]$groupId, $connectionString)
 {
     $query = "INSERT INTO GroupRoles
-              (CreatedBy, CreatedDateTimeUtc, GroupId, RoleId)
-              SELECT 'fabric-installer', GETUTCDATE(), @dosAdminGroupId, r.RoleId
+              (CreatedBy, CreatedDateTimeUtc, GroupId, RoleId, IsDeleted)
+              SELECT 'fabric-installer', GETUTCDATE(), @dosAdminGroupId, r.RoleId, 0
               FROM Roles r
               WHERE r.[Name] = 'dosadmin';"
-
-    Invoke-Sql $connString $query @{dosAdminGroupId = $groupId;} | Out-Null
+    try{
+        Write-Host "Associating dosadmin role to Dos Admin group..."
+        Invoke-Sql $connectionString $query @{dosAdminGroupId = $groupId;} | Out-Null
+    }catch{
+        Write-Host $_.Exception
+        throw
+    }
 }
 
 function Update-DosAdminRoleToDataMartAdmin($connectionString)
@@ -404,6 +424,7 @@ function Update-DosAdminRoleToDataMartAdmin($connectionString)
             SET [Name]  = 'DataMartAdmin', DisplayName = 'DataMart Admin'
             WHERE [Name] = 'dosadmin';"
 
+    Write-Host "Renaming dosadmin role to DataMartAdmin..."
     Invoke-Sql $connectionString $sql | Out-Null
 }
 
@@ -887,11 +908,10 @@ if ($discoveryServiceUrl) {
 Set-EnvironmentVariables $appDirectory $environmentVariables | Out-Null
 Write-Host ""
 
-Write-Host "Setting up Dos Admin group and associating users..."
+$accessToken = Get-AccessToken $identityServiceUrl "fabric-installer" "fabric/identity.manageresources fabric/authorization.read fabric/authorization.write fabric/authorization.dos.write fabric/authorization.manageclients" $fabricInstallerSecret
 Move-DosAdminRoleToDosAdminGroup -authUrl "$authorizationServiceUrl/v1" -accessToken $accessToken -connectionString $authorizationDbConnStr
 
 Write-Host "Setting up Default Dos Admin account."
-$accessToken = Get-AccessToken $identityServiceUrl "fabric-installer" "fabric/identity.manageresources fabric/authorization.read fabric/authorization.write fabric/authorization.dos.write fabric/authorization.manageclients" $fabricInstallerSecret
 Add-AccountToDosAdminGroup -accountName $adminAccount -domain $currentUserDomain -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken -connString $authorizationDbConnStr
 
 Set-Location $workingDirectory
