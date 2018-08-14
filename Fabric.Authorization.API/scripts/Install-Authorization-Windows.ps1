@@ -548,7 +548,7 @@ else {
 }
 
 if ([string]::IsNullOrEmpty($installSettings.authorizationService)) {
-    $authorizationServiceUrl = "Get-FullyQualifiedMachineName()/Authorization"
+    $authorizationServiceUrl = "$(Get-FullyQualifiedMachineName)/Authorization"
 }
 else {
     $authorizationServiceUrl = $installSettings.authorizationService
