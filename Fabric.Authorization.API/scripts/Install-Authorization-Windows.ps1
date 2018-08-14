@@ -209,7 +209,7 @@ function Get-SamAccountFromAccountName($accountName) {
 
 function Add-AccountToDosAdminGroup($accountName, $domain, $authorizationServiceUrl, $accessToken, $connString) {
     $samAccountName = Get-SamAccountFromAccountName -accountName $accountName
-    $group = Get-Group -name "Dos Admins" -authorizationServiceUrl $authorizationServiceUrl -accessToken $accessToken
+    $group = Get-Group -name $dosAdminGroupName -authorizationServiceUrl $authorizationServiceUrl -accessToken $accessToken
     if (Test-IsUser -samAccountName $samAccountName -domain $domain) {
         try {
             $user = Add-User -authUrl $authorizationServiceUrl -name $accountName -accessToken $accessToken
@@ -291,7 +291,7 @@ function Get-EdwAdminUsersAndGroups($connectionString) {
     	
 function Add-ListOfUsersToDosAdminRole($edwAdminUsers, $connString, $authorizationServiceUrl, $accessToken) {	   
     # Get the group once, should be same for every user.
-    $group = Get-Group -name "Dos Admins" -authorizationServiceUrl $authorizationServiceUrl -accessToken $accessToken
+    $group = Get-Group -name $dosAdminGroupName -authorizationServiceUrl $authorizationServiceUrl -accessToken $accessToken
 
     # For each user, loop and try to add the user to the API.  
     # Do not validate it to AD like the Add-AccountToDosAdminGroup function.
@@ -322,12 +322,10 @@ function Add-ListOfUsersToDosAdminRole($edwAdminUsers, $connString, $authorizati
     }	
 }
 
-function Add-DosAdminGroup($authUrl, $accessToken)
+function Add-DosAdminGroup($authUrl, $accessToken, $groupName)
 {
-    $groupName = "Dos Admins"
     try {
         $group = Add-Group -authUrl $authUrl -name $groupName -source "custom" -accessToken $accessToken
-        Write-Success "Dos Admin group created..."
         return $group
     }
     catch {
@@ -428,9 +426,9 @@ function Update-DosAdminRoleToDataMartAdmin($connectionString)
     Invoke-Sql $connectionString $sql | Out-Null
 }
 
-function Move-DosAdminRoleToDosAdminGroup($authUrl, $accessToken, $connectionString)
+function Move-DosAdminRoleToDosAdminGroup($authUrl, $accessToken, $connectionString, $groupName)
 {
-    $group = Add-DosAdminGroup -authUrl $authUrl -accessToken $accessToken
+    $group = Add-DosAdminGroup -authUrl $authUrl -accessToken $accessToken -groupName $groupName
     $groupId = $group.Id
     Add-DosAdminRoleUsersToDosAdminGroup -groupId $groupId -connectionString $connectionString
     Remove-UsersFromDosAdminRole $connectionString
@@ -470,6 +468,8 @@ $storedIisUser = $installSettings.iisUser
 $adminAccount = $installSettings.adminAccount
 $currentUserDomain = $env:userdnsdomain
 $workingDirectory = Get-CurrentScriptDirectory
+$dosAdminGroupName = "DosAdmins"
+$dosAdminGroupDisplayName = "Dos Admins"
 
 if ([string]::IsNullOrEmpty($installSettings.discoveryService)) {
     $discoveryServiceUrl = Get-DiscoveryServiceUrl
@@ -909,7 +909,9 @@ Set-EnvironmentVariables $appDirectory $environmentVariables | Out-Null
 Write-Host ""
 
 $accessToken = Get-AccessToken $identityServiceUrl "fabric-installer" "fabric/identity.manageresources fabric/authorization.read fabric/authorization.write fabric/authorization.dos.write fabric/authorization.manageclients" $fabricInstallerSecret
-Move-DosAdminRoleToDosAdminGroup -authUrl "$authorizationServiceUrl/v1" -accessToken $accessToken -connectionString $authorizationDbConnStr
+Write-Host "Registering Fabric.Installer Client with Fabric.Authorization."
+Add-AuthorizationRegistration -clientId "fabric-installer" -clientName "Fabric Installer" -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken | Out-Null
+Move-DosAdminRoleToDosAdminGroup -authUrl "$authorizationServiceUrl/v1" -accessToken $accessToken -connectionString $authorizationDbConnStr -groupName $dosAdminGroupName
 
 Write-Host "Setting up Default Dos Admin account."
 Add-AccountToDosAdminGroup -accountName $adminAccount -domain $currentUserDomain -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken -connString $authorizationDbConnStr
@@ -965,6 +967,7 @@ $body = $accessControlClient | ConvertTo-Json
 
 Write-Host "Registering Fabric.Authorization.AccessControl Client with Fabric.Identity."
 Add-ClientRegistration -authUrl $identityServiceUrl -body $body -accessToken $accessToken
-Add-AuthorizationRegistration -clientId "fabric-access-control" -clientName "Fabric.AccessControl" -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken
+Write-Host "Registering Fabric.Authorization.AccessControl Client with Fabric.Authorization."
+Add-AuthorizationRegistration -clientId "fabric-access-control" -clientName "Fabric.AccessControl" -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken | Out-Null
 
 Read-Host -Prompt "Installation complete, press Enter to exit"
