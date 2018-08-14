@@ -4,7 +4,7 @@
 param([switch]$noDiscoveryService)
 
 function Get-FullyQualifiedMachineName() {
-	return "https://$env:computername.$($env:userdnsdomain.tolower())"
+	return "https://$env:computername.$((Get-WmiObject Win32_ComputerSystem).Domain.tolower())"
 }
 
 function Get-DiscoveryServiceUrl() {
@@ -91,12 +91,28 @@ function Add-AuthorizationRegistration($clientId, $clientName, $authorizationSer
         id = "$clientId"
         name = $clientName
     }
-    return Invoke-Post -url $url -body $body -accessToken $accessToken
+    try{
+        Invoke-Post -url $url -body $body -accessToken $accessToken
+    }
+    catch {
+        $exception = $_.Exception
+        if ($exception -ne $null -and $exception.Response -ne $null -and $exception.Response.StatusCode.value__ -eq 409) {
+            Write-Success "    Client: $clientId has already been registered with Fabric.Authorization"
+            Write-Host ""
+        }
+        else {
+            if ($exception.Response -ne $null) {
+                $error = Get-ErrorFromResponse -response $exception.Response
+                Write-Error "    There was an error registering $clientId with Fabric.Authorization: $error. Halting installation."
+            }
+            throw $exception
+        }
+    }
 }
 
 function Get-Group($name, $authorizationServiceUrl, $accessToken){
     $url = "$authorizationServiceUrl/groups/$name"
-    $group = Invoke-Get -url $url -accessToken $accessToken
+    return Invoke-Get -url $url -accessToken $accessToken
 }
 
 function Get-Role($name, $grain, $securableItem, $authorizationServiceUrl, $accessToken) {
@@ -332,7 +348,7 @@ function Add-DosAdminGroup($authUrl, $accessToken, $groupName)
         $exception = $_.Exception
         if ($exception -ne $null -and $exception.Response -ne $null -and $exception.Response.StatusCode.value__ -eq 409) {
             $group = Get-Group -authorizationServiceUrl $authUrl -name $groupName -accessToken $accessToken
-            Write-Success "Dos Admin group already exists..."
+            Write-Success "$groupName group already exists..."
             return $group;
         }
         else{
@@ -369,7 +385,12 @@ function Remove-UsersFromDosAdminRole($connectionString)
             WHERE r.[Name] = 'dosadmin';"
     
     Write-Host "Removing users from dosadmin role..."
-    Invoke-Sql $connectionString $sql | Out-Null
+    try{
+        Invoke-Sql $connectionString $sql | Out-Null
+    }catch{
+        Write-Host $_.Exception
+        throw $_.Exception
+    }
 }
 
 function Add-DosAdminGroupRolesToDosAdminChildGroups([GUID]$groupId, $connectionString)
@@ -397,7 +418,12 @@ function Remove-GroupsFromDosAdminRole($connectionString)
             WHERE r.[Name] = 'dosadmin';"
 
     Write-Host "Removing groups from dosadmin role..."
-    Invoke-Sql $connectionString $sql | Out-Null
+    try{
+        Invoke-Sql $connectionString $sql | Out-Null
+    }catch{
+        Write-Host $_.Exception
+        throw $_.Exception
+    }
 }
 
 function Add-DosAdminRoleToDosAdminGroup([GUID]$groupId, $connectionString)
@@ -423,7 +449,12 @@ function Update-DosAdminRoleToDataMartAdmin($connectionString)
             WHERE [Name] = 'dosadmin';"
 
     Write-Host "Renaming dosadmin role to DataMartAdmin..."
-    Invoke-Sql $connectionString $sql | Out-Null
+    try{
+        Invoke-Sql $connectionString $sql | Out-Null
+    }catch{
+        Write-Host $_.Exception
+        throw
+    }
 }
 
 function Move-DosAdminRoleToDosAdminGroup($authUrl, $accessToken, $connectionString, $groupName)
@@ -486,7 +517,7 @@ else {
 }
 
 if ([string]::IsNullOrEmpty($installSettings.authorizationService)) {
-    $authorizationServiceUrl = "https://$env:computername.$($env:userdnsdomain.tolower())/Authorization"
+    $authorizationServiceUrl = "Get-FullyQualifiedMachineName()/Authorization"
 }
 else {
     $authorizationServiceUrl = $installSettings.authorizationService
