@@ -300,7 +300,7 @@ function Add-ListOfUsersToDosAdminRole($edwAdminUsers, $connString, $authorizati
             # continue with the next user, so we will catch and swallow the exception.
             $exception = $_.Exception
             if ($exception -ne $null -and $exception.Response -ne $null -and $exception.Response.StatusCode.value__ -eq 409) {
-                Write-Success "    User: $accountName has already been registered as dosadmin with Fabric.Authorization"
+                Write-Success "    User: $accountName has already been registered as Dos Admin with Fabric.Authorization"
                 Write-Host ""
             }
             else {
@@ -315,8 +315,25 @@ function Add-ListOfUsersToDosAdminRole($edwAdminUsers, $connString, $authorizati
 
 function Add-DosAdminGroup($authUrl, $accessToken)
 {
-    $group = Add-Group -authUrl $authUrl -name "Dos Admins" -source = "custom" -accessToken $accessToken
-    return $group
+    $groupName = "Dos Admins"
+    try {
+        $group = Add-Group -authUrl $authUrl -name $groupName -source = "custom" -accessToken $accessToken
+        return $group
+    }
+    catch {
+        $exception = $_.Exception
+        if ($exception -ne $null -and $exception.Response -ne $null -and $exception.Response.StatusCode.value__ -eq 409) {
+            $group = Get-Group -authorizationServiceUrl $authUrl -name $groupName -accessToken $accessToken
+            return $group;
+        }
+        else{
+            if ($exception.Response -ne $null) {
+                $error = Get-ErrorFromResponse -response $exception.Response
+                Write-Error "    There was an error adding the Dos Admin group: $error. Halting installation."
+            }
+            throw $exception
+        }
+    }
 }
 
 function Add-DosAdminRoleUsersToDosAdminGroup($groupId, $connectionString)
@@ -384,11 +401,12 @@ function Update-DosAdminRoleToDataMartAdmin($connectionString)
 function Move-DosAdminRoleToDosAdminGroup($authUrl, $accessToken, $connectionString)
 {
     $group = Add-DosAdminGroup -authUrl $authUrl -accessToken $accessToken
-    Add-DosAdminRoleUsersToDosAdminGroup -groupId $group.Id -connectionString $connectionString
+    $groupId = $group.Id
+    Add-DosAdminRoleUsersToDosAdminGroup -groupId $groupId -connectionString $connectionString
     Remove-UsersFromDosAdminRole $connectionString
-    Add-DosAdminGroupRolesToDosAdminChildGroups -groupId $group.Id -connectionString $connectionString
+    Add-DosAdminGroupRolesToDosAdminChildGroups -groupId $groupId -connectionString $connectionString
     Remove-GroupsFromDosAdminRole $connectionString
-    Add-DosAdminRoleToDosAdminGroup -groupId $group.Id -connectionString $connectionString
+    Add-DosAdminRoleToDosAdminGroup -groupId $groupId -connectionString $connectionString
     Update-DosAdminRoleToDataMartAdmin $connectionString
 }
 
@@ -886,7 +904,7 @@ if ($adminAccount) {Add-InstallationSetting "authorization" "adminAccount" "$adm
 
 Invoke-MonitorShallow "$authorizationServiceUrl"
 
-Write-Host "Upgrading all the users with an 'EDW Admin' role to also have the dosadmin Fabric.Auth role"
+Write-Host "Upgrading all the users with an 'EDW Admin' role to also be a member of the Dos Admin Fabric.Auth custom group."
 # There are no groups that will have 'EDW Admin'.  Should be only users.
 # For more information check out PBI 143708
 $edwAdminUsers = Get-EdwAdminUsersAndGroups -connectionString $metadataConnStr	
