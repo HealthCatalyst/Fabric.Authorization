@@ -32,7 +32,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         public async Task AddDosPermission_UserInRole_SuccessAsync()
         {
             var user = "user" + Guid.NewGuid();
-            await AssociateUserToDosAdminRoleAsync(user);
+            await AssociateUserToDataMartAdminRoleAsync(user);
 
             var clientId = "clientid" + Guid.NewGuid();
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
@@ -171,7 +171,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         public async Task AddDosPermission_UserInRole_MissingScope_ForbiddenAsync()
         {
             var user = "user" + Guid.NewGuid();
-            await AssociateUserToDosAdminRoleAsync(user);
+            await AssociateUserToDataMartAdminRoleAsync(user);
 
             var clientId = "clientid" + Guid.NewGuid();
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
@@ -293,7 +293,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
         }
 
-        private async Task AssociateUserToDosAdminRoleAsync(string user)
+        private async Task AssociateUserToDataMartAdminRoleAsync(string user)
         {
             var clientId = "fabric-installer";
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
@@ -307,13 +307,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             var browser = _fixture.GetBrowser(principal, _storageProvider);
 
-            var roleResponse = await browser.Get("/roles/dos/datamarts/dosadmin", with =>
+            var roleResponse = await browser.Get("/roles/dos/datamarts/datamartadmin", with =>
                 {
                     with.HttpRequest();
                 });
             Assert.Equal(HttpStatusCode.OK, roleResponse.StatusCode);
             var role = JsonConvert.DeserializeObject<List<RoleApiModel>>(roleResponse.Body.AsString()).First();
-            Assert.Equal("dosadmin", role.Name);
+            Assert.Equal("datamartadmin", role.Name);
 
             var groupResponse = await browser.Post("/groups", with =>
             {

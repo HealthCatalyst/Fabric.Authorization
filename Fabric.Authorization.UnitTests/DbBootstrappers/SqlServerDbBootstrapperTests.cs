@@ -61,7 +61,7 @@ namespace Fabric.Authorization.UnitTests.DbBootstrappers
             var roles = dbContext.Roles
                 .Include(r => r.RolePermissions)
                 .ThenInclude(rp => rp.Permission)
-                .Where(r => r.Name == "dosadmin")
+                .Where(r => r.Name == "datamartadmin")
                 .ToList();
 
             var rolePermissions = roles.SelectMany(r => r.RolePermissions).ToList();
