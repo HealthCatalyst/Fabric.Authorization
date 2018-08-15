@@ -306,7 +306,7 @@ function Get-EdwAdminUsersAndGroups($connectionString) {
     return $usersAndGroups;	
 }	
     	
-function Add-ListOfUsersToDosAdminRole($edwAdminUsers, $connString, $authorizationServiceUrl, $accessToken) {	   
+function Add-ListOfUsersToDosAdminGroup($edwAdminUsers, $connString, $authorizationServiceUrl, $accessToken) {	   
     # Get the group once, should be same for every user.
     $group = Get-Group -name $dosAdminGroupName -authorizationServiceUrl $authorizationServiceUrl -accessToken $accessToken
 
@@ -1048,7 +1048,7 @@ Write-Host "Upgrading all the users with an 'EDW Admin' role to also be a member
 $edwAdminUsers = Get-EdwAdminUsersAndGroups -connectionString $metadataConnStr	
 Write-Host "There are $($edwAdminUsers.Count) users with this role"	
 Write-Host ""	
-Add-ListOfUsersToDosAdminRole -edwAdminUsers $edwAdminUsers -connString $authorizationDbConnStr -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken
+Add-ListOfUsersToDosAdminGroup -edwAdminUsers $edwAdminUsers -connString $authorizationDbConnStr -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken
 
 
 $corsOrigin = Get-FullyQualifiedMachineName
