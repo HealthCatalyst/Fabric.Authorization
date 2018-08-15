@@ -25,6 +25,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
         DbSet<GroupUser> GroupUsers { get; set; }
         DbSet<RoleUser> RoleUsers { get; set; }
         DbSet<UserPermission> UserPermissions { get; set; }
+        DbSet<ChildGroup> ChildGroups { get; set; }
         Task<int> SaveChangesAsync();
         EntityEntry<TEntity> Entry<TEntity>(TEntity entity) where TEntity : class;
         int SaveChanges();

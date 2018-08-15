@@ -17,7 +17,5 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
 
         public Group Group { get; set; }
         public Role Role { get; set; }
-
-
     }
 }

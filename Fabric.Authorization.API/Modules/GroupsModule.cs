@@ -115,6 +115,16 @@ namespace Fabric.Authorization.API.Modules
                 async _ => await DeleteUserFromGroup().ConfigureAwait(false),
                 null,
                 "DeleteUserFromGroup");
+
+            Post("/{groupName}/groups",
+                async p => await AddChildGroups(p).ConfigureAwait(false),
+                null,
+                "AddChildGroups");
+
+            Delete("/{groupName}/groups",
+                async p => await RemoveChildGroups(p).ConfigureAwait(false),
+                null,
+                "RemoveChildGroups");
         }
 
         private async Task<dynamic> GetGroups()
@@ -384,6 +394,52 @@ namespace Fabric.Authorization.API.Modules
             catch (NotFoundException<User> ex)
             {
                 return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
+            }
+        }
+
+        private async Task<dynamic> AddChildGroups(dynamic parameters)
+        {
+            try
+            {
+                Group group = await _groupService.GetGroup(parameters.GroupName);
+                await CheckWriteAccess(group);
+                var groupIdentifiers = this.Bind<List<GroupIdentifierApiRequest>>();
+
+                group = await _groupService.AddChildGroups(group, groupIdentifiers.Select(g => g.GroupName).ToList());
+                return CreateSuccessfulPostResponse(group.Name, group.ToGroupRoleApiModel(), HttpStatusCode.OK);
+            }
+            catch (NotFoundException<Group> ex)
+            {
+                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
+            }
+            catch (BadRequestException<Group> ex)
+            {
+                return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
+            }
+            catch (AlreadyExistsException<Group> ex)
+            {
+                return CreateFailureResponse(ex.Message, HttpStatusCode.Conflict);
+            }
+        }
+
+        private async Task<dynamic> RemoveChildGroups(dynamic parameters)
+        {
+            try
+            {
+                Group group = await _groupService.GetGroup(parameters.GroupName);
+                await CheckWriteAccess(group);
+                var groupIdentifiers = this.Bind<List<GroupIdentifierApiRequest>>();
+
+                group = await _groupService.RemoveChildGroups(group, groupIdentifiers.Select(g => g.GroupName).ToList());
+                return CreateSuccessfulPostResponse(group.Name, group.ToGroupRoleApiModel(), HttpStatusCode.OK);
+            }
+            catch (NotFoundException<Group> ex)
+            {
+                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
+            }
+            catch (BadRequestException<Group> ex)
+            {
+                return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
             }
         }
 
