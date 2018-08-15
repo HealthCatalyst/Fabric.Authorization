@@ -546,8 +546,8 @@ function Move-DosAdminRoleToDosAdminGroup($authUrl, $accessToken, $connectionStr
     Remove-GroupsFromDosAdminRole -connectionString $connectionString -clientId $fabricInstallerClientId -roleName $dosAdminRole -securableName $dataMartsSecurable
     if((Test-FabricRegistrationStepAlreadyComplete -authUrl $authUrl -accessToken $accessToken)){
         Remove-DosAdminRole -connectionString $connectionString -clientId $fabricInstallerClientId -roleName $dosAdminRole -securableName $dataMartsSecurable
-        $dataMartAdminRole = Get-Role -name $dataMartAdminRole -grain $dosGrain -securableItem $dataMartsSecurable -authorizationServiceUrl $authUrl -accessToken $accessToken
-        Add-RoleToGroup -role $dataMartAdminRole -group $group -connString $connectionString -clientId $fabricInstallerClientId
+        $dataMartAdminRoleModel = Get-Role -name $dataMartAdminRole -grain $dosGrain -securableItem $dataMartsSecurable -authorizationServiceUrl $authUrl -accessToken $accessToken
+        Add-RoleToGroup -role $dataMartAdminRoleModel -group $group -connString $connectionString -clientId $fabricInstallerClientId
     }
     else{
         Add-DosAdminRoleToDosAdminGroup -groupId $groupId -connectionString $connectionString -clientId $fabricInstallerClientId -roleName $dosAdminRole -securableName $dataMartsSecurable
