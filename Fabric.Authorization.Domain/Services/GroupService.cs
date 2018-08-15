@@ -203,6 +203,38 @@ namespace Fabric.Authorization.Domain.Services
             return await _groupStore.DeleteUserFromGroup(group, user);
         }
 
+        public async Task<Group> AddChildGroups(Group group, IEnumerable<string> childGroupNames)
+        {
+            // do not allow non-custom group to be parent
+            if (!string.Equals(group.Source, GroupConstants.CustomSource, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new BadRequestException<Group>($"{group.Name} is not a custom group. Only custom groups can serve as parent groups.");
+            }
+
+            // do not allow custom groups to be children
+            var childGroups = await _groupStore.Get(childGroupNames);
+            var customGroups = childGroups.Where(g => g.Source == GroupConstants.CustomSource);
+            if (customGroups.Any())
+            {
+                throw new BadRequestException<Group>($"Only directory groups can be child groups. The following groups are custom: {string.Join(", ", customGroups)} ");
+            }
+
+            // if association already exists, return 409
+            var existingAssociations = group.Children.Where(c => childGroupNames.Contains(c.Name, StringComparer.OrdinalIgnoreCase));
+            if (existingAssociations.Any())
+            {
+                throw new AlreadyExistsException<Group>($"The following groups are already children of group {group.Name}: {string.Join(", ", existingAssociations.Select(g => g.Name))}");
+            }
+
+            return await _groupStore.AddChildGroups(group, childGroups);
+        }
+
+        public async Task<Group> RemoveChildGroups(Group group, IEnumerable<string> childGroupNames)
+        {
+            var childGroups = await _groupStore.Get(childGroupNames);
+            return await _groupStore.RemoveChildGroups(group, childGroups);
+        }
+
         public async Task<IEnumerable<Group>> GetGroups(string name, string type)
         {
             if (!string.IsNullOrEmpty(type))

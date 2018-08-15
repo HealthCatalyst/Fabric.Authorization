@@ -324,6 +324,14 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                 entity.HasMany(e => e.GroupUsers)
                     .WithOne(e => e.Group)
                     .HasForeignKey(e => e.GroupId);
+
+                entity.HasMany(e => e.ParentGroups)
+                    .WithOne(e => e.Parent)
+                    .HasForeignKey(e => e.ParentId);
+
+                entity.HasMany(e => e.ChildGroups)
+                    .WithOne(e => e.Child)
+                    .HasForeignKey(e => e.ChildId);
             });
         }
 
@@ -535,7 +543,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                 entity.ToTable("ChildGroups");
 
                 entity.HasOne(e => e.Parent)
-                    .WithMany(e => e.ChildGroups)
+                    .WithMany(e => e.ParentGroups)
                     .HasForeignKey(e => e.ParentId);
 
                 entity.HasOne(e => e.Child)

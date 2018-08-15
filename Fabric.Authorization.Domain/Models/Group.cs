@@ -9,6 +9,8 @@ namespace Fabric.Authorization.Domain.Models
         {
             Roles = new List<Role>();
             Users = new List<User>();
+            Children = new List<Group>();
+            Parents = new List<Group>();
         }
 
         public Guid Id { get; set; }
@@ -22,6 +24,10 @@ namespace Fabric.Authorization.Domain.Models
         public ICollection<Role> Roles { get; set; }
 
         public ICollection<User> Users { get; set; }
+
+        public ICollection<Group> Children { get; set; }
+
+        public ICollection<Group> Parents { get; set; }
 
         public string Source { get; set; }
 

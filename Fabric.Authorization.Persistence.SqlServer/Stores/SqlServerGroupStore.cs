@@ -45,7 +45,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         public async Task<Group> Get(Guid id)
         {
 
-            var group = await AuthorizationDbContext.Groups
+            var groupEntity = await AuthorizationDbContext.Groups
                 .Include(g => g.GroupRoles)
                 .ThenInclude(gr => gr.Role)
                 .ThenInclude(r => r.RolePermissions)
@@ -58,27 +58,36 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .Include(g => g.GroupRoles)
                 .ThenInclude(gr => gr.Role)
                 .ThenInclude(r => r.SecurableItem)
+                .Include(g => g.ChildGroups)
+                .ThenInclude(cg => cg.Parent)
+                .Include(g => g.ChildGroups)
+                .ThenInclude(cg => cg.Child)
+                .Include(g => g.ParentGroups)
+                .ThenInclude(cg => cg.Parent)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(g => g.GroupId == id && !g.IsDeleted);
 
-            if (group == null)
+            if (groupEntity == null)
             {
                 throw new NotFoundException<Group>($"Could not find {typeof(Group).Name} entity with ID {id}");
             }
 
-            group.GroupRoles = group.GroupRoles.Where(gr => !gr.IsDeleted).ToList();
-            foreach (var groupRole in group.GroupRoles)
+            groupEntity.GroupRoles = groupEntity.GroupRoles.Where(gr => !gr.IsDeleted).ToList();
+            foreach (var groupRole in groupEntity.GroupRoles)
             {
                 groupRole.Role.RolePermissions = groupRole.Role.RolePermissions.Where(rp => !rp.IsDeleted).ToList();
             }
 
-            group.GroupUsers = group.GroupUsers.Where(gu => !gu.IsDeleted).ToList();
-            foreach (var groupUser in group.GroupUsers)
+            groupEntity.GroupUsers = groupEntity.GroupUsers.Where(gu => !gu.IsDeleted).ToList();
+            foreach (var groupUser in groupEntity.GroupUsers)
             {
                 groupUser.User.UserPermissions = groupUser.User.UserPermissions.Where(up => !up.IsDeleted).ToList();
             }
 
-            return group.ToModel();
+            groupEntity.ChildGroups = groupEntity.ChildGroups.Where(cg => !cg.IsDeleted).ToList();
+            groupEntity.ParentGroups = groupEntity.ParentGroups.Where(pg => !pg.IsDeleted).ToList();
+
+            return groupEntity.ToModel();
         }
 
         public async Task<Group> Get(string name)
@@ -96,6 +105,12 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .Include(g => g.GroupRoles)
                 .ThenInclude(gr => gr.Role)
                 .ThenInclude(r => r.SecurableItem)
+                .Include(g => g.ChildGroups)
+                .ThenInclude(cg => cg.Parent)
+                .Include(g => g.ChildGroups)
+                .ThenInclude(cg => cg.Child)
+                .Include(g => g.ParentGroups)
+                .ThenInclude(cg => cg.Parent)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(g => g.Name == name && !g.IsDeleted);
 
@@ -116,6 +131,9 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 groupUser.User.UserPermissions = groupUser.User.UserPermissions.Where(up => !up.IsDeleted).ToList();
             }
 
+            groupEntity.ChildGroups = groupEntity.ChildGroups.Where(cg => !cg.IsDeleted).ToList();
+            groupEntity.ParentGroups = groupEntity.ParentGroups.Where(pg => !pg.IsDeleted).ToList();
+            
             return groupEntity.ToModel();
         }
 
@@ -126,6 +144,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .ThenInclude(gr => gr.Role)
                 .Include(g => g.GroupUsers)
                 .ThenInclude(gu => gu.User)
+                .Include(g => g.ChildGroups)
                 .Where(g => !g.IsDeleted)
                 .ToArrayAsync();
 
@@ -339,6 +358,66 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 groupUser.Id.ToString(), group));
 
             return group;
+        }
+
+        public async Task<Group> AddChildGroups(Group group, IEnumerable<Group> childGroups)
+        {
+            foreach (var childGroup in childGroups)
+            {
+                var newChildGroup = new ChildGroup
+                {
+                    ParentId = group.Id,
+                    ChildId = childGroup.Id
+                };
+
+                AuthorizationDbContext.ChildGroups.Add(newChildGroup);
+            }
+
+            await AuthorizationDbContext.SaveChangesAsync();
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Group>(EventTypes.ChildEntityCreatedEvent, group.Id.ToString(), group));
+
+            group.Children.ToList().AddRange(childGroups);
+            return group;
+        }
+
+        public async Task<Group> RemoveChildGroups(Group group, IEnumerable<Group> childGroups)
+        {
+            var childGroupEntities = AuthorizationDbContext.ChildGroups.Where(cg => !cg.IsDeleted && cg.ParentId == group.Id && childGroups.Select(g => g.Id).Contains(cg.ChildId));
+            foreach (var childGroup in childGroups)
+            {
+                var childToRemove = group.Children.FirstOrDefault(c => c.Name == childGroup.Name);
+                if (childToRemove == null)
+                {
+                    continue;
+                }
+
+                group.Children.Remove(childToRemove);
+
+                var childToRemoveEntity = childGroupEntities.FirstOrDefault(cg => cg.ParentId == childGroup.Id && cg.ChildId == group.Id);
+                childToRemoveEntity.IsDeleted = true;
+            }
+
+            await AuthorizationDbContext.SaveChangesAsync();
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Group>(EventTypes.ChildEntityDeletedEvent, group.Id.ToString(), group));
+
+            group.Children.ToList().AddRange(childGroups);
+            return group;
+        }
+
+        public Task<IEnumerable<Group>> Get(IEnumerable<string> childGroupNames)
+        {
+            var childGroupEntities = AuthorizationDbContext.Groups.Where(g =>
+               childGroupNames.Contains(g.Name, StringComparer.OrdinalIgnoreCase)
+               && !g.IsDeleted);
+
+            var missingGroups = childGroupNames.Except(childGroupEntities.Select(g => g.Name), StringComparer.OrdinalIgnoreCase).ToList();
+
+            if (missingGroups.Count > 0)
+            {
+                throw new NotFoundException<Group>($"The followimg groups could not be found: {string.Join(",", missingGroups)}");
+            }
+
+            return Task.FromResult(childGroupEntities.Select(g => g.ToModel()).AsEnumerable());
         }
 
         public async Task<IEnumerable<Group>> GetGroups(string name, string type)
