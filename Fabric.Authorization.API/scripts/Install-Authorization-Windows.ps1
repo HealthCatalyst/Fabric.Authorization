@@ -177,6 +177,7 @@ function Add-GroupToGroup($parentGroup, $childGroup, $connString)
 }
 
 function Add-RoleToGroup($role, $group, $connString) {
+    Write-Host "Adding Role: $($role.Name) to Group: $($group.Name)"
     $query = "INSERT INTO GroupRoles
               (CreatedBy, CreatedDateTimeUtc, GroupId, IsDeleted, RoleId)
               VALUES('fabric-installer', GetUtcDate(), @groupId, 0, @roleId)"
@@ -488,16 +489,60 @@ function Update-DosAdminRoleToDataMartAdmin($connectionString)
     }
 }
 
+function Remove-DosAdminRole($connectionString)
+{
+    $sql = "UPDATE ROLES
+            SET IsDeleted = 1,
+                ModifiedBy = 'fabric-installer',
+                ModifiedDateTimeUtc = GETUTCDATE()
+            WHERE [Name] = 'dosadmin';"
+
+    Write-Host "Deleting dosadmin role..."
+    try{
+        Invoke-Sql $connectionString $sql | Out-Null
+    }catch{
+        Write-Error $_.Exception
+        throw
+    }
+}
+
+function Test-FabricRegistrationStepAlreadyComplete($authUrl, $accessToken)
+{
+    try{
+        $dataMartAdminRole = Get-Role -name "DataMartAdmin" -grain "dos" -securableItem "datamarts" -authorizationServiceUrl $authUrl -accessToken $accessToken
+        $dosAdminRole = Get-Role -name "dosadmin" -grain "dos" -securableItem "datamarts" -authorizationServiceUrl $authUrl -accessToken $accessToken
+        if($dataMartAdminRole -ne $null -and $dosAdminRole -ne $null){
+            return $true
+        }
+        return $false
+    }
+    catch {
+        $exception = $_.Exception
+        if ($exception.Response -ne $null) {
+            $error = Get-ErrorFromResponse -response $exception.Response
+            Write-Error "    There was an error getting the resource: $error. "
+        }
+        throw $exception
+    }      
+}
+
 function Move-DosAdminRoleToDosAdminGroup($authUrl, $accessToken, $connectionString, $groupName)
 {
     $group = Add-DosAdminGroup -authUrl $authUrl -accessToken $accessToken -groupName $groupName
     $groupId = $group.Id
     Add-DosAdminRoleUsersToDosAdminGroup -groupId $groupId -connectionString $connectionString
-    Remove-UsersFromDosAdminRole $connectionString
+    Remove-UsersFromDosAdminRole -connectionString $connectionString
     Add-DosAdminGroupRolesToDosAdminChildGroups -groupId $groupId -connectionString $connectionString
-    Remove-GroupsFromDosAdminRole $connectionString
-    Add-DosAdminRoleToDosAdminGroup -groupId $groupId -connectionString $connectionString
-    Update-DosAdminRoleToDataMartAdmin $connectionString
+    Remove-GroupsFromDosAdminRole -connectionString $connectionString
+    if((Test-FabricRegistrationStepAlreadyComplete -authUrl $authUrl -accessToken $accessToken)){
+        Remove-DosAdminRole -connectionString $connectionString
+        $dataMartAdminRole = Get-Role -name "DataMartAdmin" -grain "dos" -securableItem "datamarts" -authorizationServiceUrl $authUrl -accessToken $accessToken
+        Add-RoleToGroup -role $dataMartAdminRole -group $group -connString $connectionString
+    }
+    else{
+        Add-DosAdminRoleToDosAdminGroup -groupId $groupId -connectionString $connectionString
+        Update-DosAdminRoleToDataMartAdmin -connectionString $connectionString
+    }
 }
 
 if (!(Test-Path .\Fabric-Install-Utilities.psm1)) {
