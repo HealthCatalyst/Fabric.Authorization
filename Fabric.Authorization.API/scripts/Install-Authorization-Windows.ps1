@@ -165,11 +165,11 @@ function Add-UserToGroup($group, $user, $connString)
     Invoke-Sql $connString $query @{groupId = $groupId; identityProvider = $identityProvider; subjectId = $subjectId} | Out-Null
 }
 
-function Add-GroupToGroup($parentGroup, $childGroup, $connString)
+function Add-ChildGroupToParentGroup($parentGroup, $childGroup, $connString)
 {
     $query = "INSERT INTO ChildGroups
               (ParentGroupId, ChildGroupId, CreatedBy, CreatedDateTimeUtc)
-              VALUES(@parentGroupId, @childGroupId, 'fabric-installer', GETDATEUTC()"
+              VALUES(@parentGroupId, @childGroupId, 'fabric-installer', GETUTCDATE())"
 
     $parentGroupId = $parentGroup.Id
     $childGroupId = $childGroup.Id
@@ -250,7 +250,7 @@ function Add-AccountToDosAdminGroup($accountName, $domain, $authorizationService
     elseif (Test-IsGroup -samAccountName $samAccountName -domain $domain) {
         try {
             $childGroup = Add-Group -authUrl $authorizationServiceUrl -name $accountName -source "Windows" -accessToken $accessToken
-            Add-GroupToGroup -parentGroup $group -childGroup $childGroup -connString $connString
+            Add-ChildGroupToParentGroup -parentGroup $group -childGroup $childGroup -connString $connString
         }
         catch {
             $exception = $_.Exception
