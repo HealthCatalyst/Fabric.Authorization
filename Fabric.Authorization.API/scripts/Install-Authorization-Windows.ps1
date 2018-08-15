@@ -161,8 +161,8 @@ function Add-RoleToUser($role, $user, $connString, $clientId) {
 function Add-UserToGroup($group, $user, $connString, $clientId)
 {
     $query = "INSERT INTO GroupUsers
-             (CreatedBy, CreatedDateTimeUtc, GroupId, IdentityProvider, SubjectId)
-             VALUES(@clientId, GETUTCDATE(), @groupId, @identityProvider, @subjectId)"
+             (CreatedBy, CreatedDateTimeUtc, GroupId, IdentityProvider, SubjectId, IsDeleted)
+             VALUES(@clientId, GETUTCDATE(), @groupId, @identityProvider, @subjectId, 0)"
 
     $groupId = $group.Id
     $identityProvider = $user.identityProvider
@@ -173,8 +173,8 @@ function Add-UserToGroup($group, $user, $connString, $clientId)
 function Add-ChildGroupToParentGroup($parentGroup, $childGroup, $connString, $clientId)
 {
     $query = "INSERT INTO ChildGroups
-              (ParentGroupId, ChildGroupId, CreatedBy, CreatedDateTimeUtc)
-              VALUES(@parentGroupId, @childGroupId, @clientId, GETUTCDATE())"
+              (ParentGroupId, ChildGroupId, CreatedBy, CreatedDateTimeUtc, IsDeleted)
+              VALUES(@parentGroupId, @childGroupId, @clientId, GETUTCDATE(), 0)"
 
     $parentGroupId = $parentGroup.Id
     $childGroupId = $childGroup.Id
