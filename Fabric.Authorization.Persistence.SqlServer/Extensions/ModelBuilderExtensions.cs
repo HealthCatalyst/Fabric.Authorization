@@ -249,7 +249,9 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                 entity.HasIndex(e => e.SecurableItemId)
                     .HasName("IX_Roles_SecurableItemId");
 
-                entity.HasOne(e => e.ParentRole).WithMany(e => e.ChildRoles).HasForeignKey(e => e.ParentRoleId);
+                entity.HasOne(e => e.ParentRole)
+                    .WithMany(e => e.ChildRoles)
+                    .HasForeignKey(e => e.ParentRoleId);
 
                 entity.HasOne(e => e.SecurableItem)
                     .WithMany(e => e.Roles)
@@ -326,12 +328,12 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                     .HasForeignKey(e => e.GroupId);
 
                 entity.HasMany(e => e.ParentGroups)
-                    .WithOne(e => e.Parent)
-                    .HasForeignKey(e => e.ParentId);
+                    .WithOne(e => e.Child)
+                    .HasForeignKey(e => e.ChildGroupId);
 
                 entity.HasMany(e => e.ChildGroups)
-                    .WithOne(e => e.Child)
-                    .HasForeignKey(e => e.ChildId);
+                    .WithOne(e => e.Parent)
+                    .HasForeignKey(e => e.ParentGroupId);
             });
         }
 
@@ -543,12 +545,12 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                 entity.ToTable("ChildGroups");
 
                 entity.HasOne(e => e.Parent)
-                    .WithMany(e => e.ParentGroups)
-                    .HasForeignKey(e => e.ParentId);
+                    .WithMany(e => e.ChildGroups)
+                    .HasForeignKey(e => e.ParentGroupId);
 
                 entity.HasOne(e => e.Child)
-                    .WithMany(e => e.ChildGroups)
-                    .HasForeignKey(e => e.ChildId);
+                    .WithMany(e => e.ParentGroups)
+                    .HasForeignKey(e => e.ChildGroupId);
 
                 entity.Property(e => e.CreatedBy)
                     .IsRequired();

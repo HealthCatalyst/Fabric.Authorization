@@ -13,6 +13,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
             GroupRoles = new List<GroupRole>();
             GroupUsers = new List<GroupUser>();
             ChildGroups = new List<ChildGroup>();
+            ParentGroups = new List<ChildGroup>();
         }
 
         public int Id { get; set; }
