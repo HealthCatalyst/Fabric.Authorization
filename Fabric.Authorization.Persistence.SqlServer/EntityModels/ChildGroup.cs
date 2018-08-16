@@ -1,8 +1,9 @@
 ﻿using System;
+using Fabric.Authorization.Domain.Models;
 
 namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
 {
-    public class ChildGroup
+    public class ChildGroup : ITrackable, ISoftDelete
     {
         public int Id { get; set; }
         public Guid ParentGroupId { get; set; }

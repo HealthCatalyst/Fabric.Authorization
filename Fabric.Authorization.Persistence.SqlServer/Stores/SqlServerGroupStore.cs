@@ -135,16 +135,15 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task<IEnumerable<Group>> GetAll()
         {
-            var groups = await AuthorizationDbContext.Groups
+            var groupEntities = await AuthorizationDbContext.Groups
                 .Include(g => g.GroupRoles)
                 .ThenInclude(gr => gr.Role)
                 .Include(g => g.GroupUsers)
                 .ThenInclude(gu => gu.User)
-                .Include(g => g.ChildGroups)
                 .Where(g => !g.IsDeleted)
                 .ToArrayAsync();
 
-            return groups.Select(g => g.ToModel());
+            return groupEntities.Select(g => g.ToModel());
         }
 
         public async Task Delete(Group group)
@@ -379,6 +378,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         public async Task<Group> RemoveChildGroups(Group group, IEnumerable<Group> childGroups)
         {
             var childGroupEntities = AuthorizationDbContext.ChildGroups.Where(cg => !cg.IsDeleted && cg.ParentGroupId == group.Id && childGroups.Select(g => g.Id).Contains(cg.ChildGroupId));
+
             foreach (var childGroup in childGroups)
             {
                 var childToRemove = group.Children.FirstOrDefault(c => c.Name == childGroup.Name);
@@ -399,20 +399,21 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return group;
         }
 
-        public Task<IEnumerable<Group>> Get(IEnumerable<string> childGroupNames)
+        public Task<IEnumerable<Group>> Get(IEnumerable<string> groupNames)
         {
-            var childGroupEntities = AuthorizationDbContext.Groups.Where(g =>
-               childGroupNames.Contains(g.Name, StringComparer.OrdinalIgnoreCase)
-               && !g.IsDeleted);
+            var groupEntities = AuthorizationDbContext.Groups.Where(g =>
+                !g.IsDeleted
+                 && groupNames.Contains(g.Name)
+                 );
 
-            var missingGroups = childGroupNames.Except(childGroupEntities.Select(g => g.Name), StringComparer.OrdinalIgnoreCase).ToList();
+            var missingGroups = groupNames.Except(groupEntities.Select(g => g.Name)).ToList();
 
             if (missingGroups.Count > 0)
             {
                 throw new NotFoundException<Group>($"The followimg groups could not be found: {string.Join(",", missingGroups)}");
             }
 
-            return Task.FromResult(childGroupEntities.Select(g => g.ToModel()).AsEnumerable());
+            return Task.FromResult(groupEntities.Select(g => g.ToModel()).AsEnumerable());
         }
 
         public async Task<IEnumerable<Group>> GetGroups(string name, string type)

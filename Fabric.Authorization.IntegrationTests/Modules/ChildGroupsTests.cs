@@ -12,12 +12,13 @@ using Nancy;
 using Nancy.Testing;
 using Newtonsoft.Json;
 using Xunit;
+
 namespace Fabric.Authorization.IntegrationTests.Modules
 {
     [Collection("InMemoryTests")]
     public class ChildGroupsTests : IClassFixture<IntegrationTestsFixture>
     {
-        protected readonly Browser Browser;
+        private readonly Browser _browser;
         private readonly DefaultPropertySettings _defaultPropertySettings;
         private readonly IntegrationTestsFixture _fixture;
         private readonly string _storageProvider;
@@ -37,16 +38,16 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             {
                 fixture.ConnectionStrings = connectionStrings;
             }
-            Browser = fixture.GetBrowser(Principal, storageProvider);
+            _browser = fixture.GetBrowser(Principal, storageProvider);
             _defaultPropertySettings = fixture.DefaultPropertySettings;
-            fixture.CreateClient(Browser, "rolesprincipal");
+            fixture.CreateClient(_browser, "rolesprincipal");
             _fixture = fixture;
             _storageProvider = storageProvider;
         }
 
         private async Task<GroupRoleApiModel> SetupGroupAsync(string groupName, string groupSource, string displayName, string description)
         {
-            var postResponse = await Browser.Post("/groups", with =>
+            var postResponse = await _browser.Post("/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new
@@ -71,7 +72,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var childGroup1 = await SetupGroupAsync(Guid.NewGuid().ToString(), GroupConstants.DirectorySource, "Child Group 1", "Child Group 1");
             var childGroup2 = await SetupGroupAsync(Guid.NewGuid().ToString(), GroupConstants.DirectorySource, "Child Group 2", "Child Group 2");
 
-            var postResponse = await Browser.Post($"/groups/{parentGroup.GroupName}/groups", with =>
+            var postResponse = await _browser.Post($"/groups/{parentGroup.GroupName}/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new[]
@@ -97,7 +98,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         {
             var parentGroup = await SetupGroupAsync(Guid.NewGuid().ToString(), GroupConstants.CustomSource, "Custom Parent Group", "Custom Parent Group");
 
-            var postResponse = await Browser.Post($"/groups/{parentGroup.GroupName}/groups", with =>
+            var postResponse = await _browser.Post($"/groups/{parentGroup.GroupName}/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new[]
@@ -117,7 +118,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var childGroup1 = await SetupGroupAsync(Guid.NewGuid().ToString(), GroupConstants.DirectorySource, "Child Group 1", "Child Group 1");
             var childGroup2 = await SetupGroupAsync(Guid.NewGuid().ToString(), GroupConstants.DirectorySource, "Child Group 2", "Child Group 2");
 
-            var postResponse = await Browser.Post($"/groups/{parentGroup.GroupName}/groups", with =>
+            var postResponse = await _browser.Post($"/groups/{parentGroup.GroupName}/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new[]
@@ -139,7 +140,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var childGroup1 = await SetupGroupAsync(Guid.NewGuid().ToString(), GroupConstants.CustomSource, "Child Group 1", "Child Group 1");
             var childGroup2 = await SetupGroupAsync(Guid.NewGuid().ToString(), GroupConstants.DirectorySource, "Child Group 2", "Child Group 2");
 
-            var postResponse = await Browser.Post($"/groups/{parentGroup.GroupName}/groups", with =>
+            var postResponse = await _browser.Post($"/groups/{parentGroup.GroupName}/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new[]
@@ -167,7 +168,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var childGroup1 = await SetupGroupAsync(Guid.NewGuid().ToString(), GroupConstants.DirectorySource, "Child Group 1", "Child Group 1");
             var childGroup2 = await SetupGroupAsync(Guid.NewGuid().ToString(), GroupConstants.DirectorySource, "Child Group 2", "Child Group 2");
 
-            var postResponse = await Browser.Post($"/groups/{parentGroup.GroupName}/groups", with =>
+            var postResponse = await _browser.Post($"/groups/{parentGroup.GroupName}/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new[]
@@ -186,7 +187,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Contains(groupApiModel.Children, c => c.GroupName == childGroup1.GroupName);
             Assert.Contains(groupApiModel.Children, c => c.GroupName == childGroup2.GroupName);
 
-            postResponse = await Browser.Post($"/groups/{parentGroup.GroupName}/groups", with =>
+            postResponse = await _browser.Post($"/groups/{parentGroup.GroupName}/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new[]
