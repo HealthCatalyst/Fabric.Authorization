@@ -59,7 +59,7 @@ export class MemberListComponent implements OnInit, OnChanges {
   }
 
   ngOnInit() {
-    this.getMembers();
+
   }
 
   ngOnChanges(){
@@ -102,7 +102,7 @@ export class MemberListComponent implements OnInit, OnChanges {
   }
 
   getMembers() {
-    
+
     if(this.selectedNode){
       this.grain = this.selectedNode.parentName;
       this.securableItem = this.selectedNode.name;

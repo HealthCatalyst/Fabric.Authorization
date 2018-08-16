@@ -2,7 +2,7 @@
 
 # add node setup steps
 npm install
-ng build --base-href=./
+ng build
 
 secret=$1
 
