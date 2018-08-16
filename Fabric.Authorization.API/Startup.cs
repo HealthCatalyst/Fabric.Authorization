@@ -30,12 +30,7 @@ namespace Fabric.Authorization.API
             "",
             "/",
             $"/{AccessControl.Path}",
-            $"/{AccessControl.Path}/",
-            $"/{AccessControl.Path}/index.html",
-            $"/{AccessControl.Path}/oidc-callback.html",
-            $"/{AccessControl.Path}/silent.html",
-            $"/{AccessControl.Path}/logged-out",
-            $"/{AccessControl.Path}/access-control"
+            $"/{AccessControl.Path}/*"
         };
 
         private readonly IAppConfiguration _appConfig;

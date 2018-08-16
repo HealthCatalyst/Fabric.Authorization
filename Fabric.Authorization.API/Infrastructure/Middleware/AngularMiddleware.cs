@@ -38,8 +38,14 @@ namespace Fabric.Authorization.API.Infrastructure.Middleware
                 _indexContent = File.ReadAllText(fullPath);
 
                 var discoveryServiceSettings = _appConfiguration.AccessControlSettings.DiscoveryServiceSettings;
+
+                // swaps in the discovery service root
                 _indexContent = _indexContent.Replace(discoveryServiceSettings.Token,
                     discoveryServiceSettings.Value);
+
+                // swaps in the access control root
+                _indexContent = _indexContent.Replace(AccessControl.ClientRootToken,
+                    FormatBaseAccessControlUri(this._appConfiguration.ApplicationEndpoint));
             }
 
             if (context.Request.Path.Equals(indexPath, StringComparison.OrdinalIgnoreCase))
@@ -57,6 +63,13 @@ namespace Fabric.Authorization.API.Infrastructure.Middleware
                     await WriteIndexResponse(context);
                 }
             }
+        }
+
+        private string FormatBaseAccessControlUri(string baseUrl)
+        {
+            var baseUriEndpoint = new Uri(baseUrl);
+            var accessControlEndpoint = new Uri(baseUriEndpoint, AccessControl.Path);
+            return $"{accessControlEndpoint.ToString().Trim('/')}/";
         }
 
         private async Task WriteIndexResponse(HttpContext context)

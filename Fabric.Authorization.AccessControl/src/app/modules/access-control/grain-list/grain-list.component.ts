@@ -30,25 +30,22 @@ export class GrainListComponent implements OnInit {
       private route: ActivatedRoute,
       private grainService: FabricAuthGrainService
   ) {
+    this.isGrainVisible = grainService.isGrainVisible();
     this.treeFlattener = new MatTreeFlattener(this.transformer, this._getLevel, this._isExpandable, this._getChildren);
     this.treeControl = new FlatTreeControl<GrainFlatNode>(this._getLevel, this._isExpandable);
     this.dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
+    this.selectedGrain = this.route.snapshot.params['grain'];
+    this.selectedSecurableItem = this.route.snapshot.paramMap.get('securableItem');
 
-    this.isGrainVisible = grainService.isGrainVisible();
-    var database = this.getGrains();
-  }
-
-  transformer = (node: GrainNode, level: number) => {
-    var result = new GrainFlatNode(!!node.children, node.name, node.parentName, level);
-
-    if(this.selectedSecurableItem == node.name) {
-      if(this.selectedGrain == node.parentName) {
-        this.selectedNode = result;
+    this.grainService.getAllGrains().subscribe(
+      response => {
+        this.dataSource.data = this.AddGrainToGrainNode(response);
+        this.initializeSelectedNode();
       }
-    }
-
-    return result;
+    );;
   }
+
+  transformer = (node: GrainNode, level: number) => new GrainFlatNode(!!node.children, node.name, node.parentName, level);
 
   private _getLevel = (node: GrainFlatNode) => node.level;
 
@@ -59,15 +56,21 @@ export class GrainListComponent implements OnInit {
   hasChild = (_: number, _nodeData: GrainFlatNode) => _nodeData.expandable;
 
   ngOnInit() {
+
   }
 
-  getGrains() {
-    this.selectedGrain = this.route.snapshot.params['grain'];
-    this.selectedSecurableItem = this.route.snapshot.paramMap.get('securableItem');
-
-    return this.grainService.getAllGrains().subscribe(response => {
-      this.dataSource.data = this.AddGrainToGrainNode(response);
-    });
+  initializeSelectedNode() {
+    if(!!this.selectedGrain)
+    {
+      let firstNode = this.treeControl.dataNodes.find(node => { return node.name == this.selectedGrain } );
+      this.treeControl.expand(firstNode);
+      this.selectedNode = this.treeControl.dataNodes.find( node => { return node.name == this.selectedSecurableItem && node.parentName == this.selectedGrain } );
+    }
+    else {
+      let firstNode = this.treeControl.dataNodes[0];
+      this.treeControl.expand(firstNode);
+      this.selectedNode = this.treeControl.dataNodes[1];
+    }
   }
 
   AddGrainToGrainNode(data: IGrain[]): GrainNode[] {
