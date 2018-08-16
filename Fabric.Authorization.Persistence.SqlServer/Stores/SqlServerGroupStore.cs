@@ -58,12 +58,10 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .Include(g => g.GroupRoles)
                 .ThenInclude(gr => gr.Role)
                 .ThenInclude(r => r.SecurableItem)
-                .Include(g => g.ChildGroups)
+                .Include(g => g.ParentGroups)
                 .ThenInclude(cg => cg.Parent)
                 .Include(g => g.ChildGroups)
                 .ThenInclude(cg => cg.Child)
-                .Include(g => g.ParentGroups)
-                .ThenInclude(cg => cg.Parent)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(g => g.GroupId == id && !g.IsDeleted);
 
@@ -105,12 +103,10 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .Include(g => g.GroupRoles)
                 .ThenInclude(gr => gr.Role)
                 .ThenInclude(r => r.SecurableItem)
-                .Include(g => g.ChildGroups)
+                .Include(g => g.ParentGroups)
                 .ThenInclude(cg => cg.Parent)
                 .Include(g => g.ChildGroups)
                 .ThenInclude(cg => cg.Child)
-                .Include(g => g.ParentGroups)
-                .ThenInclude(cg => cg.Parent)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(g => g.Name == name && !g.IsDeleted);
 
@@ -366,23 +362,23 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             {
                 var newChildGroup = new ChildGroup
                 {
-                    ParentId = group.Id,
-                    ChildId = childGroup.Id
+                    ParentGroupId = group.Id,
+                    ChildGroupId = childGroup.Id
                 };
 
                 AuthorizationDbContext.ChildGroups.Add(newChildGroup);
+                group.Children.Add(childGroup);
             }
 
             await AuthorizationDbContext.SaveChangesAsync();
             await EventService.RaiseEventAsync(new EntityAuditEvent<Group>(EventTypes.ChildEntityCreatedEvent, group.Id.ToString(), group));
 
-            group.Children.ToList().AddRange(childGroups);
             return group;
         }
 
         public async Task<Group> RemoveChildGroups(Group group, IEnumerable<Group> childGroups)
         {
-            var childGroupEntities = AuthorizationDbContext.ChildGroups.Where(cg => !cg.IsDeleted && cg.ParentId == group.Id && childGroups.Select(g => g.Id).Contains(cg.ChildId));
+            var childGroupEntities = AuthorizationDbContext.ChildGroups.Where(cg => !cg.IsDeleted && cg.ParentGroupId == group.Id && childGroups.Select(g => g.Id).Contains(cg.ChildGroupId));
             foreach (var childGroup in childGroups)
             {
                 var childToRemove = group.Children.FirstOrDefault(c => c.Name == childGroup.Name);
@@ -393,14 +389,13 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
                 group.Children.Remove(childToRemove);
 
-                var childToRemoveEntity = childGroupEntities.FirstOrDefault(cg => cg.ParentId == childGroup.Id && cg.ChildId == group.Id);
+                var childToRemoveEntity = childGroupEntities.FirstOrDefault(cg => cg.ParentGroupId == childGroup.Id && cg.ChildGroupId == group.Id);
                 childToRemoveEntity.IsDeleted = true;
             }
 
             await AuthorizationDbContext.SaveChangesAsync();
             await EventService.RaiseEventAsync(new EntityAuditEvent<Group>(EventTypes.ChildEntityDeletedEvent, group.Id.ToString(), group));
 
-            group.Children.ToList().AddRange(childGroups);
             return group;
         }
 

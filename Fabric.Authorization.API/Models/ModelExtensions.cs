@@ -89,7 +89,9 @@ namespace Fabric.Authorization.API.Models
                 DisplayName = group.DisplayName,
                 Description = group.Description,
                 Roles = group.Roles?.Where(r => !r.IsDeleted).Select(r => r.ToRoleApiModel()),
-                GroupSource = group.Source
+                GroupSource = group.Source,
+                Parents = group.Parents.Select(p => p.ToGroupRoleApiModel()),
+                Children = group.Children.Select(c => c.ToGroupRoleApiModel())
             };
 
             return groupRoleApiModel;
@@ -107,7 +109,9 @@ namespace Fabric.Authorization.API.Models
                     .Where(r => !r.IsDeleted 
                         && groupRoleFilter(r, groupRoleRequest.Grain, groupRoleRequest.SecurableItem))
                     .Select(r => r.ToRoleApiModel()),
-                GroupSource = group.Source
+                GroupSource = group.Source,
+                Parents = group.Parents.Select(p => p.ToGroupRoleApiModel()),
+                Children = group.Children.Select(c => c.ToGroupRoleApiModel())
             };
 
             return groupRoleApiModel;
