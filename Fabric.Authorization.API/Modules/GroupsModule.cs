@@ -420,11 +420,6 @@ namespace Fabric.Authorization.API.Modules
             {
                 return CreateFailureResponse(ex.Message, HttpStatusCode.Conflict);
             }
-            catch (Exception e)
-            {
-                var x = e;
-                return CreateFailureResponse(e.Message, HttpStatusCode.InternalServerError);
-            }
         }
 
         private async Task<dynamic> RemoveChildGroups(dynamic parameters)
