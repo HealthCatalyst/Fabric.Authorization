@@ -6,7 +6,9 @@ import { MatTreeFlatDataSource, MatTreeFlattener, MatTreeModule } from '@angular
 import { FlatTreeControl } from '@angular/cdk/tree';
 
 import { ServicesMockModule } from '../services.mock.module';
-import { GrainListComponent } from './grain-list.component';
+import { GrainListComponent, GrainFlatNode, GrainNode } from './grain-list.component';
+import { IGrain } from '../../../models/grain.model';
+import { ISecurableItem } from '../../../models/securableItem.model';
 import { MemberListComponent } from '../member-list/member-list.component'
 import { Observable } from 'rxjs/Observable';
 
@@ -21,11 +23,13 @@ import { FabricAuthMemberSearchService } from '../../../services/fabric-auth-mem
 describe('GrainListComponent', () => {
   let component: GrainListComponent;
   let fixture: ComponentFixture<GrainListComponent>;
+  let testGrains: IGrain[];
+  let testSecurableItems: ISecurableItem[];
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [ GrainListComponent, MemberListComponent ],
-      imports: [ServicesMockModule, 
+      imports: [ServicesMockModule,
         MatTreeModule,
         FormsModule,
         IconModule,
@@ -46,6 +50,10 @@ describe('GrainListComponent', () => {
 
   beforeEach(inject([FabricAuthMemberSearchService], (memberSearchService: FabricAuthMemberSearchServiceMock) => {
     memberSearchService.searchMembers.and.returnValue(Observable.of(mockAuthSearchResult));
+    testGrains = mockGrains;
+    testSecurableItems = [
+      { id: 'datamarts', name: 'datamarts', grain: 'dos', securableItems: null, clientOwner: '', createdBy: '', modifiedBy: '' }
+    ];
   }));
 
   beforeEach(() => {
@@ -58,25 +66,136 @@ describe('GrainListComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should render all grains and securable Items', () => {
+  it('should create and select the first node by default', () => {
+    // arrange
+    var grains = testGrains;
+
+    // act --the act of creating this object has called the constructor
+
+    // assert
+    expect(component.selectedNode).not.toEqual(null);
+    expect(component.selectedNode.name).toBe(grains[0].name);
+  });
+
+  describe('isSelectedNode', () => {
+
+    it('should return empty string for comparing different nodes', () => {
+      // Arrange
+      let randomNode = new GrainFlatNode(null, 'test', null, 0);
+      component.selectedNode = null;
+
+      // Act
+      var result = component.isSelectedNode(randomNode);
+
+      // Assert
+      expect(result).toBe('');
+    });
+
+    it('should return "selected" for comparing similar nodes', () => {
+      // Arrange
+      let randomNode = new GrainFlatNode(null, 'test', null, 0);
+      component.selectedNode = randomNode;
+
+      // Act
+      var result = component.isSelectedNode(randomNode);
+
+      // Assert
+      expect(result).toBe('selected');
+    });
 
   });
 
-  it('should collapse a node in a tree', () => {
+  describe('getIcon', () => {
+
+    it('should return "fa-plus-square-o" if parent node and expandable', () => {
+      // Arrange
+      let randomNode = new GrainFlatNode(true, 'test', null, 0);
+      component.selectedNode = null;
+
+      // Act
+      var result = component.getIcon(randomNode);
+
+      // Assert
+      expect(result).toBe('fa-plus-square-o');
+    });
+
+    it('should return "fa-minus-square-o" if child node that cant expand', () => {
+      // Arrange
+      let randomNode = new GrainFlatNode(false, 'test', 'parent', 1);
+      component.selectedNode = null;
+
+      // Act
+      var result = component.getIcon(randomNode);
+
+      // Assert
+      expect(result).toBe('fa-minus-square-o');
+    });
+
+    it('should return "fa-caret-square-o-right" if selected', () => {
+      // Arrange
+      let randomNode = new GrainFlatNode(false, 'test', 'parent', 1);
+      component.selectedNode = randomNode;
+
+      // Act
+      var result = component.getIcon(randomNode);
+
+      // Assert
+      expect(result).toBe('fa-caret-square-o-right');
+    });
 
   });
 
-  it('should expand a node in a tree', () => {
+  describe('AddGrainToGrainNode', () => {
+
+    it('given a IGrain[], convert into GrainNode[]', () => {
+      // Arrange
+      var grains = testGrains;
+
+      // Act
+      var result = component.AddGrainToGrainNode(grains);
+
+      // Assert
+      expect(grains.length).toBe(result.length);
+
+      for(var i = 0; i < grains.length; i++)
+      {
+        expect(grains[0].name).toBe(result[0].name);
+      }
+    });
 
   });
 
-  it('should set the proper values when a grain/securable item is selected', () => {
-    // write a test in member list to verify you can "switch" these values too
+  describe('AddSecurableItemToGrainNode', () => {
+    it('given a ISecurableItem[], convert into GrainNode[]', () => {
+      // Arrange
+      var parentName = "dos";
+      var securableItems = testSecurableItems;
 
-    // also write a test where a user does not have access in member list
+      // Act
+      var result = component.AddSecurableItemToGrainNode(securableItems, parentName);
+
+      // Assert
+      expect(securableItems.length).toBe(result.length);
+
+      for(var i = 0; i < securableItems.length; i++)
+      {
+        expect(securableItems[0].name).toBe(result[0].name);
+        expect(parentName).toBe(result[0].parentName);
+      }
+    });
   });
 
-  it('should be able to deep link', () => {
+  it('onSelect sets the selectedNode', () => {
+    // Arrange
+    let randomNode = new GrainFlatNode(true, 'test', null, 0);
+    component.selectedNode = null;
 
+    // Act
+    component.onSelect(randomNode);
+
+    // Assert
+    expect(component.selectedNode).toBe(randomNode);
   });
+
+
 });
