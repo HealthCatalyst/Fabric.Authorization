@@ -70,18 +70,36 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             return response;
         }
 
-        protected async Task<Role> SetupRoleAsync(string roleName, string grain = "app", string securableItem = "rolesprincipal")
+        protected async Task<Role> SetupRoleAndPermissionAsync(string roleName, IEnumerable<PermissionApiModel> permissionApiModels = null, string grain = "app", string securableItem = "rolesprincipal")
         {
-            var response = await _browser.Post("/roles", with =>
+            BrowserResponse response;
+            if (permissionApiModels == null)
             {
-                with.HttpRequest();
-                with.JsonBody(new
+                response = await _browser.Post("/roles", with =>
                 {
-                    Grain = grain,
-                    SecurableItem = securableItem,
-                    Name = roleName
+                    with.HttpRequest();
+                    with.JsonBody(new
+                    {
+                        Grain = grain,
+                        SecurableItem = securableItem,
+                        Name = roleName
+                    });
                 });
-            });
+            }
+            else
+            {
+                response = await _browser.Post("/roles", with =>
+                {
+                    with.HttpRequest();
+                    with.JsonBody(new
+                    {
+                        Grain = grain,
+                        SecurableItem = securableItem,
+                        Name = roleName,
+                        Permissions = permissionApiModels
+                    });
+                });
+            }
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
@@ -111,6 +129,23 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
 
             return JsonConvert.DeserializeObject<GroupRoleApiModel>(postResponse.Body.AsString());
+        }
+
+        private async Task<PermissionApiModel> SetupPermissionAsync(string grain, string securableItem, string permissionName)
+        {
+            var post = await _browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    Grain = grain,
+                    SecurableItem = securableItem,
+                    Name = permissionName
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Created, post.StatusCode);
+            return JsonConvert.DeserializeObject<PermissionApiModel>(post.Body.AsString());
         }
 
         [Fact]
@@ -230,7 +265,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         public async Task AddChildGroup_InsufficientPermissions_ForbiddenAsync(ClaimsPrincipal principal)
         {
             var parentGroup = await SetupGroupAsync(Guid.NewGuid().ToString(), GroupConstants.CustomSource, "Custom Parent Group", "Custom Parent Group");
-            var role = await SetupRoleAsync("Role" + Guid.NewGuid(), "dos");
+            var role = await SetupRoleAndPermissionAsync("Role" + Guid.NewGuid(), new List<PermissionApiModel>(), "dos");
 
             var mappingResponse = await SetupGroupRoleMappingAsync(parentGroup.GroupName, role);
             Assert.Equal(HttpStatusCode.OK, mappingResponse.StatusCode);
@@ -297,6 +332,97 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task GetUserPermissions_WithChildGroups_SuccessAsync()
         {
+            var parentPermission = await SetupPermissionAsync("app", "rolesprincipal", Guid.NewGuid().ToString());
+            var childPermission1 = await SetupPermissionAsync("app", "rolesprincipal", Guid.NewGuid().ToString());
+            var childPermission2 = await SetupPermissionAsync("app", "rolesprincipal", Guid.NewGuid().ToString());
+
+            // create parent group
+            var parentGroup = await SetupGroupAsync(Guid.NewGuid().ToString(), GroupConstants.CustomSource, "Custom Parent Group", "Custom Parent Group");
+            var parentRole = await SetupRoleAndPermissionAsync("Role" + Guid.NewGuid(), new List<PermissionApiModel> {parentPermission});
+            var mappingResponse = await SetupGroupRoleMappingAsync(parentGroup.GroupName, parentRole);
+            Assert.Equal(HttpStatusCode.OK, mappingResponse.StatusCode);
+
+            // create child groups
+            var childGroup1 = await SetupGroupAsync(Guid.NewGuid().ToString(), GroupConstants.DirectorySource, "Child Group 1", "Child Group 1");
+            var childRole1 = await SetupRoleAndPermissionAsync("Role" + Guid.NewGuid(), new List<PermissionApiModel> { childPermission1 });
+            mappingResponse = await SetupGroupRoleMappingAsync(childGroup1.GroupName, childRole1);
+            Assert.Equal(HttpStatusCode.OK, mappingResponse.StatusCode);
+
+            var childGroup2 = await SetupGroupAsync(Guid.NewGuid().ToString(), GroupConstants.DirectorySource, "Child Group 2", "Child Group 2");
+            var childRole2 = await SetupRoleAndPermissionAsync("Role" + Guid.NewGuid(), new List<PermissionApiModel> { childPermission2 });
+            mappingResponse = await SetupGroupRoleMappingAsync(childGroup2.GroupName, childRole2);
+            Assert.Equal(HttpStatusCode.OK, mappingResponse.StatusCode);
+
+            // add child groups to parent
+            var postResponse = await _browser.Post($"/groups/{parentGroup.GroupName}/groups", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new[]
+                {
+                    new { childGroup1.GroupName },
+                    new { childGroup2.GroupName }
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+
+            // add user to parent group
+            var subjectId = "bob.smith";
+            var idP = "Windows";
+
+            var userGroupResponse = await _browser.Post($"/groups/{parentGroup.GroupName}/users", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new[]
+                {
+                    new
+                    {
+                        SubjectId = subjectId,
+                        IdentityProvider = idP
+                    }
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.OK, userGroupResponse.StatusCode);
+
+            // create a principal w/ the user created above
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
+            {
+                new Claim(Claims.Scope, Scopes.ManageClientsScope),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.Sub, subjectId),
+                new Claim(Claims.IdentityProvider, idP),
+                new Claim(Claims.ClientId, "rolesprincipal")
+            }, "pwd"));
+
+            var browser = _fixture.GetBrowser(principal, _storageProvider);
+
+            // get authenticated user's permissions
+            var get = await browser.Get("/user/permissions", with =>
+            {
+                with.HttpRequest();
+            });
+
+            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
+            var userPermissionsApiModel = get.Body.DeserializeJson<UserPermissionsApiModel>();
+            var userPermissions = userPermissionsApiModel.Permissions.ToList();
+            Assert.Equal(3, userPermissions.Count);
+            Assert.Contains(parentPermission.ToString(), userPermissions);
+            Assert.Contains(childPermission1.ToString(), userPermissions);
+            Assert.Contains(childPermission2.ToString(), userPermissions);
+
+            // get non-authenticated user's permissions
+            get = await _browser.Get($"/user/{idP}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+            });
+
+            userPermissions = get.Body.DeserializeJson<IEnumerable<ResolvedPermissionApiModel>>().Select(p => p.ToString()).ToList();
+            Assert.Equal(3, userPermissions.Count);
+            Assert.Contains(parentPermission.ToString(), userPermissions);
+            Assert.Contains(childPermission1.ToString(), userPermissions);
+            Assert.Contains(childPermission2.ToString(), userPermissions);
         }
     }
 }

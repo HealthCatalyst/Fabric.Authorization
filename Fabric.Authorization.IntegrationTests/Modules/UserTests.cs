@@ -418,7 +418,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.OK, get.StatusCode);
             var permissions = get.Body.DeserializeJson<IEnumerable<ResolvedPermissionApiModel>>();
             var permissionNames = permissions.Select(p => p.ToString());
-            Assert.Contains($"dos/datamarts.{dosDatamartPermission.Name}", permissionNames);
+            Assert.Contains(dosDatamartPermission.ToString(), permissionNames);
 
             // create a principal w/ the user created above
             principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
@@ -440,7 +440,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.OK, get.StatusCode);
             var userPermissionsApiModel = get.Body.DeserializeJson<UserPermissionsApiModel>();
-            Assert.Contains($"dos/datamarts.{dosDatamartPermission.Name}", userPermissionsApiModel.Permissions);
+            Assert.Contains(dosDatamartPermission.ToString(), userPermissionsApiModel.Permissions);
         }
 
         [Fact]
