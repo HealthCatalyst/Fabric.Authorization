@@ -390,7 +390,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 group.Children.Remove(childToRemove);
 
                 var childToRemoveEntity = childGroupEntities.FirstOrDefault(cg => cg.ParentGroupId == childGroup.Id && cg.ChildGroupId == group.Id);
-                childToRemoveEntity.IsDeleted = true;
+
+                if (childToRemoveEntity != null)
+                {
+                    childToRemoveEntity.IsDeleted = true;
+                }
             }
 
             await AuthorizationDbContext.SaveChangesAsync();

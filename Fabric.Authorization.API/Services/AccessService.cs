@@ -69,7 +69,7 @@ namespace Fabric.Authorization.API.Services
             var groups = new List<string>();
             try
             {
-                groups = (await _userService.GetGroupsForUser(subjectId, providerId)).Select(g => g.Name).ToList();
+                groups = (await _userService.GetGroupsForUser(subjectId, providerId, true)).Select(g => g.Name).ToList();
             }
             catch (NotFoundException<User>)
             {

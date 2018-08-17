@@ -48,6 +48,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             // the GroupUser entity was the entity that was not behaving
             var groupUsers = await AuthorizationDbContext.GroupUsers
                 .Include(gu => gu.Group)
+                .ThenInclude(g => g.ChildGroups)
+                .ThenInclude(cg => cg.Child)
                 .Include(gu => gu.User)
                 .Where(gu => gu.SubjectId == subjectId && gu.IdentityProvider == identityProvider)
                 .AsNoTracking()
@@ -80,6 +82,17 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             }
             
             userEntity.GroupUsers = groupUsers.Where(gu => !gu.IsDeleted).ToList();
+            foreach (var gu in userEntity.GroupUsers)
+            {
+                foreach (var cg in gu.Group.ChildGroups)
+                {
+                    if (cg.IsDeleted)
+                    {
+                        gu.Group.ChildGroups.Remove(cg);
+                    }
+                }
+            }
+
             userEntity.UserPermissions = userPermissions.Where(up => !up.IsDeleted).ToList();
             userEntity.RoleUsers = roleUsers.Where(ru => !ru.IsDeleted).ToList();
 
