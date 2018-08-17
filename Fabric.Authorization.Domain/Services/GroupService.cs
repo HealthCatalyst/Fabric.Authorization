@@ -211,16 +211,18 @@ namespace Fabric.Authorization.Domain.Services
                 throw new BadRequestException<Group>($"{group.Name} is not a custom group. Only custom groups can serve as parent groups.");
             }
 
+            var childGroupNameList = childGroupNames.ToList();
+
             // do not allow custom groups to be children
-            var childGroups = await _groupStore.Get(childGroupNames);
-            var customGroups = childGroups.Where(g => g.Source == GroupConstants.CustomSource);
+            var childGroups = (await _groupStore.Get(childGroupNameList)).ToList();
+            var customGroups = childGroups.Where(g => g.Source == GroupConstants.CustomSource).ToList();
             if (customGroups.Any())
             {
                 throw new BadRequestException<Group>($"Only directory groups can be child groups. The following groups are custom: {string.Join(", ", customGroups)} ");
             }
 
             // if association already exists, return 409
-            var existingAssociations = group.Children.Where(c => childGroupNames.Contains(c.Name, StringComparer.OrdinalIgnoreCase));
+            var existingAssociations = group.Children.Where(c => childGroupNameList.Contains(c.Name, StringComparer.OrdinalIgnoreCase)).ToList();
             if (existingAssociations.Any())
             {
                 throw new AlreadyExistsException<Group>($"The following groups are already children of group {group.Name}: {string.Join(", ", existingAssociations.Select(g => g.Name))}");

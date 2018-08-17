@@ -124,7 +124,7 @@ namespace Fabric.Authorization.API.Modules
             CheckReadAccess();
 
             // cast is required due to dynamic inputs - otherwise the compiler thinks the return type is a dynamic
-            var groups = (await _userService.GetGroupsForUser(param.subjectId, param.identityProvider)) as IEnumerable<Group>;
+            var groups = await _userService.GetGroupsForUser(param.subjectId, param.identityProvider, true) as IEnumerable<Group>;
 
             var permissionResolutionResult = await _permissionResolverService.Resolve(new PermissionResolutionRequest
             {
