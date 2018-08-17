@@ -45,7 +45,7 @@ namespace Fabric.Authorization.API.ModuleExtensions
             };
         }
 
-        public static Func<NancyContext, Response> RequiresPermissions<T>(string subjectId, IEnumerable<string> permissions, string grain, string securableItem)
+        private static Func<NancyContext, Response> RequiresPermissions<T>(string subjectId, IEnumerable<string> permissions, string grain, string securableItem)
         {
             return (context) =>
             {
