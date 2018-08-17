@@ -28,18 +28,18 @@ if ! [ $authorizationbaseurl ]; then
 fi
 
 echo "getting access token for installer..."
-accesstokenresponse=$(curl -k $identitybaseurl/connect/token --data "client_id=fabric-installer&grant_type=client_credentials" --data-urlencode "client_secret=$secret")
+accesstokenresponse=$(curl -v -k $identitybaseurl/connect/token --data "client_id=fabric-installer&grant_type=client_credentials" --data-urlencode "client_secret=$secret")
 echo $accesstokenresponse
 accesstoken=$(echo $accesstokenresponse | grep -oP '(?<="access_token":")[^"]*')
 echo ""
 
 # register the access control UI in identity
 echo "registering Fabric Authorization Access Control client with Fabric.Identity..."
-clientresponse=$(curl -k -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $accesstoken" -d "{ \"clientId\": \"fabric-access-control\", \"clientName\": \"Fabric Authorization Access Control\", \"requireConsent\": false, \"allowedGrantTypes\": [\"implicit\"], \"redirectUris\": [\"$authorizationbaseurl/client/oidc-callback.html\", \"$authorizationbaseurl/client/silent.html\"], \"postLogoutRedirectUris\": [ \"$authorizationbaseurl/client/logged-out\"], \"allowOfflineAccess\": false, \"allowAccessTokensViaBrowser\": true, \"allowedCorsOrigins\":[\"$authorizationbaseurl\"], \"requireConsent\": false, \"allowedScopes\": [\"openid\", \"profile\", \"fabric.profile\", \"fabric/authorization.read\", \"fabric/authorization.write\", \"fabric/idprovider.searchusers\", \"fabric/authorization.dos.write\"]}" $identitybaseurl/api/client)
+clientresponse=$(curl -v -k -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $accesstoken" -d "{ \"clientId\": \"fabric-access-control\", \"clientName\": \"Fabric Authorization Access Control\", \"requireConsent\": false, \"allowedGrantTypes\": [\"implicit\"], \"redirectUris\": [\"$authorizationbaseurl/client/oidc-callback.html\", \"$authorizationbaseurl/client/silent.html\"], \"postLogoutRedirectUris\": [ \"$authorizationbaseurl/client/logged-out\"], \"allowOfflineAccess\": false, \"allowAccessTokensViaBrowser\": true, \"allowedCorsOrigins\":[\"$authorizationbaseurl\"], \"requireConsent\": false, \"allowedScopes\": [\"openid\", \"profile\", \"fabric.profile\", \"fabric/authorization.read\", \"fabric/authorization.write\", \"fabric/idprovider.searchusers\", \"fabric/authorization.dos.write\"]}" $identitybaseurl/api/client)
 echo $clientresponse
 echo ""
 
 # register the access control UI in authorization
 echo "registering Fabric Authorization Access Control client with Fabric.Authorization..."
-curl -k -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $accesstoken" -d "{ \"id\": \"fabric-access-control\", \"name\": \"Fabric Authorization Access Control\", \"topLevelSecurableItem\": { \"name\":\"fabric-access-control\"}}" $authorizationbaseurl/clients/
+curl -v -k -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $accesstoken" -d "{ \"id\": \"fabric-access-control\", \"name\": \"Fabric Authorization Access Control\", \"topLevelSecurableItem\": { \"name\":\"fabric-access-control\"}}" $authorizationbaseurl/clients/
 echo ""

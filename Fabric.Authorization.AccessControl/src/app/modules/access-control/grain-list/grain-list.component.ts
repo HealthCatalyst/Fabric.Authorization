@@ -59,7 +59,7 @@ export class GrainListComponent implements OnInit {
 
   }
 
-  initializeSelectedNode() {
+  initializeSelectedNode(): void {
     if(!!this.selectedGrain)
     {
       let firstNode = this.treeControl.dataNodes.find(node => { return node.name == this.selectedGrain } );
@@ -68,8 +68,18 @@ export class GrainListComponent implements OnInit {
     }
     else {
       let firstNode = this.treeControl.dataNodes[0];
+      let secondNode = this.treeControl.dataNodes[1];
       this.treeControl.expand(firstNode);
-      this.selectedNode = this.treeControl.dataNodes[1];
+
+      // if the second node a child, selected that.
+      // if it is not related, just use the first node.
+      if(firstNode.name == secondNode.parentName)
+      {
+        this.selectedNode = secondNode;
+      }
+      else {
+        this.selectedNode = firstNode;
+      }
     }
   }
 
@@ -89,6 +99,8 @@ export class GrainListComponent implements OnInit {
   AddSecurableItemToGrainNode(data: ISecurableItem[], parentName: string): GrainNode[] {
     var result: GrainNode[] = [];
 
+    if(data == null) return null;
+
     for(let item of data) {
       var node = new GrainNode();
       node.name = item.name;
@@ -105,7 +117,7 @@ export class GrainListComponent implements OnInit {
     this.selectedNode = node;
   }
 
-  getIcon(node: GrainFlatNode) {
+  getIcon(node: GrainFlatNode): string {
     var value = "";
     if(node.expandable && !node.parentName) {
       value = "fa-plus-square-o";
@@ -121,7 +133,7 @@ export class GrainListComponent implements OnInit {
     return value;
   }
 
-  isSelectedNode(myNode: GrainFlatNode) {
+  isSelectedNode(myNode: GrainFlatNode): string {
     return this.selectedNode === myNode ? 'selected' : '';
   }
 }
