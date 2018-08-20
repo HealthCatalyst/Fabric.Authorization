@@ -407,7 +407,7 @@ namespace Fabric.Authorization.API.Modules
                 var groupIdentifiers = this.Bind<List<GroupIdentifierApiRequest>>();
 
                 group = await _groupService.AddChildGroups(group, groupIdentifiers.Select(g => g.GroupName).ToList());
-                return CreateSuccessfulPostResponse(group.Name, group.ToGroupRoleApiModel());
+                return CreateSuccessfulPostResponse(group.Name, group.ToGroupRoleApiModel(), HttpStatusCode.OK);
             }
             catch (NotFoundException<Group> ex)
             {

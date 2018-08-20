@@ -166,7 +166,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 });
             });
 
-            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, postResponse.StatusCode);
 
             var groupApiModel = JsonConvert.DeserializeObject<GroupRoleApiModel>(postResponse.Body.AsString());
             Assert.NotNull(groupApiModel);
@@ -306,7 +306,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 });
             });
 
-            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, postResponse.StatusCode);
 
             var groupApiModel = JsonConvert.DeserializeObject<GroupRoleApiModel>(postResponse.Body.AsString());
             Assert.NotNull(groupApiModel);
@@ -364,7 +364,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 });
             });
 
-            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, postResponse.StatusCode);
 
             // add user to parent group
             var subjectId = "bob.smith";
