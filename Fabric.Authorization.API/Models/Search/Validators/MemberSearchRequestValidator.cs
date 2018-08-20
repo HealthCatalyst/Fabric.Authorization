@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-
+using Catalyst.Fabric.Authorization.Models.Search;
 using Fabric.Authorization.Domain.Validators;
 
 using FluentValidation;

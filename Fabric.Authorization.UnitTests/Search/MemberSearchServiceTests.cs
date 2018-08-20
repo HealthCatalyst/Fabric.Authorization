@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Fabric.Authorization.API.Models.Search;
+using Catalyst.Fabric.Authorization.Models.Search;
 using Fabric.Authorization.API.RemoteServices.Identity.Models;
 using Fabric.Authorization.API.RemoteServices.Identity.Providers;
 using Fabric.Authorization.API.Services;

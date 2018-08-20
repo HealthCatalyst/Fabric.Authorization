@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Text.RegularExpressions;
 
-using Fabric.Authorization.API.Models;
+using Catalyst.Fabric.Authorization.Models;
 
 using Nancy;
 using Nancy.Responses;
-using Nancy.Responses.Negotiation;
 
 using HttpStatusCode = Nancy.HttpStatusCode;
 

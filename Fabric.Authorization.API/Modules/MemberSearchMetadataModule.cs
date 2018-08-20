@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Net;
-using Fabric.Authorization.API.Models;
-using Fabric.Authorization.API.Models.Search;
+using Catalyst.Fabric.Authorization.Models;
+using Catalyst.Fabric.Authorization.Models.Search;
 using Nancy.Swagger;
 using Nancy.Swagger.Services;
 using Nancy.Swagger.Services.RouteUtils;

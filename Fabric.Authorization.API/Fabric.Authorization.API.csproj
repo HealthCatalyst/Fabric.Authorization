@@ -11,12 +11,43 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="client\**" />
+    <Compile Remove="Models\Requests\**" />
+    <Compile Remove="Models\Responses\**" />
     <Content Remove="client\**" />
+    <Content Remove="Models\Requests\**" />
+    <Content Remove="Models\Responses\**" />
     <EmbeddedResource Remove="client\**" />
+    <EmbeddedResource Remove="Models\Requests\**" />
+    <EmbeddedResource Remove="Models\Responses\**" />
     <None Remove="client\**" />
+    <None Remove="Models\Requests\**" />
+    <None Remove="Models\Responses\**" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="DependencyInjection\CouchDbConfigurator.cs" />
+    <Compile Remove="Models\ApiModelBase.cs" />
+    <Compile Remove="Models\ClientApiModel.cs" />
+    <Compile Remove="Models\Error.cs" />
+    <Compile Remove="Models\GrainApiModel.cs" />
+    <Compile Remove="Models\GroupRoleApiModel.cs" />
+    <Compile Remove="Models\GroupRoleRequest.cs" />
+    <Compile Remove="Models\GroupUserApiModel.cs" />
+    <Compile Remove="Models\GroupUserRequest.cs" />
+    <Compile Remove="Models\PermissionApiModel.cs" />
+    <Compile Remove="Models\PermissionRequestContext.cs" />
+    <Compile Remove="Models\PermissionRoleApiModel.cs" />
+    <Compile Remove="Models\ResolvedPermissionApiModel.cs" />
+    <Compile Remove="Models\RoleApiModel.cs" />
+    <Compile Remove="Models\RoleUserRequest.cs" />
+    <Compile Remove="Models\Search\MemberSearchRequest.cs" />
+    <Compile Remove="Models\Search\MemberSearchResponse.cs" />
+    <Compile Remove="Models\Search\MemberSearchResponseExtensions.cs" />
+    <Compile Remove="Models\Search\SearchConstants.cs" />
+    <Compile Remove="Models\Search\SearchRequest.cs" />
+    <Compile Remove="Models\SecurableItemApiModel.cs" />
+    <Compile Remove="Models\UserApiModel.cs" />
+    <Compile Remove="Models\UserInfoRequest.cs" />
+    <Compile Remove="Models\UserPermissionsApiModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Remove="wwwroot/swagger\favicon-16x16.png" />
@@ -70,6 +101,7 @@
     <PackageReference Include="Serilog.Sinks.ApplicationInsights" Version="2.2.1" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Catalyst.Fabric.Authorization.Models\Catalyst.Fabric.Authorization.Models.csproj" />
     <ProjectReference Include="..\Fabric.Authorization.Domain\Fabric.Authorization.Domain.csproj" />
     <ProjectReference Include="..\Fabric.Authorization.LibOwin\Fabric.Authorization.LibOwin.csproj" />
     <ProjectReference Include="..\Fabric.Authorization.Persistence.SqlServer\Fabric.Authorization.Persistence.SqlServer.csproj" />
@@ -90,9 +122,6 @@
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Connected Services" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Models\Responses\" />
   </ItemGroup>
   <ProjectExtensions><VisualStudio><UserProperties appsettings_1json__JSONSchema="integr" /></VisualStudio></ProjectExtensions>
 </Project>

@@ -19,5 +19,8 @@ namespace Catalyst.Fabric.Authorization.Models
         ///     Group source (e.g., Custom, Windows, Google). For custom groups, use "Custom".
         /// </summary>
         public string GroupSource { get; set; }
+
+        public IEnumerable<GroupRoleApiModel> Parents { get; set; }
+        public IEnumerable<GroupRoleApiModel> Children { get; set; }
     }
 }

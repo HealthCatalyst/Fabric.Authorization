@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Catalyst.Fabric.Authorization.Models.Enums;
+using Catalyst.Fabric.Authorization.Models.Search;
 using Fabric.Authorization.API.Models;
-using Fabric.Authorization.API.Models.Search;
 using Fabric.Authorization.API.RemoteServices.Identity.Providers;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
@@ -39,18 +40,18 @@ namespace Fabric.Authorization.API.Services
                 : await _roleService.GetRoles(request.Grain, request.SecurableItem);
 
             var roleEntities = rolesToSearch.ToList();
-            _logger.Debug($"roleEntities = {roleEntities.ToString(Environment.NewLine)}");
+            _logger.Debug($"roleEntities = {string.Join(Environment.NewLine, roleEntities)}");
             if (roleEntities.Count == 0)
             {
                 return new FabricAuthUserSearchResponse
                 {
-                    HttpStatusCode = Nancy.HttpStatusCode.OK,
+                    HttpStatusCode = HttpStatusCode.OK,
                     Results = new List<MemberSearchResponse>()
                 };
             }
 
             var groupEntities = roleEntities.SelectMany(r => r.Groups).Distinct().ToList();
-            _logger.Debug($"groupEntities = {groupEntities.ToString(Environment.NewLine)}");
+            _logger.Debug($"groupEntities =  {string.Join(Environment.NewLine, groupEntities)}");
 
             // add groups to the response
             searchResults.AddRange(groupEntities.Select(g => new MemberSearchResponse
@@ -102,7 +103,7 @@ namespace Fabric.Authorization.API.Services
 
             searchResults.AddRange(userList);
 
-            _logger.Debug($"searchResults = {searchResults.ToString(Environment.NewLine)}");
+            _logger.Debug($"searchResults =  {string.Join(Environment.NewLine, searchResults)}");
 
             var pageSize = request.PageSize ?? 100;
             var pageNumber = request.PageNumber ?? 1;
@@ -112,8 +113,8 @@ namespace Fabric.Authorization.API.Services
             {
                 HttpStatusCode =
                     fabricIdentityUserResponse != null && fabricIdentityUserResponse.HttpStatusCode != System.Net.HttpStatusCode.OK
-                        ? Nancy.HttpStatusCode.PartialContent
-                        : Nancy.HttpStatusCode.OK,
+                        ? HttpStatusCode.PartialContent
+                        : HttpStatusCode.OK,
 
                 Results = filteredResults
                     .Sort(request)

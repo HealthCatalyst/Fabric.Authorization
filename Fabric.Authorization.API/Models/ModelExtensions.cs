@@ -3,8 +3,8 @@ using System.Linq;
 using Fabric.Authorization.Domain.Models;
 using FluentValidation.Results;
 using System.Collections.Generic;
+using Catalyst.Fabric.Authorization.Models;
 using Fabric.Authorization.Domain.Resolvers.Models;
-using HttpStatusCode = Nancy.HttpStatusCode;
 
 namespace Fabric.Authorization.API.Models
 {
@@ -303,24 +303,6 @@ namespace Fabric.Authorization.API.Models
                 Target = validationResultError.PropertyName
             })
             .ToList();
-
-            var error = new Error
-            {
-                Message = details.Count > 1 ? "Multiple Errors" : details.FirstOrDefault()?.Message,
-                Details = details.ToArray()
-            };
-
-            return error;
-        }
-
-        public static Error ToError(this IEnumerable<string> errors, string target, HttpStatusCode statusCode)
-        {
-            var details = errors.Select(e => new Error
-            {
-                Code = statusCode.ToString(),
-                Message = e,
-                Target = target
-            }).ToList();
 
             var error = new Error
             {

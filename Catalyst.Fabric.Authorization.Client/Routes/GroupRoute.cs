@@ -60,6 +60,7 @@
         public string Route => _groupRoute.ToString();
         public string GroupRolesRoute => $"{Route}/{RouteConstants.RoleCollectionRoute}";
         public string GroupUsersRoute => $"{Route}/{RouteConstants.UserCollectionRoute}";
+        public string ChildGroupsRoute => $"{Route}/{RouteConstants.GroupCollectionRoute}";
 
         public string BatchUpdateRoute => GroupRoute.BatchUpdateRoute;
     }
