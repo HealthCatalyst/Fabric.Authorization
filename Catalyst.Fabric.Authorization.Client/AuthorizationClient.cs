@@ -312,6 +312,28 @@ namespace Catalyst.Fabric.Authorization.Client
             return await SendAndParseJson<GroupUserApiModel>(message).ConfigureAwait(false);
         }
 
+        public async Task<GroupRoleApiModel> AddChildGroups(string accessToken, string groupName, List<GroupIdentifierApiRequest> groupIds)
+        {
+            var message = new HttpRequestMessage(HttpMethod.Post,
+                    new GroupRouteBuilder().Name(groupName).ChildGroupsRoute)
+                .AddContent(groupIds)
+                .AddAcceptHeader()
+                .AddBearerToken(accessToken);
+
+            return await SendAndParseJson<GroupRoleApiModel>(message).ConfigureAwait(false);
+        }
+
+        public async Task<GroupRoleApiModel> DeleteChildGroups(string accessToken, string groupName, List<GroupIdentifierApiRequest> groupIds)
+        {
+            var message = new HttpRequestMessage(HttpMethod.Delete,
+                    new GroupRouteBuilder().Name(groupName).ChildGroupsRoute)
+                .AddContent(groupIds)
+                .AddAcceptHeader()
+                .AddBearerToken(accessToken);
+
+            return await SendAndParseJson<GroupRoleApiModel>(message).ConfigureAwait(false);
+        }
+
         #endregion
 
         private void CheckIfStringNullOrEmpty(string value, string name)
