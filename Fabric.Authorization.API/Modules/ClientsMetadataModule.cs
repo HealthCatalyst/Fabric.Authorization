@@ -1,10 +1,11 @@
 ﻿using System;
-using Fabric.Authorization.API.Models;
 using Nancy;
 using Nancy.Swagger;
 using Nancy.Swagger.Services;
 using Nancy.Swagger.Services.RouteUtils;
 using Swagger.ObjectModel;
+
+using Catalyst.Fabric.Authorization.Models;
 
 namespace Fabric.Authorization.API.Modules
 {

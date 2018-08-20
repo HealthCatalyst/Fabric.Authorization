@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using Fabric.Authorization.API.Models;
-using Fabric.Authorization.API.Models.Requests;
+using Catalyst.Fabric.Authorization.Models;
+using Catalyst.Fabric.Authorization.Models.Requests;
 using Nancy;
 using Nancy.Swagger;
 using Nancy.Swagger.Services;

@@ -2,7 +2,6 @@
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
-using Nancy.Security;
 using Serilog;
 using System;
 using System.Threading.Tasks;

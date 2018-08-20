@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Security.Claims;
+using Catalyst.Fabric.Authorization.Models;
 using Fabric.Authorization.API.Constants;
-using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Models;

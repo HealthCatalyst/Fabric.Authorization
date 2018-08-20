@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Fabric.Authorization.API.Configuration;
+using Catalyst.Fabric.Authorization.Models;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Domain.Models;

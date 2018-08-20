@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Catalyst.Fabric.Authorization.Models\Catalyst.Fabric.Authorization.Models.csproj" />
     <ProjectReference Include="..\Fabric.Authorization.API\Fabric.Authorization.API.csproj" />
   </ItemGroup>
 

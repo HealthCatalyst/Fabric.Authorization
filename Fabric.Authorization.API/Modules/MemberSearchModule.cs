@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
+using ModelHttpStatus = Catalyst.Fabric.Authorization.Models.Enums.HttpStatusCode;
+using Catalyst.Fabric.Authorization.Models.Search;
 using Fabric.Authorization.API.Configuration;
-using Fabric.Authorization.API.Models.Search;
 using Fabric.Authorization.API.Models.Search.Validators;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Exceptions;
@@ -37,7 +38,10 @@ namespace Fabric.Authorization.API.Modules
                 var searchRequest = this.Bind<MemberSearchRequest>();
                 Validate(searchRequest);
                 var authResponse = await _memberSearchService.Search(searchRequest);
-                return CreateSuccessfulGetResponse(authResponse.ToMemberSearchResponseApiModel(), authResponse.HttpStatusCode);
+                return CreateSuccessfulGetResponse(authResponse.ToMemberSearchResponseApiModel(),
+                    authResponse.HttpStatusCode == ModelHttpStatus.PartialContent
+                        ? HttpStatusCode.PaymentRequired
+                        : HttpStatusCode.OK);
             }
             catch (NotFoundException<Client> ex)
             {

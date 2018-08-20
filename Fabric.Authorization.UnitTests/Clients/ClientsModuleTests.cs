@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using Catalyst.Fabric.Authorization.Models;
 using Fabric.Authorization.API.Constants;
-using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Modules;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Resolvers.Permissions;

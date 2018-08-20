@@ -1,6 +1,6 @@
 ﻿using System;
+using Catalyst.Fabric.Authorization.Models;
 using Fabric.Authorization.API.Constants;
-using Fabric.Authorization.API.Models;
 using Microsoft.AspNetCore.Hosting;
 using Nancy;
 using Nancy.Responses.Negotiation;

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using FluentValidation.Results;
 using Nancy;
+using Catalyst.Fabric.Authorization.Models;
 
 namespace Fabric.Authorization.API.Models
 {
@@ -30,6 +32,24 @@ namespace Fabric.Authorization.API.Models
         public static Error CreateError<T>(IEnumerable<string> messages, HttpStatusCode statusCode)
         {
             return messages.ToError(typeof(T).Name, statusCode);
+        }
+
+        public static Error ToError(this IEnumerable<string> errors, string target, HttpStatusCode statusCode)
+        {
+            var details = errors.Select(e => new Error
+            {
+                Code = statusCode.ToString(),
+                Message = e,
+                Target = target
+            }).ToList();
+
+            var error = new Error
+            {
+                Message = details.Count > 1 ? "Multiple Errors" : details.FirstOrDefault()?.Message,
+                Details = details.ToArray()
+            };
+
+            return error;
         }
     }
 }

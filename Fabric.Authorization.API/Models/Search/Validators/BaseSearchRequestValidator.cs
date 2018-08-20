@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Catalyst.Fabric.Authorization.Models.Search;
 using FluentValidation;
 
 namespace Fabric.Authorization.API.Models.Search.Validators

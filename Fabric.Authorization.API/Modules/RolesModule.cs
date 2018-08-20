@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Catalyst.Fabric.Authorization.Models;
+using Catalyst.Fabric.Authorization.Models.Requests;
 using Fabric.Authorization.API.Models;
-using Fabric.Authorization.API.Models.Requests;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;

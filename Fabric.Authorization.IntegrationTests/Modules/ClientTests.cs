@@ -2,8 +2,8 @@
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Catalyst.Fabric.Authorization.Models;
 using Fabric.Authorization.API.Constants;
-using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using Nancy;
 using Nancy.Testing;

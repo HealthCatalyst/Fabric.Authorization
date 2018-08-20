@@ -1,4 +1,4 @@
-﻿using Fabric.Authorization.API.Models;
+﻿using Catalyst.Fabric.Authorization.Models;
 using Fabric.Authorization.API.Swagger;
 using Nancy;
 using Nancy.Swagger;

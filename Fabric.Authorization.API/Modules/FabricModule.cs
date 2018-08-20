@@ -64,7 +64,7 @@ namespace Fabric.Authorization.API.Modules
 
         protected string ClientId => Context.CurrentUser?.FindFirst(Claims.ClientId)?.Value;
 
-        protected Negotiator CreateSuccessfulPostResponse<TIdentifier>(IIdentifiable<TIdentifier> model,
+        protected Negotiator CreateSuccessfulPostResponse<TIdentifier>(Catalyst.Fabric.Authorization.Models.IIdentifiable<TIdentifier> model,
             HttpStatusCode statusCode = HttpStatusCode.Created)
         {
             return CreateSuccessfulPostResponse(model.Id.ToString(), model, statusCode);

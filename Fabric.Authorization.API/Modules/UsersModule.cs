@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Catalyst.Fabric.Authorization.Models;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Services;
