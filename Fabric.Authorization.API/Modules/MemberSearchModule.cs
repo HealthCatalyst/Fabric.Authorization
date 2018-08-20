@@ -40,7 +40,7 @@ namespace Fabric.Authorization.API.Modules
                 var authResponse = await _memberSearchService.Search(searchRequest);
                 return CreateSuccessfulGetResponse(authResponse.ToMemberSearchResponseApiModel(),
                     authResponse.HttpStatusCode == ModelHttpStatus.PartialContent
-                        ? HttpStatusCode.PaymentRequired
+                        ? HttpStatusCode.PartialContent
                         : HttpStatusCode.OK);
             }
             catch (NotFoundException<Client> ex)
