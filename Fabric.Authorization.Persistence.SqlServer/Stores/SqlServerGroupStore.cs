@@ -395,9 +395,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task<Group> RemoveChildGroups(Group group, IEnumerable<Group> childGroups)
         {
-            var childGroupEntities = AuthorizationDbContext.ChildGroups.Where(cg => !cg.IsDeleted && cg.ParentGroupId == group.Id && childGroups.Select(g => g.Id).Contains(cg.ChildGroupId));
+            var childGroupList = childGroups.ToList();
+            var childGroupIds = childGroupList.Select(g => g.Id);
+            var childGroupEntities = AuthorizationDbContext.ChildGroups.Where(cg => !cg.IsDeleted && cg.ParentGroupId == group.Id && childGroupIds.Contains(cg.ChildGroupId));
 
-            foreach (var childGroup in childGroups)
+            foreach (var childGroup in childGroupList)
             {
                 var childToRemove = group.Children.FirstOrDefault(c => c.Name == childGroup.Name);
                 if (childToRemove == null)
