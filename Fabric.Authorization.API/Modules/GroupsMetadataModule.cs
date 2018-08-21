@@ -467,7 +467,7 @@ namespace Fabric.Authorization.API.Modules
                 {
                     new HttpResponseMetadata<GroupUserApiModel>
                     {
-                        Code = (int) HttpStatusCode.Created,
+                        Code = (int) HttpStatusCode.OK,
                         Message = "Created"
                     },
                     new HttpResponseMetadata<Error>
@@ -538,6 +538,99 @@ namespace Fabric.Authorization.API.Modules
                     _groupNameParameter,
                     _subjectIdParameter,
                     _identityProviderParameter
+                },
+                new[]
+                {
+                    _groupsTag
+                }).SecurityRequirement(OAuth2WriteScopeBuilder);
+
+            RouteDescriber.DescribeRouteWithParams(
+                "AddChildGroups",
+                "1) Only custom groups can be a parent group. 2) Only directory groups can be child groups.",
+                "Adds 1 or more directory groups to a custom group.",
+                new List<HttpResponseMetadata>
+                {
+                    new HttpResponseMetadata<GroupRoleApiModel>
+                    {
+                        Code = (int) HttpStatusCode.Created,
+                        Message = "Created"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.Forbidden,
+                        Message = "Client does not have write access or user does not permissions to write to grain and securable items for roles tied to custom group"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.NotFound,
+                        Message = "Group with specified name was not found or 1 or more of the specified child groups could not be found"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.UnsupportedMediaType,
+                        Message = "Content-Type header was not included in request"
+                    }
+                },
+                new[]
+                {
+                    _groupNameParameter,
+                    new BodyParameter<List<GroupIdentifierApiRequest>>(modelCatalog)
+                    {
+                        Name = "Groups",
+                        Description = "The directory groups to remove"
+                    }
+                },
+                new[]
+                {
+                    _groupsTag
+                }).SecurityRequirement(OAuth2WriteScopeBuilder);
+
+            RouteDescriber.DescribeRouteWithParams(
+                "RemoveChildGroups",
+                "",
+                "Removes 1 or more directory groups from a custom group.",
+                new List<HttpResponseMetadata>
+                {
+                    new HttpResponseMetadata<GroupRoleApiModel>
+                    {
+                        Code = (int) HttpStatusCode.OK,
+                        Message = "R"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.Forbidden,
+                        Message = "Client does not have write access or user does not permissions to write to grain and securable items for roles tied to custom group"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.NotFound,
+                        Message = "Group with specified name was not found or 1 or more of the specified child groups could not be found"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.BadRequest,
+                        Message = "The specified parent group is a directory group or 1 or more specified child groups is a custom group"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.Conflict,
+                        Message = "1 or more directory groups is already a child of the specified custom group"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.UnsupportedMediaType,
+                        Message = "Content-Type header was not included in request"
+                    }
+
+                },
+                new[]
+                {
+                    _groupNameParameter,
+                    new BodyParameter<List<UserIdentifierApiRequest>>(modelCatalog)
+                    {
+                        Name = "Users",
+                        Description = "The users to add"
+                    }
                 },
                 new[]
                 {
