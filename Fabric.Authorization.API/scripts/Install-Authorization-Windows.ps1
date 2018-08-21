@@ -780,37 +780,41 @@ if (!($noDiscoveryService)) {
 
 }
 
-
-if (![string]::IsNullOrEmpty($storedIisUser)) {
-    $userEnteredIisUser = Read-Host "Press Enter to accept the default IIS App Pool User '$($storedIisUser)' or enter a new App Pool User"
-    if ([string]::IsNullOrEmpty($userEnteredIisUser)) {
-        $userEnteredIisUser = $storedIisUser
+if(Test-AppPoolExistsAndRunsAsUser -appPoolName $appName -userName $storedIisUser){
+    $iisUser = $storedIisUser
+}
+else{
+    if (![string]::IsNullOrEmpty($storedIisUser)) {
+        $userEnteredIisUser = Read-Host "Press Enter to accept the default IIS App Pool User '$($storedIisUser)' or enter a new App Pool User"
+        if ([string]::IsNullOrEmpty($userEnteredIisUser)) {
+            $userEnteredIisUser = $storedIisUser
+        }
     }
-}
-else {
-    $userEnteredIisUser = Read-Host "Please enter a user account for the App Pool"
-}
+    else {
+        $userEnteredIisUser = Read-Host "Please enter a user account for the App Pool"
+    }
 
-if (![string]::IsNullOrEmpty($userEnteredIisUser)) {
+    if (![string]::IsNullOrEmpty($userEnteredIisUser)) {
     
-    $iisUser = $userEnteredIisUser
-    $useSpecificUser = $true
-    $userEnteredPassword = Read-Host "Enter the password for $iisUser" -AsSecureString
-    $credential = New-Object -TypeName "System.Management.Automation.PSCredential" -ArgumentList $iisUser, $userEnteredPassword
-    [System.Reflection.Assembly]::LoadWithPartialName("System.DirectoryServices.AccountManagement") | Out-Null
-    $ct = [System.DirectoryServices.AccountManagement.ContextType]::Domain
-    $pc = New-Object System.DirectoryServices.AccountManagement.PrincipalContext -ArgumentList $ct, $credential.GetNetworkCredential().Domain
-    $isValid = $pc.ValidateCredentials($credential.GetNetworkCredential().UserName, $credential.GetNetworkCredential().Password)
-    if (!$isValid) {
-        Write-Error "Incorrect credentials for $iisUser"
+        $iisUser = $userEnteredIisUser
+        $useSpecificUser = $true
+        $userEnteredPassword = Read-Host "Enter the password for $iisUser" -AsSecureString
+        $credential = New-Object -TypeName "System.Management.Automation.PSCredential" -ArgumentList $iisUser, $userEnteredPassword
+        [System.Reflection.Assembly]::LoadWithPartialName("System.DirectoryServices.AccountManagement") | Out-Null
+        $ct = [System.DirectoryServices.AccountManagement.ContextType]::Domain
+        $pc = New-Object System.DirectoryServices.AccountManagement.PrincipalContext -ArgumentList $ct, $credential.GetNetworkCredential().Domain
+        $isValid = $pc.ValidateCredentials($credential.GetNetworkCredential().UserName, $credential.GetNetworkCredential().Password, [System.DirectoryServices.AccountManagement.ContextOptions]::Negotiate)
+        if (!$isValid) {
+            Write-Error "Incorrect credentials for $iisUser"
+            throw
+        }
+        Write-Success "Credentials are valid for user $iisUser"
+        Write-Host ""
+    }
+    else {
+        Write-Error "No user account was entered, please enter a valid user account."
         throw
     }
-    Write-Success "Credentials are valid for user $iisUser"
-    Write-Host ""
-}
-else {
-    Write-Error "No user account was entered, please enter a valid user account."
-    throw
 }
 
 $userEnteredAppInsightsInstrumentationKey = Read-Host  "Enter Application Insights instrumentation key or hit enter to accept the default [$appInsightsInstrumentationKey]"
@@ -891,7 +895,11 @@ Write-Host ""
 $appDirectory = [System.IO.Path]::Combine($webroot, $appName)
 New-AppRoot $appDirectory $iisUser
 Write-Host "App directory is: $appDirectory"
-New-AppPool $appName $iisUser $credential
+
+if(!(Test-AppPoolExistsAndRunsAsUser -appPoolName $appName -userName $iisUser)){
+    New-AppPool $appName $iisUser $credential
+}
+
 New-App $appName $siteName $appDirectory
 Publish-WebSite $zipPackage $appDirectory $appName
 Add-DatabaseSecurity $iisUser $authorizationDatabaseRole $authorizationDbConnStr
@@ -900,7 +908,9 @@ if (!($noDiscoveryService)) {
     Write-Host ""
     Write-Host "Adding Service User to Discovery."
     Write-Host ""
-    Add-ServiceUserToDiscovery $credential.UserName $metadataConnStr
+    $currentUser = "$env:USERDOMAIN\$env:USERNAME"
+    Add-ServiceUserToDiscovery $iisUser $metadataConnStr
+    Add-ServiceUserToDiscovery $currentUser $metadataConnStr
     Write-Host ""
     Write-Host "Registering Fabric.Authorization with Discovery Service."
     Write-Host ""
@@ -912,7 +922,7 @@ if (!($noDiscoveryService)) {
         description = "The Fabric.Authorization service provides centralized authentication across the Fabric ecosystem.";
         serviceUrl = "$authorizationServiceUrl/v1";
     }
-    Add-DiscoveryRegistration $discoveryServiceUrl $credential $discoveryAuthorizationPostBody
+    Add-DiscoveryRegistration $discoveryServiceUrl $null $discoveryAuthorizationPostBody
     Write-Host ""
 
     Write-Host "Registering Fabric.AccessControl with Discovery Service."
@@ -927,7 +937,7 @@ if (!($noDiscoveryService)) {
         discoveryType = "Application";
         isHidden = $false;
     }
-    Add-DiscoveryRegistration $discoveryServiceUrl $credential $discoveryAccessControlPostBody
+    Add-DiscoveryRegistration $discoveryServiceUrl $null $discoveryAccessControlPostBody
     Write-Host ""
 }
 
