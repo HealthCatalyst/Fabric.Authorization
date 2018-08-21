@@ -187,7 +187,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(2, groupApiModel.Children.Count());
             Assert.Contains(groupApiModel.Children, c => c.GroupName == childGroup1.GroupName);
             Assert.Contains(groupApiModel.Children, c => c.GroupName == childGroup2.GroupName);
-
             Assert.Empty(groupApiModel.Parents);
 
             // get childGroup1
@@ -215,6 +214,36 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Empty(groupApiModel.Children);
             Assert.Single(groupApiModel.Parents);
             Assert.Contains(groupApiModel.Parents, c => c.GroupName == parentGroup.GroupName);
+
+            // delete childGroup2 association
+            var deleteResponse = await _browser.Delete($"/groups/{parentGroup.GroupName}/groups", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new[]
+                {
+                    new { childGroup2.GroupName }
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.OK, deleteResponse.StatusCode);
+
+            groupApiModel = JsonConvert.DeserializeObject<GroupRoleApiModel>(deleteResponse.Body.AsString());
+            Assert.Single(groupApiModel.Children);
+            Assert.Contains(groupApiModel.Children, c => c.GroupName == childGroup1.GroupName);
+            Assert.Empty(groupApiModel.Parents);
+
+            // get parentGroup after delete
+            getResponse = await _browser.Get($"/groups/{parentGroup.GroupName}", with =>
+            {
+                with.HttpRequest();
+            });
+
+            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+            groupApiModel = JsonConvert.DeserializeObject<GroupRoleApiModel>(getResponse.Body.AsString());
+            Assert.Single(groupApiModel.Children);
+            Assert.Contains(groupApiModel.Children, c => c.GroupName == childGroup1.GroupName);
+            Assert.Empty(groupApiModel.Parents);
         }
 
         [Fact]
@@ -464,6 +493,42 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Contains(parentPermission.ToString(), userPermissions);
             Assert.Contains(childPermission1.ToString(), userPermissions);
             Assert.Contains(childPermission2.ToString(), userPermissions);
+
+            // delete childGroup2 association
+            var deleteResponse = await _browser.Delete($"/groups/{parentGroup.GroupName}/groups", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new[]
+                {
+                    new { childGroup2.GroupName }
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.OK, deleteResponse.StatusCode);
+
+            // get authenticated user's permissions
+            get = await browser.Get("/user/permissions", with =>
+            {
+                with.HttpRequest();
+            });
+
+            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
+            userPermissionsApiModel = get.Body.DeserializeJson<UserPermissionsApiModel>();
+            userPermissions = userPermissionsApiModel.Permissions.ToList();
+            Assert.Equal(2, userPermissions.Count);
+            Assert.Contains(parentPermission.ToString(), userPermissions);
+            Assert.Contains(childPermission1.ToString(), userPermissions);
+
+            // get non-authenticated user's permissions
+            get = await _browser.Get($"/user/{idP}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+            });
+
+            userPermissions = get.Body.DeserializeJson<IEnumerable<ResolvedPermissionApiModel>>().Select(p => p.ToString()).ToList();
+            Assert.Equal(2, userPermissions.Count);
+            Assert.Contains(parentPermission.ToString(), userPermissions);
+            Assert.Contains(childPermission1.ToString(), userPermissions);
         }
     }
 }
