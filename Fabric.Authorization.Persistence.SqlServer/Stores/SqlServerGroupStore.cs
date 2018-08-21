@@ -151,6 +151,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             var groupEntity = await AuthorizationDbContext.Groups
                 .Include(g => g.GroupRoles)
                 .Include(g => g.GroupUsers)
+                .Include(g => g.ChildGroups)
+                .Include(g => g.ParentGroups)
                 .SingleOrDefaultAsync(g => g.GroupId == group.Id);
 
             if (groupEntity == null)
@@ -173,6 +175,22 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 if (!groupUser.IsDeleted)
                 {
                     groupUser.IsDeleted = true;
+                }
+            }
+
+            foreach (var childGroup in groupEntity.ChildGroups)
+            {
+                if (!childGroup.IsDeleted)
+                {
+                    childGroup.IsDeleted = true;
+                }
+            }
+
+            foreach (var parentGroup in groupEntity.ParentGroups)
+            {
+                if (!parentGroup.IsDeleted)
+                {
+                    parentGroup.IsDeleted = true;
                 }
             }
 
