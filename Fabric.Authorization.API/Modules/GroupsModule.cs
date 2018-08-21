@@ -438,10 +438,6 @@ namespace Fabric.Authorization.API.Modules
             {
                 return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
             }
-            catch (BadRequestException<Group> ex)
-            {
-                return CreateFailureResponse(ex.Message, HttpStatusCode.BadRequest);
-            }
         }
 
         private Negotiator ValidateGroupUserRequest(GroupUserRequest groupUserRequest)
