@@ -80,7 +80,7 @@ namespace Fabric.Authorization.API.Models
             return userApiModel;
         }
 
-        public static GroupRoleApiModel ToGroupRoleApiModel(this Group group)
+        public static GroupRoleApiModel ToGroupRoleApiModel(this Group group, bool isRequestedGroup = true)
         {
             var groupRoleApiModel = new GroupRoleApiModel
             {
@@ -90,8 +90,8 @@ namespace Fabric.Authorization.API.Models
                 Description = group.Description,
                 Roles = group.Roles?.Where(r => !r.IsDeleted).Select(r => r.ToRoleApiModel()),
                 GroupSource = group.Source,
-                Parents = group.Parents.Select(p => p.ToGroupRoleApiModel()),
-                Children = group.Children.Select(c => c.ToGroupRoleApiModel())
+                Parents = isRequestedGroup ? group.Parents.Select(p => p.ToGroupRoleApiModel(false)) : new List<GroupRoleApiModel>(),
+                Children = isRequestedGroup ? group.Children.Select(c => c.ToGroupRoleApiModel(false)) : new List<GroupRoleApiModel>()
             };
 
             return groupRoleApiModel;
@@ -110,8 +110,8 @@ namespace Fabric.Authorization.API.Models
                         && groupRoleFilter(r, groupRoleRequest.Grain, groupRoleRequest.SecurableItem))
                     .Select(r => r.ToRoleApiModel()),
                 GroupSource = group.Source,
-                Parents = group.Parents.Select(p => p.ToGroupRoleApiModel()),
-                Children = group.Children.Select(c => c.ToGroupRoleApiModel())
+                Parents = group.Parents.Select(p => p.ToGroupRoleApiModel(false)),
+                Children = group.Children.Select(c => c.ToGroupRoleApiModel(false))
             };
 
             return groupRoleApiModel;

@@ -174,6 +174,47 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(2, groupApiModel.Children.Count());
             Assert.Contains(groupApiModel.Children, c => c.GroupName == childGroup1.GroupName);
             Assert.Contains(groupApiModel.Children, c => c.GroupName == childGroup2.GroupName);
+
+            // get parentGroup
+            var getResponse = await _browser.Get($"/groups/{parentGroup.GroupName}", with =>
+            {
+                with.HttpRequest();
+            });
+
+            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+            groupApiModel = JsonConvert.DeserializeObject<GroupRoleApiModel>(getResponse.Body.AsString());
+            Assert.Equal(2, groupApiModel.Children.Count());
+            Assert.Contains(groupApiModel.Children, c => c.GroupName == childGroup1.GroupName);
+            Assert.Contains(groupApiModel.Children, c => c.GroupName == childGroup2.GroupName);
+
+            Assert.Empty(groupApiModel.Parents);
+
+            // get childGroup1
+            getResponse = await _browser.Get($"/groups/{childGroup1.GroupName}", with =>
+            {
+                with.HttpRequest();
+            });
+
+            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+            groupApiModel = JsonConvert.DeserializeObject<GroupRoleApiModel>(getResponse.Body.AsString());
+            Assert.Empty(groupApiModel.Children);
+            Assert.Single(groupApiModel.Parents);
+            Assert.Contains(groupApiModel.Parents, c => c.GroupName == parentGroup.GroupName);
+
+            // get childGroup2
+            getResponse = await _browser.Get($"/groups/{childGroup2.GroupName}", with =>
+            {
+                with.HttpRequest();
+            });
+
+            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+            groupApiModel = JsonConvert.DeserializeObject<GroupRoleApiModel>(getResponse.Body.AsString());
+            Assert.Empty(groupApiModel.Children);
+            Assert.Single(groupApiModel.Parents);
+            Assert.Contains(groupApiModel.Parents, c => c.GroupName == parentGroup.GroupName);
         }
 
         [Fact]
