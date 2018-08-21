@@ -440,9 +440,11 @@ function Remove-GroupsFromDosAdminRole($connectionString, $clientId, $roleName, 
                 gr.ModifiedDateTimeUtc = GETUTCDATE()
             FROM GroupRoles gr
             INNER JOIN Roles r ON gr.RoleId = r.RoleId
+            INNER JOIN Groups g on g.GroupId = gr.GroupId
             INNER JOIN SecurableItems s on r.SecurableItemId = s.SecurableItemId
             WHERE r.[Name] = @roleName
             AND s.[Name] = @securableName
+            AND g.Source != 'custom'
             AND gr.IsDeleted = 0;"
 
     Write-Host "Removing groups from $dosAdminRole role..."
