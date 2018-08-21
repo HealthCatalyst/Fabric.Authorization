@@ -552,18 +552,28 @@ namespace Fabric.Authorization.API.Modules
                 {
                     new HttpResponseMetadata<GroupRoleApiModel>
                     {
-                        Code = (int) HttpStatusCode.Created,
+                        Code = (int) HttpStatusCode.OK,
                         Message = "Created"
                     },
                     new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.Forbidden,
-                        Message = "Client does not have write access or user does not permissions to write to grain and securable items for roles tied to custom group"
+                        Message = "Client does not have write access or user does not have permissions to write to grain and securable items for roles tied to custom group"
                     },
                     new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.NotFound,
                         Message = "Group with specified name was not found or 1 or more of the specified child groups could not be found"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.BadRequest,
+                        Message = "The specified parent group is a directory group or 1 or more specified child groups is a custom group"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.Conflict,
+                        Message = "1 or more directory groups is already a child of the specified custom group"
                     },
                     new HttpResponseMetadata<Error>
                     {
@@ -594,42 +604,31 @@ namespace Fabric.Authorization.API.Modules
                     new HttpResponseMetadata<GroupRoleApiModel>
                     {
                         Code = (int) HttpStatusCode.OK,
-                        Message = "R"
+                        Message = "Removed"
                     },
                     new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.Forbidden,
-                        Message = "Client does not have write access or user does not permissions to write to grain and securable items for roles tied to custom group"
+                        Message = "Client does not have write access or user does not have permissions to write to grain and securable items for roles tied to custom group"
                     },
                     new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.NotFound,
                         Message = "Group with specified name was not found or 1 or more of the specified child groups could not be found"
-                    },
-                    new HttpResponseMetadata<Error>
-                    {
-                        Code = (int) HttpStatusCode.BadRequest,
-                        Message = "The specified parent group is a directory group or 1 or more specified child groups is a custom group"
-                    },
-                    new HttpResponseMetadata<Error>
-                    {
-                        Code = (int) HttpStatusCode.Conflict,
-                        Message = "1 or more directory groups is already a child of the specified custom group"
-                    },
+                    },                    
                     new HttpResponseMetadata<Error>
                     {
                         Code = (int) HttpStatusCode.UnsupportedMediaType,
                         Message = "Content-Type header was not included in request"
                     }
-
                 },
                 new[]
                 {
                     _groupNameParameter,
                     new BodyParameter<List<UserIdentifierApiRequest>>(modelCatalog)
                     {
-                        Name = "Users",
-                        Description = "The users to add"
+                        Name = "Groups",
+                        Description = "The groups to remove"
                     }
                 },
                 new[]
