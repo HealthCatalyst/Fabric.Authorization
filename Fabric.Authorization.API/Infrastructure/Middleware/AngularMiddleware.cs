@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Catalyst.Fabric.Authorization.Models;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
 using Microsoft.AspNetCore.Hosting;
@@ -66,9 +67,7 @@ namespace Fabric.Authorization.API.Infrastructure.Middleware
 
         private string FormatBaseAccessControlUri(string baseUrl)
         {
-            var baseUriEndpoint = new Uri(baseUrl);
-            var accessControlEndpoint = new Uri(baseUriEndpoint, AccessControl.Path);
-            return $"{accessControlEndpoint.ToString().Trim('/')}/";
+            return $"{baseUrl.EnsureTrailingSlash()}{AccessControl.Path}/";
         }
 
         private async Task WriteIndexResponse(HttpContext context)
