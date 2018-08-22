@@ -2,6 +2,9 @@
 CREATE ROLE [AuthorizationServiceRole];
 GO
 
+GRANT SELECT, INSERT, UPDATE, DELETE ON [dbo].[ChildGroups] TO AuthorizationServiceRole;
+GO
+
 GRANT SELECT, INSERT, UPDATE, DELETE ON [dbo].[Clients] TO AuthorizationServiceRole;
 GO
 
