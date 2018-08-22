@@ -908,9 +908,7 @@ if (!($noDiscoveryService)) {
     Write-Host ""
     Write-Host "Adding Service User to Discovery."
     Write-Host ""
-    $currentUser = "$env:USERDOMAIN\$env:USERNAME"
     Add-ServiceUserToDiscovery $iisUser $metadataConnStr
-    Add-ServiceUserToDiscovery $currentUser $metadataConnStr
     Write-Host ""
     Write-Host "Registering Fabric.Authorization with Discovery Service."
     Write-Host ""
@@ -921,8 +919,9 @@ if (!($noDiscoveryService)) {
         friendlyName = "Fabric.Authorization";
         description = "The Fabric.Authorization service provides centralized authentication across the Fabric ecosystem.";
         serviceUrl = "$authorizationServiceUrl/v1";
+        discoveryType = "Service";
     }
-    Add-DiscoveryRegistration $discoveryServiceUrl $null $discoveryAuthorizationPostBody
+    Add-DiscoveryRegistrationSql $discoveryAuthorizationPostBody $metadataConnStr | Out-Null
     Write-Host ""
 
     Write-Host "Registering Fabric.AccessControl with Discovery Service."
@@ -937,7 +936,7 @@ if (!($noDiscoveryService)) {
         discoveryType = "Application";
         isHidden = $false;
     }
-    Add-DiscoveryRegistration $discoveryServiceUrl $null $discoveryAccessControlPostBody
+    Add-DiscoveryRegistrationSql $discoveryAccessControlPostBody $metadataConnStr | Out-Null
     Write-Host ""
 }
 
