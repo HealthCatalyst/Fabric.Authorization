@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using JetBrains.Annotations;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -36,7 +37,7 @@ namespace Fabric.Authorization.API.Models.EDW
         /// <summary>
         /// <see cref="Role"/>s that user has
         /// </summary>
-        //[NotNull]
+        [NotNull]
         public virtual ICollection<EDWRole> EDWRoles
         {
             get
