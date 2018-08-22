@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using JetBrains.Annotations;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -42,7 +43,7 @@ namespace Fabric.Authorization.API.Models.EDW
         /// <summary>
         /// <see cref="Identity"/>s that have role
         /// </summary>
-        //[NotNull]
+        [NotNull]
         public virtual ICollection<EDWIdentity> EDWIdentities
         {
             get
