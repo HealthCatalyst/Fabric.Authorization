@@ -4,6 +4,7 @@
     using Fabric.Authorization.Domain.Stores;
     using System.Threading.Tasks;
     using System.Linq;
+    using System;
 
     public class RoleManager
     {
@@ -43,6 +44,6 @@
             }
 
             return false;
-        }
+        }        
     }
 }

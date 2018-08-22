@@ -1,24 +1,17 @@
-﻿using Catalyst.Security.Services;
-using Fabric.Authorization.API.Models.EDW;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Fabric.Authorization.API.Models.EDW;
+using Fabric.Authorization.Domain.Stores;
 using Microsoft.EntityFrameworkCore;
 
-namespace Fabric.Authorization.API.Services
+namespace Fabric.Authorization.Persistence.SqlServer.Stores
 {
-    public class RoleManager
+    public class EDWStore : /*SqlServerBaseStore,TODO EDWServerBaseStore?*/ IEDWStore
     {
-        private readonly ISecurityContext securityContext;
-
-        public RoleManager(ISecurityContext securityContext)
-        {
-            this.securityContext = securityContext;
-        }
-
-        public IQueryable<EDWRole> GetRolesByName(string roleName)
-        {
-            return this.securityContext.EDWRoles.Where(role => role.Name == roleName);
-        }
+        private readonly SecurityContext securityContext;
 
         public void AddIdentitiesToRole(string[] identities, string roleName)
         {
@@ -26,13 +19,20 @@ namespace Fabric.Authorization.API.Services
             this.AddIdentitiesToRole(identities, role.Id);
         }
 
+
         public void RemoveIdentitiesFromRole(string[] identities, string roleName)
         {
             var role = this.GetRolesByName(roleName).SingleOrDefault();
             this.RemoveIdentitiesFromRole(identities, role.Id);
         }
 
-        public void AddIdentitiesToRole(string[] identityNames, int roleId)
+
+        private IQueryable<EDWRole> GetRolesByName(string roleName)
+        {
+            return this.securityContext.EDWRoles.Where(role => role.Name == roleName);
+        }
+
+        private void AddIdentitiesToRole(string[] identityNames, int roleId)
         {
             using (var context = this.securityContext.CreateContext())
             {
@@ -48,7 +48,7 @@ namespace Fabric.Authorization.API.Services
 
                 var roleToAdd = context.EDWRoles.FirstOrDefault(role => role.Id == roleId);
 
-                if(roleToAdd == null)
+                if (roleToAdd == null)
                 {
                     throw new ArgumentException("Role not found.");
                 }
@@ -66,7 +66,7 @@ namespace Fabric.Authorization.API.Services
             }
         }
 
-        public void RemoveIdentitiesFromRole(string[] identityNames, int roleId)
+        private void RemoveIdentitiesFromRole(string[] identityNames, int roleId)
         {
             using (var context = this.securityContext.CreateContext())
             {
