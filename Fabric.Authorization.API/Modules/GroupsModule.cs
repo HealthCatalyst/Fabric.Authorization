@@ -117,6 +117,12 @@ namespace Fabric.Authorization.API.Modules
                 null,
                 "DeleteUserFromGroup");
 
+            // child groups
+            Get("/{groupName}/groups",
+                async p => await GetChildGroups(p).ConfigureAwait(false),
+                null,
+                "GetChildGroups");
+
             Post("/{groupName}/groups",
                 async p => await AddChildGroups(p).ConfigureAwait(false),
                 null,
@@ -393,6 +399,20 @@ namespace Fabric.Authorization.API.Modules
                 return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
             }
             catch (NotFoundException<User> ex)
+            {
+                return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
+            }
+        }
+
+        private async Task<dynamic> GetChildGroups(dynamic parameters)
+        {
+            try
+            {
+                this.RequiresClaims(AuthorizationReadClaim);
+                Group group = await _groupService.GetGroup(parameters.GroupName, ClientId);
+                return group.Children.Select(g => g.ToGroupRoleApiModel());
+            }
+            catch (NotFoundException<Group> ex)
             {
                 return CreateFailureResponse(ex.Message, HttpStatusCode.NotFound);
             }

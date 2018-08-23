@@ -63,9 +63,9 @@ namespace Fabric.Authorization.Domain.Services
             }
         }
 
-        public async Task<Group> GetGroup(string id, string clientId)
+        public async Task<Group> GetGroup(string groupName, string clientId)
         {
-            var group = await _groupStore.Get(id);             
+            var group = await _groupStore.Get(groupName);             
             var clientRoles = (await _roleService.GetRoles(clientId)).ToList();
             group.Roles = clientRoles.Intersect(group.Roles).ToList();
             return group;
