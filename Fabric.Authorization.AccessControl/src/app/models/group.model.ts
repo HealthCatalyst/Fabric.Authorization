@@ -9,6 +9,8 @@ export interface IGroup {
   groupSource: string;
   displayName?: string;
   description?: string;
+  children?: Array<IGroup>;
+  parents?: Array<IGroup>;
 
    // Custom Property
    selected?: boolean;

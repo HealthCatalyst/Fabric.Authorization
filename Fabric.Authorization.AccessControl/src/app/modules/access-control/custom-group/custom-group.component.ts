@@ -10,7 +10,6 @@ import { IRole } from '../../../models/role.model';
 import { IUser } from '../../../models/user.model';
 import { IFabricPrincipal } from '../../../models/fabricPrincipal.model';
 import { IGroup } from '../../../models/group.model';
-import { Subscription } from 'rxjs/Subscription';
 import { Subject } from 'rxjs/Subject';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/zip';
@@ -29,12 +28,13 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   public roles: Array<IRole> = [];
   public principals: Array<IFabricPrincipal> = [];
   public customGroups: Array<IGroup> = [];
-  public associatedPrincipals: Array<IUser> = [];
+  public associatedUsers: Array<IUser> = [];
+  public associatedGroups: Array<IGroup> = [];
   public editMode = true;
 
   public groupName = '';
   public groupNameSubject = new Subject<string>();
-  public groupNameinvalid = false;
+  public groupNameInvalid = false;
   public groupNameError: string;
   public searchingGroup = false;
 
@@ -48,10 +48,12 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   private grain: string;
   private securableItem: string;
 
+  private userType = 'user';
+  private groupType = 'group';
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private userService: FabricAuthUserService,
     @Inject('IAccessControlConfigService') private configService: IAccessControlConfigService,
     private roleService: FabricAuthRoleService,
     private groupService: FabricAuthGroupService,
@@ -65,10 +67,11 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     this.editMode = !!this.groupName;
 
     if (this.editMode) {
-      Observable.zip(this.getGroupRoles(), this.getGroupUsers())
-        .do((result: [IRole[], IUser[]]) => {
+      Observable.zip(this.getGroupRoles(), this.getGroupUsers(), this.getChildGroups())
+        .do((result: [IRole[], IUser[], IGroup[]]) => {
           this.roles = result[0];
-          this.associatedPrincipals = result[1];
+          this.associatedUsers = result[1];
+          this.associatedGroups = result[2];
         })
         .takeUntil(this.ngUnsubscribe)
         .subscribe(null, null, () => {
@@ -76,7 +79,6 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
         });
     } else {
       this.setupGroupNameErrorCheck();
-
       this.roleService
         .getRolesBySecurableItemAndGrain(
           this.grain,
@@ -129,7 +131,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     });
 
     this.idpSearchService
-      .search(this.searchTermSubject, 'user')
+      .search(this.searchTermSubject, null)
       .takeUntil(this.ngUnsubscribe)
       .subscribe(result => {
         this.searching = false;
@@ -138,15 +140,15 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
               ? [
                     {
                         subjectId: this.searchTerm,
-                        principalType: 'user'
+                        principalType: this.userType
                     }
                 ]
               : result.principals;
 
-        if (this.associatedPrincipals && this.associatedPrincipals.length > 0) {
-          this.principals = returnedPrincipals.filter(principal =>
-            this.associatedPrincipals
-              .some(associatedPrincipal => associatedPrincipal.subjectId !== principal.subjectId));
+        if (this.associatedUsers && this.associatedUsers.length > 0) {
+          this.principals = returnedPrincipals.filter(user =>
+            this.associatedUsers
+              .some(associatedUser => associatedUser.subjectId !== user.subjectId));
         } else {
           this.principals = returnedPrincipals;
         }
@@ -161,6 +163,11 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   getGroupUsers(): Observable<IUser[]> {
     return this.groupService
       .getGroupUsers(this.groupName);
+  }
+
+  getChildGroups(): Observable<IGroup[]> {
+    return this.groupService
+      .getChildGroups(this.groupName);
   }
 
   getGroupRoles(): Observable<IRole[]> {
@@ -203,12 +210,12 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
         return newUser;
       });
 
-    this.associatedPrincipals = this.associatedPrincipals.concat(newUsers);
+    this.associatedUsers = this.associatedUsers.concat(newUsers);
     this.principals = this.principals.filter(principal => !principal.selected);
   }
 
   unAssociateUsers() {
-    const removedUsers: IFabricPrincipal[] = this.associatedPrincipals
+    const removedUsers: IFabricPrincipal[] = this.associatedUsers
       .filter(principal => principal.selected === true)
       .map((principal) => {
         const newUser: IFabricPrincipal = {
@@ -223,7 +230,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
       });
 
     this.principals = this.principals.concat(removedUsers);
-    this.associatedPrincipals = this.associatedPrincipals.filter(principal => !principal.selected);
+    this.associatedUsers = this.associatedUsers.filter(principal => !principal.selected);
   }
 
   save() {
@@ -246,10 +253,10 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
             const existingUsers = result[1];
             const selectedRoles = this.roles.filter(role => role.selected === true);
 
-            const usersToAdd = this.associatedPrincipals
+            const usersToAdd = this.associatedUsers
               .filter(user => !existingUsers.some(existingUser => user.subjectId === existingUser.subjectId));
             const usersToRemove = existingUsers
-              .filter(existingUser => !this.associatedPrincipals.some(user => user.subjectId === existingUser.subjectId));
+              .filter(existingUser => !this.associatedUsers.some(user => user.subjectId === existingUser.subjectId));
 
             const rolesToAdd = selectedRoles.filter(userRole => !existingRoles.some(selectedRole => userRole.id === selectedRole.id));
             const rolesToRemove = existingRoles.filter(userRole => !selectedRoles.some(selectedRole => userRole.id === selectedRole.id));
@@ -268,7 +275,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
       .takeUntil(this.ngUnsubscribe)
       .subscribe(null, (error) => {
         if (error.statusCode === 409) {
-          this.groupNameinvalid = true;
+          this.groupNameInvalid = true;
           this.groupNameError = `Group ${this.groupName} already exists`;
         }
         // TODO: Error handling
@@ -296,7 +303,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   private checkGroupNameProvided(name: string) {
     if (!name) {
       this.groupNameError = 'Group name is required';
-      this.groupNameinvalid = true;
+      this.groupNameInvalid = true;
       return false;
     }
     return true;
@@ -305,15 +312,24 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   public customGroupSelected(selectedGroup: IGroup) {
     this.groupName = selectedGroup.groupName;
     this.editMode = true;
-    this.groupNameinvalid = false;
+    this.groupNameInvalid = false;
     this.groupNameError = '';
     this.customGroups = [];
-    return Observable.zip(this.getGroupRoles(), this.getGroupUsers())
-        .do((result: [IRole[], IUser[]]) => {
+    return Observable.zip(this.getGroupRoles(), this.getGroupUsers(), this.getChildGroups())
+        .do((result: [IRole[], IUser[], IGroup[]]) => {
           this.roles = result[0];
-          this.associatedPrincipals = result[1];
+          this.associatedUsers = result[1];
+          this.associatedGroups = result[2];
         })
         .takeUntil(this.ngUnsubscribe)
         .subscribe();
+  }
+
+  public isUser(principal: IFabricPrincipal) {
+    return principal && principal.principalType === this.userType;
+  }
+
+  public isGroup(principal: IFabricPrincipal) {
+    return principal && principal.principalType === this.groupType;
   }
 }
