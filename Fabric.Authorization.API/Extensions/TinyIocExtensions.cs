@@ -31,6 +31,7 @@ namespace Fabric.Authorization.API.Extensions
 
             container.Register<IEventService, EventService>();
             container.Register<IEventContextResolverService, EventContextResolverService>();
+            container.Register<EDWAdminRoleSyncService, EDWAdminRoleSyncService>();
 
             return container;
         }

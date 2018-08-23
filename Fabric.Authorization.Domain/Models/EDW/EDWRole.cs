@@ -1,9 +1,6 @@
-﻿using JetBrains.Annotations;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.Collections.Generic;
 
-namespace Fabric.Authorization.API.Models.EDW
+namespace Fabric.Authorization.Domain.Models.EDW
 {
     public class EDWRole
     {

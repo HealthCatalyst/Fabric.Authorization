@@ -30,6 +30,7 @@ namespace Fabric.Authorization.API.DependencyInjection
         public void ConfigureRequestInstances(TinyIoCContainer container)
         {
             RegisterDatabaseContext(container);
+            RegisterEDWDatabaseContext(container);
             container.Register<IRoleStore, SqlServerRoleStore>();
             container.Register<IUserStore, SqlServerUserStore>();
             container.Register<IPermissionStore, SqlServerPermissionStore>();
@@ -37,8 +38,11 @@ namespace Fabric.Authorization.API.DependencyInjection
             container.Register<IClientStore, SqlServerClientStore>();
             container.Register<IGrainStore, SqlServerGrainStore>();
             container.Register<ISecurableItemStore, SqlServerSecurableItemStore>();
+            container.Register<IEDWStore, EDWStore>();
         }
 
         protected abstract TinyIoCContainer.RegisterOptions RegisterDatabaseContext(TinyIoCContainer container);
+
+        protected abstract TinyIoCContainer.RegisterOptions RegisterEDWDatabaseContext(TinyIoCContainer container);
     }
 }

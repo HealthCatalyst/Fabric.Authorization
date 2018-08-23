@@ -1,5 +1,6 @@
 ﻿using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.Persistence.SqlServer.Services;
+using Fabric.Authorization.Persistence.SqlServer.Stores.EDW;
 using Nancy.TinyIoc;
 
 namespace Fabric.Authorization.API.DependencyInjection
@@ -13,6 +14,11 @@ namespace Fabric.Authorization.API.DependencyInjection
         protected override TinyIoCContainer.RegisterOptions RegisterDatabaseContext(TinyIoCContainer container)
         {
             return container.Register<IAuthorizationDbContext, AuthorizationDbContext>();
+        }
+
+        protected override TinyIoCContainer.RegisterOptions RegisterEDWDatabaseContext(TinyIoCContainer container)
+        {
+            return container.Register<ISecurityContext, SecurityContext>();
         }
     }
 }

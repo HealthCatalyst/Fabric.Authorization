@@ -1,11 +1,15 @@
 ﻿using System;
-public static class ObjectExtensions
+
+namespace Fabric.Authorization.Domain.Models.EDW
 {
-    public static void CheckWhetherArgumentIsNull(this object argument, string argumentName)
+    public static class ObjectExtensions
     {
-        if (argument == null)
+        public static void CheckWhetherArgumentIsNull(this object argument, string argumentName)
         {
-            throw new ArgumentNullException(argumentName);
+            if (argument == null)
+            {
+                throw new ArgumentNullException(argumentName);
+            }
         }
     }
 }

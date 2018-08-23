@@ -1,8 +1,8 @@
-﻿using Catalyst.Security.Services;
+﻿using Fabric.Authorization.Domain.Models.EDW;
 using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using Microsoft.EntityFrameworkCore;
 
-namespace Fabric.Authorization.API.Models.EDW
+namespace Fabric.Authorization.Persistence.SqlServer.Stores.EDW
 {
     public class SecurityContext : DbContext, ISecurityContext
     {
@@ -12,7 +12,7 @@ namespace Fabric.Authorization.API.Models.EDW
         public DbSet<EDWRole> EDWRoles { get; set; }
         public DbSet<EDWIdentityRole> EDWIdentityRoles { get; set; }
 
-        public SecurityContext() { }
+        public SecurityContext(ConnectionStrings connectionStrings) { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -21,26 +21,22 @@ namespace Fabric.Authorization.API.Models.EDW
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            if (modelBuilder == null)
-            {
-                return;
-            }
+            base.OnModelCreating(modelBuilder);
+            //if (modelBuilder == null)
+            //{
+            //    return;
+            //}
 
-            modelBuilder.Entity<EDWIdentityRole>()
-                .HasKey(identityRole => new { identityRole.IdentityId, identityRole.RoleId });
-            modelBuilder.Entity<EDWIdentityRole>()
-                .HasOne(identityRole => identityRole.EDWRole)
-                .WithMany(role => role.EDWIdentityRoles)
-                .HasForeignKey(identityRole => identityRole.RoleId);
-            modelBuilder.Entity<EDWIdentityRole>()
-                .HasOne(identityRole => identityRole.EDWIdentity)
-                .WithMany(role => role.EDWIdentityRoles)
-                .HasForeignKey(identityRole => identityRole.RoleId);
-        }
-
-        public ISecurityContext CreateContext()
-        {
-            return new SecurityContext();
+            //modelBuilder.Entity<EDWIdentityRole>()
+            //    .HasKey(identityRole => new { identityRole.IdentityId, identityRole.RoleId });
+            //modelBuilder.Entity<EDWIdentityRole>()
+            //    .HasOne(identityRole => identityRole.EDWRole)
+            //    .WithMany(role => role.EDWIdentityRoles)
+            //    .HasForeignKey(identityRole => identityRole.RoleId);
+            //modelBuilder.Entity<EDWIdentityRole>()
+            //    .HasOne(identityRole => identityRole.EDWIdentity)
+            //    .WithMany(role => role.EDWIdentityRoles)
+            //    .HasForeignKey(identityRole => identityRole.RoleId);
         }
     }
 }
