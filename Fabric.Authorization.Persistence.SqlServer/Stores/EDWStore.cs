@@ -1,17 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Fabric.Authorization.API.Models.EDW;
+using Fabric.Authorization.Domain.Models.EDW;
 using Fabric.Authorization.Domain.Stores;
+using Fabric.Authorization.Persistence.SqlServer.Stores.EDW;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fabric.Authorization.Persistence.SqlServer.Stores
 {
     public class EDWStore : /*SqlServerBaseStore,TODO EDWServerBaseStore?*/ IEDWStore
     {
-        private readonly SecurityContext securityContext;
+        private readonly ISecurityContext securityContext;
+
+        public EDWStore(ISecurityContext securityContext)
+        {
+            this.securityContext = securityContext ??
+                    throw new ArgumentNullException(nameof(securityContext));
+        }
 
         public void AddIdentitiesToRole(string[] identities, string roleName)
         {
@@ -34,58 +38,52 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         private void AddIdentitiesToRole(string[] identityNames, int roleId)
         {
-            using (var context = this.securityContext.CreateContext())
+            foreach (string identityName in identityNames)
             {
-                foreach (string identityName in identityNames)
+                if (!securityContext.EDWIdentities.Any(identity => identity.Name == identityName))
                 {
-                    if (!context.EDWIdentities.Any(identity => identity.Name == identityName))
-                    {
-                        context.EDWIdentities.Add(new EDWIdentity { Name = identityName });
-                    }
+                    securityContext.EDWIdentities.Add(new EDWIdentity { Name = identityName });
                 }
-
-                context.SaveChanges();
-
-                var roleToAdd = context.EDWRoles.FirstOrDefault(role => role.Id == roleId);
-
-                if (roleToAdd == null)
-                {
-                    throw new ArgumentException("Role not found.");
-                }
-
-                var targetIdentities = context.EDWIdentities.Include(identity => identity.EDWRoles)
-                    .Where(identity => identityNames.Contains(identity.Name) && !identity.EDWRoles.Any(role => role.Id == roleId))
-                    .ToList();
-
-                foreach (var identity in targetIdentities)
-                {
-                    roleToAdd.EDWIdentities.Add(identity);
-                }
-
-                context.SaveChanges();
             }
+
+            securityContext.SaveChanges();
+
+            var roleToAdd = securityContext.EDWRoles.FirstOrDefault(role => role.Id == roleId);
+
+            if (roleToAdd == null)
+            {
+                throw new ArgumentException("Role not found.");
+            }
+
+            var targetIdentities = securityContext.EDWIdentities.Include(identity => identity.EDWRoles)
+                .Where(identity => identityNames.Contains(identity.Name) && !identity.EDWRoles.Any(role => role.Id == roleId))
+                .ToList();
+
+            foreach (var identity in targetIdentities)
+            {
+                roleToAdd.EDWIdentities.Add(identity);
+            }
+
+            securityContext.SaveChanges();
         }
 
         private void RemoveIdentitiesFromRole(string[] identityNames, int roleId)
         {
-            using (var context = this.securityContext.CreateContext())
+            var targetIdentities = securityContext.EDWIdentities.Include(identity => identity.EDWRoles)
+            .Where(identity => identityNames.Contains(identity.Name));
+
+            foreach (var identity in targetIdentities)
             {
-                var targetIdentities = securityContext.EDWIdentities.Include(identity => identity.EDWRoles)
-                .Where(identity => identityNames.Contains(identity.Name));
-
-                foreach (var identity in targetIdentities)
+                var roleToRemove = identity.EDWRoles.FirstOrDefault(role => role.Id == roleId);
+                if (roleToRemove == null)
                 {
-                    var roleToRemove = identity.EDWRoles.FirstOrDefault(role => role.Id == roleId);
-                    if (roleToRemove == null)
-                    {
-                        continue;
-                    }
-
-                    identity.EDWRoles.Remove(roleToRemove);
+                    continue;
                 }
 
-                securityContext.SaveChanges();
+                identity.EDWRoles.Remove(roleToRemove);
             }
+
+            securityContext.SaveChanges();
         }
     }
 }

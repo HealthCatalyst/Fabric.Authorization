@@ -33,7 +33,8 @@ namespace Fabric.Authorization.UnitTests.RequestHooks
             var mockPermissionStore = new Mock<IPermissionStore>().Object;
             var mockRoleStore = new Mock<IRoleStore>().Object;
             var mockSecurableItemStore = new Mock<ISecurableItemStore>().Object;
-            var userService = new UserService(mockUserStore, mockRoleStore);
+            var mockEdwAdminRoleSyncService = new Mock<EDWAdminRoleSyncService>().Object;
+            var userService = new UserService(mockUserStore, mockRoleStore, mockEdwAdminRoleSyncService);
             var clientService = new ClientService(mockClientStore.Object, mockSecurableItemStore);
             var roleService = new RoleService(mockRoleStore, mockPermissionStore);
             var permissionService = new PermissionService(mockPermissionStore, roleService);

@@ -12,11 +12,13 @@ namespace Fabric.Authorization.Domain.Services
     {
         private readonly IUserStore _userStore;
         private readonly IRoleStore _roleStore;
+        private readonly EDWAdminRoleSyncService _roleManager;
 
-        public UserService(IUserStore userStore, IRoleStore roleStore)
+        public UserService(IUserStore userStore, IRoleStore roleStore, EDWAdminRoleSyncService roleManager)
         {
             _userStore = userStore ?? throw new ArgumentNullException(nameof(userStore));
             _roleStore = roleStore ?? throw new ArgumentNullException(nameof(roleStore));
+            _roleManager = roleManager ?? throw new ArgumentNullException(nameof(roleManager));
         }
 
         public async Task<User> GetUser(string subjectId, string identityProvider)
@@ -49,7 +51,9 @@ namespace Fabric.Authorization.Domain.Services
 
         public async Task<User> AddUser(User user)
         {
-            return await _userStore.Add(user);
+            var persistedUser = await _userStore.Add(user);
+            await _roleManager.RefreshDosAdminRolesAsync(persistedUser);
+            return persistedUser;
         }
 
         public async Task<bool> Exists(string subjectId, string identityProvider)
@@ -87,7 +91,10 @@ namespace Fabric.Authorization.Domain.Services
                 throw new AggregateException("There was an issue adding roles to the user. Please see the inner exception(s) for details.", exceptions);
             }
 
-            return await _userStore.AddRolesToUser(user, rolesToAdd);
+            var persistedUser = await _userStore.AddRolesToUser(user, rolesToAdd);
+            await _roleManager.RefreshDosAdminRolesAsync(persistedUser);
+
+            return persistedUser;
         }
 
         public async Task<User> DeleteRolesFromUser(IList<Role> rolesToDelete, string subjectId,
@@ -112,7 +119,10 @@ namespace Fabric.Authorization.Domain.Services
                     exceptions);
             }
 
-            return await _userStore.DeleteRolesFromUser(user, rolesToDelete);
+            var persistedUser = await _userStore.DeleteRolesFromUser(user, rolesToDelete);
+            await _roleManager.RefreshDosAdminRolesAsync(persistedUser);
+
+            return persistedUser;
         }
     }
 }
