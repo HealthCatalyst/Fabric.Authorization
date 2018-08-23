@@ -203,7 +203,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             var groupEntity = await AuthorizationDbContext.Groups
                 .Include(g => g.GroupRoles)
                 .Include(g => g.GroupUsers)
-                .SingleOrDefaultAsync(g => g.GroupId == Guid.Parse(group.Id.ToString()));
+                .SingleOrDefaultAsync(g => g.GroupId == group.Id);
 
             if (groupEntity == null)
             {
