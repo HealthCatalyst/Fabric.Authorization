@@ -3,9 +3,9 @@
         <span>Custom Group Name</span>
     </h3>
     <div class="input-combo">
-        <input hc-input class="hc-input" required [(ngModel)]="groupName" [readOnly]="editMode" [highlight]="groupNameinvalid" (keyup)="groupNameSubject.next($event.target.value)" placeholder="enter group name">
+        <input hc-input class="hc-input" required [(ngModel)]="groupName" [readOnly]="editMode" [highlight]="groupNameInvalid" (keyup)="groupNameSubject.next($event.target.value)" placeholder="enter group name">
         <i [class]="searchingGroup ? 'btn-icon fa fa-spinner fa-pulse fa-fw' : 'btn-icon fa fa-search'"></i>
-        <div class="form-errors" *ngIf="groupNameinvalid" [innerText]="groupNameError"></div>
+        <div class="form-errors" *ngIf="groupNameInvalid" [innerText]="groupNameError"></div>
     </div>
     <div class="custom-groups" *ngIf="customGroups.length > 0">
     <span>Select an existing group:</span>
@@ -23,12 +23,12 @@
       </table>
     </div>
     <h3 class="h3">
-        <span>Associated Users</span>
+        <span>Associated Users &amp; Groups</span>
     </h3>
     <div class="associated-users">
         <div class="top">
             <div class="input-combo">
-                <input hc-input class="hc-input" [(ngModel)]="searchTerm" (keyup)="searchTermSubject.next($event.target.value)" placeholder="search for users">
+                <input hc-input class="hc-input" [(ngModel)]="searchTerm" (keyup)="searchTermSubject.next($event.target.value)" placeholder="search for users or groups">
                 <i [class]="searching ? 'btn-icon fa fa-spinner fa-pulse fa-fw' : 'btn-icon fa fa-search'"></i>
                 </div>
             </div>
@@ -43,6 +43,8 @@
                                 </hc-checkbox>
                             </td>
                             <td [innerText]="principal.subjectId">
+                            </td>
+                            <td [innerText] = "principal.principalType">
                             </td>
                         </tr>
                     </tbody>
@@ -65,16 +67,23 @@
             <div class="table-container">
                 <table class="hc-table hc-table-borders">
                     <tbody>
-                        <tr *ngFor="let user of associatedPrincipals">
+                        <tr *ngFor="let user of associatedUsers">
                             <td>
                                 <hc-checkbox [id]="user.subjectId" [(ngModel)]="user.selected">
                                 </hc-checkbox>
                             </td>
                             <td [innerText]="user.subjectId"></td>
                         </tr>
+                        <tr *ngFor="let group of associatedGroups">
+                            <td>
+                                <hc-checkbox [id]="group.groupName" [(ngModel)]="group.selected">
+                                </hc-checkbox>
+                            </td>
+                            <td [innerText]="group.groupName"></td>
+                        </tr>
                     </tbody>
                 </table>
-                <div class="empty-notification" *ngIf="!initializing && associatedPrincipals.length === 0">
+                <div class="empty-notification" *ngIf="!initializing && associatedUsers.length === 0 && associatedGroups.length === 0">
                     <label>Add Users</label>
                 </div>
             </div>

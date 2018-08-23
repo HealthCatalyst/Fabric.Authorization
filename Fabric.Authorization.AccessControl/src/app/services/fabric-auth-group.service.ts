@@ -14,6 +14,7 @@ export class FabricAuthGroupService extends FabricBaseService {
   public static baseGroupApiUrl = '';
   public static groupRolesApiUrl = '';
   public static groupUsersApiUrl = '';
+  public static childGroupsApiUrl = '';
 
   constructor(
     httpClient: HttpClient,
@@ -31,6 +32,10 @@ export class FabricAuthGroupService extends FabricBaseService {
 
     if (!FabricAuthGroupService.groupUsersApiUrl) {
       FabricAuthGroupService.groupUsersApiUrl = `${FabricAuthGroupService.baseGroupApiUrl}/{groupName}/users`;
+    }
+
+    if (!FabricAuthGroupService.childGroupsApiUrl) {
+      FabricAuthGroupService.childGroupsApiUrl = `${FabricAuthGroupService.baseGroupApiUrl}/{groupName}/groups`;
     }
   }
 
@@ -195,5 +200,54 @@ export class FabricAuthGroupService extends FabricBaseService {
           { params }
         );
       });
+  }
+
+  public getChildGroups(groupName: string): Observable<IGroup[]> {
+    return this.httpClient.get<IGroup[]>(
+      this.replaceGroupNameSegment(
+        FabricAuthGroupService.childGroupsApiUrl,
+        groupName
+      )
+    );
+  }
+
+  public addChildGroups(
+    groupName: string,
+    childGroups: string[]
+  ): Observable<IGroup> {
+    if (!childGroups || childGroups.length === 0) {
+      return Observable.of(undefined);
+    }
+
+    return this.httpClient.post<IGroup>(
+      this.replaceGroupNameSegment(
+        FabricAuthGroupService.childGroupsApiUrl,
+        groupName
+      ),
+      childGroups.map(function (g) {
+        return {
+          groupName: g
+        };
+      })
+    );
+  }
+
+  public removeChildGroups(
+    groupName: string,
+    childGroups: string[]
+  ): Observable<IGroup> {
+    return this.httpClient.request<IGroup>(
+      'DELETE',
+      this.replaceGroupNameSegment(
+        FabricAuthGroupService.childGroupsApiUrl,
+        groupName
+      ),
+      { body: childGroups.map(function (g) {
+          return {
+            groupName: g
+          };
+        })
+      }
+    );
   }
 }
