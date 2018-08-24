@@ -50,15 +50,15 @@
                     </tbody>
                 </table>
                 <div class="empty-notification" *ngIf="!initializing && principals.length === 0">
-                    <label>Search to find Users</label>
+                    <label>Search to find Users &amp; Groups</label>
                 </div>
             </div>
         </div>
         <div class="middle">
-            <button (click)="associateUsers()">
+            <button (click)="associateUsersAndGroups()">
                 <i class="fa fa-arrow-right" aria-hidden="true"></i>
             </button>
-            <button (click)="unAssociateUsers()">
+            <button (click)="unAssociateUsersAndGroups()">
                 <i class="fa fa-arrow-left" aria-hidden="true"></i>
             </button>
         </div>
@@ -73,6 +73,7 @@
                                 </hc-checkbox>
                             </td>
                             <td [innerText]="user.subjectId"></td>
+                            <td>user</td>
                         </tr>
                         <tr *ngFor="let group of associatedGroups">
                             <td>
@@ -80,6 +81,7 @@
                                 </hc-checkbox>
                             </td>
                             <td [innerText]="group.groupName"></td>
+                            <td>group</td>
                         </tr>
                     </tbody>
                 </table>

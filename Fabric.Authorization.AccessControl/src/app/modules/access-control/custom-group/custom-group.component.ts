@@ -198,9 +198,16 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
       });
   }
 
+  associateUsersAndGroups() {
+    this.associateUsers();
+    this.associateGroups();
+
+    this.principals = this.principals.filter(principal => !principal.selected);
+  }
+
   associateUsers() {
     const newUsers: IUser[] = this.principals
-      .filter(principal => principal.selected === true)
+      .filter(principal => principal.selected === true && principal.principalType === this.userType)
       .map((principal) => {
         const newUser: IUser = {
           subjectId: principal.subjectId,
@@ -211,26 +218,65 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
       });
 
     this.associatedUsers = this.associatedUsers.concat(newUsers);
-    this.principals = this.principals.filter(principal => !principal.selected);
+  }
+
+  associateGroups() {
+    const newGroups: IGroup[] = this.principals
+      .filter(principal => principal.selected === true && principal.principalType === this.groupType)
+      .map((principal) => {
+        console.log('map principal' + principal.subjectId);
+        const newGroup: IGroup = {
+          groupName: principal.subjectId,
+          groupSource: 'directory',
+          selected: false
+        };
+        return newGroup;
+      });
+
+    this.associatedGroups = this.associatedGroups.concat(newGroups);
+  }
+
+  unAssociateUsersAndGroups() {
+    this.unAssociateUsers();
+    this.unAssociateGroups();
   }
 
   unAssociateUsers() {
-    const removedUsers: IFabricPrincipal[] = this.associatedUsers
-      .filter(principal => principal.selected === true)
-      .map((principal) => {
-        const newUser: IFabricPrincipal = {
-          subjectId: principal.subjectId,
+    const removedPrincipals: IFabricPrincipal[] = this.associatedUsers
+      .filter(user => user.selected === true)
+      .map((user) => {
+        const newPrincipal: IFabricPrincipal = {
+          subjectId: user.subjectId,
           firstName: '',
           middleName: '',
           lastName: '',
-          principalType: 'user',
+          principalType: this.userType,
           selected: false
         };
-        return newUser;
+        return newPrincipal;
       });
 
-    this.principals = this.principals.concat(removedUsers);
-    this.associatedUsers = this.associatedUsers.filter(principal => !principal.selected);
+    this.principals = this.principals.concat(removedPrincipals);
+    this.associatedUsers = this.associatedUsers.filter(user => !user.selected);
+  }
+
+  unAssociateGroups() {
+    const removedPrincipals: IFabricPrincipal[] = this.associatedGroups
+      .filter(group => group.selected === true)
+      .map((group) => {
+        const newPrincipal: IFabricPrincipal = {
+          subjectId: group.groupName,
+          firstName: '',
+          middleName: '',
+          lastName: '',
+          principalType: this.groupType,
+          selected: false
+        };
+        return newPrincipal;
+      });
+
+    this.principals = this.principals.concat(removedPrincipals);
+    this.associatedGroups = this.associatedGroups.filter(group => !group.selected);
   }
 
   save() {
@@ -246,29 +292,47 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
         const groupRolesObservable = this.groupService
           .getGroupRoles(this.groupName, this.grain, this.securableItem);
         const groupUsersObservable = this.getGroupUsers();
+        const childGroupsObservable = this.getChildGroups();
 
-        return Observable.zip(groupRolesObservable, groupUsersObservable)
-          .mergeMap((result: [IRole[], IUser[]]) => {
+        return Observable.zip(groupRolesObservable, groupUsersObservable, childGroupsObservable)
+          .mergeMap((result: [IRole[], IUser[], IGroup[]]) => {
             const existingRoles = result[0];
             const existingUsers = result[1];
+            const existingChildGroups = result[2];
             const selectedRoles = this.roles.filter(role => role.selected === true);
 
+            // get users to add/remove
             const usersToAdd = this.associatedUsers
               .filter(user => !existingUsers.some(existingUser => user.subjectId === existingUser.subjectId));
             const usersToRemove = existingUsers
               .filter(existingUser => !this.associatedUsers.some(user => user.subjectId === existingUser.subjectId));
 
+            // get child groups to add/remove
+            const childGroupsToAdd = this.associatedGroups
+              .filter(childGroup => !existingChildGroups.some(existingChildGroup => childGroup.groupName === existingChildGroup.groupName));
+            const childGroupsToRemove = existingChildGroups
+              .filter(existingChildGroup =>
+                !this.associatedGroups.some(childGroup => childGroup.groupName === existingChildGroup.groupName));
+
+            // get roles to add/remove
             const rolesToAdd = selectedRoles.filter(userRole => !existingRoles.some(selectedRole => userRole.id === selectedRole.id));
             const rolesToRemove = existingRoles.filter(userRole => !selectedRoles.some(selectedRole => userRole.id === selectedRole.id));
 
-            // adding/removing roles and group members
             const saveObservables = [];
+
+            // roles
             saveObservables.push(this.groupService.removeRolesFromGroup(group.groupName, rolesToRemove));
             saveObservables.push(this.groupService.addRolesToGroup(group.groupName, rolesToAdd));
+
+            // users
             saveObservables.push(this.groupService.addUsersToCustomGroup(group.groupName, usersToAdd));
             for (const userToRemove of usersToRemove) {
               saveObservables.push(this.groupService.removeUserFromCustomGroup(group.groupName, userToRemove));
             }
+
+            // child groups
+            saveObservables.push(this.groupService.addChildGroups(group.groupName, childGroupsToAdd));
+            saveObservables.push(this.groupService.removeChildGroups(group.groupName, childGroupsToRemove.map(g => g.groupName)));
             return Observable.zip(...saveObservables);
           });
       })
@@ -323,13 +387,5 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
         })
         .takeUntil(this.ngUnsubscribe)
         .subscribe();
-  }
-
-  public isUser(principal: IFabricPrincipal) {
-    return principal && principal.principalType === this.userType;
-  }
-
-  public isGroup(principal: IFabricPrincipal) {
-    return principal && principal.principalType === this.groupType;
   }
 }
