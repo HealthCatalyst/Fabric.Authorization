@@ -13,7 +13,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Services
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseInMemoryDatabase(databaseName: this.connectionStrings.EDWAdminDatabase);
+            optionsBuilder.UseInMemoryDatabase(databaseName: ConnectionStrings.EDWAdminDatabase);
         }
     }
 }

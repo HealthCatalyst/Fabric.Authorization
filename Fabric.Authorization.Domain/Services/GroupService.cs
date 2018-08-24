@@ -32,28 +32,22 @@ namespace Fabric.Authorization.Domain.Services
         private readonly IUserStore _userStore;
         private readonly IGroupStore _groupStore;
         private readonly RoleService _roleService;
-        private readonly EDWAdminRoleSyncService _roleManager;
 
         public GroupService(
             IGroupStore groupStore,
             IRoleStore roleStore,
             IUserStore userStore,
-            RoleService roleService,
-            EDWAdminRoleSyncService roleManager)
+            RoleService roleService)
         {
             _roleStore = roleStore;
             _userStore = userStore;
             _groupStore = groupStore ?? throw new ArgumentNullException(nameof(groupStore));          
             _roleService = roleService ?? throw new ArgumentNullException(nameof(roleService));
-            _roleManager = roleManager ?? throw new ArgumentNullException(nameof(roleManager));
         }
 
         public async Task<Group> AddGroup(Group group)
         {
-            var persistedGroup = await _groupStore.Add(group);
-            await _roleManager.RefreshDosAdminRolesAsync(persistedGroup.Users);
-
-            return persistedGroup;
+            return await _groupStore.Add(group);
         }
 
         public async Task<Group> UpdateGroup(Group group)
@@ -140,10 +134,7 @@ namespace Fabric.Authorization.Domain.Services
                 throw new AggregateException("There was an issue adding roles to the group. Please see the inner exception(s) for details.", exceptions);
             }
 
-            var persistedGroup = await _groupStore.AddRolesToGroup(group, rolesToAdd);
-            await _roleManager.RefreshDosAdminRolesAsync(group.Users);
-
-            return persistedGroup;
+            return await _groupStore.AddRolesToGroup(group, rolesToAdd);
         }
 
         public async Task<Group> GetGroup(string groupName)
@@ -195,10 +186,7 @@ namespace Fabric.Authorization.Domain.Services
                 throw new AggregateException("There was an issue adding users to the group. Please see the inner exception(s) for details.", exceptions);
             }
 
-            var persistedGroup = await _groupStore.AddUsersToGroup(group, usersToAdd);
-            await this._roleManager.RefreshDosAdminRolesAsync(persistedGroup.Users);
-
-            return persistedGroup;
+            return await _groupStore.AddUsersToGroup(group, usersToAdd);
         }
 
         public async Task<Group> DeleteUserFromGroup(string groupName, string subjectId, string identityProvider)
@@ -212,10 +200,7 @@ namespace Fabric.Authorization.Domain.Services
                 group.Users.Remove(groupUser);
             }
 
-            var persistedGroup = await _groupStore.DeleteUserFromGroup(group, user);
-            await this._roleManager.RefreshDosAdminRolesAsync(groupUser);
-
-            return persistedGroup;
+            return await _groupStore.DeleteUserFromGroup(group, user);
         }
 
         public async Task<Group> AddChildGroups(Group group, IEnumerable<Group> childGroups)
@@ -269,10 +254,7 @@ namespace Fabric.Authorization.Domain.Services
                 throw new AlreadyExistsException<Group>($"The following groups are already children of group {group.Name}: {string.Join(", ", existingAssociations.Select(g => g.Name))}");
             }
 
-            var persistedGroup = await _groupStore.AddChildGroups(group, childGroups);
-            await this._roleManager.RefreshDosAdminRolesAsync(group.Children.SelectMany(childGroup => childGroup.Users));
-
-            return persistedGroup;
+            return await _groupStore.AddChildGroups(group, childGroups);
         }
 
         public async Task<Group> RemoveChildGroups(Group group, IEnumerable<string> childGroupNames)
@@ -280,10 +262,7 @@ namespace Fabric.Authorization.Domain.Services
             var childGroups = await _groupStore.Get(childGroupNames);
             var childUsers = childGroups.SelectMany(g => g.Users);
 
-            var persistedGroup = await _groupStore.RemoveChildGroups(group, childGroups);
-            await this._roleManager.RefreshDosAdminRolesAsync(childUsers);
-
-            return persistedGroup;
+            return await _groupStore.RemoveChildGroups(group, childGroups);
         }
 
         public async Task<IEnumerable<Group>> GetGroups(string name, string type)

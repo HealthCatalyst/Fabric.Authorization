@@ -1,10 +1,9 @@
-﻿using System;
-using Fabric.Authorization.Domain.Models.EDW;
+﻿using Fabric.Authorization.Persistence.SqlServer.EntityModels.EDW;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fabric.Authorization.Persistence.SqlServer.Stores.EDW
 {
-    public interface ISecurityContext : IDisposable
+    public interface ISecurityContext
     {
         DbSet<EDWIdentity> EDWIdentities { get; set; }
 

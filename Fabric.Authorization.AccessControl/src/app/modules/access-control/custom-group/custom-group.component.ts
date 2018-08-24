@@ -5,6 +5,8 @@ import { FabricAuthRoleService } from '../../../services/fabric-auth-role.servic
 import { IAccessControlConfigService } from '../../../services/access-control-config.service';
 import { FabricAuthGroupService } from '../../../services/fabric-auth-group.service';
 import { FabricExternalIdpSearchService } from '../../../services/fabric-external-idp-search.service';
+import { FabricAuthEdwadminService } from '../../../services/fabric-auth-edwadmin.service';
+
 import { IRole } from '../../../models/role.model';
 import { IUser } from '../../../models/user.model';
 import { IFabricPrincipal } from '../../../models/fabricPrincipal.model';
@@ -56,6 +58,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     @Inject('IAccessControlConfigService') private configService: IAccessControlConfigService,
     private roleService: FabricAuthRoleService,
     private groupService: FabricAuthGroupService,
+    private edwAdminService: FabricAuthEdwadminService,
     private idpSearchService: FabricExternalIdpSearchService
   ) { }
 
@@ -355,7 +358,12 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
             // child groups
             saveObservables.push(this.groupService.addChildGroups(group.groupName, childGroupsToAdd));
             saveObservables.push(this.groupService.removeChildGroups(group.groupName, childGroupsToRemove.map(g => g.groupName)));
-            return Observable.zip(...saveObservables);
+              return Observable.zip(...saveObservables)
+                  .toPromise()
+                  .then(value => {
+                      return this.edwAdminService.syncGroupWithEdwAdmin(newGroup.groupName)
+                          .toPromise().then(o => { return value; }).catch(err => { return value; });
+                  });
           });
       })
       .takeUntil(this.ngUnsubscribe)

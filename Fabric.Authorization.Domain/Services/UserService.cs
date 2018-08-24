@@ -51,9 +51,7 @@ namespace Fabric.Authorization.Domain.Services
 
         public async Task<User> AddUser(User user)
         {
-            var persistedUser = await _userStore.Add(user);
-            await _roleManager.RefreshDosAdminRolesAsync(persistedUser);
-            return persistedUser;
+            return await _userStore.Add(user);
         }
 
         public async Task<bool> Exists(string subjectId, string identityProvider)
@@ -91,10 +89,7 @@ namespace Fabric.Authorization.Domain.Services
                 throw new AggregateException("There was an issue adding roles to the user. Please see the inner exception(s) for details.", exceptions);
             }
 
-            var persistedUser = await _userStore.AddRolesToUser(user, rolesToAdd);
-            await _roleManager.RefreshDosAdminRolesAsync(persistedUser);
-
-            return persistedUser;
+            return await _userStore.AddRolesToUser(user, rolesToAdd);
         }
 
         public async Task<User> DeleteRolesFromUser(IList<Role> rolesToDelete, string subjectId,
@@ -119,10 +114,7 @@ namespace Fabric.Authorization.Domain.Services
                     exceptions);
             }
 
-            var persistedUser = await _userStore.DeleteRolesFromUser(user, rolesToDelete);
-            await _roleManager.RefreshDosAdminRolesAsync(persistedUser);
-
-            return persistedUser;
+            return await _userStore.DeleteRolesFromUser(user, rolesToDelete);
         }
     }
 }

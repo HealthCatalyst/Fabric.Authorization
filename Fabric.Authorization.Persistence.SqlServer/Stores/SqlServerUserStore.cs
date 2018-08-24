@@ -48,8 +48,13 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             // the GroupUser entity was the entity that was not behaving
             var groupUsers = await AuthorizationDbContext.GroupUsers
                 .Include(gu => gu.Group)
+                .ThenInclude(g => g.GroupRoles)
+                .ThenInclude(gr => gr.Role)
+                .Include(gu => gu.Group)
                 .ThenInclude(g => g.ChildGroups)
                 .ThenInclude(cg => cg.Child)
+                .ThenInclude(cg => cg.GroupRoles)
+                .ThenInclude(gr => gr.Role)
                 .Include(gu => gu.User)
                 .Where(gu => gu.SubjectId == subjectId && gu.IdentityProvider == identityProvider)
                 .AsNoTracking()

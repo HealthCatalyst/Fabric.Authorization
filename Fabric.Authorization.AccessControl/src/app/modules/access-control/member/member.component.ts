@@ -20,6 +20,7 @@ import { FabricAuthRoleService } from '../../../services/fabric-auth-role.servic
 import { FabricAuthUserService } from '../../../services/fabric-auth-user.service';
 import { IAccessControlConfigService } from '../../../services/access-control-config.service';
 import { FabricAuthGroupService } from '../../../services/fabric-auth-group.service';
+import { FabricAuthEdwadminService } from '../../../services/fabric-auth-edwadmin.service';
 import { IUser } from '../../../models/user.model';
 import { IGroup } from '../../../models/group.model';
 
@@ -44,6 +45,7 @@ export class MemberComponent implements OnInit, OnDestroy {
     private idpSearchService: FabricExternalIdpSearchService,
     private roleService: FabricAuthRoleService,
     private userService: FabricAuthUserService,
+    private edwAdminService: FabricAuthEdwadminService,
     @Inject('IAccessControlConfigService')private configService: IAccessControlConfigService,
     private groupService: FabricAuthGroupService,
     private router: Router,
@@ -182,7 +184,11 @@ export class MemberComponent implements OnInit, OnDestroy {
               user.identityProvider,
               user.subjectId,
               rolesToDelete
-            ));
+            )).toPromise()
+            .then(value => {
+              return this.edwAdminService.syncUserWithEdwAdmin(user.subjectId, user.identityProvider)
+              .toPromise().then(o => { return value; }).catch(err => { return value; });
+            });
       });
   }
 
@@ -212,8 +218,13 @@ export class MemberComponent implements OnInit, OnDestroy {
         const rolesToDelete = groupRoles.filter(userRole => !selectedRoles.some(selectedRole => userRole.id === selectedRole.id));
         return Observable.zip(
           this.groupService.addRolesToGroup(group.groupName, rolesToAdd),
-          this.groupService.removeRolesFromGroup(group.groupName, rolesToDelete));
-      });
+          this.groupService.removeRolesFromGroup(group.groupName, rolesToDelete))
+          .toPromise()
+          .then(value => {
+            return this.edwAdminService.syncGroupWithEdwAdmin(group.groupName)
+            .toPromise().then(o => { return value; }).catch(err => { return value; });
+          });
+      })
   }
 
   private bindExistingRoles(principal: IFabricPrincipal): Observable<any> {
