@@ -91,11 +91,11 @@ describe('CustomGroupComponent', () => {
         component.principals[0].selected = true;
 
         // act
-        component.associateUsers();
+        component.associateUsersAndGroups();
 
         // assert
         expect(component.principals.length).toBe(mockExternalIdpSearchResult.principals.length - 1);
-        expect(component.associatedPrincipals.length).toBe(1);
+        expect(component.associatedUsers.length).toBe(1);
     }));
   });
 
@@ -103,13 +103,13 @@ describe('CustomGroupComponent', () => {
     it('returns groups on search', async(() => {
         // arrange
         component.principals = mockExternalIdpSearchResult.principals;
-        component.associatedPrincipals.push({
+        component.associatedUsers.push({
             subjectId: 'sub789',
             selected: true
         });
 
         // act
-        component.unAssociateUsers();
+        component.unAssociateUsersAndGroups();
 
         // assert
         expect(component.principals.length).toBe(mockExternalIdpSearchResult.principals.length + 1);
