@@ -5,6 +5,12 @@
         public string GroupName { get; set; }
     }
 
+    public class GroupPostApiRequest : GroupPatchApiRequest
+    {
+        public string GroupName { get; set; }
+        public string GroupSource { get; set; }
+    }
+
     public class GroupPatchApiRequest
     {
         public string DisplayName { get; set; }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Catalyst.Fabric.Authorization.Models;
+using Catalyst.Fabric.Authorization.Models.Requests;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Domain.Models;
@@ -248,7 +249,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
-        public async Task AddChildGroup_NonExistentChildGroup_NotFoundAsync()
+        public async Task AddChildGroup_NonExistentChildGroup_SuccessAsync()
         {
             var parentGroup = await SetupGroupAsync(Guid.NewGuid().ToString(), GroupConstants.CustomSource, "Custom Parent Group", "Custom Parent Group");
 
@@ -257,11 +258,15 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.HttpRequest();
                 with.JsonBody(new[]
                 {
-                    new { GroupName = "DoesNotExist" }
+                    new GroupPostApiRequest { GroupName = "DoesNotExist", GroupSource = GroupConstants.DirectorySource }
                 });
             });
 
-            Assert.Equal(HttpStatusCode.NotFound, postResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, postResponse.StatusCode);
+            var groupApiModel = JsonConvert.DeserializeObject<GroupRoleApiModel>(postResponse.Body.AsString());
+            Assert.Single(groupApiModel.Children);
+            Assert.Contains(groupApiModel.Children, c => c.GroupName == "DoesNotExist");
+            Assert.Empty(groupApiModel.Parents);
         }
 
         [Fact]

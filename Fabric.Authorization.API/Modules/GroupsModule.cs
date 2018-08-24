@@ -250,8 +250,8 @@ namespace Fabric.Authorization.API.Modules
             try
             {
                 this.RequiresClaims(AuthorizationWriteClaim);
-                var group = this.Bind<List<GroupRoleApiModel>>();
-                await _groupService.UpdateGroupList(group.Select(g => g.ToGroupDomainModel()));
+                var groups = this.Bind<List<GroupRoleApiModel>>();
+                await _groupService.UpdateGroupList(groups.Select(g => g.ToGroupDomainModel()));
                 return HttpStatusCode.NoContent;
             }
             catch (AlreadyExistsException<Group> ex)
@@ -424,9 +424,9 @@ namespace Fabric.Authorization.API.Modules
             {
                 Group group = await _groupService.GetGroup(parameters.GroupName);
                 await CheckWriteAccess(group);
-                var groupIdentifiers = this.Bind<List<GroupIdentifierApiRequest>>();
+                var groupPostApiRequests = this.Bind<List<GroupPostApiRequest>>();
 
-                group = await _groupService.AddChildGroups(group, groupIdentifiers.Select(g => g.GroupName).ToList());
+                group = await _groupService.AddChildGroups(group, groupPostApiRequests.Select(g => g.ToGroupDomainModel()));
                 return CreateSuccessfulPostResponse(group.Name, group.ToGroupRoleApiModel(), HttpStatusCode.OK);
             }
             catch (NotFoundException<Group> ex)
