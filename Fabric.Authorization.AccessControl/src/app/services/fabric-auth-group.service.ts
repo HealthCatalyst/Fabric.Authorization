@@ -226,7 +226,8 @@ export class FabricAuthGroupService extends FabricBaseService {
       ),
       childGroups.map(function (g) {
         return {
-          groupName: g
+          groupName: g.groupName,
+          groupSource: 'directory'
         };
       })
     );
