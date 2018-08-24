@@ -70,7 +70,7 @@ namespace Fabric.Authorization.API
             container.Register(new NancyContextWrapper(context));
             var appConfig = container.Resolve<IAppConfiguration>();
             container.UseHttpRequestMessageFactory(context, appConfig.IdentityServerConfidentialClientSettings);
-            container.RegisterServices();
+            container.RegisterServices(appConfig);
 
             var configurator = container.Resolve<IPersistenceConfigurator>();
             configurator.ConfigureRequestInstances(container);

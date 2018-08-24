@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.RemoteServices.Identity.Providers;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Resolvers.Permissions;
@@ -10,7 +11,7 @@ namespace Fabric.Authorization.API.Extensions
 {
     public static class TinyIocExtensions
     {
-        public static TinyIoCContainer RegisterServices(this TinyIoCContainer container)
+        public static TinyIoCContainer RegisterServices(this TinyIoCContainer container, IAppConfiguration appConfiguration)
         {
             container.Register<RoleService, RoleService>();
             container.Register<UserService, UserService>();
@@ -31,9 +32,21 @@ namespace Fabric.Authorization.API.Extensions
 
             container.Register<IEventService, EventService>();
             container.Register<IEventContextResolverService, EventContextResolverService>();
-            container.Register<EDWAdminRoleSyncService, EDWAdminRoleSyncService>();
+            RegisterEDWAdminRoleSyncService(container);
 
             return container;
+        }
+
+        private static void RegisterEDWAdminRoleSyncService(TinyIoCContainer container)
+        {
+            if (container.Resolve<DefaultPropertySettings>().DualStoreEDWAdminPermissions)
+            {
+                container.Register<IEDWAdminRoleSyncService, EDWAdminRoleSyncService>();
+            }
+            else
+            {
+                container.Register<IEDWAdminRoleSyncService, DisableEDWAdminRoleSyncService>();
+            }
         }
     }
 }

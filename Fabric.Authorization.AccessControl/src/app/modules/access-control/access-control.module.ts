@@ -29,6 +29,7 @@ import { FabricExternalIdpSearchService } from '../../services/fabric-external-i
 import { FabricAuthRoleService } from '../../services/fabric-auth-role.service';
 import { IAccessControlConfigService } from '../../services/access-control-config.service';
 import { FabricAuthGrainService } from '../../services/fabric-auth-grain.service';
+import { FabricAuthEdwadminService } from '../../services/fabric-auth-edwadmin.service';
 
 import { MemberListComponent } from './member-list/member-list.component';
 import { MemberComponent } from './member/member.component';
@@ -69,7 +70,8 @@ import { GrainListComponent } from './grain-list/grain-list.component';
     FabricAuthUserService,
     FabricExternalIdpSearchService,
     FabricAuthRoleService,
-    FabricAuthGrainService
+    FabricAuthGrainService,
+    FabricAuthEdwadminService
   ],
 })
 export class AccessControlModule { }

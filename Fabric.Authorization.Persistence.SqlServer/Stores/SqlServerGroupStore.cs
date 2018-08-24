@@ -132,6 +132,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .ThenInclude(cg => cg.Parent)
                 .Include(g => g.ChildGroups)
                 .ThenInclude(cg => cg.Child)
+                .ThenInclude(cg => cg.GroupRoles)
+                .ThenInclude(gr => gr.Role)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(g => g.Name == name && !g.IsDeleted);
 

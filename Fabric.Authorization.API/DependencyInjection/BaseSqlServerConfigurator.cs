@@ -25,6 +25,7 @@ namespace Fabric.Authorization.API.DependencyInjection
             container.Register<IGrainStore, SqlServerGrainStore>().AsMultiInstance();
             container.Register<IClientStore, SqlServerClientStore>().AsMultiInstance();
             container.Register(AppConfiguration.ConnectionStrings);
+            container.Register(AppConfiguration.DefaultPropertySettings);
         }
 
         public void ConfigureRequestInstances(TinyIoCContainer container)

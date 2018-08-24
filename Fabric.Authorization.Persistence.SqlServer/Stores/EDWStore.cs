@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
-using Fabric.Authorization.Domain.Models.EDW;
 using Fabric.Authorization.Domain.Stores;
+using Fabric.Authorization.Persistence.SqlServer.EntityModels.EDW;
 using Fabric.Authorization.Persistence.SqlServer.Stores.EDW;
 using Microsoft.EntityFrameworkCore;
 
@@ -55,13 +55,23 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 throw new ArgumentException("Role not found.");
             }
 
-            var targetIdentities = securityContext.EDWIdentities.Include(identity => identity.EDWRoles)
+            var targetIdentities = securityContext.EDWIdentities.Include(identity => identity.EDWIdentityRoles)
                 .Where(identity => identityNames.Contains(identity.Name) && !identity.EDWRoles.Any(role => role.Id == roleId))
                 .ToList();
 
             foreach (var identity in targetIdentities)
             {
-                roleToAdd.EDWIdentities.Add(identity);
+                if(identity.EDWIdentityRoles.Where(ir => ir.RoleID == roleId).Any())
+                {
+                    continue;
+                }
+
+                EDWIdentityRole identityRoleMappingToAdd = new EDWIdentityRole
+                {
+                    RoleID = roleId,
+                    IdentityID = identity.Id
+                };
+                roleToAdd.EDWIdentityRoles.Add(identityRoleMappingToAdd);
             }
 
             securityContext.SaveChanges();
@@ -69,18 +79,18 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         private void RemoveIdentitiesFromRole(string[] identityNames, int roleId)
         {
-            var targetIdentities = securityContext.EDWIdentities.Include(identity => identity.EDWRoles)
+            var targetIdentities = securityContext.EDWIdentities.Include(identity => identity.EDWIdentityRoles)
             .Where(identity => identityNames.Contains(identity.Name));
 
             foreach (var identity in targetIdentities)
             {
-                var roleToRemove = identity.EDWRoles.FirstOrDefault(role => role.Id == roleId);
-                if (roleToRemove == null)
+                var identityRoleMappingToRemove = identity.EDWIdentityRoles.Where(ir => ir.RoleID == roleId).FirstOrDefault();
+                if (identityRoleMappingToRemove == null)
                 {
                     continue;
                 }
 
-                identity.EDWRoles.Remove(roleToRemove);
+                identity.EDWIdentityRoles.Remove(identityRoleMappingToRemove);
             }
 
             securityContext.SaveChanges();

@@ -7,6 +7,9 @@ import { FabricAuthGroupService } from '../../services/fabric-auth-group.service
 import { FabricAuthMemberSearchService } from '../../services/fabric-auth-member-search.service';
 import { FabricAuthGrainService } from '../../services/fabric-auth-grain.service';
 import { MockAccessControlConfigService } from '../../services/access-control-config.service.mock';
+import { FabricAuthEdwadminService } from '../../services/fabric-auth-edwadmin.service';
+import { FabricAuthEdwadminServiceMock } from '../../services/fabric-auth-edwadmin.service.mock';
+
 import { FabricExternalIdpSearchServiceMock } from '../../services/fabric-external-idp-search.service.mock';
 import { FabricAuthUserServiceMock } from '../../services/fabric-auth-user.service.mock';
 import { FabricAuthGroupServiceMock } from '../../services/fabric-auth-group.service.mock';
@@ -44,6 +47,10 @@ import { FabricAuthGrainServiceMock } from '../../services/fabric-auth-grain.ser
         {
             provide: FabricAuthGrainService,
             useClass: FabricAuthGrainServiceMock
+        },
+        {
+          provide: FabricAuthEdwadminService,
+          useClass: FabricAuthEdwadminServiceMock
         }
     ],
     imports: [RouterTestingModule]
