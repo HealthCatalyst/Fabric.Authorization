@@ -203,7 +203,7 @@ namespace Fabric.Authorization.Domain.Services
             return await _groupStore.DeleteUserFromGroup(group, user);
         }
 
-        public async Task<Group> AddChildGroups(Group group, IEnumerable<string> childGroupNames)
+        public async Task<Group> AddChildGroups(Group group, IEnumerable<Group> childGroups)
         {
             // do not allow non-custom group to be parent
             if (!string.Equals(group.Source, GroupConstants.CustomSource, StringComparison.OrdinalIgnoreCase))
@@ -211,14 +211,40 @@ namespace Fabric.Authorization.Domain.Services
                 throw new BadRequestException<Group>($"{group.Name} is not a custom group. Only custom groups can serve as parent groups.");
             }
 
-            var childGroupNameList = childGroupNames.ToList();
+            // first make sure all the child groups are created
+            var childGroupList = childGroups.ToList();
+
+            try
+            {
+                await _groupStore.Get(childGroupList.Select(g => g.Name));
+            }
+            // filter out groups that already exist so we don't attempt to create an existent group
+            catch (NotFoundException<Group> ex)
+            {
+                var missingChildGroups = childGroupList.Where(g => ex.ExceptionDetails.Select(e => e.Identifier).Contains(g.Name)).ToList();
+
+                var invalidMissingGroups =
+                    missingChildGroups.Where(g => string.IsNullOrWhiteSpace(g.Name)
+                                                  || string.IsNullOrWhiteSpace(g.Source)
+                                                  || string.Equals(g.Source, GroupConstants.CustomSource,
+                                                      StringComparison.OrdinalIgnoreCase)).ToList();
+
+                if (invalidMissingGroups.Any())
+                {
+                    throw new BadRequestException<Group>(
+                        $"The following child groups do not exist in our database and cannot be created due to 1 or more of the following reasons: 1) missing GroupName, 2) missing GroupSource or 3) the GroupSource is incorrectly specified as Custom: {string.Join(", ", invalidMissingGroups.Select(g => g.Name))}");
+                }
+                await _groupStore.Add(missingChildGroups);
+            }
+
+            var childGroupNameList = childGroupList.Select(g => g.Name).ToList();
 
             // do not allow custom groups to be children
-            var childGroups = (await _groupStore.Get(childGroupNameList)).ToList();
+            childGroups = (await _groupStore.Get(childGroupNameList)).ToList();
             var customGroups = childGroups.Where(g => g.Source == GroupConstants.CustomSource).ToList();
             if (customGroups.Any())
             {
-                throw new BadRequestException<Group>($"Only directory groups can be child groups. The following groups are custom: {string.Join(", ", customGroups)} ");
+                throw new BadRequestException<Group>($"Only directory groups can be child groups. The following groups are Custom groups: {string.Join(", ", customGroups)} ");
             }
 
             // if association already exists, return 409

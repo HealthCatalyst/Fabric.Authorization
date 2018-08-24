@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Events;
 
@@ -20,6 +21,16 @@ namespace Fabric.Authorization.Domain.Services
         {
             var eventToWrite = EnrichEventWithContext(evnt);
             _eventWriter.WriteEvent(eventToWrite);
+            return Task.CompletedTask;
+        }
+
+        public Task RaiseEventsAsync(IEnumerable<Event> events)
+        {
+            foreach (var evnt in events)
+            {
+                RaiseEventAsync(evnt);
+            }
+
             return Task.CompletedTask;
         }
 

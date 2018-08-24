@@ -4,6 +4,7 @@ using Fabric.Authorization.Domain.Models;
 using FluentValidation.Results;
 using System.Collections.Generic;
 using Catalyst.Fabric.Authorization.Models;
+using Catalyst.Fabric.Authorization.Models.Requests;
 using Fabric.Authorization.Domain.Resolvers.Models;
 
 namespace Fabric.Authorization.API.Models
@@ -141,6 +142,19 @@ namespace Fabric.Authorization.API.Models
                 DisplayName = groupRoleApiModel.DisplayName,
                 Description = groupRoleApiModel.Description,
                 Source = groupRoleApiModel.GroupSource
+            };
+
+            return group;
+        }
+
+        public static Group ToGroupDomainModel(this GroupPostApiRequest groupPostApiRequest)
+        {
+            var group = new Group
+            {
+                Name = groupPostApiRequest.GroupName,
+                DisplayName = groupPostApiRequest.DisplayName,
+                Description = groupPostApiRequest.Description,
+                Source = groupPostApiRequest.GroupSource
             };
 
             return group;

@@ -42,6 +42,31 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return groupEntity.ToModel();
         }
 
+        public async Task<IEnumerable<Group>> Add(IEnumerable<Group> groups)
+        {
+            var savedEntities = new List<Group>();
+            var groupList = groups.ToList();
+            var eventList = new List<EntityAuditEvent<Group>>();
+           
+
+            foreach (var group in groupList)
+            {
+                group.Id = Guid.NewGuid();
+                var groupEntity = group.ToEntity();
+                AuthorizationDbContext.Groups.Add(groupEntity);
+                savedEntities.Add(group);
+                eventList.Add(new EntityAuditEvent<Group>(EventTypes.EntityCreatedEvent, group.Id.ToString(), group));
+            }
+
+            await AuthorizationDbContext.SaveChangesAsync();
+
+            if (eventList.Count > 0)
+            {
+                await EventService.RaiseEventsAsync(eventList);
+            }
+            return savedEntities;
+        }
+
         public async Task<Group> Get(Guid id)
         {
 
@@ -434,7 +459,9 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             if (missingGroups.Count > 0)
             {
-                throw new NotFoundException<Group>($"The followimg groups could not be found: {string.Join(",", missingGroups)}");
+                throw new NotFoundException<Group>(
+                    $"The following groups could not be found: {string.Join(",", missingGroups)}",
+                    missingGroups.Select(g => new NotFoundExceptionDetail {Identifier = g}).ToList());
             }
 
             return Task.FromResult(groupEntities.Select(g => g.ToModel()).AsEnumerable());
@@ -467,7 +494,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         private Expression<Func<EntityModels.Group, bool>> GetGroupSourceFilter(string source)
         {
-            source = source ?? "";
+            source = source ?? string.Empty;
             if (source.Equals(GroupConstants.CustomSource, StringComparison.OrdinalIgnoreCase))
             {
                 return group => group.Source == "custom";
