@@ -43,6 +43,3 @@ GO
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON [dbo].[EventLogs] to AuthorizationServiceRole;
 GO
-
-GRANT SELECT, INSERT, UPDATE, DELETE ON [dbo].[ChildGroups] to AuthorizationServiceRole;
-GO
