@@ -213,7 +213,7 @@ export class FabricAuthGroupService extends FabricBaseService {
 
   public addChildGroups(
     groupName: string,
-    childGroups: string[]
+    childGroups: IGroup[]
   ): Observable<IGroup> {
     if (!childGroups || childGroups.length === 0) {
       return Observable.of(undefined);
