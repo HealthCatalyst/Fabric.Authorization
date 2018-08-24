@@ -205,7 +205,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     this.principals = this.principals.filter(principal => !principal.selected);
   }
 
-  associateUsers() {
+  private associateUsers() {
     const newUsers: IUser[] = this.principals
       .filter(principal => principal.selected === true && principal.principalType === this.userType)
       .map((principal) => {
@@ -220,7 +220,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     this.associatedUsers = this.associatedUsers.concat(newUsers);
   }
 
-  associateGroups() {
+  private associateGroups() {
     const newGroups: IGroup[] = this.principals
       .filter(principal => principal.selected === true && principal.principalType === this.groupType)
       .map((principal) => {
@@ -241,7 +241,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     this.unAssociateGroups();
   }
 
-  unAssociateUsers() {
+  private unAssociateUsers() {
     const removedPrincipals: IFabricPrincipal[] = this.associatedUsers
       .filter(user => user.selected === true)
       .map((user) => {
@@ -260,7 +260,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     this.associatedUsers = this.associatedUsers.filter(user => !user.selected);
   }
 
-  unAssociateGroups() {
+  private unAssociateGroups() {
     const removedPrincipals: IFabricPrincipal[] = this.associatedGroups
       .filter(group => group.selected === true)
       .map((group) => {
