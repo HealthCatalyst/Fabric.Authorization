@@ -6,7 +6,7 @@
     <input hc-input class="hc-input" (keyup)="searchTextSubject.next($event.target.value)" [(ngModel)]="searchText" placeholder="search for user or group">
     <i [class]="searching ? 'fa fa-spinner fa-pulse fa-fw' : 'fa fa-search'"></i>
   </div>
-  <table *ngIf="!editMode" class="hc-table hc-table-borders scroll-table">
+  <table class="hc-table hc-table-borders scroll-table">
     <thead>
       <tr>
         <th></th>

@@ -37,7 +37,6 @@ export class MemberComponent implements OnInit, OnDestroy {
   public selectedPrincipal?: IFabricPrincipal;
   private grain: string;
   private securableItem: string;
-  public editMode = true;
 
   private ngUnsubscribe: any = new Subject();
 
