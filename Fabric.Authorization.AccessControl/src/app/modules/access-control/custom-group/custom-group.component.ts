@@ -145,13 +145,22 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
                 ]
               : result.principals;
 
+        let unAssociatedUsers = [];
+        let unAssociatedGroups = [];
+
         if (this.associatedUsers && this.associatedUsers.length > 0) {
-          this.principals = returnedPrincipals.filter(user =>
-            this.associatedUsers
-              .some(associatedUser => associatedUser.subjectId !== user.subjectId));
-        } else {
-          this.principals = returnedPrincipals;
+          unAssociatedUsers = returnedPrincipals.filter(principal =>
+            principal.principalType === this.userType
+            && !this.associatedUsers.map(u => u.subjectId.toLowerCase()).includes(principal.subjectId.toLowerCase()));
         }
+
+        if (this.associatedGroups && this.associatedGroups.length > 0) {
+          unAssociatedGroups = returnedPrincipals.filter(principal =>
+            principal.principalType === this.groupType
+            && !this.associatedGroups.map(u => u.groupName.toLowerCase()).includes(principal.subjectId.toLowerCase()));
+        }
+
+        this.principals = unAssociatedUsers.concat(unAssociatedGroups);
       });
   }
 
