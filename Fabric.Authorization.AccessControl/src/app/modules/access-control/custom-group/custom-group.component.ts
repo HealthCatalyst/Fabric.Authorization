@@ -2,7 +2,6 @@ import { Component, OnInit, OnDestroy, Inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { FabricAuthRoleService } from '../../../services/fabric-auth-role.service';
-import { FabricAuthUserService } from '../../../services/fabric-auth-user.service';
 import { IAccessControlConfigService } from '../../../services/access-control-config.service';
 import { FabricAuthGroupService } from '../../../services/fabric-auth-group.service';
 import { FabricExternalIdpSearchService } from '../../../services/fabric-external-idp-search.service';
@@ -145,22 +144,25 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
                 ]
               : result.principals;
 
-        let unAssociatedUsers = [];
-        let unAssociatedGroups = [];
+        let unAssociatedUserPrincipals = [];
+        let unAssociatedGroupPrincipals = [];
 
         if (this.associatedUsers && this.associatedUsers.length > 0) {
-          unAssociatedUsers = returnedPrincipals.filter(principal =>
+          unAssociatedUserPrincipals = returnedPrincipals.filter(principal =>
             principal.principalType === this.userType
             && !this.associatedUsers.map(u => u.subjectId.toLowerCase()).includes(principal.subjectId.toLowerCase()));
         }
 
         if (this.associatedGroups && this.associatedGroups.length > 0) {
-          unAssociatedGroups = returnedPrincipals.filter(principal =>
+          unAssociatedGroupPrincipals = returnedPrincipals.filter(principal =>
             principal.principalType === this.groupType
             && !this.associatedGroups.map(u => u.groupName.toLowerCase()).includes(principal.subjectId.toLowerCase()));
         }
-
-        this.principals = unAssociatedUsers.concat(unAssociatedGroups);
+        if (unAssociatedUserPrincipals.length > 0 || unAssociatedGroupPrincipals.length > 0) {
+          this.principals = unAssociatedUserPrincipals.concat(unAssociatedGroupPrincipals);
+        } else {
+          this.principals = returnedPrincipals;
+        }
       });
   }
 
