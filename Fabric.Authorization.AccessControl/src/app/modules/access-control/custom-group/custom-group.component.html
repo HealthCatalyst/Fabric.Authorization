@@ -39,7 +39,7 @@
                     <tbody>
                         <tr *ngFor="let principal of principals">
                             <td>
-                                <hc-checkbox [id]="principal.subjectId" [(ngModel)]="principal.selected">
+                                <hc-checkbox [id]="principal.subjectId + principal.principalType" [(ngModel)]="principal.selected">
                                 </hc-checkbox>
                             </td>
                             <td [innerText]="principal.subjectId">
