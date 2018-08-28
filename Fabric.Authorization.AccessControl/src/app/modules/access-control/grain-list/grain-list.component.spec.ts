@@ -1,15 +1,13 @@
 import { async, ComponentFixture, TestBed, inject } from '@angular/core/testing';
-import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 
-import { MatTreeFlatDataSource, MatTreeFlattener, MatTreeModule } from '@angular/material/tree';
-import { FlatTreeControl } from '@angular/cdk/tree';
+import { MatTreeModule } from '@angular/material/tree';
 
 import { ServicesMockModule } from '../services.mock.module';
 import { GrainListComponent, GrainFlatNode, GrainNode } from './grain-list.component';
 import { IGrain } from '../../../models/grain.model';
 import { ISecurableItem } from '../../../models/securableItem.model';
-import { MemberListComponent } from '../member-list/member-list.component'
+import { MemberListComponent } from '../member-list/member-list.component';
 import { Observable } from 'rxjs/Observable';
 
 import { FabricAuthGrainServiceMock, mockGrains } from '../../../services/fabric-auth-grain.service.mock';
@@ -68,7 +66,7 @@ describe('GrainListComponent', () => {
 
   it('should create and select the first node by default', () => {
     // arrange
-    var grains = testGrains;
+    const grains = testGrains;
 
     // act --the act of creating this object has called the constructor
 
@@ -81,11 +79,11 @@ describe('GrainListComponent', () => {
 
     it('should return empty string for comparing different nodes', () => {
       // Arrange
-      let randomNode = new GrainFlatNode(null, 'test', null, 0);
+      const randomNode = new GrainFlatNode(null, 'test', null, 0);
       component.selectedNode = null;
 
       // Act
-      var result = component.isSelectedNode(randomNode);
+      const result = component.isSelectedNode(randomNode);
 
       // Assert
       expect(result).toBe('');
@@ -93,27 +91,26 @@ describe('GrainListComponent', () => {
 
     it('should return "selected" for comparing similar nodes', () => {
       // Arrange
-      let randomNode = new GrainFlatNode(null, 'test', null, 0);
+      const randomNode = new GrainFlatNode(null, 'test', null, 0);
       component.selectedNode = randomNode;
 
       // Act
-      var result = component.isSelectedNode(randomNode);
+      const result = component.isSelectedNode(randomNode);
 
       // Assert
       expect(result).toBe('selected');
     });
-
   });
 
   describe('getIcon', () => {
 
     it('should return "fa-plus-square-o" if parent node and expandable', () => {
       // Arrange
-      let randomNode = new GrainFlatNode(true, 'test', null, 0);
+      const randomNode = new GrainFlatNode(true, 'test', null, 0);
       component.selectedNode = null;
 
       // Act
-      var result = component.getIcon(randomNode);
+      const result = component.getIcon(randomNode);
 
       // Assert
       expect(result).toBe('fa-plus-square-o');
@@ -121,11 +118,11 @@ describe('GrainListComponent', () => {
 
     it('should return "fa-minus-square-o" if child node that cant expand', () => {
       // Arrange
-      let randomNode = new GrainFlatNode(false, 'test', 'parent', 1);
+      const randomNode = new GrainFlatNode(false, 'test', 'parent', 1);
       component.selectedNode = null;
 
       // Act
-      var result = component.getIcon(randomNode);
+      const result = component.getIcon(randomNode);
 
       // Assert
       expect(result).toBe('fa-minus-square-o');
@@ -133,50 +130,48 @@ describe('GrainListComponent', () => {
 
     it('should return "fa-caret-square-o-right" if selected', () => {
       // Arrange
-      let randomNode = new GrainFlatNode(false, 'test', 'parent', 1);
+      const randomNode = new GrainFlatNode(false, 'test', 'parent', 1);
       component.selectedNode = randomNode;
 
       // Act
-      var result = component.getIcon(randomNode);
+      const result = component.getIcon(randomNode);
 
       // Assert
       expect(result).toBe('fa-caret-square-o-right');
     });
-
   });
 
   describe('AddGrainToGrainNode', () => {
 
     it('given a IGrain[], convert into GrainNode[]', () => {
       // Arrange
-      var grains = testGrains;
+      const grains = testGrains;
 
       // Act
-      var result = component.addGrainToGrainNode(grains);
+      const result = component.addGrainToGrainNode(grains);
 
       // Assert
       expect(grains.length).toBe(result.length);
 
-      for (var i = 0; i < grains.length; i++) {
+      for (let i = 0; i < grains.length; i++) {
         expect(grains[0].name).toBe(result[0].name);
       }
     });
-
   });
 
   describe('AddSecurableItemToGrainNode', () => {
     it('given a ISecurableItem[], convert into GrainNode[]', () => {
       // Arrange
-      var parentName = "dos";
-      var securableItems = testSecurableItems;
+      const parentName = 'dos';
+      const securableItems = testSecurableItems;
 
       // Act
-      var result = component.addSecurableItemToGrainNode(securableItems, parentName);
+      const result = component.addSecurableItemToGrainNode(securableItems, parentName);
 
       // Assert
       expect(securableItems.length).toBe(result.length);
 
-      for (var i = 0; i < securableItems.length; i++) {
+      for (let i = 0; i < securableItems.length; i++) {
         expect(securableItems[0].name).toBe(result[0].name);
         expect(parentName).toBe(result[0].parentName);
       }
@@ -185,7 +180,7 @@ describe('GrainListComponent', () => {
 
   it('onSelect sets the selectedNode', () => {
     // Arrange
-    let randomNode = new GrainFlatNode(true, 'test', null, 0);
+    const randomNode = new GrainFlatNode(true, 'test', null, 0);
     component.selectedNode = null;
 
     // Act
@@ -194,6 +189,4 @@ describe('GrainListComponent', () => {
     // Assert
     expect(component.selectedNode).toBe(randomNode);
   });
-
-
 });
