@@ -37,7 +37,7 @@ namespace Fabric.Authorization.IntegrationTests
         public string TestHost => "http://testhost:80/v1";
 
         public Browser GetBrowser(ClaimsPrincipal principal, string storageProvider, IIdentityServiceProvider identityServiceProvider = null)
-        {            
+        {
             var appConfiguration = new AppConfiguration
             {
                 StorageProvider = storageProvider,
@@ -56,7 +56,8 @@ namespace Fabric.Authorization.IntegrationTests
                 },
                 DefaultPropertySettings = new DefaultPropertySettings
                 {
-                    GroupSource = "Windows"
+                    GroupSource = "Windows",
+                    DualStoreEDWAdminPermissions = false
                 }
             };
             var hostingEnvironment = new Mock<IHostingEnvironment>();
@@ -79,7 +80,8 @@ namespace Fabric.Authorization.IntegrationTests
 
         public DefaultPropertySettings DefaultPropertySettings = new DefaultPropertySettings
         {
-            GroupSource = "Windows"
+            GroupSource = "Windows",
+            DualStoreEDWAdminPermissions = false
         };
         
         

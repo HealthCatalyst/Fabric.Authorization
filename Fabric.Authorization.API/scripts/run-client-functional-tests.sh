@@ -78,12 +78,12 @@ sleep 5
 cd scripts
 (. setup-samples.sh $installerSecret)
 
-cd ../../Fabric.Authorization.Client.FunctionalTests
+cd ../../Catalyst.Fabric.Authorization.Client.FunctionalTests
 export FABRIC_IDENTITY_URL=http://localhost:5001/
 export FABRIC_AUTH_URL=http://localhost:5004/
 export FABRIC_AUTH_SECRET=$authClientSecret
 echo "running tests"
-dotnet test ./Fabric.Authorization.Client.FunctionalTests.csproj
+dotnet test ./Catalyst.Fabric.Authorization.Client.FunctionalTests.csproj
 
 cd ../Fabric.Authorization.API/scripts
 rm identity-setup-samples.sh
