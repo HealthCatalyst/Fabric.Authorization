@@ -21,14 +21,14 @@ export class GrainListComponent implements OnInit {
   dataSource: MatTreeFlatDataSource<GrainNode, GrainFlatNode>;
 
   grains: IGrain[];
-  isGrainVisible: boolean = false;
+  isGrainVisible = false;
   selectedNode: GrainFlatNode;
   selectedGrain: string;
   selectedSecurableItem: string;
 
   constructor(
-      private route: ActivatedRoute,
-      private grainService: FabricAuthGrainService
+    private route: ActivatedRoute,
+    private grainService: FabricAuthGrainService
   ) {
     this.isGrainVisible = grainService.isGrainVisible();
     this.treeFlattener = new MatTreeFlattener(this.transformer, this._getLevel, this._isExpandable, this._getChildren);
@@ -39,10 +39,9 @@ export class GrainListComponent implements OnInit {
 
     this.grainService.getAllGrains().subscribe(
       response => {
-        this.dataSource.data = this.AddGrainToGrainNode(response);
+        this.dataSource.data = this.addGrainToGrainNode(response);
         this.initializeSelectedNode();
-      }
-    );;
+      });
   }
 
   transformer = (node: GrainNode, level: number) => new GrainFlatNode(!!node.children, node.name, node.parentName, level);
@@ -60,53 +59,56 @@ export class GrainListComponent implements OnInit {
   }
 
   initializeSelectedNode(): void {
-    if(!!this.selectedGrain)
-    {
-      let firstNode = this.treeControl.dataNodes.find(node => { return node.name == this.selectedGrain } );
+    if (!!this.selectedGrain) {
+      const firstNode = this.treeControl.dataNodes.find(node => {
+        return node.name === this.selectedGrain;
+      });
+
       this.treeControl.expand(firstNode);
-      this.selectedNode = this.treeControl.dataNodes.find( node => { return node.name == this.selectedSecurableItem && node.parentName == this.selectedGrain } );
-    }
-    else {
-      let firstNode = this.treeControl.dataNodes[0];
-      let secondNode = this.treeControl.dataNodes[1];
+      this.selectedNode = this.treeControl.dataNodes.find(node => {
+        return node.name === this.selectedSecurableItem && node.parentName === this.selectedGrain;
+      });
+    } else {
+      const firstNode = this.treeControl.dataNodes[0];
+      const secondNode = this.treeControl.dataNodes[1];
       this.treeControl.expand(firstNode);
 
       // if the second node a child, selected that.
       // if it is not related, just use the first node.
-      if(firstNode.name == secondNode.parentName)
-      {
+      if (firstNode.name === secondNode.parentName) {
         this.selectedNode = secondNode;
-      }
-      else {
+      } else {
         this.selectedNode = firstNode;
       }
     }
   }
 
-  AddGrainToGrainNode(data: IGrain[]): GrainNode[] {
-    var result: GrainNode[] = [];
+  addGrainToGrainNode(data: IGrain[]): GrainNode[] {
+    const result: GrainNode[] = [];
 
-    for(let item of data) {
-      var node = new GrainNode();
+    for (const item of data) {
+      const node = new GrainNode();
       node.name = item.name;
-      node.children = this.AddSecurableItemToGrainNode(item.securableItems, item.name);
+      node.children = this.addSecurableItemToGrainNode(item.securableItems, item.name);
       result.push(node);
     }
 
     return result;
   }
 
-  AddSecurableItemToGrainNode(data: ISecurableItem[], parentName: string): GrainNode[] {
-    var result: GrainNode[] = [];
+  addSecurableItemToGrainNode(data: ISecurableItem[], parentName: string): GrainNode[] {
+    const result: GrainNode[] = [];
 
-    if(data == null) return null;
+    if (data === null) {
+      return null;
+    }
 
-    for(let item of data) {
-      var node = new GrainNode();
+    for (const item of data) {
+      const node = new GrainNode();
       node.name = item.name;
       node.parentName = parentName;
 
-      node.children = this.AddSecurableItemToGrainNode(item.securableItems, item.name);
+      node.children = this.addSecurableItemToGrainNode(item.securableItems, item.name);
       result.push(node);
     }
 
@@ -118,16 +120,15 @@ export class GrainListComponent implements OnInit {
   }
 
   getIcon(node: GrainFlatNode): string {
-    var value = "";
-    if(node.expandable && !node.parentName) {
-      value = "fa-plus-square-o";
-    }
-    else {
-      value = "fa-minus-square-o";
+    let value = '';
+    if (node.expandable && !node.parentName) {
+      value = 'fa-plus-square-o';
+    } else {
+      value = 'fa-minus-square-o';
     }
 
-    if(node == this.selectedNode) {
-      value = "fa-caret-square-o-right"
+    if (node === this.selectedNode) {
+      value = 'fa-caret-square-o-right';
     }
 
     return value;
@@ -147,5 +148,5 @@ export class GrainNode {
 
 export class GrainFlatNode {
   constructor(
-    public expandable: boolean, public name: string, public parentName: string, public level: number) {}
+    public expandable: boolean, public name: string, public parentName: string, public level: number) { }
 }

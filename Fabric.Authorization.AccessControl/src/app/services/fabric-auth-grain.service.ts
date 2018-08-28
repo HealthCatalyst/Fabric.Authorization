@@ -22,7 +22,7 @@ export class FabricAuthGrainService extends FabricBaseService {
       FabricAuthGrainService.baseUrl = `${accessControlConfigService.fabricAuthApiUrl}/grains`;
     }
 
-    if(!FabricAuthGrainService.isVisible){
+    if (!FabricAuthGrainService.isVisible) {
       FabricAuthGrainService.isVisible = environment.isGrainVisible;
     }
   }
