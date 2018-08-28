@@ -23,14 +23,11 @@
 
     public class EDWAdminRoleSyncService : IEDWAdminRoleSyncService
     {
-        private readonly RoleService _roleService;
         private readonly IEDWStore _edwStore;
 
 
-        public EDWAdminRoleSyncService(RoleService roleService, IEDWStore edwStore)
+        public EDWAdminRoleSyncService(IEDWStore edwStore)
         {
-            this._roleService = roleService ??
-                    throw new ArgumentNullException(nameof(roleService));
             this._edwStore = edwStore ??
                     throw new ArgumentNullException(nameof(edwStore));
         }
