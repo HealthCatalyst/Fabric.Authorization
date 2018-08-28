@@ -2,14 +2,14 @@
   <mat-tree [dataSource]="dataSource" [treeControl]="treeControl">
     <mat-tree-node *matTreeNodeDef="let node" matTreeNodeToggle matTreeNodePadding>
       <hc-icon fontSet="fa" [fontIcon]="getIcon(node)" icon-sm aria-hidden="true"></hc-icon>
-      <a [class]="isSelectedNode(node)" title="{{node.name}}">
+      <a style="cursor: pointer;" [class]="isSelectedNode(node)" title="{{node.name}}">
         &nbsp;{{node.name}}
       </a>
     </mat-tree-node>
 
     <mat-tree-node *matTreeNodeDef="let node;when: hasChild" matTreeNodePadding>
       <hc-icon fontSet="fa" [fontIcon]="getIcon(node)" icon-sm aria-hidden="true"></hc-icon>
-      <a [class]="isSelectedNode(node)" title="{{node.name}}" matTreeNodeToggle [attr.aria-label]="'toggle ' + node.name" (click)="onSelect(node)">
+      <a style="cursor: pointer;" [class]="isSelectedNode(node)" title="{{node.name}}" matTreeNodeToggle [attr.aria-label]="'toggle ' + node.name" (click)="onSelect(node)">
         &nbsp;{{node.name}}
       </a>
     </mat-tree-node>
