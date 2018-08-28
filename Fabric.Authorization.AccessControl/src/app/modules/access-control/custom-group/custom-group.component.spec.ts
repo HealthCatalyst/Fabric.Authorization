@@ -73,13 +73,13 @@ describe('CustomGroupComponent', () => {
         expect(component.principals.length).toBe(mockExternalIdpSearchResult.principals.length);
     }));
 
-    it('adds a user when none have returned', async(() => {
+    it('adds a user and a group when none have returned', async(() => {
         // act
         component.searchTerm = 'asdf';
         IdpSearchResultsSubject.next({resultCount: 0, principals: []});
 
         // assert
-        expect(component.principals.length).toBe(1);
+        expect(component.principals.length).toBe(2);
         expect(component.principals[0].subjectId).toBe('asdf');
     }));
   });

@@ -140,10 +140,14 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
                     {
                         subjectId: this.searchTerm,
                         principalType: this.userType
+                    },
+                    {
+                        subjectId: this.searchTerm,
+                        principalType: this.groupType
                     }
                 ]
               : result.principals;
-
+        
         let unAssociatedUserPrincipals = [];
         let unAssociatedGroupPrincipals = [];
 
@@ -151,13 +155,20 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           unAssociatedUserPrincipals = returnedPrincipals.filter(principal =>
             principal.principalType === this.userType
             && !this.associatedUsers.map(u => u.subjectId.toLowerCase()).includes(principal.subjectId.toLowerCase()));
+        }else{
+          unAssociatedUserPrincipals = returnedPrincipals.filter(principal =>
+            principal.principalType === this.userType);
         }
 
         if (this.associatedGroups && this.associatedGroups.length > 0) {
           unAssociatedGroupPrincipals = returnedPrincipals.filter(principal =>
             principal.principalType === this.groupType
             && !this.associatedGroups.map(u => u.groupName.toLowerCase()).includes(principal.subjectId.toLowerCase()));
+        }else{
+          unAssociatedGroupPrincipals = returnedPrincipals.filter(principal =>
+            principal.principalType === this.groupType);
         }
+
         if (unAssociatedUserPrincipals.length > 0 || unAssociatedGroupPrincipals.length > 0) {
           this.principals = unAssociatedUserPrincipals.concat(unAssociatedGroupPrincipals);
         } else {
