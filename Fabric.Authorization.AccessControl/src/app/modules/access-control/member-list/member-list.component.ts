@@ -1,5 +1,4 @@
 import { Component, OnInit, ViewChild, TemplateRef, Inject, Input, OnChanges } from '@angular/core';
-import { Subscription } from 'rxjs/Subscription';
 import { Subject } from 'rxjs/Subject';
 import 'rxjs/add/operator/debounceTime';
 import 'rxjs/add/operator/distinctUntilChanged';
@@ -12,7 +11,6 @@ import { IAccessControlConfigService } from '../../../services/access-control-co
 import { FabricAuthUserService } from '../../../services/fabric-auth-user.service';
 import { FabricAuthGroupService } from '../../../services/fabric-auth-group.service';
 import { IRole } from '../../../models/role.model';
-import { ISecurableItem } from '../../../models/securableItem.model';
 import { GrainFlatNode } from '../grain-list/grain-list.component';
 
 @Component({
@@ -62,9 +60,9 @@ export class MemberListComponent implements OnInit, OnChanges {
 
   }
 
-  ngOnChanges(){
-    if(this.selectedNode && this.selectedNode.parentName && this.selectedNode.name){
-      console.log("Changed securableItem to Grain: " + this.selectedNode.parentName + "SecurableItem: " + this.selectedNode.name);
+  ngOnChanges() {
+    if (this.selectedNode && this.selectedNode.parentName && this.selectedNode.name) {
+      console.log('Changed securableItem to Grain: ' + this.selectedNode.parentName + ', SecurableItem: ' + this.selectedNode.name);
       this.getMembers();
     }
   }
@@ -103,7 +101,7 @@ export class MemberListComponent implements OnInit, OnChanges {
 
   getMembers() {
 
-    if(this.selectedNode){
+    if (this.selectedNode) {
       this.grain = this.selectedNode.parentName;
       this.securableItem = this.selectedNode.name;
     }
