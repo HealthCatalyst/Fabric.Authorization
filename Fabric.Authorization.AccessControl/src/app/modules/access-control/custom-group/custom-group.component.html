@@ -99,6 +99,7 @@
             <tr>
                 <th></th>
                 <th>Role Name</th>
+                <th>Description</th>
             </tr>
         </thead>
         <tbody>
@@ -107,7 +108,8 @@
                     <hc-checkbox [id]="role.id" [(ngModel)]="role.selected">
                     </hc-checkbox>
                 </td>
-                <td [innerText]="role.name"></td>
+                <td [innerText]="role.displayName"></td>
+                <td [innerText]="role.description"></td>
             </tr>
         </tbody>
     </table>
