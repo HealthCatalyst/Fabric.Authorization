@@ -7,6 +7,7 @@ import { of as observableOf } from 'rxjs/observable/of';
 import { FabricAuthGrainService } from '../../../services/fabric-auth-grain.service';
 import { IGrain } from '../../../models/grain.model';
 import { ISecurableItem } from '../../../models/securableItem.model';
+import { ActivatedRoute } from '../../../../../node_modules/@angular/router';
 
 @Component({
   selector: 'app-grain-list',
@@ -23,7 +24,15 @@ export class GrainListComponent implements OnInit {
   isGrainVisible = false;
   selectedNode: GrainFlatNode;
 
+  transformer = (node: GrainNode, level: number) => new GrainFlatNode(!!node.children, node.name, node.parentName, level);
+
+  private _getLevel = (node: GrainFlatNode) => node.level;
+  private _isExpandable = (node: GrainFlatNode) => node.expandable;
+  private _getChildren = (node: GrainNode): Observable<GrainNode[]> => observableOf(node.children);
+  hasChild = (_: number, _nodeData: GrainFlatNode) => _nodeData.expandable;
+
   constructor(
+    private route: ActivatedRoute,
     private grainService: FabricAuthGrainService
   ) {
     this.isGrainVisible = grainService.isGrainVisible();
@@ -31,9 +40,15 @@ export class GrainListComponent implements OnInit {
     this.treeControl = new FlatTreeControl<GrainFlatNode>(this._getLevel, this._isExpandable);
     this.dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
 
+    const routeGrain = this.route.snapshot.params['grain'];
+    if (!!routeGrain) {
+      this.setSelectedNode(routeGrain, this.route.snapshot.paramMap.get('securableItem'));
+    }
+
     this.grainService.getAllGrains().subscribe(
       response => {
         const sortedGrains = response;
+
         if (sortedGrains.length > 1) {
           const dosIndex = response.findIndex(g => g.name === 'dos');
           if (dosIndex > 0) {
@@ -41,48 +56,44 @@ export class GrainListComponent implements OnInit {
             sortedGrains.splice(dosIndex + 1, 1);
           }
         }
+
         this.dataSource.data = this.addGrainToGrainNode(sortedGrains);
         this.initializeSelectedNode();
       });
   }
-
-  transformer = (node: GrainNode, level: number) => new GrainFlatNode(!!node.children, node.name, node.parentName, level);
-
-  private _getLevel = (node: GrainFlatNode) => node.level;
-
-  private _isExpandable = (node: GrainFlatNode) => node.expandable;
-
-  private _getChildren = (node: GrainNode): Observable<GrainNode[]> => observableOf(node.children);
-
-  hasChild = (_: number, _nodeData: GrainFlatNode) => _nodeData.expandable;
 
   ngOnInit() {
 
   }
 
   initializeSelectedNode(): void {
-    if (!!this.getSelectedGrain()) {
-      const firstNode = this.treeControl.dataNodes.find(node => {
-        return node.name === this.getSelectedGrain();
+    const selectedGrain = this.getSelectedGrain();
+    const selectedSecurableItem = this.getSelectedSecurableItem();
+    if (!!selectedGrain) {
+      const grainNode = this.treeControl.dataNodes.find(node => {
+        return node.name === selectedGrain;
       });
 
-      this.treeControl.expand(firstNode);
+      this.treeControl.expand(grainNode);
       this.selectedNode = this.treeControl.dataNodes.find(node => {
-        return node.name === this.getSelectedSecurableItem() && node.parentName === this.getSelectedGrain();
+        return node.name === selectedSecurableItem && node.parentName === selectedGrain;
       });
-    } else {
-      const firstNode = this.treeControl.dataNodes[0];
-      const secondNode = this.treeControl.dataNodes[1];
-      this.treeControl.expand(firstNode);
-
-      // if the second node a child, select that.
-      // if it is not related, just use the first node.
-      if (firstNode.name === secondNode.parentName) {
-        this.selectedNode = secondNode;
-      } else {
-        this.selectedNode = firstNode;
+      if (!this.selectedNode) {
+        this.selectedNode = grainNode;
       }
-    }
+     } else {
+        const grainNode = this.treeControl.dataNodes[0];
+        const secondNode = this.treeControl.dataNodes[1];
+        this.treeControl.expand(grainNode);
+
+        // if the second node a child, select that.
+        // if it is not related, just use the first node.
+        if (grainNode.name === secondNode.parentName) {
+          this.selectedNode = secondNode;
+        } else {
+          this.selectedNode = grainNode;
+        }
+      }
   }
 
   getSelectedGrain() {
@@ -129,10 +140,19 @@ export class GrainListComponent implements OnInit {
     this.selectedNode = node;
 
     if (!!node.parentName) {
-      sessionStorage.setItem('selectedSecurableItem', node.name);
+      this.setSelectedNode(this.getSelectedGrain(), node.name);
+    } else {
+      this.setSelectedNode(node.name);
+    }
+  }
+
+  setSelectedNode(grain: string, securableItem?: string) {
+    if (!!securableItem) {
+      sessionStorage.setItem('selectedGrain', grain);
+      sessionStorage.setItem('selectedSecurableItem', securableItem);
     } else {
       sessionStorage.removeItem('selectedSecurableItem');
-      sessionStorage.setItem('selectedGrain', node.name);
+      sessionStorage.setItem('selectedGrain', grain);
     }
   }
 
