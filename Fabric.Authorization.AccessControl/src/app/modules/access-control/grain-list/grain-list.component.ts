@@ -39,7 +39,15 @@ export class GrainListComponent implements OnInit {
 
     this.grainService.getAllGrains().subscribe(
       response => {
-        this.dataSource.data = this.addGrainToGrainNode(response);
+        const sortedGrains = response;
+        if (sortedGrains.length > 1) {
+          const dosIndex = response.findIndex(g => g.name === 'dos');
+          if (dosIndex > 0) {
+            sortedGrains.unshift(sortedGrains[dosIndex]);
+            sortedGrains.splice(dosIndex + 1, 1);
+          }
+        }
+        this.dataSource.data = this.addGrainToGrainNode(sortedGrains);
         this.initializeSelectedNode();
       });
   }
