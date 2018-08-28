@@ -187,7 +187,8 @@ namespace Fabric.Authorization.UnitTests.Grains
                 .Dependency(MockRoleStore.Object)
                 .Dependency(MockPermissionStore.Object)
                 .Dependency(MockUserStore.Object)
-                .Dependency(MockSecurableItemStore.Object);
+                .Dependency(MockSecurableItemStore.Object)
+                .Dependency(MockEdwStore.Object);
         }
 
         private static IEnumerable<Grain> GetGrainWithDeepGraph()
