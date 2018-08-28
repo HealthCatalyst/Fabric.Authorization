@@ -7,12 +7,11 @@ import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 
 import { httpInterceptorProviders } from './services/interceptors';
-import { AuthService, IAuthService } from './services/global/auth.service';
-import { IAccessControlConfigService } from './services/access-control-config.service';
+import { AuthService } from './services/global/auth.service';
 import { ClientAccessControlConfigService } from './services/global/client-access-control-config.service';
 
 import { ButtonModule, ProgressIndicatorsModule, NavbarModule, PopoverModule, AppSwitcherModule, IconModule,
-  MockAppSwitcherService, ListModule } from '@healthcatalyst/cashmere';
+  MockAppSwitcherService } from '@healthcatalyst/cashmere';
 import { NavbarComponent } from './navbar/navbar.component';
 import { LoggedOutComponent } from './logged-out/logged-out.component';
 import { ServicesService } from './services/global/services.service';
