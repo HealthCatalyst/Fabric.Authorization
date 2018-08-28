@@ -28,7 +28,7 @@ describe('GrainListComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ GrainListComponent, MemberListComponent ],
+      declarations: [GrainListComponent, MemberListComponent],
       imports: [ServicesMockModule,
         MatTreeModule,
         FormsModule,
@@ -40,7 +40,7 @@ describe('GrainListComponent', () => {
         SelectModule,
         RouterTestingModule]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(inject([FabricAuthGrainService], (grainService: FabricAuthGrainServiceMock) => {
@@ -152,13 +152,12 @@ describe('GrainListComponent', () => {
       var grains = testGrains;
 
       // Act
-      var result = component.AddGrainToGrainNode(grains);
+      var result = component.addGrainToGrainNode(grains);
 
       // Assert
       expect(grains.length).toBe(result.length);
 
-      for(var i = 0; i < grains.length; i++)
-      {
+      for (var i = 0; i < grains.length; i++) {
         expect(grains[0].name).toBe(result[0].name);
       }
     });
@@ -172,13 +171,12 @@ describe('GrainListComponent', () => {
       var securableItems = testSecurableItems;
 
       // Act
-      var result = component.AddSecurableItemToGrainNode(securableItems, parentName);
+      var result = component.addSecurableItemToGrainNode(securableItems, parentName);
 
       // Assert
       expect(securableItems.length).toBe(result.length);
 
-      for(var i = 0; i < securableItems.length; i++)
-      {
+      for (var i = 0; i < securableItems.length; i++) {
         expect(securableItems[0].name).toBe(result[0].name);
         expect(parentName).toBe(result[0].parentName);
       }
