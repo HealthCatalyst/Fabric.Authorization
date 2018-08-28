@@ -27,6 +27,7 @@ namespace Fabric.Authorization.UnitTests
         protected readonly Mock<IUserStore> MockUserStore;
         protected readonly Mock<IGrainStore> MockGrainStore;
         protected readonly Mock<ISecurableItemStore> MockSecurableItemStore;
+        protected readonly Mock<IEDWStore> MockEdwStore;
 
         protected readonly string TestHost = "http://testhost:80/v1";
 
@@ -61,6 +62,8 @@ namespace Fabric.Authorization.UnitTests
             MockGrainStore = new Mock<IGrainStore>();
 
             MockUserStore = new Mock<IUserStore>();
+
+            MockEdwStore = new Mock<IEDWStore>();
 
         }
 
