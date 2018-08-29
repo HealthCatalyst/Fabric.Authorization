@@ -39,7 +39,7 @@ namespace Fabric.Authorization.API.Modules
 
         private async Task<dynamic> SyncUserIdentityRoles(dynamic param)
         {
-            CheckReadAccess();
+            CheckInternalAccess();
 
             try
             {
@@ -55,7 +55,7 @@ namespace Fabric.Authorization.API.Modules
 
         private async Task<dynamic> SyncGroupIdentityRoles(dynamic param)
         {
-            CheckReadAccess();
+            CheckInternalAccess();
 
             try
             {
