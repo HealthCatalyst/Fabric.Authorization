@@ -104,6 +104,7 @@ namespace Fabric.Authorization.IntegrationTests
                                 StringSplitOptions.RemoveEmptyEntries);
 
                             command.CommandText = commandParts[0];
+                            Console.WriteLine($"Executing CREATE DATATBASE with: {command.CommandText}");
                             command.ExecuteNonQuery();
                             break;
                         }
