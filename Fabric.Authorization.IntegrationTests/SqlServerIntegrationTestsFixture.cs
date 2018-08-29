@@ -9,13 +9,16 @@ namespace Fabric.Authorization.IntegrationTests
     public class SqlServerIntegrationTestsFixture : IDisposable
     {
         private string DatabaseNameSuffix { get; }
+        private static readonly string AuthorizationDatabaseName = "Authorization";
+        private static readonly string EdwAdminDatabaseName = "EDWAdmin";
         public ConnectionStrings ConnectionStrings { get; }
 
         public SqlServerIntegrationTestsFixture()
         {
             DatabaseNameSuffix = GetDatabaseNameSuffix();
             ConnectionStrings = GetSqlServerConnection(DatabaseNameSuffix);
-            CreateSqlServerDatabase();
+            CreateAuthorizationSqlServerDatabase();
+            CreateEdwAdminSqlServerDatabase();
         }
 
         private static readonly string SqlServerEnvironmentVariable = "SQLSERVERSETTINGS__SERVER";
@@ -34,7 +37,8 @@ namespace Fabric.Authorization.IntegrationTests
             var sqlServerSecurityString = GetSqlServerSecurityString();
             var connectionString = new ConnectionStrings
             {
-                AuthorizationDatabase = $"Server={sqlServerHost};Database=Authorization-{databaseNameSuffix};{sqlServerSecurityString};MultipleActiveResultSets=true"
+                AuthorizationDatabase = $"Server={sqlServerHost};Database={AuthorizationDatabaseName}-{databaseNameSuffix};{sqlServerSecurityString};MultipleActiveResultSets=true",
+                EDWAdminDatabase = $"Server={sqlServerHost};Database={EdwAdminDatabaseName}-{databaseNameSuffix};{sqlServerSecurityString};MultipleActiveResultSets=true"
             };
 
             return connectionString;
@@ -52,13 +56,29 @@ namespace Fabric.Authorization.IntegrationTests
             return securityString;
         }
 
-        private void CreateSqlServerDatabase()
+        private void CreateEdwAdminSqlServerDatabase()
         {
-            var targetDbName = $"Authorization-{DatabaseNameSuffix}";
+            var targetDbName = $"{EdwAdminDatabaseName}-{DatabaseNameSuffix}";
+            var file = new FileInfo("EDWAdmin.SqlServer_Create.sql");
+            var dataFileGroup = "HCEDWAdminData1";
+            var indexFileGroup = "HCEDWAdminIndex1";
+            CreateSqlServerDatabase(targetDbName, file, dataFileGroup, indexFileGroup, ConnectionStrings.EDWAdminDatabase);
+        }
 
-            var connection =
-                ConnectionStrings.AuthorizationDatabase.Replace(targetDbName, "master");
+        private void CreateAuthorizationSqlServerDatabase()
+        {
+            var targetDbName = $"{AuthorizationDatabaseName}-{DatabaseNameSuffix}";
             var file = new FileInfo("Fabric.Authorization.SqlServer_Create.sql");
+            var dataFileGroup = "HCFabricAuthorizationData1";
+            var indexFileGroup = "HCFabricAuthorizationIndex1";
+            CreateSqlServerDatabase(targetDbName, file, dataFileGroup, indexFileGroup, ConnectionStrings.AuthorizationDatabase);
+        }
+
+
+        private void CreateSqlServerDatabase(string targetDbName, FileInfo file, string dataFileGroup, string indexFileGroup, string connectionString)
+        {
+            var connection =
+                connectionString.Replace(targetDbName, "master");
 
             var createDbScript = file.OpenText()
                 .ReadToEnd()
@@ -92,7 +112,7 @@ namespace Fabric.Authorization.IntegrationTests
             }
 
             // establish a connection to the newly created Identity DB
-            using (var conn = new SqlConnection(ConnectionStrings.AuthorizationDatabase))
+            using (var conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -108,8 +128,8 @@ namespace Fabric.Authorization.IntegrationTests
                             continue;
                         }
 
-                        command.CommandText = commandText.Replace("HCFabricAuthorizationData1", "PRIMARY")
-                            .Replace("HCFabricAuthorizationIndex1", "PRIMARY")
+                        command.CommandText = commandText.Replace(dataFileGroup, "PRIMARY")
+                            .Replace(indexFileGroup, "PRIMARY")
                             .TrimEnd(Environment.NewLine.ToCharArray());
                         command.ExecuteNonQuery();
                     }
@@ -119,10 +139,14 @@ namespace Fabric.Authorization.IntegrationTests
 
         public void Dispose()
         {
-            var targetDbName = $"Authorization-{DatabaseNameSuffix}";
+            DeleteDatabase($"{AuthorizationDatabaseName}-{DatabaseNameSuffix}", ConnectionStrings.AuthorizationDatabase);
+            DeleteDatabase($"{EdwAdminDatabaseName}-{DatabaseNameSuffix}", ConnectionStrings.EDWAdminDatabase);
+        }
 
+        public void DeleteDatabase(string targetDbName, string connectionString)
+        {
             var connection =
-                ConnectionStrings.AuthorizationDatabase.Replace(targetDbName, "master");
+                connectionString.Replace(targetDbName, "master");
             using (var conn = new SqlConnection(connection))
             {
                 conn.Open();
