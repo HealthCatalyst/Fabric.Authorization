@@ -951,7 +951,7 @@ $body = @'
 {
     "name":"authorization-api",
     "userClaims":["name","email","role","groups"],
-    "scopes":[{"name":"fabric/authorization.read"}, {"name":"fabric/authorization.write"}, {"name":"fabric/authorization.dos.write"}, {"name":"fabric/authorization.manageclients"}]
+    "scopes":[{"name":"fabric/authorization.read"}, {"name":"fabric/authorization.write"}, {"name":"fabric/authorization.internal"}, {"name":"fabric/authorization.dos.write"}, {"name":"fabric/authorization.manageclients"}]
 }
 '@
 
@@ -1079,7 +1079,7 @@ $accessControlClient = @{
 		clientId = "fabric-access-control"
 		clientName = "Fabric Authorization Access Control Client"
 		requireConsent = "false"
-		allowedScopes = "openid", "profile", "fabric.profile", "fabric/authorization.read", "fabric/authorization.write", "fabric/idprovider.searchusers", "fabric/authorization.dos.write"
+		allowedScopes = "openid", "profile", "fabric.profile", "fabric/authorization.read", "fabric/authorization.write", "fabric/authorization.internal", "fabric/idprovider.searchusers", "fabric/authorization.dos.write"
 		allowOfflineAccess = $false
 		allowAccessTokensViaBrowser = $true
 		enableLocalLogin = $false

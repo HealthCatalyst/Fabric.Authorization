@@ -85,7 +85,7 @@
                     return true;
                 }
 
-                if (customGroup.Children.Where(group => !group.IsDeleted).SelectMany(children => children.Roles)
+                if (customGroup.Parents.Where(group => !group.IsDeleted).SelectMany(parent => parent.Roles)
                     .Any(role => RoleManagerConstants.AdminRoleNames.Contains(role.Name) && !role.IsDeleted))
                 {
                     return true;

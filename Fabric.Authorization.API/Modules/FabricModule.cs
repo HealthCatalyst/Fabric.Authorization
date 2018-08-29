@@ -52,6 +52,11 @@ namespace Fabric.Authorization.API.Modules
             get { return claim => claim.Type == Claims.Scope && claim.Value == Scopes.ReadScope; }
         }
 
+        protected Predicate<Claim> AuthorizationInternalClaim
+        {
+            get { return claim => claim.Type == Claims.Scope && claim.Value == Scopes.InternalScope; }
+        }
+
         protected Predicate<Claim> AuthorizationWriteClaim
         {
             get { return claim => claim.Type == Claims.Scope && claim.Value == Scopes.WriteScope; }
@@ -166,6 +171,11 @@ namespace Fabric.Authorization.API.Modules
         protected void CheckReadAccess()
         {
             this.RequiresClaims(AuthorizationReadClaim);
+        }
+
+        protected void CheckInternalAccess()
+        {
+            this.RequiresClaims(AuthorizationInternalClaim);
         }
 
         protected void Validate(T model)
