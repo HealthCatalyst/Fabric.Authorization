@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
@@ -9,51 +10,52 @@ namespace Fabric.Authorization.UnitTests.EDWAdminSyncService
 {
     public class EDWAdminRoleSyncServiceTests
     {
-        [Theory, MemberData(nameof(SingleUserDosAdminRoles))]
-        public void SyncPermissions_AddsEdwAdminCorrectly(User user)
+        [Theory, MemberData(nameof(SingleUsers))]
+        public async Task SyncPermissions_ProcessesSingleUserEdwAdminCorrectlyAsync(User user, int numberAdded, int numberRemoved)
         {
+            // Arrange
             var mockEdwStore = new Mock<IEDWStore>();
-
             var service = new EDWAdminRoleSyncService(mockEdwStore.Object);
 
-            service.RefreshDosAdminRolesAsync(user).Wait();
+            // Act
+            await service.RefreshDosAdminRolesAsync(user);
 
-            mockEdwStore.Verify(mock => mock.RemoveIdentitiesFromRole(It.IsAny<string[]>(), It.IsAny<string>()), Times.Never());
-            mockEdwStore.Verify(mock => mock.AddIdentitiesToRole(It.IsAny<string[]>(), It.IsAny<string>()), Times.Once());
+            // Assert
+            mockEdwStore.Verify(mock => mock.AddIdentitiesToRole(It.IsAny<string[]>(), It.IsAny<string>()), Times.Exactly(numberAdded));
+            mockEdwStore.Verify(mock => mock.RemoveIdentitiesFromRole(It.IsAny<string[]>(), It.IsAny<string>()), Times.Exactly(numberRemoved));
         }
 
-        [Theory, MemberData(nameof(SingleUserNoDosAdminRoles))]
-        public void SyncPermissions_RemovesEdwAdminCorrectly(User user)
-        {
-            var mockEdwStore = new Mock<IEDWStore>();
+        public static Role NoAdminRole => new Role() { Name = "NoAdminRole" };
 
-            var service = new EDWAdminRoleSyncService(mockEdwStore.Object);
+        public static Role JobAdminRole => new Role() { Name = "jobadmin" };
 
-            service.RefreshDosAdminRolesAsync(user).Wait();
+        public static Role DataMartAdminRole => new Role() { Name = "datamartadmin" };
 
-            mockEdwStore.Verify(mock => mock.AddIdentitiesToRole(It.IsAny<string[]>(), It.IsAny<string>()), Times.Never());
-            mockEdwStore.Verify(mock => mock.RemoveIdentitiesFromRole(It.IsAny<string[]>(), It.IsAny<string>()), Times.Once());
-        }
-
-        public static IEnumerable<object[]> SingleUserNoDosAdminRoles => new[]
+        public static IEnumerable<object[]> SingleUsers => new[] 
         {
             new object[]
             {
-                new User("noRolesUser", "fabric-authorization") { }
+                new User("noRolesUser", "fabric-authorization") { },
+                0,
+                1
             },
             new object[]
             {
                 new User("noAdminRole", "fabric-authorization")
                 {
-                    Roles = new Role[] { new Role{ Name = "notadmin" } }
-                }
+                    Roles = new Role[] { NoAdminRole }
+                },
+                0,
+                1
             },
             new object[]
             {
                 new User("noAdminRole", "fabric-authorization")
                 {
-                    Groups = new Group[] { new Group { Roles = new Role[] { new Role { Name = "notadmin" } } } }
-                }
+                    Groups = new Group[] { new Group { Roles = new Role[] { NoAdminRole } } }
+                },
+                0,
+                1
             },
             new object[]
             {
@@ -67,77 +69,90 @@ namespace Fabric.Authorization.UnitTests.EDWAdminSyncService
                             {
                                 new Group
                                 {
-                                    Roles = new Role[] { new Role { Name = "notadmin" } }
+                                    Roles = new Role[] { NoAdminRole }
                                 }
                             }
                         }
                     }
-                }
-            }
-        };
-
-        public static IEnumerable<object[]> SingleUserDosAdminRoles => new []
-        {
-            new object[] 
-            {
-                new User("dosAdminRole", "fabric-authorization")
-                {
-                    Roles = new Role[] { new Role { Name = "notadmin" }, new Role{ Name = "dosadmin" } }
-                }
+                },
+                0,
+                1
             },
             new object[]
             {
                 new User("jobAdminRole", "fabric-authorization")
                 {
-                    Roles = new Role[] { new Role { Name = "notadmin" }, new Role{ Name = "jobadmin" } }
-                }
+                    Roles = new Role[] { NoAdminRole, JobAdminRole }
+                },
+                1,
+                0
             },
             new object[]
             {
                 new User("datamartAdminRole", "fabric-authorization")
                 {
-                    Roles = new Role[] { new Role { Name = "notadmin" }, new Role{ Name = "datamartadmin" } }
-                }
+                    Roles = new Role[] { NoAdminRole, DataMartAdminRole }
+                },
+                1,
+                0
             },
-            new object[] 
+            new object[]
             {
-                new User("dosAdminGroup", "fabric-authorization")
+                new User("datamartAdminJobAdminAdminRole", "fabric-authorization")
                 {
-                    Groups = new Group[] { new Group { Roles = new Role[] { new Role { Name = "notadmin" }, new Role { Name = "dosadmin" } } } }
-                }
+                    Roles = new Role[] { JobAdminRole, DataMartAdminRole }
+                },
+                1,
+                0
+            },
+            new object[]
+            {
+                new User("adminRoleIsDeleted", "fabric-authorization")
+                {
+                    Roles = new Role[] {
+                        new Role()
+                        {
+                            Name = "jobadmin",
+                            IsDeleted = true
+                        }
+                    }
+                },
+                0,
+                1
+            },
+            new object[]
+            {
+                new User("twoAdminRolesOneIsDeleted", "fabric-authorization")
+                {
+                    Roles = new Role[] {
+                        new Role()
+                        {
+                            Name = "jobadmin",
+                            IsDeleted = true
+                        },
+                        DataMartAdminRole
+                    }
+                },
+                1,
+                0
             },
             new object[]
             {
                 new User("jobAdminGroup", "fabric-authorization")
                 {
-                    Groups = new Group[] { new Group { Roles = new Role[] { new Role { Name = "notadmin" }, new Role { Name = "jobadmin" } } } }
-                }
+                    Groups = new Group[] { new Group { Roles = new Role[] { NoAdminRole, JobAdminRole } } }
+                },
+                1,
+                0
             },
             new object[]
             {
                 new User("datamartAdminGroup", "fabric-authorization")
                 {
-                    Groups = new Group[] { new Group { Roles = new Role[] { new Role { Name = "notadmin" }, new Role { Name = "datamartadmin" } } } }
-                }
-            },
-            new object[] 
-            {
-                new User("dosAdminChildGroup", "fabric-authorization")
-                {
-                    Groups = new Group[] 
-                    {
-                        new Group
-                        {
-                            Children = new Group[]  
-                            {
-                                new Group
-                                {
-                                    Roles = new Role[] { new Role { Name = "notadmin" }, new Role { Name = "dosadmin" } }
-                                }
-                            }
-                        }
-                    }
-                }
+                    Groups = new Group[] { new Group { Roles = new Role[] { NoAdminRole, DataMartAdminRole } } }
+                },
+                1,
+                0
             },
             new object[]
             {
@@ -151,12 +166,14 @@ namespace Fabric.Authorization.UnitTests.EDWAdminSyncService
                             {
                                 new Group
                                 {
-                                    Roles = new Role[] { new Role { Name = "notadmin" }, new Role { Name = "jobadmin" } }
+                                    Roles = new Role[] { NoAdminRole, JobAdminRole }
                                 }
                             }
                         }
                     }
-                }
+                },
+                1,
+                0
             },
             new object[]
             {
@@ -170,12 +187,14 @@ namespace Fabric.Authorization.UnitTests.EDWAdminSyncService
                             {
                                 new Group
                                 {
-                                    Roles = new Role[] { new Role { Name = "notadmin" }, new Role { Name = "datamartadmin" } }
+                                    Roles = new Role[] { NoAdminRole, DataMartAdminRole }
                                 }
                             }
                         }
                     }
-                }
+                },
+                1,
+                0
             }
         };
     }
