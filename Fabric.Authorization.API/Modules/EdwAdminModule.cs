@@ -67,6 +67,10 @@ namespace Fabric.Authorization.API.Modules
                 }
                 return HttpStatusCode.NoContent;
             }
+            catch (NotFoundException<Group>)
+            {
+                return CreateFailureResponse($"TEMP Group not found", HttpStatusCode.NotFound);
+            }
             catch (NotFoundException<User>)
             {
                 return CreateFailureResponse($"The user: {param.subjectId} for identity provider: {param.identityProvider} was not found.", HttpStatusCode.NotFound);
