@@ -192,7 +192,7 @@ export class MemberComponent implements OnInit, OnDestroy {
             )).toPromise()
             .then(value => {
               return this.edwAdminService.syncUserWithEdwAdmin(user.subjectId, user.identityProvider)
-              .toPromise().then(o => { return value; }).catch(err => { return value; });
+              .toPromise().then(o => value).catch(err => value);
             });
       });
   }
@@ -227,9 +227,9 @@ export class MemberComponent implements OnInit, OnDestroy {
           .toPromise()
           .then(value => {
             return this.edwAdminService.syncGroupWithEdwAdmin(group.groupName)
-            .toPromise().then(o => { return value; }).catch(err => { return value; });
+            .toPromise().then(o => value).catch(err => value);
           });
-      })
+      });
   }
 
   private bindExistingRoles(principal: IFabricPrincipal): Observable<any> {
