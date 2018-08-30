@@ -1,4 +1,4 @@
-import { ISecurableItem } from './securableItem.model'
+import { ISecurableItem } from './securableItem.model';
 
 export interface IGrain {
   id?: string;

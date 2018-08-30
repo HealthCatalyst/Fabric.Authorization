@@ -7,7 +7,7 @@ import { of as observableOf } from 'rxjs/observable/of';
 import { FabricAuthGrainService } from '../../../services/fabric-auth-grain.service';
 import { IGrain } from '../../../models/grain.model';
 import { ISecurableItem } from '../../../models/securableItem.model';
-import { ActivatedRoute } from '../../../../../node_modules/@angular/router';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-grain-list',
