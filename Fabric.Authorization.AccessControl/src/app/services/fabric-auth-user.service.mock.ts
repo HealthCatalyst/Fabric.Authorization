@@ -1,6 +1,7 @@
 import { IGroup } from '../models/group.model';
 import { IRole } from '../models/role.model';
 import { IUser } from '../models/user.model';
+import { IUserPermissionResponse } from '../models/userPermissionResponse.model';
 
 const idP = 'ad';
 const subjectId = 'sub123';
@@ -40,6 +41,12 @@ export const mockUserResponse: IUser = {
     roles: mockRolesResponse
 };
 
+export const mockCurrentUserPermissions: IUserPermissionResponse = {
+    permissions: [
+        'dos/datamarts.manageauthorization'
+    ]
+}
+
 export class FabricAuthUserServiceMock {
     getUser: jasmine.Spy = jasmine.createSpy('getUser');
 
@@ -52,4 +59,6 @@ export class FabricAuthUserServiceMock {
     removeRolesFromUser: jasmine.Spy = jasmine.createSpy('removeRolesFromUser');
 
     createUser: jasmine.Spy = jasmine.createSpy('createUser');
+
+    getCurrentUserPermissions: jasmine.Spy = jasmine.createSpy('getCurrentUserPermissions');
 }

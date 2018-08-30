@@ -7,8 +7,8 @@ import { FabricAuthGroupService } from '../../services/fabric-auth-group.service
 import { FabricAuthMemberSearchService } from '../../services/fabric-auth-member-search.service';
 import { FabricAuthGrainService } from '../../services/fabric-auth-grain.service';
 import { MockAccessControlConfigService } from '../../services/access-control-config.service.mock';
-import { FabricAuthEdwadminService } from '../../services/fabric-auth-edwadmin.service';
-import { FabricAuthEdwadminServiceMock } from '../../services/fabric-auth-edwadmin.service.mock';
+import { FabricAuthEdwAdminService } from '../../services/fabric-auth-edwadmin.service';
+import { FabricAuthEdwAdminServiceMock } from '../../services/fabric-auth-edwadmin.service.mock';
 
 import { FabricExternalIdpSearchServiceMock } from '../../services/fabric-external-idp-search.service.mock';
 import { FabricAuthUserServiceMock } from '../../services/fabric-auth-user.service.mock';
@@ -17,6 +17,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { FabricAuthMemberSearchServiceMock } from '../../services/fabric-auth-member-search.service.mock';
 import { FabricAuthRoleServiceMock } from '../../services/fabric-auth-role.service.mock';
 import { FabricAuthGrainServiceMock } from '../../services/fabric-auth-grain.service.mock';
+import { CurrentUserService } from '../../services/current-user.service';
 
 @NgModule({
     providers: [
@@ -49,8 +50,12 @@ import { FabricAuthGrainServiceMock } from '../../services/fabric-auth-grain.ser
             useClass: FabricAuthGrainServiceMock
         },
         {
-          provide: FabricAuthEdwadminService,
-          useClass: FabricAuthEdwadminServiceMock
+          provide: FabricAuthEdwAdminService,
+          useClass: FabricAuthEdwAdminServiceMock
+        },
+        {
+            provide: CurrentUserService,
+            useClass: CurrentUserService
         }
     ],
     imports: [RouterTestingModule]

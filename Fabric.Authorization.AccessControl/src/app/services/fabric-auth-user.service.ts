@@ -7,6 +7,7 @@ import { IAccessControlConfigService } from './access-control-config.service';
 import { IUser } from '../models/user.model';
 import { IGroup } from '../models/group.model';
 import { IRole } from '../models/role.model';
+import { IUserPermissionResponse } from '../models/userPermissionResponse.model';
 
 @Injectable()
 export class FabricAuthUserService extends FabricBaseService {
@@ -14,6 +15,7 @@ export class FabricAuthUserService extends FabricBaseService {
   public static baseUserApiUrl = '';
   public static userRolesApiUrl = '';
   public static userGroupsApiUrl = '';
+  public static currentUserPermissionsApiUrl = '';
 
   constructor(
     httpClient: HttpClient,
@@ -32,6 +34,10 @@ export class FabricAuthUserService extends FabricBaseService {
     if (!FabricAuthUserService.userGroupsApiUrl) {
       FabricAuthUserService.userGroupsApiUrl = `${FabricAuthUserService.baseUserApiUrl}/{identityProvider}/{subjectId}/groups`;
     }
+
+    if (!FabricAuthUserService.currentUserPermissionsApiUrl) {
+      FabricAuthUserService.currentUserPermissionsApiUrl = `${FabricAuthUserService.baseUserApiUrl}/permissions`;
+    }
   }
 
   public getUser(identityProvider: string, subjectId: string): Observable<IUser> {
@@ -49,6 +55,11 @@ export class FabricAuthUserService extends FabricBaseService {
         subjectId
       )
     );
+  }
+
+  public getCurrentUserPermissions(
+  ): Observable<IUserPermissionResponse> {
+    return this.httpClient.get<IUserPermissionResponse>(FabricAuthUserService.currentUserPermissionsApiUrl);
   }
 
   public getUserRoles(

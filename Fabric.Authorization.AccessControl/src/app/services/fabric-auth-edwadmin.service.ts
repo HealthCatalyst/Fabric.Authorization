@@ -6,7 +6,7 @@ import { FabricBaseService } from './fabric-base.service';
 import { IAccessControlConfigService } from './access-control-config.service';
 
 @Injectable()
-export class FabricAuthEdwadminService extends FabricBaseService {
+export class FabricAuthEdwAdminService extends FabricBaseService {
   private static userEdwAdminSyncUrl = '';
   private static groupEdwAdminSyncUrl = '';
 
@@ -15,20 +15,21 @@ export class FabricAuthEdwadminService extends FabricBaseService {
   ) {
     super(httpClient, accessControlConfigService);
 
-    if (!FabricAuthEdwadminService.userEdwAdminSyncUrl) {
-      FabricAuthEdwadminService.userEdwAdminSyncUrl = `${accessControlConfigService.fabricAuthApiUrl}/edw/{subjectId}/{identityProvider}/roles`;
+    if (!FabricAuthEdwAdminService.userEdwAdminSyncUrl) {
+      FabricAuthEdwAdminService.userEdwAdminSyncUrl =
+        `${accessControlConfigService.fabricAuthApiUrl}/edw/{subjectId}/{identityProvider}/roles`;
     }
 
-    if (!FabricAuthEdwadminService.groupEdwAdminSyncUrl) {
-      FabricAuthEdwadminService.groupEdwAdminSyncUrl = `${accessControlConfigService.fabricAuthApiUrl}/edw/{groupName}/roles`;
+    if (!FabricAuthEdwAdminService.groupEdwAdminSyncUrl) {
+      FabricAuthEdwAdminService.groupEdwAdminSyncUrl = `${accessControlConfigService.fabricAuthApiUrl}/edw/{groupName}/roles`;
     }
   }
 
   public syncUserWithEdwAdmin(
     identityProvider: string,
-    subjectId: string) : Observable<Object> {
+    subjectId: string): Observable<Object> {
       return this.httpClient.post(this.replaceUserIdSegment(
-        FabricAuthEdwadminService.userEdwAdminSyncUrl,
+        FabricAuthEdwAdminService.userEdwAdminSyncUrl,
         identityProvider,
         subjectId
       ), '');
@@ -37,7 +38,7 @@ export class FabricAuthEdwadminService extends FabricBaseService {
   public syncGroupWithEdwAdmin(
     groupName: string): Observable<Object> {
       return this.httpClient.post(this.replaceGroupNameSegment(
-        FabricAuthEdwadminService.groupEdwAdminSyncUrl,
+        FabricAuthEdwAdminService.groupEdwAdminSyncUrl,
         groupName
       ), '');
     }

@@ -11,7 +11,6 @@ import 'rxjs/add/observable/zip';
 import 'rxjs/add/operator/mergeMap';
 import 'rxjs/add/operator/distinctUntilChanged';
 
-import { inherits } from 'util';
 import { Router, ActivatedRoute } from '@angular/router';
 import { IFabricPrincipal } from '../../../models/fabricPrincipal.model';
 import { IRole } from '../../../models/role.model';
@@ -20,9 +19,10 @@ import { FabricAuthRoleService } from '../../../services/fabric-auth-role.servic
 import { FabricAuthUserService } from '../../../services/fabric-auth-user.service';
 import { IAccessControlConfigService } from '../../../services/access-control-config.service';
 import { FabricAuthGroupService } from '../../../services/fabric-auth-group.service';
-import { FabricAuthEdwadminService } from '../../../services/fabric-auth-edwadmin.service';
+import { FabricAuthEdwAdminService } from '../../../services/fabric-auth-edwadmin.service';
 import { IUser } from '../../../models/user.model';
 import { IGroup } from '../../../models/group.model';
+import { CurrentUserService } from '../../../services/current-user.service';
 
 @Component({
   selector: 'app-member',
@@ -36,6 +36,7 @@ export class MemberComponent implements OnInit, OnDestroy {
   public searchTextSubject = new Subject<string>();
   public searchText: string;
   public selectedPrincipal?: IFabricPrincipal;
+  public saveDisabled = true;
   private grain: string;
   private securableItem: string;
 
@@ -45,11 +46,12 @@ export class MemberComponent implements OnInit, OnDestroy {
     private idpSearchService: FabricExternalIdpSearchService,
     private roleService: FabricAuthRoleService,
     private userService: FabricAuthUserService,
-    private edwAdminService: FabricAuthEdwadminService,
+    private edwAdminService: FabricAuthEdwAdminService,
     @Inject('IAccessControlConfigService')private configService: IAccessControlConfigService,
     private groupService: FabricAuthGroupService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private currentUserService: CurrentUserService
   ) {
   }
 
@@ -58,6 +60,9 @@ export class MemberComponent implements OnInit, OnDestroy {
     const principalType: string = (this.route.snapshot.paramMap.get('type') || '').toLowerCase();
     this.grain = this.route.snapshot.paramMap.get('grain');
     this.securableItem = this.route.snapshot.paramMap.get('securableItem');
+    this.currentUserService.getPermissions().subscribe(p => {
+      this.saveDisabled = !p.includes(`${this.grain}/${this.securableItem}.manageauthorization`);
+    });
 
     this.searchText = subjectId;
         if (subjectId && principalType) {

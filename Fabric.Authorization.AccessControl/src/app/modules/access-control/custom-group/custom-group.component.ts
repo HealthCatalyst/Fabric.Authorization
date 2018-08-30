@@ -5,7 +5,7 @@ import { FabricAuthRoleService } from '../../../services/fabric-auth-role.servic
 import { IAccessControlConfigService } from '../../../services/access-control-config.service';
 import { FabricAuthGroupService } from '../../../services/fabric-auth-group.service';
 import { FabricExternalIdpSearchService } from '../../../services/fabric-external-idp-search.service';
-import { FabricAuthEdwadminService } from '../../../services/fabric-auth-edwadmin.service';
+import { FabricAuthEdwAdminService } from '../../../services/fabric-auth-edwadmin.service';
 
 import { IRole } from '../../../models/role.model';
 import { IUser } from '../../../models/user.model';
@@ -19,6 +19,7 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/takeUntil';
 import 'rxjs/add/observable/empty';
+import { CurrentUserService } from '../../../services/current-user.service';
 
 @Component({
   selector: 'app-custom-group',
@@ -32,6 +33,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   public associatedUsers: Array<IUser> = [];
   public associatedGroups: Array<IGroup> = [];
   public editMode = true;
+  public saveDisabled = false;
 
   public groupName = '';
   public groupNameSubject = new Subject<string>();
@@ -58,15 +60,20 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     @Inject('IAccessControlConfigService') private configService: IAccessControlConfigService,
     private roleService: FabricAuthRoleService,
     private groupService: FabricAuthGroupService,
-    private edwAdminService: FabricAuthEdwadminService,
-    private idpSearchService: FabricExternalIdpSearchService
+    private edwAdminService: FabricAuthEdwAdminService,
+    private idpSearchService: FabricExternalIdpSearchService,
+    private currentUserService: CurrentUserService
   ) { }
 
   ngOnInit() {
+
     this.groupName = this.route.snapshot.paramMap.get('subjectid');
     this.grain = this.route.snapshot.paramMap.get('grain');
     this.securableItem = this.route.snapshot.paramMap.get('securableItem');
     this.editMode = !!this.groupName;
+    this.currentUserService.getPermissions().subscribe(p => {
+      this.saveDisabled = !p.includes(`${this.grain}/${this.securableItem}.manageauthorization`);
+    });
 
     if (this.editMode) {
       Observable.zip(this.getGroupRoles(), this.getGroupUsers(), this.getChildGroups())
@@ -150,7 +157,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
                     }
                 ]
               : result.principals;
-        
+
         let unAssociatedUserPrincipals = [];
         let unAssociatedGroupPrincipals = [];
 
@@ -158,7 +165,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           unAssociatedUserPrincipals = returnedPrincipals.filter(principal =>
             principal.principalType === this.userType
             && !this.associatedUsers.map(u => u.subjectId.toLowerCase()).includes(principal.subjectId.toLowerCase()));
-        }else{
+        } else {
           unAssociatedUserPrincipals = returnedPrincipals.filter(principal =>
             principal.principalType === this.userType);
         }
@@ -167,7 +174,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           unAssociatedGroupPrincipals = returnedPrincipals.filter(principal =>
             principal.principalType === this.groupType
             && !this.associatedGroups.map(u => u.groupName.toLowerCase()).includes(principal.subjectId.toLowerCase()));
-        }else{
+        } else {
           unAssociatedGroupPrincipals = returnedPrincipals.filter(principal =>
             principal.principalType === this.groupType);
         }
@@ -362,7 +369,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
                   .toPromise()
                   .then(value => {
                       return this.edwAdminService.syncGroupWithEdwAdmin(newGroup.groupName)
-                          .toPromise().then(o => { return value; }).catch(err => { return value; });
+                          .toPromise().then(o => value).catch(err => value);
                   });
           });
       })
