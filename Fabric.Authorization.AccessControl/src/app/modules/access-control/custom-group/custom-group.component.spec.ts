@@ -6,14 +6,17 @@ import { FormsModule } from '@angular/forms';
 import { FabricAuthGroupService } from '../../../services/fabric-auth-group.service';
 import { FabricAuthRoleService } from '../../../services/fabric-auth-role.service';
 import { FabricExternalIdpSearchService } from '../../../services/fabric-external-idp-search.service';
-import { FabricAuthRoleServiceMock, mockRoles } from '../../../services/fabric-auth-role.service.mock';
+import { FabricAuthRoleServiceMock } from '../../../services/fabric-auth-role.service.mock';
 import { FabricAuthGroupServiceMock, mockUsersResponse, mockGroupsResponse } from '../../../services/fabric-auth-group.service.mock';
 import { Observable } from 'rxjs/Observable';
-import { mockRolesResponse } from '../../../services/fabric-auth-user.service.mock';
+import { mockRolesResponse, FabricAuthUserServiceMock, mockUserPermissionResponse } from '../../../services/fabric-auth-user.service.mock';
 import { ButtonModule, IconModule, PopoverModule, InputModule, LabelModule, CheckboxModule } from '@healthcatalyst/cashmere';
 import { FabricExternalIdpSearchServiceMock, mockExternalIdpSearchResult } from '../../../services/fabric-external-idp-search.service.mock';
 import { IdPSearchResult } from '../../../models/idpSearchResult.model';
 import { Subject } from 'rxjs/Subject';
+import { CurrentUserServiceMock, mockCurrentUserPermissions } from '../../../services/current-user.service.mock';
+import { FabricAuthUserService } from '../../../services/fabric-auth-user.service';
+import { CurrentUserService } from '../../../services/current-user.service';
 
 describe('CustomGroupComponent', () => {
   let component: CustomGroupComponent;
@@ -37,19 +40,31 @@ describe('CustomGroupComponent', () => {
     })
   );
 
-  beforeEach(inject([FabricAuthGroupService, FabricAuthRoleService, FabricExternalIdpSearchService],
-    (groupService: FabricAuthGroupServiceMock, roleService: FabricAuthRoleServiceMock, search: FabricExternalIdpSearchServiceMock) => {
-      groupService.getGroupUsers.and.returnValue(Observable.of(mockUsersResponse));
-      groupService.getGroupRoles.and.returnValue(Observable.of(mockRolesResponse));
-      groupService.search.and.returnValue(Observable.of(mockGroupsResponse));
+  beforeEach(inject([
+    FabricAuthGroupService,
+    FabricAuthRoleService,
+    FabricExternalIdpSearchService,
+    FabricAuthUserService,
+    CurrentUserService],
+      (groupService: FabricAuthGroupServiceMock,
+      roleService: FabricAuthRoleServiceMock,
+      search: FabricExternalIdpSearchServiceMock,
+      userService: FabricAuthUserServiceMock,
+      currentUserServiceMock: CurrentUserServiceMock) => {
+        groupService.getGroupUsers.and.returnValue(Observable.of(mockUsersResponse));
+        groupService.getGroupRoles.and.returnValue(Observable.of(mockRolesResponse));
+        groupService.search.and.returnValue(Observable.of(mockGroupsResponse));
 
-      roleService.getRolesBySecurableItemAndGrain.and.returnValue(Observable.of(mockRolesResponse));
-      searchService = search;
+        roleService.getRolesBySecurableItemAndGrain.and.returnValue(Observable.of(mockRolesResponse));
+        searchService = search;
 
-      IdpSearchResultsSubject = new Subject<IdPSearchResult>();
-        searchService.search.and.callFake((searchText: Observable<string>, type: string) => {
-            return IdpSearchResultsSubject;
-        });
+        IdpSearchResultsSubject = new Subject<IdPSearchResult>();
+          searchService.search.and.callFake((searchText: Observable<string>, type: string) => {
+              return IdpSearchResultsSubject;
+          });
+
+          userService.getCurrentUserPermissions.and.returnValue(Observable.of(mockUserPermissionResponse));
+          currentUserServiceMock.getPermissions.and.returnValue(Observable.of(mockCurrentUserPermissions));
     }));
 
   beforeEach(() => {
