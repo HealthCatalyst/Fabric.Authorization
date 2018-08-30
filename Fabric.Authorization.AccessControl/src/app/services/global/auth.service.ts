@@ -48,7 +48,8 @@ export class AuthService implements IAuthService {
           'fabric/authorization.read',
           'fabric/authorization.write',
           'fabric/idprovider.searchusers',
-          'fabric/authorization.dos.write'
+          'fabric/authorization.dos.write',
+          'fabric/authorization.internal'
         ].join(' '),
         silent_redirect_uri: `${this.servicesService.accessControlEndpoint}/client/silent.html`,
         automaticSilentRenew: true,
