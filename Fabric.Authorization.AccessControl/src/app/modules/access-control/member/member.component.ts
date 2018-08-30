@@ -36,7 +36,7 @@ export class MemberComponent implements OnInit, OnDestroy {
   public searchTextSubject = new Subject<string>();
   public searchText: string;
   public selectedPrincipal?: IFabricPrincipal;
-  public hasManageAuthorizationPermission = true;
+  public missingManageAuthorizationPermission = true;
   private grain: string;
   private securableItem: string;
 
@@ -61,7 +61,7 @@ export class MemberComponent implements OnInit, OnDestroy {
     this.grain = this.route.snapshot.paramMap.get('grain');
     this.securableItem = this.route.snapshot.paramMap.get('securableItem');
     this.currentUserService.getPermissions().subscribe(p => {
-      this.hasManageAuthorizationPermission = !p.includes(`${this.grain}/${this.securableItem}.manageauthorization`);
+      this.missingManageAuthorizationPermission = !p.includes(`${this.grain}/${this.securableItem}.manageauthorization`);
     });
 
     this.searchText = subjectId;
