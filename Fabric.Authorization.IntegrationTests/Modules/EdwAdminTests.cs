@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using System.Linq;
+using Fabric.Authorization.Persistence.SqlServer.EntityModels;
 
 namespace Fabric.Authorization.IntegrationTests.Modules
 {
@@ -48,45 +49,138 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [Fact]
         public async Task SyncPermissions_NotFoundAsync()
         {
+            // Arrange
             var group = new GroupUserApiModel { GroupName = "group" };
 
+            // Act 
             var result = await _browser.Post("/edw/group/roles", with => with.JsonBody(group));
 
+            // Assert
             Assert.Equal(HttpStatusCode.NotFound, result.StatusCode);
         }
 
         [Fact]
-        public async Task SyncPermissionsOnDeletedGroup_SucceedsAsync()
+        public async Task SyncPermissions_OnRole_AddRemoveToEdwAdmin()
         {
-            // TODO: Find a way to verify the roles are updated correctly
-            // TODO: SyncService is disabled
-            // TODO: Get group even if group is deleted
-
-            // create role
+            // Arrange I Add user to role
             var role = await CreateRoleAsync();
-
-            // create group
-            var group = await CreateGroupAsync();
-
-            // add role to group
-            await AssociateGroupToRoleAsync(group, role);
-
-            // create user
             var user = await CreateUserAsync();
+            await AssociateUserToRoleAsync(user, role);
 
-            // add user to group
+            // Act I Add user to role
+            var result = await _browser.Post($"/edw/{user.SubjectId}/{user.IdentityProvider}/roles", with => with.Body(""));
+
+            // Assert I Add user to role
+            Assert.Equal(HttpStatusCode.NoContent, result.StatusCode);
+            AssertRoleWasAdded(user);
+
+            // Arrange II Remove user from role
+            await RemoveUserFromRoleAsync(user, role);
+
+            // Act II Remove user from role
+            var result2 = await _browser.Post($"/edw/{user.SubjectId}/{user.IdentityProvider}/roles", with => with.Body(""));
+
+            // Assert II Remove user from role
+            Assert.Equal(HttpStatusCode.NoContent, result2.StatusCode);
+            AssertRoleWasRemoved(user);
+        }
+        
+        [Fact]
+        public async Task SyncPermissions_OnGroup_AddRemoveToEdwAdmin()
+        {
+            // Arrange I Add role to group
+            var role = await CreateRoleAsync();
+            var group = await CreateGroupAsync();
+            await AssociateGroupToRoleAsync(group, role);
+            var user = await CreateUserAsync();
             await AssociateUserToGroupAsync(user, group);
 
-            // delete group
-            var deleteGroupResponse = await _browser.Delete($"/groups/{group.GroupName}", with =>
-            {
-                with.HttpRequest();
-            });
-            Assert.Equal(HttpStatusCode.NoContent, deleteGroupResponse.StatusCode);
+            // Act I add role to group
+            var result = await _browser.Post($"/edw/{group.GroupName}/roles", with => with.Body(""));
 
-            // Test SyncService
-            var result = await _browser.Post($"/edw/{group.GroupName}/roles", with => with.JsonBody(group));
+            // Assert I add role to group
             Assert.Equal(HttpStatusCode.NoContent, result.StatusCode);
+            AssertRoleWasAdded(user);
+
+            // Arrange II remove role from group
+            await RemoveRoleFromGroup(group, role);
+
+            // Act II remove role from group
+            var result2 = await _browser.Post($"/edw/{group.GroupName}/roles", with => with.Body(""));
+
+            // Assert II Remove role from group
+            Assert.Equal(HttpStatusCode.NoContent, result2.StatusCode);
+            AssertRoleWasRemoved(user);
+        }
+        
+        [Fact]
+        public async Task SyncPermissions_OnChildGroup_AddRemoveChildUsersToEdwAdmin()
+        {
+            // Arrange I Add role to child group
+            var role = await CreateRoleAsync();
+            var group = await CreateGroupAsync();
+            await AssociateGroupToRoleAsync(group, role);
+            var childGroup = await CreateChildGroupAsync();
+            await AssociateChildGroupToParentGroup(group, childGroup);
+            var user = await CreateUserAsync();
+            await AssociateUserToChildGroupAsync(user, childGroup);
+
+            // Act I add role to group
+            var result = await _browser.Post($"/edw/{group.GroupName}/roles", with => with.Body(""));
+
+            // Assert I add role to group
+            Assert.Equal(HttpStatusCode.NoContent, result.StatusCode);
+            AssertRoleWasAdded(user);
+
+            // Arrange II remove role from group
+            await RemoveRoleFromGroup(group, role);
+
+            // Act II remove role from group
+            var result2 = await _browser.Post($"/edw/{group.GroupName}/roles", with => with.Body(""));
+
+            // Assert II Remove role from group
+            Assert.Equal(HttpStatusCode.NoContent, result2.StatusCode);
+            AssertRoleWasRemoved(user);
+        }
+
+        private Task AssociateUserToChildGroupAsync(UserApiModel user, ChildGroup childGroup)
+        {
+            throw new NotImplementedException();
+        }
+
+        private Task AssociateChildGroupToParentGroup(GroupRoleApiModel group, object childGroup)
+        {
+            throw new NotImplementedException();
+        }
+
+        private Task<ChildGroup> CreateChildGroupAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        private Task RemoveRoleFromGroup(GroupRoleApiModel group, RoleApiModel role)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void AssertRoleWasRemoved(UserApiModel user)
+        {
+            throw new NotImplementedException();
+        }
+
+        private Task RemoveUserFromRoleAsync(UserApiModel user, RoleApiModel role)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void AssertRoleWasAdded(UserApiModel user)
+        {
+            throw new NotImplementedException();
+        }
+
+        private Task AssociateUserToRoleAsync(UserApiModel user, RoleApiModel role)
+        {
+            throw new NotImplementedException();
         }
 
         private async Task<RoleApiModel> CreateRoleAsync()

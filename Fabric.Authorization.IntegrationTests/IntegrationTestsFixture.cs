@@ -57,7 +57,7 @@ namespace Fabric.Authorization.IntegrationTests
                 DefaultPropertySettings = new DefaultPropertySettings
                 {
                     GroupSource = "Windows",
-                    DualStoreEDWAdminPermissions = false
+                    DualStoreEDWAdminPermissions = true
                 }
             };
             var hostingEnvironment = new Mock<IHostingEnvironment>();
@@ -81,7 +81,7 @@ namespace Fabric.Authorization.IntegrationTests
         public DefaultPropertySettings DefaultPropertySettings = new DefaultPropertySettings
         {
             GroupSource = "Windows",
-            DualStoreEDWAdminPermissions = false
+            DualStoreEDWAdminPermissions = true
         };
         
         
