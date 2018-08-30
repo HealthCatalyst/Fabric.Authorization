@@ -70,11 +70,8 @@ import { CurrentUserService } from '../../services/current-user.service';
     FabricExternalIdpSearchService,
     FabricAuthRoleService,
     FabricAuthGrainService,
-<<<<<<< HEAD
-    FabricAuthEdwAdminService
-=======
+    FabricAuthEdwAdminService,
     CurrentUserService
->>>>>>> ad475fd... disable save buttons if user does not have manageauthorization permission for grain/securable item
   ],
 })
 export class AccessControlModule { }
