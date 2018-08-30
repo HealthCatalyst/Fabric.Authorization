@@ -114,7 +114,7 @@
         </tbody>
     </table>
     <div class="buttons">
-        <button hc-button color="primary" (click)="save()">Save</button>
+        <button hc-button color="primary" (click)="save()" [disabled]="saveDisabled">Save</button>
         <a hc-button routerLink="/access-control" color="secondary">Cancel</a>
     </div>
 </div>
