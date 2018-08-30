@@ -34,6 +34,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   public associatedGroups: Array<IGroup> = [];
   public editMode = true;
   public missingManageAuthorizationPermission = false;
+  public disabledSaveReason = '';
 
   public groupName = '';
   public groupNameSubject = new Subject<string>();
@@ -53,6 +54,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
 
   private userType = 'user';
   private groupType = 'group';
+  private groupRoles: Array<IRole> = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -71,16 +73,29 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     this.grain = this.route.snapshot.paramMap.get('grain');
     this.securableItem = this.route.snapshot.paramMap.get('securableItem');
     this.editMode = !!this.groupName;
-    this.currentUserService.getPermissions().subscribe(p => {
-      this.missingManageAuthorizationPermission = !p.includes(`${this.grain}/${this.securableItem}.manageauthorization`);
-    });
 
     if (this.editMode) {
-      Observable.zip(this.getGroupRoles(), this.getGroupUsers(), this.getChildGroups())
+      Observable.zip(this.getGroupRolesBySecurableItemAndGrain(), this.getGroupUsers(), this.getChildGroups())
         .do((result: [IRole[], IUser[], IGroup[]]) => {
           this.roles = result[0];
           this.associatedUsers = result[1];
           this.associatedGroups = result[2];
+
+          this.currentUserService.getPermissions().subscribe(p => {
+            const missingPermissions = [];
+            this.groupRoles.forEach(r => {
+              const requiredPermission = `${r.grain}/${r.securableItem}.manageauthorization`;
+              if (!p.includes(requiredPermission)) {
+                missingPermissions.push(requiredPermission);
+              }
+            });
+
+            if (missingPermissions.length > 0) {
+              this.missingManageAuthorizationPermission = !p.includes(`${this.grain}/${this.securableItem}.manageauthorization`);
+              this.disabledSaveReason = `You are missing the following required permissions to edit ` +
+                `this group: ${missingPermissions.join(',')}.`;
+            }
+          });
         })
         .takeUntil(this.ngUnsubscribe)
         .subscribe(null, null, () => {
@@ -202,27 +217,31 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
       .getChildGroups(this.groupName);
   }
 
-  getGroupRoles(): Observable<IRole[]> {
-    const rolesObservable = this.roleService
+  getRolesBySecurableItemAndGrain(): Observable<IRole[]> {
+    return this.roleService
       .getRolesBySecurableItemAndGrain(
         this.grain,
         this.securableItem
       );
+  }
 
-    const groupRolesObservable = this.groupService
+  getGroupRoles(): Observable<IRole[]> {
+    return this.groupService
       .getGroupRoles(
         this.groupName,
         this.grain,
         this.securableItem
       );
+  }
 
-    return Observable.zip(rolesObservable, groupRolesObservable)
+  getGroupRolesBySecurableItemAndGrain(): Observable<IRole[]> {
+    return Observable.zip(this.getRolesBySecurableItemAndGrain(), this.getGroupRoles())
       .map((result: [IRole[], IRole[]]) => {
         let allRoles = result[0];
-        const groupRoles = result[1];
+        this.groupRoles = result[1];
 
         allRoles = allRoles.map(role => {
-          role.selected = groupRoles.some(groupRole => groupRole.name === role.name);
+          role.selected = this.groupRoles.some(groupRole => groupRole.name === role.name);
           return role;
         });
 
