@@ -34,7 +34,7 @@ export class AuthService implements IAuthService {
 
   initialize(): Promise<any> {
     return this.servicesService.initialize().pipe(tap(url => {
-      this.authority = url; // this.servicesService.identityServiceEndpoint;
+      this.authority = url;
       const clientSettings: any = {
         authority: this.authority,
         client_id: this.clientId,

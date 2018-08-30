@@ -6,8 +6,7 @@ export class InitializerService {
 
   constructor(@Inject('IAuthService')private authService: IAuthService) { }
 
-  initialize(){
+  initialize() {
     return this.authService.initialize();
   }
-
 }
