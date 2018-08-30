@@ -41,11 +41,12 @@ export const mockUserResponse: IUser = {
     roles: mockRolesResponse
 };
 
-export const mockCurrentUserPermissions: IUserPermissionResponse = {
+export const mockUserPermissionResponse: IUserPermissionResponse = {
     permissions: [
-        'dos/datamarts.manageauthorization'
+    ],
+    permissionRequestContexts: [
     ]
-}
+};
 
 export class FabricAuthUserServiceMock {
     getUser: jasmine.Spy = jasmine.createSpy('getUser');

@@ -16,6 +16,10 @@ import { FabricAuthRoleServiceMock, mockRoles } from '../../../services/fabric-a
 import { Observable } from 'rxjs/Observable';
 import { FabricAuthRoleService } from '../../../services/fabric-auth-role.service';
 import { FabricExternalIdpSearchService } from '../../../services/fabric-external-idp-search.service';
+import { CurrentUserServiceMock, mockCurrentUserPermissions } from '../../../services/current-user.service.mock';
+import { FabricAuthUserService } from '../../../services/fabric-auth-user.service';
+import { CurrentUserService } from '../../../services/current-user.service';
+import { FabricAuthUserServiceMock, mockUserPermissionResponse } from '../../../services/fabric-auth-user.service.mock';
 
 describe('MemberAddComponent', () => {
   let component: MemberComponent;
@@ -37,10 +41,19 @@ describe('MemberAddComponent', () => {
     })
   );
 
-  beforeEach(inject([FabricAuthRoleService, FabricExternalIdpSearchService], (roleService: FabricAuthRoleServiceMock,
-    idpSearch: FabricExternalIdpSearchServiceMock) => {
-    roleService.getRolesBySecurableItemAndGrain.and.returnValue(Observable.of(mockRoles));
-    idpSearch.search.and.returnValue(Observable.of(mockExternalIdpSearchResult));
+  beforeEach(inject([
+    FabricAuthRoleService,
+    FabricExternalIdpSearchService,
+    FabricAuthUserService,
+    CurrentUserService],
+      (roleService: FabricAuthRoleServiceMock,
+      idpSearch: FabricExternalIdpSearchServiceMock,
+      userService: FabricAuthUserServiceMock,
+      currentUserServiceMock: CurrentUserServiceMock) => {
+        roleService.getRolesBySecurableItemAndGrain.and.returnValue(Observable.of(mockRoles));
+        idpSearch.search.and.returnValue(Observable.of(mockExternalIdpSearchResult));
+        userService.getCurrentUserPermissions.and.returnValue(Observable.of(mockUserPermissionResponse));
+        currentUserServiceMock.getPermissions.and.returnValue(Observable.of(mockCurrentUserPermissions));
   }));
 
   beforeEach(() => {
