@@ -90,8 +90,10 @@ export class GrainListComponent implements OnInit {
         // if it is not related, just use the first node.
         if (grainNode.name === secondNode.parentName) {
           this.selectedNode = secondNode;
+          this.setSelectedNode(grainNode.name, secondNode.name);
         } else {
           this.selectedNode = grainNode;
+          this.setSelectedNode(grainNode.name);
         }
       }
   }
