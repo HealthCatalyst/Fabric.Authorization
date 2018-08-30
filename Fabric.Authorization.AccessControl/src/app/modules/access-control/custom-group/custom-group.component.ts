@@ -33,7 +33,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   public associatedUsers: Array<IUser> = [];
   public associatedGroups: Array<IGroup> = [];
   public editMode = true;
-  public hasManageAuthorizationPermission = false;
+  public missingManageAuthorizationPermission = false;
 
   public groupName = '';
   public groupNameSubject = new Subject<string>();
@@ -72,7 +72,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     this.securableItem = this.route.snapshot.paramMap.get('securableItem');
     this.editMode = !!this.groupName;
     this.currentUserService.getPermissions().subscribe(p => {
-      this.hasManageAuthorizationPermission = !p.includes(`${this.grain}/${this.securableItem}.manageauthorization`);
+      this.missingManageAuthorizationPermission = !p.includes(`${this.grain}/${this.securableItem}.manageauthorization`);
     });
 
     if (this.editMode) {
