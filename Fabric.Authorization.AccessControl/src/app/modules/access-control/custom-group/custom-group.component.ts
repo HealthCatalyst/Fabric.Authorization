@@ -91,9 +91,12 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
             });
 
             if (missingPermissions.length > 0) {
-              this.missingManageAuthorizationPermission = !p.includes(`${this.grain}/${this.securableItem}.manageauthorization`);
+              this.missingManageAuthorizationPermission = true;
               this.disabledSaveReason = `You are missing the following required permissions to edit ` +
                 `this group: ${missingPermissions.join(',')}.`;
+            } else {
+              this.missingManageAuthorizationPermission = false;
+              this.disabledSaveReason = '';
             }
           });
         })
