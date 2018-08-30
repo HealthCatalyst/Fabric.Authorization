@@ -84,7 +84,7 @@ namespace Fabric.Authorization.IntegrationTests
                 .ReadToEnd()
                 .Replace("$(DatabaseName)", targetDbName);
 
-            var splitter = new[] {"GO\r\n"};
+            var splitter = new[] {$"GO{Environment.NewLine}"};
             var commandTexts = createDbScript.Split(splitter, StringSplitOptions.RemoveEmptyEntries);
             int x;
             using (var conn = new SqlConnection(connection))
