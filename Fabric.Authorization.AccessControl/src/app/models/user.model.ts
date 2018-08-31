@@ -11,4 +11,5 @@ export interface IUser {
 
   // custom property
   selected?: boolean;
+  type?: string;
 }

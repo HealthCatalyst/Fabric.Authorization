@@ -266,7 +266,8 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
         const newUser: IUser = {
           subjectId: principal.subjectId,
           identityProvider: this.configService.identityProvider,
-          selected: false
+          selected: false,
+          type: this.userType
         };
         return newUser;
       });
@@ -282,7 +283,8 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
         const newGroup: IGroup = {
           groupName: principal.subjectId,
           groupSource: 'directory',
-          selected: false
+          selected: false,
+          type: this.groupType
         };
         return newGroup;
       });
