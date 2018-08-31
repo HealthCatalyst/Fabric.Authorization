@@ -69,7 +69,7 @@
                 return false;
             }
 
-            if (user.Roles.Any(r => RoleManagerConstants.AdminRoleNames.Contains(r.Name) && !r.IsDeleted))
+            if (user.Roles.Any(r => RoleManagerConstants.AdminRoleNames.Contains(r.Name.ToLower()) && !r.IsDeleted))
             {
                 return true;
             }
@@ -80,13 +80,13 @@
             // finally, look on each group's children groups to see if there is a "super admin role"
             foreach (var customGroup in user.Groups.Where(group => !group.IsDeleted))
             {
-                if (customGroup.Roles.Any(r => RoleManagerConstants.AdminRoleNames.Contains(r.Name) && !r.IsDeleted))
+                if (customGroup.Roles.Any(r => RoleManagerConstants.AdminRoleNames.Contains(r.Name.ToLower()) && !r.IsDeleted))
                 {
                     return true;
                 }
 
                 if (customGroup.Parents.Where(group => !group.IsDeleted).SelectMany(parent => parent.Roles)
-                    .Any(role => RoleManagerConstants.AdminRoleNames.Contains(role.Name) && !role.IsDeleted))
+                    .Any(role => RoleManagerConstants.AdminRoleNames.Contains(role.Name.ToLower()) && !role.IsDeleted))
                 {
                     return true;
                 }
