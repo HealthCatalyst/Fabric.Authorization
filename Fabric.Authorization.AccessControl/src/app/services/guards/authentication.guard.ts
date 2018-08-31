@@ -14,7 +14,7 @@ export class AuthenticationGuard implements CanActivate {
       if (result) {
         return true;
       } else {
-        if(window.location.href.indexOf('/logged-out') < 0){
+        if (window.location.href.indexOf('/logged-out') < 0) {
           sessionStorage.setItem('redirect', window.location.href);
         }
         this.authService.login();
