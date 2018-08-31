@@ -95,7 +95,8 @@ namespace Fabric.Authorization.IntegrationTests
         {
             var connectionString = new ConnectionStrings
             {
-                AuthorizationDatabase = $"Authorization-{databaseNameSuffix}"
+                AuthorizationDatabase = $"Authorization-{databaseNameSuffix}",
+                 EDWAdminDatabase = $"EDWAdmin-{databaseNameSuffix}"
             };
 
             return connectionString;

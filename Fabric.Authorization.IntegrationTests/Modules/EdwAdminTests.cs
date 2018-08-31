@@ -15,18 +15,18 @@ using Fabric.Authorization.Persistence.SqlServer.EntityModels;
 using Fabric.Authorization.Persistence.SqlServer.Stores.EDW;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Persistence.SqlServer.Stores;
+using Fabric.Authorization.Persistence.SqlServer.Services;
 
 namespace Fabric.Authorization.IntegrationTests.Modules
 {
     public class EdwAdminTests : IClassFixture<IntegrationTestsFixture>
     {
-        private readonly string _adminRole = "jobsadmin";
+        private readonly string _adminRole = "jobadmin";
         private readonly string _edwAdminRole = "EDW Admin";
         private readonly string _clientId = "fabric-installer";
         private readonly string _grain = "dos";
         private readonly string _identityProvider = "windows";
 
-        private readonly ConnectionStrings _connectionStrings;
         private readonly ISecurityContext _securityContext;
         private readonly Browser _browser;
         private readonly IntegrationTestsFixture _fixture;
@@ -39,13 +39,15 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 fixture.ConnectionStrings = connectionStrings;
             }
 
-            _connectionStrings = connectionStrings;
-            _securityContext = new SecurityContext(_connectionStrings);
+            _securityContext = new InMemorySecurityContext(fixture.ConnectionStrings);
+            CreateEDWAdminRole(_securityContext, _edwAdminRole, "Edw admin role in the database");
+
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
             {
                 new Claim(Claims.Scope, Scopes.ManageClientsScope),
                 new Claim(Claims.Scope, Scopes.ReadScope),
                 new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.Scope, Scopes.InternalScope),
                 new Claim(Claims.Scope, Scopes.ManageDosScope),
                 new Claim(Claims.ClientId, _clientId)
             }, "testprincipal"));
@@ -73,9 +75,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         public async Task SyncPermissions_OnRole_AddRemoveToEdwAdminAsync()
         {
             // Arrange I Add user to role
-            CreateEDWAdminRole(_securityContext, _edwAdminRole, "Edw admin role in the database");
             var role = await CreateRoleAsync(_adminRole);
             var user = await CreateUserAsync("User-" + Guid.NewGuid(), _identityProvider);
+            await AddUserToIdentityBASEAsync(_securityContext, user);
             await AssociateUserToRoleAsync(user, role);
 
             // Act I Add user to role
@@ -83,7 +85,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             // Assert I Add user to role
             Assert.Equal(HttpStatusCode.NoContent, result.StatusCode);
-            AssertEdwAdminRoleOnUserAsync(user, true);
+            await AssertEdwAdminRoleOnUserAsync(user, true);
 
             // Arrange II Remove user from role
             await RemoveUserFromRoleAsync(user, role);
@@ -93,9 +95,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             // Assert II Remove user from role
             Assert.Equal(HttpStatusCode.NoContent, result2.StatusCode);
-            AssertEdwAdminRoleOnUserAsync(user, false);
+            await AssertEdwAdminRoleOnUserAsync(user, false);
         }
-        
+
         [Fact]
         public async Task SyncPermissions_OnGroup_AddRemoveToEdwAdminAsync()
         {
@@ -104,6 +106,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var group = await CreateGroupAsync("dosadminsgroup" + Guid.NewGuid());
             await AssociateGroupToRoleAsync(group, role);
             var user = await CreateUserAsync("User-" + Guid.NewGuid(), _identityProvider);
+            await AddUserToIdentityBASEAsync(_securityContext, user);
             await AssociateUserToGroupAsync(user, group);
 
             // Act I add role to group
@@ -111,7 +114,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             // Assert I add role to group
             Assert.Equal(HttpStatusCode.NoContent, result.StatusCode);
-            AssertEdwAdminRoleOnUserAsync(user, true);
+            await AssertEdwAdminRoleOnUserAsync(user, true);
 
             // Arrange II remove role from group
             await RemoveRoleFromGroupAsync(group, role);
@@ -121,7 +124,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             // Assert II Remove role from group
             Assert.Equal(HttpStatusCode.NoContent, result2.StatusCode);
-            AssertEdwAdminRoleOnUserAsync(user, false);
+            await AssertEdwAdminRoleOnUserAsync(user, false);
         }
 
         [Fact]
@@ -132,6 +135,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var group = await CreateGroupAsync("dosadminsgroup" + Guid.NewGuid());
             await AssociateGroupToRoleAsync(group, role);
             var user = await CreateUserAsync("User-" + Guid.NewGuid(), _identityProvider);
+            await AddUserToIdentityBASEAsync(_securityContext, user);
             await AssociateUserToGroupAsync(user, group);
 
             // Act I add role to group
@@ -139,7 +143,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             // Assert I add role to group
             Assert.Equal(HttpStatusCode.NoContent, result.StatusCode);
-            AssertEdwAdminRoleOnUserAsync(user, true);
+            await AssertEdwAdminRoleOnUserAsync(user, true);
 
             // Arrange II remove role from group
             await RemoveUserFromGroupAsync(group, user);
@@ -149,7 +153,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             // Assert II Remove role from group
             Assert.Equal(HttpStatusCode.NoContent, result2.StatusCode);
-            AssertEdwAdminRoleOnUserAsync(user, false);
+            await AssertEdwAdminRoleOnUserAsync(user, false);
         }
 
         [Fact]
@@ -159,7 +163,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var role = await CreateRoleAsync(_adminRole);
             var group = await CreateGroupAsync("dosadminsgroup" + Guid.NewGuid());
             await AssociateGroupToRoleAsync(group, role);
-            var user = await CreateUserAsync("User-"+Guid.NewGuid(), _identityProvider);
+            var user = await CreateUserAsync("User-" + Guid.NewGuid(), _identityProvider);
+            await AddUserToIdentityBASEAsync(_securityContext, user);
             await AssociateUserToGroupAsync(user, group);
             await AssociateUserToRoleAsync(user, role);
 
@@ -168,7 +173,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             // Assert I add role to group
             Assert.Equal(HttpStatusCode.NoContent, result.StatusCode);
-            AssertEdwAdminRoleOnUserAsync(user, true);
+            await AssertEdwAdminRoleOnUserAsync(user, true);
 
             // Arrange II remove role from group
             await RemoveUserFromGroupAsync(group, user);
@@ -178,7 +183,23 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             // Assert II Remove role from group
             Assert.Equal(HttpStatusCode.NoContent, result2.StatusCode);
-            AssertEdwAdminRoleOnUserAsync(user, true);
+            await AssertEdwAdminRoleOnUserAsync(user, true);
+        }
+
+        private Task AddUserToIdentityBASEAsync(ISecurityContext securityContext, UserApiModel user)
+        {
+            return Task.Run(() =>
+            {
+                if (!securityContext.EDWIdentities.Where(p => p.Name == user.SubjectId).Any())
+                {
+                    securityContext.EDWIdentities.Add(new Persistence.SqlServer.EntityModels.EDW.EDWIdentity()
+                    {
+                        Name = user.SubjectId
+                    });
+
+                    securityContext.SaveChanges();
+                }
+            });
         }
 
         private void CreateEDWAdminRole(ISecurityContext securityContext, string roleName, string description)
@@ -197,19 +218,19 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         private async Task RemoveUserFromGroupAsync(GroupRoleApiModel group, UserApiModel user)
         {
-            var groupRoleResponse = await _browser.Delete($"/group/{group.GroupName}/users", with =>
+            var groupRoleResponse = await _browser.Delete($"/groups/{group.GroupName}/users", with =>
             {
                 with.HttpRequest();
-                with.JsonBody(new[] {
+                with.JsonBody(
                     new { GroupName = group.Id, SubjectId = user.SubjectId, IdentityProvider = user.IdentityProvider }
-                });
+                );
             });
             Assert.Equal(HttpStatusCode.OK, groupRoleResponse.StatusCode);
         }
-        
+
         private async Task RemoveRoleFromGroupAsync(GroupRoleApiModel group, RoleApiModel role)
         {
-            var groupRoleResponse = await _browser.Delete($"/group/{group.GroupName}/roles", with =>
+            var groupRoleResponse = await _browser.Delete($"/groups/{group.GroupName}/roles", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new[] {
@@ -218,7 +239,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             });
             Assert.Equal(HttpStatusCode.OK, groupRoleResponse.StatusCode);
         }
-        
+
         private async Task RemoveUserFromRoleAsync(UserApiModel user, RoleApiModel role)
         {
             var userRole = await _browser.Delete($"/user/{user.IdentityProvider}/{user.SubjectId}/roles", with =>
@@ -233,13 +254,14 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         private Task AssertEdwAdminRoleOnUserAsync(UserApiModel user, bool isAdded)
         {
-            return Task.Run(() => {
-                var role = _securityContext.EDWRoles.Where(p => p.Name == _adminRole).FirstOrDefault();
+            return Task.Run(() =>
+            {
+                var role = _securityContext.EDWRoles.Where(p => p.Name == _edwAdminRole).FirstOrDefault();
                 var identity = _securityContext.EDWIdentities.Where(p => p.Name == user.SubjectId).FirstOrDefault();
 
                 var hasUser = _securityContext.EDWIdentityRoles.Any(p => p.RoleID == role.Id && p.IdentityID == identity.Id);
 
-                if(isAdded)
+                if (isAdded)
                 {
                     Assert.True(hasUser);
                 }
@@ -272,7 +294,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var result = getResponse.Body.AsString();
             if (getResponse.StatusCode == HttpStatusCode.OK && result != "[]")
             {
-                return JsonConvert.DeserializeObject<RoleApiModel>(result);
+                return JsonConvert.DeserializeObject<RoleApiModel[]>(result).FirstOrDefault();
             }
             else if (result == "[]" || getResponse.StatusCode == HttpStatusCode.NotFound)
             {
