@@ -10,6 +10,8 @@ using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.RemoteServices.Identity.Providers;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Persistence.SqlServer.Configuration;
+using Fabric.Authorization.Persistence.SqlServer.Services;
+using Fabric.Authorization.Persistence.SqlServer.Stores.EDW;
 using Fabric.Platform.Shared.Configuration;
 using Microsoft.AspNetCore.Hosting;
 using Moq;
@@ -35,6 +37,22 @@ namespace Fabric.Authorization.IntegrationTests
         public Browser Browser { get; set; }
 
         public string TestHost => "http://testhost:80/v1";
+
+        public ISecurityContext GetEdwAdminContext(string storageProvider)
+        {
+            if(storageProvider == StorageProviders.InMemory)
+            {
+                return new InMemorySecurityContext(this.ConnectionStrings);
+            }
+            else if(storageProvider == StorageProviders.SqlServer)
+            {
+                return new SecurityContext(this.ConnectionStrings);
+            }
+            else
+            {
+                throw new NotImplementedException("Database not supported");
+            }
+        }
 
         public Browser GetBrowser(ClaimsPrincipal principal, string storageProvider, IIdentityServiceProvider identityServiceProvider = null)
         {
