@@ -39,7 +39,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 fixture.ConnectionStrings = connectionStrings;
             }
 
-            _securityContext = new InMemorySecurityContext(fixture.ConnectionStrings);
+            _securityContext = fixture.GetEdwAdminContext(storageProvider);
             CreateEDWAdminRole(_securityContext, _edwAdminRole, "Edw admin role in the database");
 
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
