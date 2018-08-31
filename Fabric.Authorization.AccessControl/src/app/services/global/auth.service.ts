@@ -6,7 +6,7 @@ import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/map';
 import { ServicesService } from './services.service';
-import { tap } from '../../../../node_modules/rxjs/operators';
+import { tap } from 'rxjs/operators';
 
 export interface IAuthService {
   userManager: UserManager;
