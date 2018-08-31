@@ -81,6 +81,9 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           this.associatedUsers = result[1];
           this.associatedGroups = result[2];
 
+          this.associatedUsers.forEach(u => u.type = this.userType);
+          this.associatedGroups.forEach(g => g.type = this.groupType);
+
           this.currentUserService.getPermissions().subscribe(p => {
             const missingPermissions = [];
             this.groupRoles.forEach(r => {
@@ -445,6 +448,9 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           this.roles = result[0];
           this.associatedUsers = result[1];
           this.associatedGroups = result[2];
+
+          this.associatedUsers.forEach(u => u.type = this.userType);
+          this.associatedGroups.forEach(g => g.type = this.groupType);
         })
         .takeUntil(this.ngUnsubscribe)
         .subscribe();
