@@ -10,6 +10,7 @@ import { FabricAuthMemberSearchService } from '../../../services/fabric-auth-mem
 import { IAccessControlConfigService } from '../../../services/access-control-config.service';
 import { FabricAuthUserService } from '../../../services/fabric-auth-user.service';
 import { FabricAuthGroupService } from '../../../services/fabric-auth-group.service';
+import { FabricAuthEdwadminService } from '../../../services/fabric-auth-edwadmin.service';
 import { IRole } from '../../../models/role.model';
 import { GrainFlatNode } from '../grain-list/grain-list.component';
 
@@ -41,6 +42,7 @@ export class MemberListComponent implements OnInit, OnChanges {
 
   constructor(
     private memberSearchService: FabricAuthMemberSearchService,
+    private edwAdminService: FabricAuthEdwadminService,
     @Inject('IAccessControlConfigService') private configService: IAccessControlConfigService,
     private userService: FabricAuthUserService,
     private groupService: FabricAuthGroupService,
@@ -187,15 +189,17 @@ export class MemberListComponent implements OnInit, OnChanges {
           member.roles
         )
         .toPromise()
-        .then(() => {
-          return this.getMembers();
+        .then(value => {
+          return this.edwAdminService.syncUserWithEdwAdmin(member.subjectId, member.identityProvider)
+              .toPromise().then(o => { return value; }).catch(err => { return value; });
         });
     } else {
       this.groupService
         .removeRolesFromGroup(member.groupName, member.roles)
         .toPromise()
-        .then(() => {
-          return this.getMembers();
+        .then(value => {
+          return this.edwAdminService.syncGroupWithEdwAdmin(member.groupName)
+          .toPromise().then(o => { return value; }).catch(err => { return value; });
         });
     }
   }
