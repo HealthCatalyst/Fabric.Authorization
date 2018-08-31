@@ -32,5 +32,10 @@ namespace Catalyst.Fabric.Authorization.Models
         public string CreatedBy { get; set; }
 
         public string ModifiedBy { get; set; }
+
+        public override string ToString()
+        {
+            return $"{Grain}/{SecurableItem}.{Name}";
+        }
     }
 }
