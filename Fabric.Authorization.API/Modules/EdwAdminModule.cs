@@ -69,7 +69,7 @@ namespace Fabric.Authorization.API.Modules
             }
             catch (NotFoundException<Group>)
             {
-                return CreateFailureResponse($"TEMP Group not found", HttpStatusCode.NotFound);
+                return CreateFailureResponse($"The group: {param.groupName} was not found", HttpStatusCode.NotFound);
             }
             catch (NotFoundException<User>)
             {
