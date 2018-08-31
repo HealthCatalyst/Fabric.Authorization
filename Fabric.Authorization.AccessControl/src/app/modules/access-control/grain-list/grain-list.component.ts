@@ -75,9 +75,17 @@ export class GrainListComponent implements OnInit {
       });
 
       this.treeControl.expand(grainNode);
-      this.selectedNode = this.treeControl.dataNodes.find(node => {
-        return node.name === selectedSecurableItem && node.parentName === selectedGrain;
-      });
+      if (!!selectedSecurableItem) {
+        this.selectedNode = this.treeControl.dataNodes.find(node => {
+          return node.name === selectedSecurableItem && node.parentName === selectedGrain;
+        });
+      } else {
+        // take the first node
+        this.selectedNode = this.treeControl.dataNodes.find(node => {
+          return node.parentName === selectedGrain;
+        });
+      }
+
       if (!this.selectedNode) {
         this.selectedNode = grainNode;
       }
