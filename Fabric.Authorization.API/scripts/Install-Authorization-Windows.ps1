@@ -580,6 +580,7 @@ $identityServiceUrl = $installSettings.identityService
 $metadataDbName = $installSettings.metadataDbName
 $authorizationDbName = $installSettings.authorizationDbName
 $authorizationDatabaseRole = $installSettings.authorizationDatabaseRole
+$edwAdminDatabaseRole = $installSettings.edwAdminDatabaseRole
 $fabricInstallerSecret = $installSettings.fabricInstallerSecret
 $hostUrl = $installSettings.hostUrl
 $authorizationServiceUrl = $installSettings.authorizationService
@@ -853,6 +854,8 @@ if (!($noDiscoveryService)) {
     Write-Success "Metadata DB Connection string: $metadataConnStr verified"
     Write-Host ""
 }
+
+Add-DatabaseSecurity $iisUser $edwAdminDatabaseRole $metadataConnStr
 
 $userEnteredDomain = Read-Host "Press Enter to accept the default domain '$($currentUserDomain)' that the user/group who will administrate dos is a member or enter a new domain" 
 Write-Host ""
