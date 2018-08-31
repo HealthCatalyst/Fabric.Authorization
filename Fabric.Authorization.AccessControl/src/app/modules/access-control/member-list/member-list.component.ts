@@ -191,7 +191,10 @@ export class MemberListComponent implements OnInit, OnChanges {
         .toPromise()
         .then(value => {
           return this.edwAdminService.syncUserWithEdwAdmin(member.subjectId, member.identityProvider)
-              .toPromise().then(o => { return value; }).catch(err => { return value; });
+            .toPromise().then(o => { return value; }).catch(err => { return value; });
+        })
+        .then(() => {
+          return this.getMembers();
         });
     } else {
       this.groupService
@@ -199,7 +202,10 @@ export class MemberListComponent implements OnInit, OnChanges {
         .toPromise()
         .then(value => {
           return this.edwAdminService.syncGroupWithEdwAdmin(member.groupName)
-          .toPromise().then(o => { return value; }).catch(err => { return value; });
+            .toPromise().then(o => { return value; }).catch(err => { return value; });
+        })
+        .then(() => {
+          return this.getMembers();
         });
     }
   }
