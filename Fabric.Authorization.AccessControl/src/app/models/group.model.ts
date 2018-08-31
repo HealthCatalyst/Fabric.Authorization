@@ -14,4 +14,5 @@ export interface IGroup {
 
    // Custom Property
    selected?: boolean;
+   type?: string;
 }
