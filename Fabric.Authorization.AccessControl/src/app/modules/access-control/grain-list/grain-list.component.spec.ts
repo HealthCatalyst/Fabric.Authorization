@@ -180,7 +180,7 @@ describe('GrainListComponent', () => {
 
   it('onSelect sets the selectedNode', () => {
     // Arrange
-    const randomNode = new GrainFlatNode(true, 'test', null, 0);
+    const randomNode = new GrainFlatNode(true, 'test', 'parent', 0);
     component.selectedNode = null;
 
     // Act
