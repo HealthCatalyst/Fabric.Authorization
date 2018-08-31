@@ -139,13 +139,11 @@ export class GrainListComponent implements OnInit {
   }
 
   onSelect(node: GrainFlatNode): void {
-    this.selectedNode = node;
-
     if (!!node.parentName) {
-      this.setSelectedNode(this.getSelectedGrain(), node.name);
-    } else {
-      this.setSelectedNode(node.name);
+      this.selectedNode = node;
     }
+
+    this.setSelectedNode(this.getSelectedGrain(), this.selectedNode.name);
   }
 
   setSelectedNode(grain: string, securableItem?: string) {
