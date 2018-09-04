@@ -16,8 +16,8 @@ export class FabricAuthEdwAdminService extends FabricBaseService {
   ) {
     super(httpClient, accessControlConfigService);
 
-    if (!FabricAuthEdwadminService.userEdwAdminSyncUrl) {
-      FabricAuthEdwadminService.userEdwAdminSyncUrl = `${accessControlConfigService.fabricAuthApiUrl}/edw/roles`;
+    if (!FabricAuthEdwAdminService.userEdwAdminSyncUrl) {
+      FabricAuthEdwAdminService.userEdwAdminSyncUrl = `${accessControlConfigService.fabricAuthApiUrl}/edw/roles`;
     }
 
     if (!FabricAuthEdwAdminService.groupEdwAdminSyncUrl) {
@@ -32,7 +32,7 @@ export class FabricAuthEdwAdminService extends FabricBaseService {
         userArray.push({ subjectId: users[i].subjectId, identityProvider: users[i].identityProvider });
       }
 
-      return this.httpClient.post(FabricAuthEdwadminService.userEdwAdminSyncUrl, userArray);
+      return this.httpClient.post(FabricAuthEdwAdminService.userEdwAdminSyncUrl, userArray);
     }
 
   public syncGroupWithEdwAdmin(
