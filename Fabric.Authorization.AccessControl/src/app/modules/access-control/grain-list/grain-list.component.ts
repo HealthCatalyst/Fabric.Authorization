@@ -151,7 +151,7 @@ export class GrainListComponent implements OnInit {
       this.selectedNode = node;
     }
 
-    this.setSelectedNode(this.getSelectedGrain(), this.selectedNode.name);
+    this.setSelectedNode(this.selectedNode.parentName, this.selectedNode.name);
   }
 
   setSelectedNode(grain: string, securableItem?: string) {
