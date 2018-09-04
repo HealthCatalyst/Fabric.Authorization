@@ -282,7 +282,6 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     const newGroups: IGroup[] = this.principals
       .filter(principal => principal.selected === true && principal.principalType === this.groupType)
       .map((principal) => {
-        console.log('map principal' + principal.subjectId);
         const newGroup: IGroup = {
           groupName: principal.subjectId,
           groupSource: 'directory',
