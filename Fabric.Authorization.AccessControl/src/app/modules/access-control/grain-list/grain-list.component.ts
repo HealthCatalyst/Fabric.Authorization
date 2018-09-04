@@ -165,18 +165,21 @@ export class GrainListComponent implements OnInit {
   }
 
   getIcon(node: GrainFlatNode): string {
-    let value = '';
-    if (node.expandable && !node.parentName) {
-      value = 'fa-plus-square-o';
+    const isNodeExpanded = this.treeControl.isExpanded(node);
+    const isGrain = !(!!node.parentName);
+    const isSelectedNode = this.selectedNode === node;
+
+    if (isGrain && isNodeExpanded) {
+      return 'fa-angle-down';
+    } else if (isGrain && !isNodeExpanded) {
+      return 'fa-angle-right';
+    }
+
+    if (!isGrain && isSelectedNode) {
+      return 'fa-angle-right';
     } else {
-      value = 'fa-minus-square-o';
+      return 'fa-angle-down';
     }
-
-    if (node === this.selectedNode) {
-      value = 'fa-caret-square-o-right';
-    }
-
-    return value;
   }
 
   isSelectedNode(myNode: GrainFlatNode): string {
