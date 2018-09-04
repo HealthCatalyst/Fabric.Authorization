@@ -79,9 +79,10 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var user = await CreateUserAsync("User-" + Guid.NewGuid(), _identityProvider);
             await AddUserToIdentityBASEAsync(_securityContext, user);
             await AssociateUserToRoleAsync(user, role);
+            var body = JsonConvert.SerializeObject(new[] { new { identityProvider = user.IdentityProvider, subjectId = user.SubjectId } });
 
             // Act I Add user to role
-            var result = await _browser.Post($"/edw/{user.IdentityProvider}/{user.SubjectId}/roles", with => with.Body(""));
+            var result = await _browser.Post($"/edw/roles", with => with.Body(body));
 
             // Assert I Add user to role
             Assert.Equal(HttpStatusCode.NoContent, result.StatusCode);
@@ -91,7 +92,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             await RemoveUserFromRoleAsync(user, role);
 
             // Act II Remove user from role
-            var result2 = await _browser.Post($"/edw/{user.IdentityProvider}/{user.SubjectId}/roles", with => with.Body(""));
+            var result2 = await _browser.Post($"/edw/roles", with => with.Body(body));
 
             // Assert II Remove user from role
             Assert.Equal(HttpStatusCode.NoContent, result2.StatusCode);
@@ -147,9 +148,10 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             // Arrange II remove role from group
             await RemoveUserFromGroupAsync(group, user);
+            var body = JsonConvert.SerializeObject(new[] { new { identityProvider = user.IdentityProvider, subjectId = user.SubjectId } });
 
             // Act II remove role from group
-            var result2 = await _browser.Post($"/edw/{user.IdentityProvider}/{user.SubjectId}/roles", with => with.Body(""));
+            var result2 = await _browser.Post($"/edw/roles", with => with.Body(body));
 
             // Assert II Remove role from group
             Assert.Equal(HttpStatusCode.NoContent, result2.StatusCode);
@@ -177,9 +179,10 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             // Arrange II remove role from group
             await RemoveUserFromGroupAsync(group, user);
+            var body = JsonConvert.SerializeObject(new[] { new { identityProvider = user.IdentityProvider, subjectId = user.SubjectId } });
 
             // Act II remove role from group
-            var result2 = await _browser.Post($"/edw/{user.IdentityProvider}/{user.SubjectId}/roles", with => with.Body(""));
+            var result2 = await _browser.Post($"/edw/roles", with => with.Body(body));
 
             // Assert II Remove role from group
             Assert.Equal(HttpStatusCode.NoContent, result2.StatusCode);

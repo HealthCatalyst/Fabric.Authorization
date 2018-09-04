@@ -8,7 +8,7 @@ import { FabricAuthMemberSearchService } from '../../services/fabric-auth-member
 import { FabricAuthGrainService } from '../../services/fabric-auth-grain.service';
 import { MockAccessControlConfigService } from '../../services/access-control-config.service.mock';
 import { FabricAuthEdwAdminService } from '../../services/fabric-auth-edwadmin.service';
-import { FabricAuthEdwAdminServiceMock } from '../../services/fabric-auth-edwadmin.service.mock';
+import { FabricAuthEdwadminServiceMock } from '../../services/fabric-auth-edwadmin.service.mock';
 
 import { FabricExternalIdpSearchServiceMock } from '../../services/fabric-external-idp-search.service.mock';
 import { FabricAuthUserServiceMock } from '../../services/fabric-auth-user.service.mock';
@@ -52,7 +52,7 @@ import { CurrentUserService } from '../../services/current-user.service';
         },
         {
           provide: FabricAuthEdwAdminService,
-          useClass: FabricAuthEdwAdminServiceMock
+          useClass: FabricAuthEdwadminServiceMock
         },
         {
             provide: CurrentUserService,

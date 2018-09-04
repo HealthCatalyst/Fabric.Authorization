@@ -10,7 +10,7 @@ import { FabricAuthMemberSearchService } from '../../../services/fabric-auth-mem
 import { IAccessControlConfigService } from '../../../services/access-control-config.service';
 import { FabricAuthUserService } from '../../../services/fabric-auth-user.service';
 import { FabricAuthGroupService } from '../../../services/fabric-auth-group.service';
-import { FabricAuthEdwadminService } from '../../../services/fabric-auth-edwadmin.service';
+import { FabricAuthEdwAdminService } from '../../../services/fabric-auth-edwadmin.service';
 import { IRole } from '../../../models/role.model';
 import { GrainFlatNode } from '../grain-list/grain-list.component';
 
@@ -42,7 +42,7 @@ export class MemberListComponent implements OnInit, OnChanges {
 
   constructor(
     private memberSearchService: FabricAuthMemberSearchService,
-    private edwAdminService: FabricAuthEdwadminService,
+    private edwAdminService: FabricAuthEdwAdminService,
     @Inject('IAccessControlConfigService') private configService: IAccessControlConfigService,
     private userService: FabricAuthUserService,
     private groupService: FabricAuthGroupService,
