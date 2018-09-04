@@ -104,19 +104,33 @@ describe('GrainListComponent', () => {
 
   describe('getIcon', () => {
 
-    it('should return "fa-plus-square-o" if parent node and expandable', () => {
+    it('should return "fa-angle-right" if parent node is collapsed', () => {
       // Arrange
       const randomNode = new GrainFlatNode(true, 'test', null, 0);
-      component.selectedNode = null;
+      component.treeControl.dataNodes.push(randomNode);
+      component.treeControl.collapse(randomNode);
 
       // Act
       const result = component.getIcon(randomNode);
 
       // Assert
-      expect(result).toBe('fa-plus-square-o');
+      expect(result).toBe('fa-angle-right');
     });
 
-    it('should return "fa-minus-square-o" if child node that cant expand', () => {
+    it('should return "fa-angle-down" if parent node is expanded', () => {
+      // Arrange
+      const randomNode = new GrainFlatNode(true, 'test', null, 0);
+      component.treeControl.dataNodes.push(randomNode);
+      component.treeControl.expand(randomNode);
+
+      // Act
+      const result = component.getIcon(randomNode);
+
+      // Assert
+      expect(result).toBe('fa-angle-down');
+    });
+
+    it('should return "fa-angle-down" if child node that cant expand', () => {
       // Arrange
       const randomNode = new GrainFlatNode(false, 'test', 'parent', 1);
       component.selectedNode = null;
@@ -125,10 +139,10 @@ describe('GrainListComponent', () => {
       const result = component.getIcon(randomNode);
 
       // Assert
-      expect(result).toBe('fa-minus-square-o');
+      expect(result).toBe('fa-angle-down');
     });
 
-    it('should return "fa-caret-square-o-right" if selected', () => {
+    it('should return "fa-angle-right" if selected', () => {
       // Arrange
       const randomNode = new GrainFlatNode(false, 'test', 'parent', 1);
       component.selectedNode = randomNode;
@@ -137,7 +151,7 @@ describe('GrainListComponent', () => {
       const result = component.getIcon(randomNode);
 
       // Assert
-      expect(result).toBe('fa-caret-square-o-right');
+      expect(result).toBe('fa-angle-right');
     });
   });
 
