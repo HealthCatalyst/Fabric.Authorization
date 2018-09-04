@@ -191,7 +191,7 @@ export class MemberListComponent implements OnInit, OnChanges {
         .toPromise()
         .then(value => {
           return this.edwAdminService.syncUsersWithEdwAdmin([value])
-            .toPromise().then(o => { return value; }).catch(err => { return value; });
+            .toPromise().then(o => value).catch(err => value);
         })
         .then(() => {
           return this.getMembers();
@@ -202,7 +202,7 @@ export class MemberListComponent implements OnInit, OnChanges {
         .toPromise()
         .then(value => {
           return this.edwAdminService.syncGroupWithEdwAdmin(member.groupName)
-            .toPromise().then(o => { return value; }).catch(err => { return value; });
+            .toPromise().then(o => value).catch(err => value);
         })
         .then(() => {
           return this.getMembers();
