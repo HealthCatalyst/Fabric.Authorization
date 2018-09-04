@@ -1,10 +1,16 @@
 import { IGrain } from '../models/grain.model';
 import { ISecurableItem } from '../models/securableItem.model';
 
-export const mockSecurableItemApp: ISecurableItem[] = [];
+export const mockSecurableItemApp: ISecurableItem[] = [
+  { id: 'app', name: 'appSecurable', clientOwner: 'me', grain: 'app',
+  securableItems: [], createdBy: 'me', modifiedBy: 'me'}
+];
 export const mockRequiredScopesApp: string[] = [];
 
-export const mockSecurableItemDos: ISecurableItem[] = [];
+export const mockSecurableItemDos: ISecurableItem[] = [
+  { id: 'dos', name: 'dosSecurable', clientOwner: 'me', grain: 'dos',
+  securableItems: [], createdBy: 'me', modifiedBy: 'me'}
+];
 export const mockRequiredScopesDos: string[] = [];
 
 export const mockGrains: IGrain[] = [

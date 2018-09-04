@@ -72,7 +72,7 @@ describe('GrainListComponent', () => {
 
     // assert
     expect(component.selectedNode).not.toEqual(null);
-    expect(component.selectedNode.name).toBe(grains[0].name);
+    expect(component.selectedNode.name).toBe(grains[0].securableItems[0].name);
   });
 
   describe('isSelectedNode', () => {
