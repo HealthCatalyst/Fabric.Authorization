@@ -66,28 +66,28 @@ export class GrainListComponent implements OnInit {
 
   }
 
+  ifExists(obj: any): boolean {
+    return !!obj;
+  }
+
   initializeSelectedNode(): void {
     const selectedGrain = this.getSelectedGrain();
     const selectedSecurableItem = this.getSelectedSecurableItem();
-    if (!!selectedGrain) {
+    if (this.ifExists(selectedGrain)) {
       const grainNode = this.treeControl.dataNodes.find(node => {
         return node.name === selectedGrain;
       });
 
       this.treeControl.expand(grainNode);
-      if (!!selectedSecurableItem) {
-        this.selectedNode = this.treeControl.dataNodes.find(node => {
-          return node.name === selectedSecurableItem && node.parentName === selectedGrain;
-        });
-      } else {
-        // take the first node
+      this.selectedNode = this.treeControl.dataNodes.find(node => {
+        return node.name === selectedSecurableItem && node.parentName === selectedGrain;
+      });
+
+      // if selectedNode was not found (was null or did not exists), take first node under grain
+      if (!this.ifExists(this.selectedNode)) {
         this.selectedNode = this.treeControl.dataNodes.find(node => {
           return node.parentName === selectedGrain;
         });
-      }
-
-      if (!this.selectedNode) {
-        this.selectedNode = grainNode;
       }
      } else {
         const grainNode = this.treeControl.dataNodes[0];
