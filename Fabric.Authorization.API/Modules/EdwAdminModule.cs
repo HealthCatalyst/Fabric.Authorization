@@ -1,11 +1,15 @@
-﻿using Fabric.Authorization.API.Services;
+﻿using Catalyst.Fabric.Authorization.Models;
+using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Validators;
 using Nancy;
+using Nancy.ModelBinding;
 using Serilog;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Fabric.Authorization.API.Modules
@@ -28,7 +32,7 @@ namespace Fabric.Authorization.API.Modules
             _groupService = groupService ?? throw new ArgumentNullException(nameof(groupService));
             _syncService = syncService ?? throw new ArgumentNullException(nameof(syncService));
 
-            Post("/{identityProvider}/{subjectId}/roles",
+            Post("/roles",
                 async param => await SyncUserIdentityRoles(param).ConfigureAwait(false), null,
                 "SyncUserIdentityRoles");
 
@@ -40,17 +44,28 @@ namespace Fabric.Authorization.API.Modules
         private async Task<dynamic> SyncUserIdentityRoles(dynamic param)
         {
             CheckInternalAccess();
+            var resultList = new List<string>();
+            var roleUserRequest = this.Bind<List<RoleUserRequest>>();
 
-            try
+            foreach(var item in roleUserRequest)
             {
-                User user = await _userService.GetUser(param.subjectId, param.identityProvider);
-                await _syncService.RefreshDosAdminRolesAsync(user);
-                return HttpStatusCode.NoContent;
+                try
+                {
+                    User user = await _userService.GetUser(item.SubjectId, item.IdentityProvider);
+                    await _syncService.RefreshDosAdminRolesAsync(user);
+                }
+                catch (NotFoundException<User>)
+                {
+                    resultList.Add($"The user: {item.SubjectId} for identity provider: {item.IdentityProvider} was not found.");
+                }
             }
-            catch (NotFoundException<User>)
+
+            if (resultList.Any())
             {
-                return CreateFailureResponse($"The user: {param.subjectId} for identity provider: {param.identityProvider} was not found.", HttpStatusCode.NotFound);
+                return CreateFailureResponse($"There were errors while processing the list: { String.Join("\n", resultList) }", HttpStatusCode.NotFound);
             }
+
+            return HttpStatusCode.NoContent;
         }
 
         private async Task<dynamic> SyncGroupIdentityRoles(dynamic param)

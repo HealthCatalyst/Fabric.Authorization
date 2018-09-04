@@ -190,7 +190,7 @@ export class MemberListComponent implements OnInit, OnChanges {
         )
         .toPromise()
         .then(value => {
-          return this.edwAdminService.syncUserWithEdwAdmin(member.subjectId, member.identityProvider)
+          return this.edwAdminService.syncUsersWithEdwAdmin([value])
             .toPromise().then(o => { return value; }).catch(err => { return value; });
         })
         .then(() => {

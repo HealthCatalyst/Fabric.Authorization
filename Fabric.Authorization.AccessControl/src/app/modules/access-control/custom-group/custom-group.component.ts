@@ -400,12 +400,8 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
                   })
                   .then(value => {
                       if (usersToRemove) {
-                        let response;
-                        usersToRemove.forEach(element => {
-                          response = this.edwAdminService.syncUserWithEdwAdmin(element.subjectId, element.identityProvider)
-                           .toPromise().then(o => { return value; }).catch(err => { return value; });
-                        });
-                        return response;
+                        return this.edwAdminService.syncUsersWithEdwAdmin(usersToRemove)
+                        .toPromise().then(o => { return value; }).catch(err => { return value; });
                       }
                   });
           });

@@ -4,6 +4,7 @@ import { Observable } from 'rxjs/Observable';
 
 import { FabricBaseService } from './fabric-base.service';
 import { IAccessControlConfigService } from './access-control-config.service';
+import { IUser } from '../models/user.model';
 
 @Injectable()
 export class FabricAuthEdwAdminService extends FabricBaseService {
@@ -15,9 +16,8 @@ export class FabricAuthEdwAdminService extends FabricBaseService {
   ) {
     super(httpClient, accessControlConfigService);
 
-    if (!FabricAuthEdwAdminService.userEdwAdminSyncUrl) {
-      FabricAuthEdwAdminService.userEdwAdminSyncUrl =
-        `${accessControlConfigService.fabricAuthApiUrl}/edw/{subjectId}/{identityProvider}/roles`;
+    if (!FabricAuthEdwadminService.userEdwAdminSyncUrl) {
+      FabricAuthEdwadminService.userEdwAdminSyncUrl = `${accessControlConfigService.fabricAuthApiUrl}/edw/roles`;
     }
 
     if (!FabricAuthEdwAdminService.groupEdwAdminSyncUrl) {
@@ -25,14 +25,14 @@ export class FabricAuthEdwAdminService extends FabricBaseService {
     }
   }
 
-  public syncUserWithEdwAdmin(
-    identityProvider: string,
-    subjectId: string): Observable<Object> {
-      return this.httpClient.post(this.replaceUserIdSegment(
-        FabricAuthEdwAdminService.userEdwAdminSyncUrl,
-        identityProvider,
-        subjectId
-      ), '');
+  public syncUsersWithEdwAdmin(
+    users: IUser[]): Observable<Object> {
+      const userArray = [];
+      for (let i = 0; i < users.length; i++) {
+        userArray.push({ subjectId: users[i].subjectId, identityProvider: users[i].identityProvider });
+      }
+
+      return this.httpClient.post(FabricAuthEdwadminService.userEdwAdminSyncUrl, userArray);
     }
 
   public syncGroupWithEdwAdmin(
@@ -42,18 +42,6 @@ export class FabricAuthEdwAdminService extends FabricBaseService {
         groupName
       ), '');
     }
-
-  private replaceUserIdSegment(
-    tokenizedUrl: string,
-    identityProvider: string,
-    subjectId: string
-  ): string {
-    return encodeURI(
-      tokenizedUrl
-        .replace('{identityProvider}', identityProvider)
-        .replace('{subjectId}', subjectId)
-    );
-  }
 
   private replaceGroupNameSegment(
     tokenizedUrl: string,
