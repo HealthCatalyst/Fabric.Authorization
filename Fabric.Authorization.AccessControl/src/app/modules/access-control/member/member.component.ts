@@ -191,7 +191,7 @@ export class MemberComponent implements OnInit, OnDestroy {
               rolesToDelete
             )).toPromise()
             .then(value => {
-              return this.edwAdminService.syncUserWithEdwAdmin(user.subjectId, user.identityProvider)
+              return this.edwAdminService.syncUsersWithEdwAdmin([user])
               .toPromise().then(o => value).catch(err => value);
             });
       });

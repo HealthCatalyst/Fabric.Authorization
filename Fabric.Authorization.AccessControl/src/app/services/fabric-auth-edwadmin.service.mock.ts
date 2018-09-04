@@ -1,6 +1,5 @@
 
-
-export class FabricAuthEdwAdminServiceMock {
-  syncUserWithEdwAdmin: jasmine.Spy = jasmine.createSpy('syncUserWithEdwAdmin');
+export class FabricAuthEdwadminServiceMock {
+  syncUsersWithEdwAdmin: jasmine.Spy = jasmine.createSpy('syncUsersWithEdwAdmin');
   syncGroupWithEdwAdmin: jasmine.Spy = jasmine.createSpy('syncGroupWithEdwAdmin');
 }
