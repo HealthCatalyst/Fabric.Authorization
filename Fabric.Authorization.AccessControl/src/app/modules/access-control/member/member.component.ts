@@ -175,7 +175,7 @@ export class MemberComponent implements OnInit, OnDestroy {
         return this.userService.getUserRoles(user.identityProvider, user.subjectId);
       })
       .mergeMap((userRoles: IRole[]) => {
-        const filteredUserRoles = userRoles.filter(role => role.grain === this.grain && role.securableItem == this.securableItem);
+        const filteredUserRoles = userRoles.filter(role => role.grain === this.grain && role.securableItem === this.securableItem);
         const rolesToAdd = selectedRoles.filter(userRole => !filteredUserRoles.some(selectedRole => userRole.id === selectedRole.id));
         const rolesToDelete = filteredUserRoles.filter(userRole => !selectedRoles.some(selectedRole => userRole.id === selectedRole.id));
         return Observable.zip(
