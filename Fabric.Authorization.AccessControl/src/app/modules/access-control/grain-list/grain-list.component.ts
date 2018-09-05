@@ -63,7 +63,6 @@ export class GrainListComponent implements OnInit {
   }
 
   ngOnInit() {
-
   }
 
   ifExists(obj: any): boolean {
@@ -155,12 +154,16 @@ export class GrainListComponent implements OnInit {
   }
 
   setSelectedNode(grain: string, securableItem?: string) {
+    const location = window.location;
+    const url = `${location.protocol}//${location.host}/client/access-control`;
     if (!!securableItem) {
       sessionStorage.setItem('selectedGrain', grain);
       sessionStorage.setItem('selectedSecurableItem', securableItem);
+      history.pushState({id: `${grain}_${securableItem}`}, null, `${url}/${grain}/${securableItem}`);
     } else {
       sessionStorage.removeItem('selectedSecurableItem');
       sessionStorage.setItem('selectedGrain', grain);
+      history.pushState({id: `${grain}`}, null, `${url}/${grain}`);
     }
   }
 
