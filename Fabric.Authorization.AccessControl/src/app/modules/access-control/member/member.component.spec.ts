@@ -9,7 +9,8 @@ import {
   PopoverModule,
   InputModule,
   LabelModule,
-  CheckboxModule
+  CheckboxModule,
+  ProgressIndicatorsModule
 } from '@healthcatalyst/cashmere';
 import { FormsModule } from '@angular/forms';
 import { FabricExternalIdpSearchServiceMock, mockExternalIdpSearchResult } from '../../../services/fabric-external-idp-search.service.mock';
@@ -39,6 +40,7 @@ describe('MemberAddComponent', () => {
           InputModule,
           LabelModule,
           CheckboxModule,
+          ProgressIndicatorsModule
           ToastrModule.forRoot()],
       }).compileComponents();
     })

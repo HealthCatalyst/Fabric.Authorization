@@ -39,6 +39,8 @@ export class MemberComponent implements OnInit, OnDestroy {
   public searchText: string;
   public selectedPrincipal?: IFabricPrincipal;
   public missingManageAuthorizationPermission = true;
+  public savingInProgress = false;
+
   private grain: string;
   private securableItem: string;
 
@@ -61,6 +63,8 @@ export class MemberComponent implements OnInit, OnDestroy {
   ngOnInit() {
     const subjectId: string = this.route.snapshot.paramMap.get('subjectid');
     const principalType: string = (this.route.snapshot.paramMap.get('type') || '').toLowerCase();
+    this.savingInProgress = false;
+
     this.grain = this.route.snapshot.paramMap.get('grain');
     this.securableItem = this.route.snapshot.paramMap.get('securableItem');
     this.currentUserService.getPermissions().subscribe(p => {
@@ -143,6 +147,7 @@ export class MemberComponent implements OnInit, OnDestroy {
   }
 
   save(): Subscription {
+    this.savingInProgress = true;
     const selectedRoles: IRole[] = this.roles.filter(r => r.selected);
 
     const saveObservable: Observable<any> =
@@ -167,6 +172,7 @@ export class MemberComponent implements OnInit, OnDestroy {
       })
       .catch(err => {
         if (err.statusCode === 404) {
+          this.savingInProgress = false;
           return this
             .userService
             .createUser(user);
@@ -197,8 +203,9 @@ export class MemberComponent implements OnInit, OnDestroy {
             .then(value => {
               return this.edwAdminService.syncUsersWithEdwAdmin([user])
               .toPromise()
-              .then(o => value)
+              .then(o => { this.savingInProgress = false; return value; })
               .catch(err => {
+                this.savingInProgress = false;
                 this.alertService.showSyncWarning(err.message);
               });
             });
@@ -218,6 +225,7 @@ export class MemberComponent implements OnInit, OnDestroy {
       })
       .catch(err => {
         if (err.statusCode === 404) {
+          this.savingInProgress = false;
           return this
             .groupService
             .createGroup(group);
@@ -240,13 +248,15 @@ export class MemberComponent implements OnInit, OnDestroy {
           .then(value => {
             return this.edwAdminService.syncGroupWithEdwAdmin(group.groupName)
             .toPromise()
-            .then(o => value)
+            .then(o => { this.savingInProgress = false; return value; })
             .catch(err => {
+              this.savingInProgress = false;
               this.alertService.showSyncWarning(err.message);
             });
           });
       })
       .catch(err => {
+        this.savingInProgress = false;
         this.alertService.showSaveError(err.message);
         return Observable.throw(err.message);
       });;
