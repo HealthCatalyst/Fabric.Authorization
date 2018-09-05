@@ -10,14 +10,14 @@
     <div class="custom-groups" *ngIf="customGroups.length > 0">
     <span>Select an existing group:</span>
     <table class="hc-table hc-table-borders scroll-table">
-       
+
         <tbody>
           <tr *ngFor="let group of customGroups">
             <td>
                 <hc-checkbox [id]="group.id" [(ngModel)]="group.selected" (click)="customGroupSelected(group)"></hc-checkbox>
             </td>
             <td [innerText]="group.groupName">
-            </td>            
+            </td>
           </tr>
         </tbody>
       </table>
@@ -113,8 +113,16 @@
             </tr>
         </tbody>
     </table>
+
+    <hc-progress-spinner [hidden]="this.savingInProgress ? 'visible' : 'hidden'"
+      [diameter]="25"
+      [color]="blue"
+      [hasChannel]="true"
+      [isCentered]="false"
+      [isDeterminate]="false">
+    </hc-progress-spinner>
     <div class="buttons">
-        <button hc-button color="primary" (click)="save()" [disabled]="missingManageAuthorizationPermission" [title]="disabledSaveReason">Save</button>
+        <button hc-button color="primary" (click)="save()" [disabled]="!this.customGroups || this.savingInProgress || this.missingManageAuthorizationPermission" [title]="disabledSaveReason">Save</button>
         <a hc-button routerLink="/access-control" color="secondary">Cancel</a>
     </div>
 </div>

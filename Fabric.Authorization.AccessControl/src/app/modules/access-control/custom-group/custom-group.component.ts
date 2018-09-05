@@ -47,6 +47,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   public searchTermSubject = new Subject<string>();
   public searching = false;
   public initializing = true;
+  public savingInProgress = false;
 
   private ngUnsubscribe: any = new Subject();
 
@@ -75,6 +76,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     this.grain = this.route.snapshot.paramMap.get('grain');
     this.securableItem = this.route.snapshot.paramMap.get('securableItem');
     this.editMode = !!this.groupName;
+    this.savingInProgress = false;
 
     if (this.editMode) {
       Observable.zip(this.getGroupRolesBySecurableItemAndGrain(), this.getGroupUsers(), this.getChildGroups())
@@ -341,7 +343,10 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   }
 
   save() {
+    this.savingInProgress = true;
+
     if (!this.checkGroupNameProvided(this.groupName)) {
+      this.savingInProgress = false;
       return;
     }
 
@@ -422,8 +427,12 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           this.groupNameInvalid = true;
           this.groupNameError = `Group ${this.groupName} already exists`;
         }
+
+        // TODO: Error handling
+        this.savingInProgress = false;
         this.alertService.showSaveError(error.message);
       }, () => {
+        this.savingInProgress = false;
         this.router.navigate(['/access-control']);
       });
   }

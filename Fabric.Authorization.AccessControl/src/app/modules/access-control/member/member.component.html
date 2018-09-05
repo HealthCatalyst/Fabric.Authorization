@@ -49,8 +49,18 @@
       </tr>
     </tbody>
   </table>
-  <div class="buttons">
-    <button hc-button (click)="save()" class="btn-save" color="primary" [disabled]="!this.selectedPrincipal || this.missingManageAuthorizationPermission">Save</button>
+
+  <div class="buttons" >
+    <hc-progress-spinner
+      [hidden]="this.savingInProgress ? 'visible' : 'hidden'"
+        [diameter]="25"
+        [color]="blue"
+        [hasChannel]="true"
+        [isCentered]="false"
+        [isDeterminate]="false">
+      </hc-progress-spinner>
+    <button hc-button (click)="save()" class="btn-save" color="primary" [disabled]="!this.selectedPrincipal || this.savingInProgress || this.missingManageAuthorizationPermission">Save</button>
     <a hc-button routerLink="/access-control" color="secondary">Cancel</a>
   </div>
+
 </div>
