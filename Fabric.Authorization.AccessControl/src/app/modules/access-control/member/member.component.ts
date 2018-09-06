@@ -12,6 +12,9 @@ import 'rxjs/add/operator/mergeMap';
 import 'rxjs/add/operator/distinctUntilChanged';
 
 import { Router, ActivatedRoute } from '@angular/router';
+
+import { ToastrService } from 'ngx-toastr';
+
 import { IFabricPrincipal } from '../../../models/fabricPrincipal.model';
 import { IRole } from '../../../models/role.model';
 import { FabricExternalIdpSearchService } from '../../../services/fabric-external-idp-search.service';
@@ -51,7 +54,8 @@ export class MemberComponent implements OnInit, OnDestroy {
     private groupService: FabricAuthGroupService,
     private router: Router,
     private route: ActivatedRoute,
-    private currentUserService: CurrentUserService
+    private currentUserService: CurrentUserService,
+    private toastr: ToastrService
   ) {
   }
 
@@ -193,8 +197,16 @@ export class MemberComponent implements OnInit, OnDestroy {
             )).toPromise()
             .then(value => {
               return this.edwAdminService.syncUsersWithEdwAdmin([user])
-              .toPromise().then(o => value).catch(err => value);
+              .toPromise()
+              .then(o => value)
+              .catch(err => {
+                this.toastr.error("There was an error while syncing roles: " + err.message)
+              });
             });
+      })
+      .catch(err => {
+        this.toastr.error("There was an error while saving roles: " + err.message); 
+        return Observable.throw(err.message);
       });
   }
 
@@ -228,9 +240,17 @@ export class MemberComponent implements OnInit, OnDestroy {
           .toPromise()
           .then(value => {
             return this.edwAdminService.syncGroupWithEdwAdmin(group.groupName)
-            .toPromise().then(o => value).catch(err => value);
+            .toPromise()
+            .then(o => value)
+            .catch(err => {
+              this.toastr.error("There was an error while syncing roles: " + err.message)
+            });
           });
-      });
+      })
+      .catch(err => {
+        this.toastr.error("There was an error while saving roles: " + err.message); 
+        return Observable.throw(err.message);
+      });;
   }
 
   private bindExistingRoles(principal: IFabricPrincipal): Observable<any> {

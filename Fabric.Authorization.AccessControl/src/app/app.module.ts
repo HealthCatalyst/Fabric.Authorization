@@ -3,6 +3,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule, APP_INITIALIZER } from '@angular/core';
 import { HttpClientModule } from '@angular/common/http';
 
+import { ToastrModule } from 'ngx-toastr';
+
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 
@@ -21,7 +23,7 @@ import { InitializerService } from './services/global/initializer.service';
 @NgModule({
   declarations: [AppComponent, NavbarComponent, LoggedOutComponent],
   imports: [BrowserModule, AppRoutingModule, HttpClientModule, ButtonModule, ProgressIndicatorsModule, BrowserAnimationsModule,
-    NavbarModule, PopoverModule, AppSwitcherModule, IconModule],
+    NavbarModule, PopoverModule, AppSwitcherModule, IconModule, ToastrModule.forRoot()],
   providers: [
     {
       provide: 'IAuthService',
