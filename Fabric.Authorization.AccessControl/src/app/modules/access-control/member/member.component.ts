@@ -13,8 +13,6 @@ import 'rxjs/add/operator/distinctUntilChanged';
 
 import { Router, ActivatedRoute } from '@angular/router';
 
-import { ToastrService } from 'ngx-toastr';
-
 import { IFabricPrincipal } from '../../../models/fabricPrincipal.model';
 import { IRole } from '../../../models/role.model';
 import { FabricExternalIdpSearchService } from '../../../services/fabric-external-idp-search.service';
@@ -26,6 +24,7 @@ import { FabricAuthEdwAdminService } from '../../../services/fabric-auth-edwadmi
 import { IUser } from '../../../models/user.model';
 import { IGroup } from '../../../models/group.model';
 import { CurrentUserService } from '../../../services/current-user.service';
+import { AlertService } from '../../../services/global/alert.service';
 
 @Component({
   selector: 'app-member',
@@ -55,7 +54,7 @@ export class MemberComponent implements OnInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute,
     private currentUserService: CurrentUserService,
-    private toastr: ToastrService
+    private alertService: AlertService
   ) {
   }
 
@@ -200,12 +199,12 @@ export class MemberComponent implements OnInit, OnDestroy {
               .toPromise()
               .then(o => value)
               .catch(err => {
-                this.showSyncWarning(err);
+                this.alertService.showSyncWarning(err.message);
               });
             });
       })
       .catch(err => {
-        this.showSaveError(err); 
+        this.alertService.showSaveError(err.message); 
         return Observable.throw(err.message);
       });
   }
@@ -243,12 +242,12 @@ export class MemberComponent implements OnInit, OnDestroy {
             .toPromise()
             .then(o => value)
             .catch(err => {
-              this.showSyncWarning(err);
+              this.alertService.showSyncWarning(err.message);
             });
           });
       })
       .catch(err => {
-        this.showSaveError(err);
+        this.alertService.showSaveError(err.message);
         return Observable.throw(err.message);
       });;
   }
@@ -269,13 +268,5 @@ export class MemberComponent implements OnInit, OnDestroy {
             this.roles.map(role => (role.selected = existingRoles.some(userRole => userRole.id === role.id)));
         }
     });
-  }
-
-  private showSyncWarning(error: any){
-    this.toastr.warning("Changes have been saved, however we were not able to sync the changes to EDW Console. If the user(s) need admin access to EDW Console contact your administrator to manually grant access. The error is: " + error.message);
-  }
-
-  private showSaveError(error: any){
-    this.toastr.error("We apologize for the inconvenience, we encountered an error during save. The error is: " + error.message); 
   }
 }
