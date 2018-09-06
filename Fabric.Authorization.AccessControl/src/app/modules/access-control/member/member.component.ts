@@ -200,12 +200,12 @@ export class MemberComponent implements OnInit, OnDestroy {
               .toPromise()
               .then(o => value)
               .catch(err => {
-                this.toastr.error("There was an error while syncing roles: " + err.message)
+                this.showSyncWarning(err);
               });
             });
       })
       .catch(err => {
-        this.toastr.error("There was an error while saving roles: " + err.message); 
+        this.showSaveError(err); 
         return Observable.throw(err.message);
       });
   }
@@ -243,12 +243,12 @@ export class MemberComponent implements OnInit, OnDestroy {
             .toPromise()
             .then(o => value)
             .catch(err => {
-              this.toastr.error("There was an error while syncing roles: " + err.message)
+              this.showSyncWarning(err);
             });
           });
       })
       .catch(err => {
-        this.toastr.error("There was an error while saving roles: " + err.message); 
+        this.showSaveError(err);
         return Observable.throw(err.message);
       });;
   }
@@ -269,5 +269,13 @@ export class MemberComponent implements OnInit, OnDestroy {
             this.roles.map(role => (role.selected = existingRoles.some(userRole => userRole.id === role.id)));
         }
     });
-}
+  }
+
+  private showSyncWarning(error: any){
+    this.toastr.warning("Changes have been saved, however we were not able to sync the changes to EDW Console. If the user(s) need admin access to EDW Console contact your administrator to manually grant access. The error is: " + error.message);
+  }
+
+  private showSaveError(error: any){
+    this.toastr.error("We apologize for the inconvenience, we encountered an error during save. The error is: " + error.message); 
+  }
 }
