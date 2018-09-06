@@ -1,5 +1,7 @@
 import { async, ComponentFixture, TestBed, inject } from '@angular/core/testing';
 
+import { ToastrModule } from 'ngx-toastr';
+
 import { CustomGroupComponent } from './custom-group.component';
 import { ServicesMockModule } from '../services.mock.module';
 import { FormsModule } from '@angular/forms';
@@ -35,7 +37,8 @@ describe('CustomGroupComponent', () => {
           PopoverModule,
           InputModule,
           LabelModule,
-          CheckboxModule]
+          CheckboxModule,
+          ToastrModule.forRoot()]
       }).compileComponents();
     })
   );
