@@ -187,7 +187,9 @@ or you can do the following:
 To enable CORS via DiscoveryService when running the Fabric.AccessControl UI locally, you must do the following:
 
 a. Update the AuthenticationMessageHandler line 33 to allow OPTIONS requests to not require authorization: `if (request.Method == HttpMethod.Get) || request.Method == HttpMethod.Options) (if you are running an installed version of discovery, you will have to build and copy the dll to your deployed location.)
+
 b. Install URL Authorization through `Turn Windows features on or off` under IIS -> WWWServices -> Security
+
 c. Add this section to the discovery service web.config in the system.webServer section:
 
 ``` 
@@ -208,6 +210,7 @@ c. Add this section to the discovery service web.config in the system.webServer 
 DiscoveryServiceBASE you need to point these apps to your http://localhost:5004 environment:
 
 a. AuthorizationService
+
 b. AccessControl
 
 4.  Change the appsettings.json to point to your Domain name, like 'https://HC2282.hqcatalyst.local'.  Do this for both discovery service and Identity.
@@ -215,6 +218,7 @@ b. AccessControl
 Example:
 
 a. "Value": "https://HC2282.hqcatalyst.local/DiscoveryService/v1"
+
 b. "Authority": "https://HC2282.hqcatalyst.local/identity"
 
 5.  Run Fabric.Authorization service.  Should be visible in http://localhost:5004
