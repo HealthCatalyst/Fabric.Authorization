@@ -1,5 +1,7 @@
 import { async, ComponentFixture, TestBed, inject } from '@angular/core/testing';
 
+import { ToastrModule } from 'ngx-toastr';
+
 import { MemberComponent } from './member.component';
 import {
   ButtonModule,
@@ -36,7 +38,8 @@ describe('MemberAddComponent', () => {
           PopoverModule,
           InputModule,
           LabelModule,
-          CheckboxModule],
+          CheckboxModule,
+          ToastrModule.forRoot()],
       }).compileComponents();
     })
   );
