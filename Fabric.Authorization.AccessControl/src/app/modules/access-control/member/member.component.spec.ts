@@ -40,7 +40,7 @@ describe('MemberAddComponent', () => {
           InputModule,
           LabelModule,
           CheckboxModule,
-          ProgressIndicatorsModule
+          ProgressIndicatorsModule,
           ToastrModule.forRoot()],
       }).compileComponents();
     })

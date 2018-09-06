@@ -51,16 +51,17 @@
   </table>
 
   <div class="buttons" >
-    <hc-progress-spinner
-      [hidden]="this.savingInProgress ? 'visible' : 'hidden'"
-        [diameter]="25"
-        [color]="blue"
-        [hasChannel]="true"
-        [isCentered]="false"
-        [isDeterminate]="false">
-      </hc-progress-spinner>
-    <button hc-button (click)="save()" class="btn-save" color="primary" [disabled]="!this.selectedPrincipal || this.savingInProgress || this.missingManageAuthorizationPermission">Save</button>
+    <button hc-button (click)="save()" class="btn-save" color="primary" [disabled]="!this.selectedPrincipal || this.savingInProgress || this.missingManageAuthorizationPermission">
+      Save
+    </button>
     <a hc-button routerLink="/access-control" color="secondary">Cancel</a>
+    <hc-progress-spinner class="spinner" *ngIf="this.savingInProgress"
+    [diameter]="30"
+    [color]="'blue'"
+    [hasChannel]="true"
+    [isCentered]="false"
+    [isDeterminate]="false">
+  </hc-progress-spinner>
   </div>
 
 </div>

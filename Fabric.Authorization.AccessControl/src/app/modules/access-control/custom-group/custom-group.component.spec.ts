@@ -46,7 +46,7 @@ describe('CustomGroupComponent', () => {
           InputModule,
           LabelModule,
           CheckboxModule,
-          ProgressIndicatorsModule
+          ProgressIndicatorsModule,
           ToastrModule.forRoot()]
       }).compileComponents();
     })
