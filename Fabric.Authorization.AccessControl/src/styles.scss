@@ -6,6 +6,8 @@ $FontPathOpenSans: "../node_modules/typeface-open-sans/files";
 
 @import "~@healthcatalyst/cashmere/cashmere";
 
+@import '~ngx-toastr/toastr.css';
+
 body {
   font-family: "Open Sans", sans-serif;
   margin: 0;
