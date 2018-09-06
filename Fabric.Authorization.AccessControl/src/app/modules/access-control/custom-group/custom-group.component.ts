@@ -20,6 +20,7 @@ import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/takeUntil';
 import 'rxjs/add/observable/empty';
 import { CurrentUserService } from '../../../services/current-user.service';
+import { AlertService } from '../../../services/global/alert.service';
 
 @Component({
   selector: 'app-custom-group',
@@ -64,7 +65,8 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     private groupService: FabricAuthGroupService,
     private edwAdminService: FabricAuthEdwAdminService,
     private idpSearchService: FabricExternalIdpSearchService,
-    private currentUserService: CurrentUserService
+    private currentUserService: CurrentUserService,
+    private alertService: AlertService
   ) { }
 
   ngOnInit() {
@@ -396,12 +398,20 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
                   .toPromise()
                   .then(value => {
                       return this.edwAdminService.syncGroupWithEdwAdmin(newGroup.groupName)
-                          .toPromise().then(o => value).catch(err => value);
+                          .toPromise()
+                          .then(o => value)
+                          .catch(err => {
+                            this.alertService.showSyncWarning(err.message);
+                          });
                   })
                   .then(value => {
                       if (usersToRemove) {
                         return this.edwAdminService.syncUsersWithEdwAdmin(usersToRemove)
-                        .toPromise().then(o => value).catch(err => value);
+                        .toPromise()
+                        .then(o => value)
+                        .catch(err => {
+                          this.alertService.showSyncWarning(err.message);
+                        });
                       }
                   });
           });
@@ -412,8 +422,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           this.groupNameInvalid = true;
           this.groupNameError = `Group ${this.groupName} already exists`;
         }
-        // TODO: Error handling
-        console.error(error);
+        this.alertService.showSaveError(error.message);
       }, () => {
         this.router.navigate(['/access-control']);
       });
