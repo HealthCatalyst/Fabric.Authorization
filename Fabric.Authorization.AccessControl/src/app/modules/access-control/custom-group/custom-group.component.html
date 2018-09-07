@@ -116,7 +116,7 @@
 
     <div class="buttons">
         <button hc-button color="primary" (click)="save()" [disabled]="!this.customGroups || this.savingInProgress || this.missingManageAuthorizationPermission" [title]="disabledSaveReason">Save</button>
-        <a hc-button routerLink="/access-control" color="secondary">Cancel</a>
+        <a hc-button (click)="cancel()" color="secondary">Cancel</a>
         <hc-progress-spinner class="spinner" *ngIf="this.savingInProgress"
           [diameter]="30"
           [color]="'blue'"

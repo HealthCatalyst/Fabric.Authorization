@@ -36,6 +36,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   public editMode = true;
   public missingManageAuthorizationPermission = false;
   public disabledSaveReason = '';
+  public returnRoute = '/access-control';
 
   public groupName = '';
   public groupNameSubject = new Subject<string>();
@@ -75,6 +76,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     this.groupName = this.route.snapshot.paramMap.get('subjectid');
     this.grain = this.route.snapshot.paramMap.get('grain');
     this.securableItem = this.route.snapshot.paramMap.get('securableItem');
+    this.returnRoute = `${this.returnRoute}/${this.grain}/${this.securableItem}`;
     this.editMode = !!this.groupName;
     this.savingInProgress = false;
 
@@ -433,8 +435,12 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
         this.alertService.showSaveError(error.message);
       }, () => {
         this.savingInProgress = false;
-        this.router.navigate(['/access-control']);
+        this.router.navigate([this.returnRoute]);
       });
+  }
+
+  cancel() {
+    this.router.navigate([this.returnRoute]);
   }
 
   private setupGroupNameErrorCheck(): any {
