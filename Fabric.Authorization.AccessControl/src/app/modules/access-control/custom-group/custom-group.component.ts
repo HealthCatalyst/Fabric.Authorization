@@ -238,7 +238,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   }
 
   getGroupRoles(): Observable<IRole[]> {
-    return this.groupService
+     return this.groupService
       .getGroupRoles(
         this.groupName,
         this.grain,
@@ -473,7 +473,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     this.groupNameInvalid = false;
     this.groupNameError = '';
     this.customGroups = [];
-    return Observable.zip(this.getGroupRoles(), this.getGroupUsers(), this.getChildGroups())
+    return Observable.zip(this.getGroupRolesBySecurableItemAndGrain(), this.getGroupUsers(), this.getChildGroups())
         .do((result: [IRole[], IUser[], IGroup[]]) => {
           this.roles = result[0];
           this.associatedUsers = result[1];
