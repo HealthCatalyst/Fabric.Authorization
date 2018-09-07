@@ -51,7 +51,7 @@
   </table>
 
   <div class="buttons" >
-    <button hc-button (click)="save()" class="btn-save" color="primary" [disabled]="!this.selectedPrincipal || this.savingInProgress || this.missingManageAuthorizationPermission">
+    <button hc-button (click)="save()" class="btn-save" color="primary" [disabled]="!this.selectedPrincipal || this.savingInProgress || this.missingManageAuthorizationPermission" [title]="disabledSaveReason">
       Save
     </button>
     <a hc-button routerLink="/access-control" color="secondary">Cancel</a>
