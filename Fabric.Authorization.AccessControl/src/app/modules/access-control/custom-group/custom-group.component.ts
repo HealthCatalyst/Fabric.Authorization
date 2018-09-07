@@ -48,6 +48,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   public initializing = true;
 
   private ngUnsubscribe: any = new Subject();
+  private methodResult: any;
 
   private grain: string;
   private securableItem: string;
@@ -232,12 +233,25 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   }
 
   getGroupRoles(): Observable<IRole[]> {
-    return this.groupService
+     this.groupService
       .getGroupRoles(
         this.groupName,
         this.grain,
         this.securableItem
-      );
+      )
+      .takeUntil(this.ngUnsubscribe)
+      .subscribe(resp => {this.methodResult = resp});
+      if (this.methodResult === undefined || this.methodResult.length == 0)
+      {
+        return this.roleService
+        .getRolesBySecurableItemAndGrain(
+          this.grain,
+          this.securableItem);
+      }
+      else
+      {
+        return this.methodResult;
+      }
   }
 
   getGroupRolesBySecurableItemAndGrain(): Observable<IRole[]> {
