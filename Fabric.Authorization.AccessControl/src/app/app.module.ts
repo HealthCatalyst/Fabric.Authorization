@@ -19,9 +19,10 @@ import { LoggedOutComponent } from './logged-out/logged-out.component';
 import { ServicesService } from './services/global/services.service';
 import { ConfigService } from './services/global/config.service';
 import { InitializerService } from './services/global/initializer.service';
+import { NotFoundComponent } from './not-found/not-found.component';
 
 @NgModule({
-  declarations: [AppComponent, NavbarComponent, LoggedOutComponent],
+  declarations: [AppComponent, NavbarComponent, LoggedOutComponent, NotFoundComponent],
   imports: [BrowserModule, AppRoutingModule, HttpClientModule, ButtonModule, ProgressIndicatorsModule, BrowserAnimationsModule,
     NavbarModule, PopoverModule, AppSwitcherModule, IconModule, ToastrModule.forRoot()],
   providers: [
