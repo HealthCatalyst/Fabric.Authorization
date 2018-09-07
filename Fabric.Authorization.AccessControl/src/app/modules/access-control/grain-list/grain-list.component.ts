@@ -7,7 +7,7 @@ import { of as observableOf } from 'rxjs/observable/of';
 import { FabricAuthGrainService } from '../../../services/fabric-auth-grain.service';
 import { IGrain } from '../../../models/grain.model';
 import { ISecurableItem } from '../../../models/securableItem.model';
-import { ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-grain-list',
@@ -36,7 +36,8 @@ export class GrainListComponent implements OnInit, DoCheck {
 
   constructor(
     private route: ActivatedRoute,
-    private grainService: FabricAuthGrainService
+    private grainService: FabricAuthGrainService,
+    private router: Router
   ) {
     this.isGrainVisible = grainService.isGrainVisible();
     this.treeFlattener = new MatTreeFlattener(this.transformer, this._getLevel, this._isExpandable, this._getChildren);
@@ -116,7 +117,12 @@ export class GrainListComponent implements OnInit, DoCheck {
         return node.name === selectedSecurableItem && node.parentName === selectedGrain;
       });
 
-      // if selectedNode was not found (was null or did not exists), take first node under grain
+      if (!this.selectedNode) {
+        this.setSelectedNode('', '');
+        this.router.navigateByUrl('/404');
+      }
+
+      // if selected node
       if (!this.ifExists(this.selectedNode)) {
         this.selectedNode = this.treeControl.dataNodes.find(node => {
           return node.parentName === selectedGrain;
@@ -132,7 +138,8 @@ export class GrainListComponent implements OnInit, DoCheck {
         if (grainNode.name === secondNode.parentName) {
           this.selectedNode = secondNode;
         } else {
-          this.selectedNode = grainNode;
+          this.setSelectedNode('', '');
+          this.router.navigateByUrl('/404');
         }
       }
   }
