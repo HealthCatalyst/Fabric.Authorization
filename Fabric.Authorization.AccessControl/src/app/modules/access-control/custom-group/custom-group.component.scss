@@ -44,7 +44,7 @@
     }
 
     .left,.right{
-        flex: 10 0 0px;        
+        flex: 10 0 0px;
         box-sizing: border-box;
         .table-container {
             border: 2px solid $gray-200;
@@ -52,17 +52,22 @@
             overflow-y: auto;
         }
     }
-    
+
     .top {
         width: 100%;
         padding: 0 0 15px 0;
-    }    
+    }
 }
 
 .custom-groups{
     span{
         padding: .25em 0 .25em 0;
-        display: block;        
+        display: block;
         font-weight: 600;
     }
+}
+
+.spinner {
+  display: inline-block;
+  margin-left: 20px;
 }

@@ -157,7 +157,7 @@ export class MemberListComponent implements OnInit, OnChanges {
 
   selectRoleNames(roles: Array<IRole>) {
     return roles.map(function(role) {
-      return role.name;
+      return role.displayName || role.name;
     });
   }
 

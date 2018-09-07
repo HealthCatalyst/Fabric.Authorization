@@ -20,6 +20,7 @@ import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/takeUntil';
 import 'rxjs/add/observable/empty';
 import { CurrentUserService } from '../../../services/current-user.service';
+import { AlertService } from '../../../services/global/alert.service';
 
 @Component({
   selector: 'app-custom-group',
@@ -35,6 +36,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   public editMode = true;
   public missingManageAuthorizationPermission = false;
   public disabledSaveReason = '';
+  public returnRoute = '/access-control';
 
   public groupName = '';
   public groupNameSubject = new Subject<string>();
@@ -46,6 +48,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   public searchTermSubject = new Subject<string>();
   public searching = false;
   public initializing = true;
+  public savingInProgress = false;
 
   private ngUnsubscribe: any = new Subject();
 
@@ -64,7 +67,8 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     private groupService: FabricAuthGroupService,
     private edwAdminService: FabricAuthEdwAdminService,
     private idpSearchService: FabricExternalIdpSearchService,
-    private currentUserService: CurrentUserService
+    private currentUserService: CurrentUserService,
+    private alertService: AlertService
   ) { }
 
   ngOnInit() {
@@ -72,7 +76,9 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     this.groupName = this.route.snapshot.paramMap.get('subjectid');
     this.grain = this.route.snapshot.paramMap.get('grain');
     this.securableItem = this.route.snapshot.paramMap.get('securableItem');
+    this.returnRoute = `${this.returnRoute}/${this.grain}/${this.securableItem}`;
     this.editMode = !!this.groupName;
+    this.savingInProgress = false;
 
     if (this.editMode) {
       Observable.zip(this.getGroupRolesBySecurableItemAndGrain(), this.getGroupUsers(), this.getChildGroups())
@@ -339,7 +345,10 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   }
 
   save() {
+    this.savingInProgress = true;
+
     if (!this.checkGroupNameProvided(this.groupName)) {
+      this.savingInProgress = false;
       return;
     }
 
@@ -396,12 +405,20 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
                   .toPromise()
                   .then(value => {
                       return this.edwAdminService.syncGroupWithEdwAdmin(newGroup.groupName)
-                          .toPromise().then(o => value).catch(err => value);
+                          .toPromise()
+                          .then(o => value)
+                          .catch(err => {
+                            this.alertService.showSyncWarning(err.message);
+                          });
                   })
                   .then(value => {
                       if (usersToRemove) {
                         return this.edwAdminService.syncUsersWithEdwAdmin(usersToRemove)
-                        .toPromise().then(o => value).catch(err => value);
+                        .toPromise()
+                        .then(o => value)
+                        .catch(err => {
+                          this.alertService.showSyncWarning(err.message);
+                        });
                       }
                   });
           });
@@ -412,11 +429,18 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           this.groupNameInvalid = true;
           this.groupNameError = `Group ${this.groupName} already exists`;
         }
+
         // TODO: Error handling
-        console.error(error);
+        this.savingInProgress = false;
+        this.alertService.showSaveError(error.message);
       }, () => {
-        this.router.navigate(['/access-control']);
+        this.savingInProgress = false;
+        this.router.navigate([this.returnRoute]);
       });
+  }
+
+  cancel() {
+    this.router.navigate([this.returnRoute]);
   }
 
   private setupGroupNameErrorCheck(): any {

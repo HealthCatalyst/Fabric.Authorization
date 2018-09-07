@@ -12,6 +12,7 @@ import 'rxjs/add/operator/mergeMap';
 import 'rxjs/add/operator/distinctUntilChanged';
 
 import { Router, ActivatedRoute } from '@angular/router';
+
 import { IFabricPrincipal } from '../../../models/fabricPrincipal.model';
 import { IRole } from '../../../models/role.model';
 import { FabricExternalIdpSearchService } from '../../../services/fabric-external-idp-search.service';
@@ -23,6 +24,7 @@ import { FabricAuthEdwAdminService } from '../../../services/fabric-auth-edwadmi
 import { IUser } from '../../../models/user.model';
 import { IGroup } from '../../../models/group.model';
 import { CurrentUserService } from '../../../services/current-user.service';
+import { AlertService } from '../../../services/global/alert.service';
 
 @Component({
   selector: 'app-member',
@@ -37,6 +39,10 @@ export class MemberComponent implements OnInit, OnDestroy {
   public searchText: string;
   public selectedPrincipal?: IFabricPrincipal;
   public missingManageAuthorizationPermission = true;
+  public savingInProgress = false;
+  public disabledSaveReason = '';
+  public returnRoute = '/access-control';
+
   private grain: string;
   private securableItem: string;
 
@@ -51,17 +57,28 @@ export class MemberComponent implements OnInit, OnDestroy {
     private groupService: FabricAuthGroupService,
     private router: Router,
     private route: ActivatedRoute,
-    private currentUserService: CurrentUserService
+    private currentUserService: CurrentUserService,
+    private alertService: AlertService
   ) {
   }
 
   ngOnInit() {
     const subjectId: string = this.route.snapshot.paramMap.get('subjectid');
     const principalType: string = (this.route.snapshot.paramMap.get('type') || '').toLowerCase();
+    this.savingInProgress = false;
+
     this.grain = this.route.snapshot.paramMap.get('grain');
     this.securableItem = this.route.snapshot.paramMap.get('securableItem');
+    this.returnRoute = `${this.returnRoute}/${this.grain}/${this.securableItem}`;
     this.currentUserService.getPermissions().subscribe(p => {
-      this.missingManageAuthorizationPermission = !p.includes(`${this.grain}/${this.securableItem}.manageauthorization`);
+      const requiredPermission = `${this.grain}/${this.securableItem}.manageauthorization`;
+      if (!p.includes(requiredPermission)) {
+        this.missingManageAuthorizationPermission = true;
+        this.disabledSaveReason = `You are missing the following required permissions to edit: ${requiredPermission}`;
+      } else {
+        this.missingManageAuthorizationPermission = false;
+        this.disabledSaveReason = '';
+      }
     });
 
     this.searchText = subjectId;
@@ -140,6 +157,7 @@ export class MemberComponent implements OnInit, OnDestroy {
   }
 
   save(): Subscription {
+    this.savingInProgress = true;
     const selectedRoles: IRole[] = this.roles.filter(r => r.selected);
 
     const saveObservable: Observable<any> =
@@ -148,8 +166,12 @@ export class MemberComponent implements OnInit, OnDestroy {
             : this.saveGroup(this.selectedPrincipal.subjectId, selectedRoles);
 
     return saveObservable.subscribe(null, null, () => {
-        this.router.navigate(['/access-control']);
+        this.router.navigate([this.returnRoute]);
     });
+  }
+
+  cancel() {
+    this.router.navigate([this.returnRoute]);
   }
 
   private saveUser(subjectId: string, selectedRoles: IRole[]): Observable<any> {
@@ -164,6 +186,7 @@ export class MemberComponent implements OnInit, OnDestroy {
       })
       .catch(err => {
         if (err.statusCode === 404) {
+          this.savingInProgress = false;
           return this
             .userService
             .createUser(user);
@@ -193,8 +216,17 @@ export class MemberComponent implements OnInit, OnDestroy {
             )).toPromise()
             .then(value => {
               return this.edwAdminService.syncUsersWithEdwAdmin([user])
-              .toPromise().then(o => value).catch(err => value);
+              .toPromise()
+              .then(o => { this.savingInProgress = false; return value; })
+              .catch(err => {
+                this.savingInProgress = false;
+                this.alertService.showSyncWarning(err.message);
+              });
             });
+      })
+      .catch(err => {
+        this.alertService.showSaveError(err.message);
+        return Observable.throw(err.message);
       });
   }
 
@@ -207,6 +239,7 @@ export class MemberComponent implements OnInit, OnDestroy {
       })
       .catch(err => {
         if (err.statusCode === 404) {
+          this.savingInProgress = false;
           return this
             .groupService
             .createGroup(group);
@@ -228,8 +261,18 @@ export class MemberComponent implements OnInit, OnDestroy {
           .toPromise()
           .then(value => {
             return this.edwAdminService.syncGroupWithEdwAdmin(group.groupName)
-            .toPromise().then(o => value).catch(err => value);
+            .toPromise()
+            .then(o => { this.savingInProgress = false; return value; })
+            .catch(err => {
+              this.savingInProgress = false;
+              this.alertService.showSyncWarning(err.message);
+            });
           });
+      })
+      .catch(err => {
+        this.savingInProgress = false;
+        this.alertService.showSaveError(err.message);
+        return Observable.throw(err.message);
       });
   }
 
@@ -249,5 +292,5 @@ export class MemberComponent implements OnInit, OnDestroy {
             this.roles.map(role => (role.selected = existingRoles.some(userRole => userRole.id === role.id)));
         }
     });
-}
+  }
 }

@@ -79,7 +79,7 @@ describe('GrainListComponent', () => {
 
     it('should return empty string for comparing different nodes', () => {
       // Arrange
-      const randomNode = new GrainFlatNode(null, 'test', null, 0);
+      const randomNode = new GrainFlatNode(null, 'test', null, 0, '');
       component.selectedNode = null;
 
       // Act
@@ -91,7 +91,7 @@ describe('GrainListComponent', () => {
 
     it('should return "selected" for comparing similar nodes', () => {
       // Arrange
-      const randomNode = new GrainFlatNode(null, 'test', null, 0);
+      const randomNode = new GrainFlatNode(null, 'test', null, 0, '');
       component.selectedNode = randomNode;
 
       // Act
@@ -106,7 +106,7 @@ describe('GrainListComponent', () => {
 
     it('should return "fa-angle-right" if parent node is collapsed', () => {
       // Arrange
-      const randomNode = new GrainFlatNode(true, 'test', null, 0);
+      const randomNode = new GrainFlatNode(true, 'test', null, 0, '');
       component.treeControl.dataNodes.push(randomNode);
       component.treeControl.collapse(randomNode);
 
@@ -119,7 +119,7 @@ describe('GrainListComponent', () => {
 
     it('should return "fa-angle-down" if parent node is expanded', () => {
       // Arrange
-      const randomNode = new GrainFlatNode(true, 'test', null, 0);
+      const randomNode = new GrainFlatNode(true, 'test', null, 0, '');
       component.treeControl.dataNodes.push(randomNode);
       component.treeControl.expand(randomNode);
 
@@ -132,7 +132,7 @@ describe('GrainListComponent', () => {
 
     it('should return "fa-angle-down" if child node that cant expand', () => {
       // Arrange
-      const randomNode = new GrainFlatNode(false, 'test', 'parent', 1);
+      const randomNode = new GrainFlatNode(false, 'test', 'parent', 1, '');
       component.selectedNode = null;
 
       // Act
@@ -144,7 +144,7 @@ describe('GrainListComponent', () => {
 
     it('should return "fa-angle-right" if selected', () => {
       // Arrange
-      const randomNode = new GrainFlatNode(false, 'test', 'parent', 1);
+      const randomNode = new GrainFlatNode(false, 'test', 'parent', 1, '');
       component.selectedNode = randomNode;
 
       // Act
@@ -194,7 +194,7 @@ describe('GrainListComponent', () => {
 
   it('onSelect sets the selectedNode', () => {
     // Arrange
-    const randomNode = new GrainFlatNode(true, 'test', 'parent', 0);
+    const randomNode = new GrainFlatNode(true, 'test', 'parent', 0, '');
     component.selectedNode = null;
 
     // Act

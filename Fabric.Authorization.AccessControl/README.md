@@ -173,3 +173,64 @@ export class FabricHttpRequestInterceptorService implements HttpInterceptor {
 }
 
 ```
+
+# To run Access-Control UI from Fabric Authorization
+
+1.  Next, install the latest software.  Like everything: Identity, Authorization, etc through the installer.
+
+2.  First enable CORS in Discovery service if this is not enabled:
+
+https://healthcatalyst.slack.com/archives/GACPU031A/p1534178899000358?thread_ts=1534178899.000358
+
+or you can do the following:
+
+To enable CORS via DiscoveryService when running the Fabric.AccessControl UI locally, you must do the following:
+
+a. Update the AuthenticationMessageHandler line 33 to allow OPTIONS requests to not require authorization: `if (request.Method == HttpMethod.Get) || request.Method == HttpMethod.Options) (if you are running an installed version of discovery, you will have to build and copy the dll to your deployed location.)
+
+b. Install URL Authorization through `Turn Windows features on or off` under IIS -> WWWServices -> Security
+
+c. Add this section to the discovery service web.config in the system.webServer section:
+
+``` 
+    <security>
+        <authentication>
+            <anonymousAuthentication enabled="true" />
+            <windowsAuthentication enabled="true" />
+        </authentication>
+        <authorization>
+            <add accessType="Allow" users="*" verbs="OPTIONS" />
+            <add accessType="Deny" users="?" verbs="GET,HEAD,PUT,POST,DELETE,PATCH,CONNECT,TRACE" />
+        </authorization>
+    </security>
+```
+
+3.  Change DiscoveryServiceBASE
+
+DiscoveryServiceBASE you need to point these apps to your http://localhost:5004 environment:
+
+a. AuthorizationService
+
+b. AccessControl
+
+4.  Change the appsettings.json to point to your Domain name, like 'https://HC2282.hqcatalyst.local'.  Do this for both discovery service and Identity.
+
+Example:
+
+a. "Value": "https://HC2282.hqcatalyst.local/DiscoveryService/v1"
+
+b. "Authority": "https://HC2282.hqcatalyst.local/identity"
+
+5.  Run Fabric.Authorization service.  Should be visible in http://localhost:5004
+
+6.  In Fabric.Authorization.AccessControl project, there is a script. Run it in Git Bash with these settings:
+
+a. ./setup-access-control.sh <YOUR Fabric Identity Installer secret> <YOUR fully qualified domain name of Fabric.Identity>
+
+Example:
+
+./setup-access-control.sh znB1Hr26j/ "https://HC2282.hqcatalyst.local/identity"
+
+# NOTE:
+
+If you have problems, check the Fabric.Identity and Authorization logs to see if you are missing permissions.

@@ -1,5 +1,7 @@
 import { async, ComponentFixture, TestBed, inject } from '@angular/core/testing';
 
+import { ToastrModule } from 'ngx-toastr';
+
 import { MemberComponent } from './member.component';
 import {
   ButtonModule,
@@ -7,7 +9,8 @@ import {
   PopoverModule,
   InputModule,
   LabelModule,
-  CheckboxModule
+  CheckboxModule,
+  ProgressIndicatorsModule
 } from '@healthcatalyst/cashmere';
 import { FormsModule } from '@angular/forms';
 import { FabricExternalIdpSearchServiceMock, mockExternalIdpSearchResult } from '../../../services/fabric-external-idp-search.service.mock';
@@ -36,7 +39,9 @@ describe('MemberAddComponent', () => {
           PopoverModule,
           InputModule,
           LabelModule,
-          CheckboxModule],
+          CheckboxModule,
+          ProgressIndicatorsModule,
+          ToastrModule.forRoot()],
       }).compileComponents();
     })
   );

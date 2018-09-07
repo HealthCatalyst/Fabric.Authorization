@@ -44,13 +44,24 @@
           <hc-checkbox [id]="role.id" [(ngModel)]="role.selected" [disabled]="!this.selectedPrincipal">
           </hc-checkbox>
         </td>
-        <td [innerText]="role.displayName"></td>
+        <td [innerText]="role.displayName || role.name"></td>
         <td [innerText]="role.description"></td>
       </tr>
     </tbody>
   </table>
-  <div class="buttons">
-    <button hc-button (click)="save()" class="btn-save" color="primary" [disabled]="!this.selectedPrincipal || this.missingManageAuthorizationPermission">Save</button>
-    <a hc-button routerLink="/access-control" color="secondary">Cancel</a>
+
+  <div class="buttons" >
+    <button hc-button (click)="save()" class="btn-save" color="primary" [disabled]="!this.selectedPrincipal || this.savingInProgress || this.missingManageAuthorizationPermission" [title]="disabledSaveReason">
+      Save
+    </button>
+    <a hc-button (click)="cancel()" color="secondary">Cancel</a>
+    <hc-progress-spinner class="spinner" *ngIf="this.savingInProgress"
+    [diameter]="30"
+    [color]="'blue'"
+    [hasChannel]="true"
+    [isCentered]="false"
+    [isDeterminate]="false">
+  </hc-progress-spinner>
   </div>
+
 </div>
