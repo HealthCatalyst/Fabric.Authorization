@@ -73,7 +73,6 @@ export class MemberComponent implements OnInit, OnDestroy {
     this.currentUserService.getPermissions().subscribe(p => {
       const requiredPermission = `${this.grain}/${this.securableItem}.manageauthorization`;
       if (!p.includes(requiredPermission)) {
-        console.log(`required permission ${requiredPermission} missing`);
         this.missingManageAuthorizationPermission = true;
         this.disabledSaveReason = `You are missing the following required permissions to edit: ${requiredPermission}`;
       } else {
