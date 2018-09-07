@@ -40,6 +40,7 @@ export class MemberComponent implements OnInit, OnDestroy {
   public selectedPrincipal?: IFabricPrincipal;
   public missingManageAuthorizationPermission = true;
   public savingInProgress = false;
+  public disabledSaveReason = '';
 
   private grain: string;
   private securableItem: string;
@@ -68,7 +69,15 @@ export class MemberComponent implements OnInit, OnDestroy {
     this.grain = this.route.snapshot.paramMap.get('grain');
     this.securableItem = this.route.snapshot.paramMap.get('securableItem');
     this.currentUserService.getPermissions().subscribe(p => {
-      this.missingManageAuthorizationPermission = !p.includes(`${this.grain}/${this.securableItem}.manageauthorization`);
+      const requiredPermission = `${this.grain}/${this.securableItem}.manageauthorization`;
+      if (!p.includes(requiredPermission)) {
+        console.log(`required permission ${requiredPermission} missing`);
+        this.missingManageAuthorizationPermission = true;
+        this.disabledSaveReason = `You are missing the following required permissions to edit: ${requiredPermission}`;
+      } else {
+        this.missingManageAuthorizationPermission = false;
+        this.disabledSaveReason = '';
+      }
     });
 
     this.searchText = subjectId;
@@ -156,7 +165,7 @@ export class MemberComponent implements OnInit, OnDestroy {
             : this.saveGroup(this.selectedPrincipal.subjectId, selectedRoles);
 
     return saveObservable.subscribe(null, null, () => {
-        this.router.navigate(['/access-control']);
+        this.router.navigate([`/access-control`]);
     });
   }
 
@@ -211,7 +220,7 @@ export class MemberComponent implements OnInit, OnDestroy {
             });
       })
       .catch(err => {
-        this.alertService.showSaveError(err.message); 
+        this.alertService.showSaveError(err.message);
         return Observable.throw(err.message);
       });
   }
@@ -259,7 +268,7 @@ export class MemberComponent implements OnInit, OnDestroy {
         this.savingInProgress = false;
         this.alertService.showSaveError(err.message);
         return Observable.throw(err.message);
-      });;
+      });
   }
 
   private bindExistingRoles(principal: IFabricPrincipal): Observable<any> {
