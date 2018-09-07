@@ -3,7 +3,8 @@ import { Routes, RouterModule } from '@angular/router';
 
 import { AuthenticationGuard } from './services/guards/authentication.guard';
 import { AuthService } from './services/global/auth.service';
-import {LoggedOutComponent } from './logged-out/logged-out.component';
+import { LoggedOutComponent } from './logged-out/logged-out.component';
+import { NotFoundComponent } from './not-found/not-found.component';
 
 const routes: Routes = [
   {
@@ -20,6 +21,14 @@ const routes: Routes = [
   {
     path: 'logged-out',
     component: LoggedOutComponent
+  },
+  {
+    path: 'not-found',
+    component: NotFoundComponent
+  },
+  {
+    path: '**',
+    component: NotFoundComponent
   }
 ];
 
