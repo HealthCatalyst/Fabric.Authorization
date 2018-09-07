@@ -41,6 +41,7 @@ export class MemberComponent implements OnInit, OnDestroy {
   public missingManageAuthorizationPermission = true;
   public savingInProgress = false;
   public disabledSaveReason = '';
+  public returnRoute = '/access-control';
 
   private grain: string;
   private securableItem: string;
@@ -68,6 +69,7 @@ export class MemberComponent implements OnInit, OnDestroy {
 
     this.grain = this.route.snapshot.paramMap.get('grain');
     this.securableItem = this.route.snapshot.paramMap.get('securableItem');
+    this.returnRoute = `${this.returnRoute}/${this.grain}/${this.securableItem}`;
     this.currentUserService.getPermissions().subscribe(p => {
       const requiredPermission = `${this.grain}/${this.securableItem}.manageauthorization`;
       if (!p.includes(requiredPermission)) {
@@ -165,8 +167,12 @@ export class MemberComponent implements OnInit, OnDestroy {
             : this.saveGroup(this.selectedPrincipal.subjectId, selectedRoles);
 
     return saveObservable.subscribe(null, null, () => {
-        this.router.navigate([`/access-control`]);
+        this.router.navigate([this.returnRoute]);
     });
+  }
+
+  cancel() {
+    this.router.navigate([this.returnRoute]);
   }
 
   private saveUser(subjectId: string, selectedRoles: IRole[]): Observable<any> {
