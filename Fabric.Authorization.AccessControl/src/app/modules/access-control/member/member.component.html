@@ -44,7 +44,7 @@
           <hc-checkbox [id]="role.id" [(ngModel)]="role.selected" [disabled]="!this.selectedPrincipal">
           </hc-checkbox>
         </td>
-        <td [innerText]="role.displayName"></td>
+        <td [innerText]="role.displayName || role.name"></td>
         <td [innerText]="role.description"></td>
       </tr>
     </tbody>
