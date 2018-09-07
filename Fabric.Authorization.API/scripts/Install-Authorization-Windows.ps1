@@ -849,7 +849,7 @@ if (!($noDiscoveryService)) {
         $metadataDbName = $userEnteredMetadataDbName
     }
 
-    $metadataConnStr = "Server=$($sqlServerAddress);Database=$($metadataDbName);Trusted_Connection=True;MultipleActiveResultSets=True;"
+    $metadataConnStr = "Server=$($sqlServerAddress);Database=$($metadataDbName);Trusted_Connection=True;MultipleActiveResultSets=True;Application Name=Authorization;"
     Invoke-Sql $metadataConnStr "SELECT TOP 1 RoleID FROM CatalystAdmin.RoleBASE" | Out-Null
     Write-Success "Metadata DB Connection string: $metadataConnStr verified"
     Write-Host ""
@@ -1012,6 +1012,10 @@ $environmentVariables.Add("IdentityServerConfidentialClientSettings__Authority",
 
 if ($authorizationDbConnStr) {
     $environmentVariables.Add("ConnectionStrings__AuthorizationDatabase", $authorizationDbConnStr)
+}
+
+if($metadataConnStr){
+    $environmentVariables.Add("ConnectionStrings__EDWAdminDatabase", $metadataConnStr)
 }
 
 if ($adminAccount) {
