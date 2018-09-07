@@ -118,7 +118,6 @@ export class GrainListComponent implements OnInit, DoCheck {
       });
 
       if (!this.selectedNode) {
-        this.setSelectedNode('', '');
         this.router.navigateByUrl('/404');
       }
 
@@ -138,7 +137,6 @@ export class GrainListComponent implements OnInit, DoCheck {
         if (grainNode.name === secondNode.parentName) {
           this.selectedNode = secondNode;
         } else {
-          this.setSelectedNode('', '');
           this.router.navigateByUrl('/404');
         }
       }
