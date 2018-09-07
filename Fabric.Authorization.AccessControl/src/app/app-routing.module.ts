@@ -23,7 +23,7 @@ const routes: Routes = [
     component: LoggedOutComponent
   },
   {
-    path: 'not-found',
+    path: '404',
     component: NotFoundComponent
   },
   {
