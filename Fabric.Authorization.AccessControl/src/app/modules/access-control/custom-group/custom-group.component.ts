@@ -48,7 +48,6 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   public initializing = true;
 
   private ngUnsubscribe: any = new Subject();
-  private methodResult: any;
 
   private grain: string;
   private securableItem: string;
