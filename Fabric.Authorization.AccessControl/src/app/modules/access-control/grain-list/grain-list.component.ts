@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DoCheck } from '@angular/core';
 import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
 import { FlatTreeControl } from '@angular/cdk/tree';
 import { Observable } from 'rxjs';
@@ -14,7 +14,7 @@ import { ActivatedRoute } from '@angular/router';
   templateUrl: './grain-list.component.html',
   styleUrls: ['./grain-list.component.scss', '../access-control.scss']
 })
-export class GrainListComponent implements OnInit {
+export class GrainListComponent implements OnInit, DoCheck {
 
   treeControl: FlatTreeControl<GrainFlatNode>;
   treeFlattener: MatTreeFlattener<GrainNode, GrainFlatNode>;
@@ -24,7 +24,10 @@ export class GrainListComponent implements OnInit {
   isGrainVisible = false;
   selectedNode: GrainFlatNode;
 
-  transformer = (node: GrainNode, level: number) => new GrainFlatNode(!!node.children, node.name, node.parentName, level);
+  private routeGrain: string;
+  private routeSecurableItem: string;
+
+  transformer = (node: GrainNode, level: number) => new GrainFlatNode(!!node.children, node.name, node.parentName, level, node.path);
 
   private _getLevel = (node: GrainFlatNode) => node.level;
   private _isExpandable = (node: GrainFlatNode) => node.expandable;
@@ -39,12 +42,19 @@ export class GrainListComponent implements OnInit {
     this.treeFlattener = new MatTreeFlattener(this.transformer, this._getLevel, this._isExpandable, this._getChildren);
     this.treeControl = new FlatTreeControl<GrainFlatNode>(this._getLevel, this._isExpandable);
     this.dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
+    this.initialize();
+  }
 
-    const routeGrain = this.route.snapshot.params['grain'];
-    if (!!routeGrain) {
-      this.setSelectedNode(routeGrain, this.route.snapshot.paramMap.get('securableItem'));
+  initialize() {
+    this.routeGrain = this.getSelectedGrain();
+    if (!!this.routeGrain) {
+      this.routeSecurableItem = this.route.snapshot.paramMap.get('securableItem');
     }
 
+    this.initializeGrains();
+  }
+
+  initializeGrains() {
     this.grainService.getAllGrains().subscribe(
       response => {
         const sortedGrains = response;
@@ -63,7 +73,30 @@ export class GrainListComponent implements OnInit {
   }
 
   ngOnInit() {
+  }
 
+  ngDoCheck() {
+    // this handles the case when the user enters the app for the
+    // first time (no grain or secitem in URL)
+    if (!this.routeGrain && !this.getSelectedGrain()) {
+      return;
+    }
+
+    // this handles the case when the user enters the app for the
+    // first time (no grain or secitem in URL), clicks on a different item,
+    // and clicks the Back button
+    if (!!this.routeGrain && !this.getSelectedGrain()) {
+      this.initialize();
+      return;
+    }
+
+    // this handles the case when the user clicks Back
+    // to navigate to a route that had a different grain and sec item
+    // selected
+    if (this.routeGrain !== this.getSelectedGrain()
+          || this.routeSecurableItem !== this.getSelectedSecurableItem()) {
+        this.initialize();
+    }
   }
 
   ifExists(obj: any): boolean {
@@ -98,20 +131,18 @@ export class GrainListComponent implements OnInit {
         // if it is not related, just use the first node.
         if (grainNode.name === secondNode.parentName) {
           this.selectedNode = secondNode;
-          this.setSelectedNode(grainNode.name, secondNode.name);
         } else {
           this.selectedNode = grainNode;
-          this.setSelectedNode(grainNode.name);
         }
       }
   }
 
   getSelectedGrain() {
-    return sessionStorage.getItem('selectedGrain');
+    return this.route.snapshot.params['grain'];
   }
 
   getSelectedSecurableItem() {
-    return sessionStorage.getItem('selectedSecurableItem');
+    return this.route.snapshot.paramMap.get('securableItem');
   }
 
   addGrainToGrainNode(data: IGrain[]): GrainNode[] {
@@ -121,6 +152,7 @@ export class GrainListComponent implements OnInit {
       const node = new GrainNode();
       node.name = item.name;
       node.children = this.addSecurableItemToGrainNode(item.securableItems, item.name);
+      node.path = `/access-control/${node.name}`;
       result.push(node);
     }
 
@@ -138,8 +170,8 @@ export class GrainListComponent implements OnInit {
       const node = new GrainNode();
       node.name = item.name;
       node.parentName = parentName;
-
       node.children = this.addSecurableItemToGrainNode(item.securableItems, item.name);
+      node.path = `/access-control/${node.parentName}/${node.name}`;
       result.push(node);
     }
 
@@ -149,18 +181,6 @@ export class GrainListComponent implements OnInit {
   onSelect(node: GrainFlatNode): void {
     if (!!node.parentName) {
       this.selectedNode = node;
-    }
-
-    this.setSelectedNode(this.selectedNode.parentName, this.selectedNode.name);
-  }
-
-  setSelectedNode(grain: string, securableItem?: string) {
-    if (!!securableItem) {
-      sessionStorage.setItem('selectedGrain', grain);
-      sessionStorage.setItem('selectedSecurableItem', securableItem);
-    } else {
-      sessionStorage.removeItem('selectedSecurableItem');
-      sessionStorage.setItem('selectedGrain', grain);
     }
   }
 
@@ -191,9 +211,10 @@ export class GrainNode {
   children: GrainNode[];
   name: string;
   parentName: string;
+  path: string;
 }
 
 export class GrainFlatNode {
   constructor(
-    public expandable: boolean, public name: string, public parentName: string, public level: number) { }
+    public expandable: boolean, public name: string, public parentName: string, public level: number, public path: string) { }
 }

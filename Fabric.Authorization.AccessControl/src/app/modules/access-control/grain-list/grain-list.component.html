@@ -1,16 +1,14 @@
 <div class="left" *ngIf="isGrainVisible">
   <mat-tree [dataSource]="dataSource" [treeControl]="treeControl">
     <mat-tree-node *matTreeNodeDef="let node" [class]="isSelectedNode(node)" matTreeNodeToggle matTreeNodePadding>
-      <hc-icon fontSet="fa" class="icon" [fontIcon]="getIcon(node)" icon-md aria-hidden="true"></hc-icon>
-      <a style="cursor: pointer;" title="{{node.name}}">
-        &nbsp;{{node.name}}
+      <a style="cursor: pointer;" title="{{node.name}}" [routerLink]="[node.path]">
+        <hc-icon fontSet="fa" class="icon" [fontIcon]="getIcon(node)" icon-md aria-hidden="true"></hc-icon>&nbsp;{{node.name}}
       </a>
     </mat-tree-node>
 
     <mat-tree-node *matTreeNodeDef="let node;when: hasChild" matTreeNodePadding>
-      <hc-icon fontSet="fa" class="icon" [fontIcon]="getIcon(node)" icon-md aria-hidden="true"></hc-icon>
-      <a style="cursor: pointer;" [class]="isSelectedNode(node)" title="{{node.name}}" matTreeNodeToggle [attr.aria-label]="'toggle ' + node.name" (click)="onSelect(node)">
-        &nbsp;{{node.name}}
+      <a style="cursor: pointer;" [class]="isSelectedNode(node)" title="{{node.name}}" [routerLink]="[node.path]" matTreeNodeToggle [attr.aria-label]="'toggle ' + node.name" (click)="onSelect(node)">
+        <hc-icon fontSet="fa" class="icon" [fontIcon]="getIcon(node)" icon-md aria-hidden="true"></hc-icon>&nbsp;{{node.name}}
       </a>
     </mat-tree-node>
   </mat-tree>

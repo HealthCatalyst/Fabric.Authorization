@@ -12,6 +12,9 @@ export class FabricAuthGrainService extends FabricBaseService {
   private static baseUrl = '';
   private static isVisible = false;
 
+  private grains: Array<IGrain> = [];
+  private lastUpdateTimestamp = 0;
+
   constructor(
     httpClient: HttpClient,
     @Inject('IAccessControlConfigService') accessControlConfigService: IAccessControlConfigService
@@ -28,7 +31,15 @@ export class FabricAuthGrainService extends FabricBaseService {
   }
 
   public getAllGrains(): Observable<Array<IGrain>> {
-    return this.httpClient.get<Array<IGrain>>(FabricAuthGrainService.baseUrl);
+    const currentTimeStamp = new Date().getTime();
+    if (this.lastUpdateTimestamp === 0 || (Math.abs(currentTimeStamp - this.lastUpdateTimestamp) / 60000) > 2) {
+      this.lastUpdateTimestamp = currentTimeStamp;
+      return this.httpClient.get<Array<IGrain>>(FabricAuthGrainService.baseUrl).do(g => {
+        this.grains = g;
+      });
+    }
+
+    return Observable.of(this.grains);
   }
 
   public isGrainVisible(): boolean {
