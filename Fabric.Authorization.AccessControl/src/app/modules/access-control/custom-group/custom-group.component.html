@@ -3,7 +3,7 @@
         <span>Custom Group Name</span>
     </h3>
     <div class="input-combo">
-        <input hc-input class="hc-input" required [(ngModel)]="groupName" [readOnly]="editMode" [highlight]="groupNameInvalid" (keyup)="groupNameSubject.next($event.target.value)" placeholder="enter group name">
+        <input hc-input class="hc-input" required [(ngModel)]="displayName || groupName" [readOnly]="editMode" [highlight]="groupNameInvalid" (keyup)="groupNameSubject.next($event.target.value)" placeholder="enter group name">
         <i [class]="searchingGroup ? 'btn-icon fa fa-spinner fa-pulse fa-fw' : 'btn-icon fa fa-search'"></i>
         <div class="form-errors" *ngIf="groupNameInvalid" [innerText]="groupNameError"></div>
     </div>
@@ -12,7 +12,7 @@
         <ul class="member-list">
             <li *ngFor="let group of customGroups">
                 <hc-checkbox [id]="group.id" [(ngModel)]="group.selected" (click)="customGroupSelected(group)"></hc-checkbox>
-                <span [innerText]="group.groupName">
+                <span [innerText]="group.displayName || group.groupName">
                 </span>
             </li>
         </ul>
