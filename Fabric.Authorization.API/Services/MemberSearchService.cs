@@ -58,6 +58,7 @@ namespace Fabric.Authorization.API.Services
             {
                 SubjectId = g.Name,
                 GroupName = g.Name,
+                DisplayName = string.IsNullOrWhiteSpace(g.DisplayName) ? g.Name : g.DisplayName,
                 Roles = g.Roles
                     .Where(r => string.IsNullOrWhiteSpace(request.Grain) || string.Equals(request.Grain, r.Grain, StringComparison.OrdinalIgnoreCase))
                     .Where(r => string.IsNullOrWhiteSpace(request.SecurableItem) || string.Equals(request.SecurableItem, r.SecurableItem, StringComparison.OrdinalIgnoreCase))
@@ -77,6 +78,7 @@ namespace Fabric.Authorization.API.Services
                 userList.Add(new MemberSearchResponse
                 {
                     SubjectId = user.SubjectId,
+                    DisplayName = user.SubjectId,
                     IdentityProvider = user.IdentityProvider,
                     Roles = user.Roles.Intersect(roleEntities).Select(r => r.ToRoleApiModel()).ToList(),
                     EntityType = MemberSearchResponseEntityType.User.ToString()
@@ -100,6 +102,9 @@ namespace Fabric.Authorization.API.Services
                     userSearchResponse.FirstName = user.FirstName;
                     userSearchResponse.MiddleName = user.MiddleName;
                     userSearchResponse.LastName = user.LastName;
+                    userSearchResponse.DisplayName = string.IsNullOrEmpty(user.FirstName)
+                        ? user.SubjectId
+                        : $"{user.FirstName} {user.MiddleName} {user.LastName}".Trim();
                     userSearchResponse.LastLoginDateTimeUtc = user.LastLoginDate;
                 }
             }

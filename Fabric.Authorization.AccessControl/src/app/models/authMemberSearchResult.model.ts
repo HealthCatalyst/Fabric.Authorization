@@ -18,6 +18,7 @@ export interface IAuthMemberSearchResult {
   firstName: string;
   middleName: string;
   lastName: string;
+  displayName: string;
   lastLoginDateTimeUtc?: string | Date;
   entityType: AuthMemberSearchResultEntityType;
   name?: string;

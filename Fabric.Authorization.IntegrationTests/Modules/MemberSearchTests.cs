@@ -239,7 +239,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             //ensure the group has two roles 
             var result = results.First();
-            Assert.Equal(groupName, result.Name);
+            Assert.Equal(groupName, result.DisplayName);
             Assert.Equal(MemberSearchResponseEntityType.CustomGroup.ToString(), result.EntityType);
             Assert.Equal(2, result.Roles.Count());
 

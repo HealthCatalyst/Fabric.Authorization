@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Catalyst.Fabric.Authorization.Models.Enums;
-using Newtonsoft.Json;
 
 namespace Catalyst.Fabric.Authorization.Models.Search
 {
@@ -18,21 +17,12 @@ namespace Catalyst.Fabric.Authorization.Models.Search
         public string IdentityProvider { get; set; }
         public IEnumerable<RoleApiModel> Roles { get; set; } = new List<RoleApiModel>();
         public string GroupName { get; set; }
+        public string DisplayName { get; set; }
         public string FirstName { get; set; }
         public string MiddleName { get; set; }
         public string LastName { get; set; }
         public DateTime? LastLoginDateTimeUtc { get; set; }
         public string EntityType { get; set; }
-
-        [JsonIgnore]
-        public string Name => string.IsNullOrWhiteSpace(GroupName) ? GetUserName() : GroupName?.Trim();
-
-        private string GetUserName()
-        {
-            return string.IsNullOrEmpty(FirstName)
-                ? SubjectId
-                : $"{FirstName} {MiddleName} {LastName}".Trim();
-        }
 
         public override string ToString()
         {

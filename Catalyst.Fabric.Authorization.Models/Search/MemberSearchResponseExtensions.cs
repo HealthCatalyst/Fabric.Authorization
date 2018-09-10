@@ -26,7 +26,7 @@ namespace Catalyst.Fabric.Authorization.Models.Search
                     return isAscending ? results.OrderBy(r => r.IdentityProvider) : results.OrderByDescending(r => r.IdentityProvider);
 
                 case "name":
-                    return isAscending ? results.OrderBy(r => r.Name) : results.OrderByDescending(r => r.Name);
+                    return isAscending ? results.OrderBy(r => r.DisplayName) : results.OrderByDescending(r => r.DisplayName);
 
                 case "firstname":
                     return isAscending ? results.OrderBy(r => r.FirstName) : results.OrderByDescending(r => r.FirstName);
@@ -61,7 +61,7 @@ namespace Catalyst.Fabric.Authorization.Models.Search
             var filter = request.Filter.ToLower();
 
             return results.Where(r =>
-                (!string.IsNullOrWhiteSpace(r.Name) && r.Name.ToLower().Contains(filter))
+                (!string.IsNullOrWhiteSpace(r.DisplayName) && r.DisplayName.ToLower().Contains(filter))
                 || (!string.IsNullOrWhiteSpace(r.SubjectId) && r.SubjectId.ToLower().Contains(filter))
                 || r.Roles.Select(role => role.Name).Contains(filter, StringComparer.OrdinalIgnoreCase));
         }

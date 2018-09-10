@@ -43,10 +43,10 @@
     <table class="hc-table">
       <thead>
         <tr>
-          <th [class.sortKey]="sortKey === 'name'" [class.sortOption]="sortKey !== 'name'" (click)="changeSort('name')">
+          <th [class.sortKey]="sortKey === 'displayName'" [class.sortOption]="sortKey !== 'displayName'" (click)="changeSort('displayName')">
             <span>Name</span>
-            <hc-icon *ngIf="sortKey === 'name'" fontSet="fa" icon-sm [fontIcon]="sortDirection === 'asc' ? 'fa-sort-amount-asc' : 'fa-sort-amount-desc'"></hc-icon>
-            <hc-icon *ngIf="sortKey !== 'name'" fontSet="fa" icon-sm [fontIcon]="'fa-exchange'"></hc-icon>
+            <hc-icon *ngIf="sortKey === 'displayName'" fontSet="fa" icon-sm [fontIcon]="sortDirection === 'asc' ? 'fa-sort-amount-asc' : 'fa-sort-amount-desc'"></hc-icon>
+            <hc-icon *ngIf="sortKey !== 'displayName'" fontSet="fa" icon-sm [fontIcon]="'fa-exchange'"></hc-icon>
           </th>
           <th>
             <span>Type</span>
@@ -64,7 +64,7 @@
       <tbody>
         <tr *ngFor="let member of members">
           <td>
-            <a (click)="goToMemberEdit(member)">{{member.name}}</a>
+            <a (click)="goToMemberEdit(member)">{{member.displayName}}</a>
           </td>
           <td>{{member.entityType}}</td>
           <td>{{selectRoleNames(member.roles).join(', ')}}</td>

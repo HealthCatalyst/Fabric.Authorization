@@ -447,7 +447,7 @@ namespace Fabric.Authorization.UnitTests.Search
             Assert.Equal(4, results.Count);
 
             var result0 = results[0];
-            Assert.Equal(MemberSearchServiceFixture.UserAtlasGroupName, result0.Name);
+            Assert.Equal(MemberSearchServiceFixture.UserAtlasGroupName, result0.DisplayName);
             Assert.Equal(MemberSearchServiceFixture.UserAtlasRoleName, result0.Roles.FirstOrDefault()?.Name);
 
             var result1 = results[1];
@@ -460,11 +460,11 @@ namespace Fabric.Authorization.UnitTests.Search
             Assert.Empty(result1.Roles);
 
             var result2 = results[2];
-            Assert.Equal(MemberSearchServiceFixture.DosGroupName, result2.Name);
+            Assert.Equal(MemberSearchServiceFixture.DosGroupName, result2.DisplayName);
             Assert.Equal(MemberSearchServiceFixture.DosRoleName, result2.Roles.FirstOrDefault()?.Name);
 
             var result3 = results[3];
-            Assert.Equal(MemberSearchServiceFixture.AdminAtlasGroupName, result3.Name);
+            Assert.Equal(MemberSearchServiceFixture.AdminAtlasGroupName, result3.DisplayName);
             Assert.Equal(MemberSearchServiceFixture.AdminAtlasRoleName, result3.Roles.FirstOrDefault()?.Name);
 
             // search + sort + paging
@@ -481,7 +481,7 @@ namespace Fabric.Authorization.UnitTests.Search
             Assert.Single(results);
 
             result0 = results[0];
-            Assert.Equal(MemberSearchServiceFixture.UserAtlasGroupName, result0.Name);
+            Assert.Equal(MemberSearchServiceFixture.UserAtlasGroupName, result0.DisplayName);
             Assert.Equal(MemberSearchServiceFixture.UserAtlasRoleName, result0.Roles.FirstOrDefault()?.Name);
 
             // search + sort + filter
