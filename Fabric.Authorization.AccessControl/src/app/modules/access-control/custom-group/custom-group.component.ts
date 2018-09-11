@@ -92,6 +92,11 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
 
           this.currentUserService.getPermissions().subscribe(p => {
             const missingPermissions = [];
+
+            if (this.groupRoles.length === 0) {
+              missingPermissions.push(`${this.grain}/${this.securableItem}.manageauthorization`);
+            }
+
             this.groupRoles.forEach(r => {
               const requiredPermission = `${r.grain}/${r.securableItem}.manageauthorization`;
               if (!p.includes(requiredPermission)) {
