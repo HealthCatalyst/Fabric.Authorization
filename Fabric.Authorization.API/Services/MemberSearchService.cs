@@ -58,7 +58,10 @@ namespace Fabric.Authorization.API.Services
             {
                 SubjectId = g.Name,
                 GroupName = g.Name,
-                Roles = g.Roles.Select(r => r.ToRoleApiModel()).ToList(),
+                Roles = g.Roles
+                    .Where(r => string.IsNullOrWhiteSpace(request.Grain) || string.Equals(request.Grain, r.Grain, StringComparison.OrdinalIgnoreCase))
+                    .Where(r => string.IsNullOrWhiteSpace(request.SecurableItem) || string.Equals(request.SecurableItem, r.SecurableItem, StringComparison.OrdinalIgnoreCase))
+                    .Select(r => r.ToRoleApiModel()).ToList(),
                 EntityType = string.Equals(g.Source, GroupConstants.CustomSource, StringComparison.OrdinalIgnoreCase)
                     ? MemberSearchResponseEntityType.CustomGroup.ToString()
                     : MemberSearchResponseEntityType.DirectoryGroup.ToString()
