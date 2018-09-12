@@ -58,6 +58,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   private userType = 'user';
   private groupType = 'group';
   private groupRoles: Array<IRole> = [];
+  private missingPermissions: Array<string> = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -91,27 +92,15 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           this.associatedGroups.forEach(g => g.type = this.groupType);
 
           this.currentUserService.getPermissions().subscribe(p => {
-            const missingPermissions = [];
-
-            if (this.groupRoles.length === 0) {
-              missingPermissions.push(`${this.grain}/${this.securableItem}.manageauthorization`);
-            }
 
             this.groupRoles.forEach(r => {
               const requiredPermission = `${r.grain}/${r.securableItem}.manageauthorization`;
               if (!p.includes(requiredPermission)) {
-                missingPermissions.push(requiredPermission);
+                this.missingPermissions.push(requiredPermission);
               }
             });
 
-            if (missingPermissions.length > 0) {
-              this.missingManageAuthorizationPermission = true;
-              this.disabledSaveReason = `You are missing the following required permissions to edit ` +
-                `this group: ${missingPermissions.join(',')}.`;
-            } else {
-              this.missingManageAuthorizationPermission = false;
-              this.disabledSaveReason = '';
-            }
+            this.configureSaveButton();
           });
         })
         .takeUntil(this.ngUnsubscribe)
@@ -127,6 +116,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
         )
         .do((roles: IRole[]) => {
           this.roles = roles;
+          this.configureSaveButton();
         })
         .takeUntil(this.ngUnsubscribe)
         .subscribe(null, null, () => {
@@ -217,6 +207,22 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           this.principals = returnedPrincipals;
         }
       });
+  }
+
+  configureSaveButton() {
+    const currentManageAuthPermission = `${this.grain}/${this.securableItem}.manageauthorization`;
+    if (this.roles.length === 0 && !this.missingPermissions.some(p => p === currentManageAuthPermission)) {
+      this.missingPermissions.push(currentManageAuthPermission);
+    }
+
+    if (this.missingPermissions.length > 0) {
+      this.missingManageAuthorizationPermission = true;
+      this.disabledSaveReason = `You are missing the following required permissions to edit ` +
+        `this group: ${this.missingPermissions.join(',')}.`;
+    } else {
+      this.missingManageAuthorizationPermission = false;
+      this.disabledSaveReason = '';
+    }
   }
 
   ngOnDestroy(): void {
