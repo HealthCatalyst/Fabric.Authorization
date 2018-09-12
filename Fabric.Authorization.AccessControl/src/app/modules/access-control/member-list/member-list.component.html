@@ -1,7 +1,7 @@
 <ng-template #confirmDialog let-close="close" let-dismiss="dismiss" let-data="data">
   <hc-modal>
     <hc-modal-header>Confirm</hc-modal-header>
-    <hc-modal-body>Are you sure you want to remove all roles from {{data.subjectId}}?</hc-modal-body>
+    <hc-modal-body>Are you sure you want to remove all {{data.grain}}/{{data.securableItem}} roles from {{data.member.subjectId}}?</hc-modal-body>
     <hc-modal-footer>
       <button hc-button color="tertiary" (click)="dismiss()"> Cancel </button>
       <button hc-button color="primary" (click)="close(data)"> OK </button>
@@ -10,6 +10,10 @@
 </ng-template>
 
 <div class="access-control-container">
+  <div class="header">
+    <h1>Manage {{grain}}/{{securableItem}} roles</h1>
+  </div>
+
   <div class="header">
     <button hc-button color="primary" [hcPopover]="options" popperPlacement="right" aria-hidden="true">
       Add&nbsp;
@@ -31,7 +35,7 @@
       <hc-icon fontSet="fa" fontIcon="fa-filter"></hc-icon>
     </div>
   </div>
-
+  
   <div>
     <hc-progress-spinner *ngIf="searchesInProgress > 0" [diameter]="30" [color]="'blue'" [hasChannel]="true" [isCentered]="true"
       [isDeterminate]="false">
