@@ -133,7 +133,7 @@ export class MemberListComponent implements OnInit, OnChanges {
 
   removeRolesFromMember(member: IAuthMemberSearchResult) {
     this.modalService.open(this.confirmDialog, {
-      data: member,
+      data: {member: member, grain: this.grain, securableItem: this.securableItem},
       size: 'md'
     })
       .result
