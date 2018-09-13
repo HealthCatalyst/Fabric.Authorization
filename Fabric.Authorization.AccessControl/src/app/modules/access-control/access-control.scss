@@ -35,32 +35,19 @@ table.hc-table {
 }
 }
 
-.scroll-table{
-    $scrollbar-width: 0.9em;
-    display: flex;
-    flex-flow: column;
-    max-height: 180px;
-
-thead,
-tbody tr {
-    display: table;
-    table-layout: fixed;
-}
-
-thead {
-    flex: 0 0 auto;
-    width: calc(100% - $scrollbar-width);
-}
-
-tbody {
-    display: block;
-    flex: 1 1 auto;
-    overflow-y: auto;
-
-    tr {
-    width: 100%;
+ul {
+    list-style: none;
+    padding-left: 0;
+    li {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        border: 1px solid #e2e4e7;
+        padding: 5px;
+        span {
+            padding-right: 5px;
+        }
     }
-}
 }
 
 .btn-icon {
