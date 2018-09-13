@@ -1,4 +1,6 @@
-@import "~@healthcatalyst/cashmere/colors";
+@import '~@healthcatalyst/cashmere/colors';
+@import '~@healthcatalyst/cashmere/tables';
+@import '~@healthcatalyst/cashmere/modals';
 
 .access-control-container {
     padding: 30px 45px;
@@ -13,12 +15,12 @@ margin: 25px 0;
 display: flex;
 flex-direction: row;
 >span {
-    padding-right:20px;
+    padding-right: 20px;
 }
 
 // horizantal line
 &::after {
-    content: "";
+    content: '';
     flex: 1 1;
     border-bottom: 2px solid $gray-200;
     margin: auto;
@@ -26,16 +28,24 @@ flex-direction: row;
 }
 
 table.hc-table {
-&.hc-table-borders th {
-    border: none;
+    &.hc-table-borders th {
+        border: none;
+    }
+
+    &>thead>tr>th:first-child,&>tbody>tr>td:first-child {
+        width: 70px;
+    }
+
+    th.sortKey {
+        &>hc-icon,&>span{
+            cursor: pointer;   
+        }
+    }
 }
 
-&>thead>tr>th:first-child,&>tbody>tr>td:first-child {
-    width: 70px;
-}
-}
-
-ul {
+ul.member-list {
+    overflow-y:auto;
+    max-height: 290px;
     list-style: none;
     padding-left: 0;
     li {

@@ -9,7 +9,7 @@
     </div>
     <div class="custom-groups" *ngIf="customGroups.length > 0">
     <span>Select an existing group:</span>
-        <ul>
+        <ul class="member-list">
             <li *ngFor="let group of customGroups">
                 <hc-checkbox [id]="group.id" [(ngModel)]="group.selected" (click)="customGroupSelected(group)"></hc-checkbox>
                 <span [innerText]="group.groupName">
@@ -30,7 +30,7 @@
         <div class="left">
             <h3>Available</h3>
             <div class="list-container">
-                <ul>
+                <ul class="member-list">
                     <li *ngFor="let principal of principals">
                         <hc-checkbox [id]="principal.subjectId + principal.principalType" [(ngModel)]="principal.selected">
                         </hc-checkbox>
@@ -56,7 +56,7 @@
         <div class="right">
             <h3>Selected</h3>
             <div class="list-container">
-                <ul>
+                <ul class="member-list">
                     <li *ngFor="let user of associatedUsers">
                         <hc-checkbox [id]="user.subjectId + user.type" [(ngModel)]="user.selected">
                         </hc-checkbox>
