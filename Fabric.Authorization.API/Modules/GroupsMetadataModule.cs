@@ -70,7 +70,8 @@ namespace Fabric.Authorization.API.Modules
                 typeof(UserApiModel),
                 typeof(UserIdentifierApiRequest),
                 typeof(RoleIdentifierApiRequest),
-                typeof(GroupPatchApiRequest));
+                typeof(GroupPatchApiRequest),
+                typeof(GroupIdentifierApiRequest));
 
             RouteDescriber.DescribeRouteWithParams(
                 "AddGroup",
