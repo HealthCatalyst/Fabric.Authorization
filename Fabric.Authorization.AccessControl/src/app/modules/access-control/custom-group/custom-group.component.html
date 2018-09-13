@@ -9,46 +9,37 @@
     </div>
     <div class="custom-groups" *ngIf="customGroups.length > 0">
     <span>Select an existing group:</span>
-    <table class="hc-table hc-table-borders scroll-table">
-
-        <tbody>
-          <tr *ngFor="let group of customGroups">
-            <td>
+        <ul>
+            <li *ngFor="let group of customGroups">
                 <hc-checkbox [id]="group.id" [(ngModel)]="group.selected" (click)="customGroupSelected(group)"></hc-checkbox>
-            </td>
-            <td [innerText]="group.groupName">
-            </td>
-          </tr>
-        </tbody>
-      </table>
+                <span [innerText]="group.groupName">
+                </span>
+            </li>
+        </ul>
     </div>
     <h3 class="h3">
         <span>Associated Users &amp; Groups</span>
     </h3>
-    <div class="associated-users">
         <div class="top">
             <div class="input-combo">
                 <input hc-input class="hc-input" [(ngModel)]="searchTerm" (keyup)="searchTermSubject.next($event.target.value)" placeholder="search for users or groups">
                 <i [class]="searching ? 'btn-icon fa fa-spinner fa-pulse fa-fw' : 'btn-icon fa fa-search'"></i>
                 </div>
             </div>
+            <div class="associated-users">
         <div class="left">
             <h3>Available</h3>
-            <div class="table-container">
-                <table class="hc-table hc-table-borders">
-                    <tbody>
-                        <tr *ngFor="let principal of principals">
-                            <td>
-                                <hc-checkbox [id]="principal.subjectId + principal.principalType" [(ngModel)]="principal.selected">
-                                </hc-checkbox>
-                            </td>
-                            <td [innerText]="principal.subjectId">
-                            </td>
-                            <td [innerText] = "principal.principalType">
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="list-container">
+                <ul>
+                    <li *ngFor="let principal of principals">
+                        <hc-checkbox [id]="principal.subjectId + principal.principalType" [(ngModel)]="principal.selected">
+                        </hc-checkbox>
+                        <span [innerText]="principal.subjectId">
+                        </span>
+                        <span [innerText]="'(' + principal.principalType + ')'">
+                        </span>
+                    </li>
+                </ul>
                 <div class="empty-notification" *ngIf="!initializing && principals.length === 0">
                     <label>Search to find Users &amp; Groups</label>
                 </div>
@@ -64,27 +55,21 @@
         </div>
         <div class="right">
             <h3>Selected</h3>
-            <div class="table-container">
-                <table class="hc-table hc-table-borders">
-                    <tbody>
-                        <tr *ngFor="let user of associatedUsers">
-                            <td>
-                                <hc-checkbox [id]="user.subjectId + user.type" [(ngModel)]="user.selected">
-                                </hc-checkbox>
-                            </td>
-                            <td [innerText]="user.subjectId"></td>
-                            <td>user</td>
-                        </tr>
-                        <tr *ngFor="let group of associatedGroups">
-                            <td>
-                                <hc-checkbox [id]="group.groupName + group.type" [(ngModel)]="group.selected">
-                                </hc-checkbox>
-                            </td>
-                            <td [innerText]="group.groupName"></td>
-                            <td>group</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="list-container">
+                <ul>
+                    <li *ngFor="let user of associatedUsers">
+                        <hc-checkbox [id]="user.subjectId + user.type" [(ngModel)]="user.selected">
+                        </hc-checkbox>
+                        <span [innerText]="user.subjectId"></span>
+                        <span>(user)</span>
+                    </li>
+                    <li *ngFor="let group of associatedGroups">
+                        <hc-checkbox [id]="group.groupName + group.type" [(ngModel)]="group.selected">
+                        </hc-checkbox>
+                        <span [innerText]="group.groupName"></span>
+                        <span>(group)</span>
+                    </li>
+                </ul>
                 <div class="empty-notification" *ngIf="!initializing && associatedUsers.length === 0 && associatedGroups.length === 0">
                     <label>Add Users</label>
                 </div>
