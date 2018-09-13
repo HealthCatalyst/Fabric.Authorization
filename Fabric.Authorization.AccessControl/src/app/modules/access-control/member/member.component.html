@@ -6,27 +6,16 @@
     <input hc-input class="hc-input" (keyup)="searchTextSubject.next($event.target.value)" [(ngModel)]="searchText" placeholder="search for user or group">
     <i [class]="searching ? 'fa fa-spinner fa-pulse fa-fw' : 'fa fa-search'"></i>
   </div>
-  <table class="hc-table hc-table-borders scroll-table">
-    <thead>
-      <tr>
-        <th></th>
-        <th>User</th>
-        <th>Type</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let principal of principals">
-        <td>
-          <hc-checkbox [id]="principal.subjectId + principal.principalType" [(ngModel)]="principal.selected" (change)="selectPrincipal(principal)">
-          </hc-checkbox>
-        </td>
-        <td [innerText] = "principal.subjectId">
-        </td>
-        <td [innerText] = "principal.principalType">
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <ul class="member-list">
+    <li *ngFor="let principal of principals">
+        <hc-checkbox [id]="principal.subjectId" [(ngModel)]="principal.selected" (click)="selectPrincipal(principal)">
+        </hc-checkbox>
+      <span [innerText]="principal.subjectId">
+      </span>
+      <span [innerText]="'(' + principal.principalType + ')'">
+      </span>
+    </li>
+</ul>
   <h3 class="h3">
     <span>Roles</span>
   </h3>

@@ -8,8 +8,25 @@ $FontPathOpenSans: "../node_modules/typeface-open-sans/files";
 
 @import '~ngx-toastr/toastr.css';
 
+/////////// #TODO: Fix Cashmere in IE
+input.hc-input, div.input-icon {
+  height: 35px !important;
+}
+.hc-inner-button, .hc-left-button, .hc-right-button {
+  min-width: 15px !important;
+}
+.spinner {
+  z-index: 20000;
+}
+/////////// #endtodo
+
 body {
   font-family: "Open Sans", sans-serif;
   margin: 0;
   background-color: $slate-gray-100;
+}
+
+button {
+  // ie reset for default button color
+  background-color: #DCDCDC;
 }
