@@ -124,7 +124,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public Task<IEnumerable<Role>> GetRoles(string grain, string securableItem = null, string roleName = null)
         {
-            var roles = GetRoleEntityModels(grain, securableItem, roleName);
+            var roles = GetRoleEntityModels(grain, securableItem, roleName).ToList();
             return Task.FromResult(roles.Select(r => r.ToModel()).AsEnumerable());
         }
 
