@@ -201,7 +201,8 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
             principal.principalType === this.groupType);
         }
 
-        if (unAssociatedUserPrincipals.length > 0 || unAssociatedGroupPrincipals.length > 0) {
+        if (unAssociatedUserPrincipals.length > 0 || unAssociatedGroupPrincipals.length > 0
+            || (unAssociatedUserPrincipals.length === 0 && unAssociatedGroupPrincipals.length === 0)) {
           this.principals = unAssociatedUserPrincipals.concat(unAssociatedGroupPrincipals);
         } else {
           this.principals = returnedPrincipals;
