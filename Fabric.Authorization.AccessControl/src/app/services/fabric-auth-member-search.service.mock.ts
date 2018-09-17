@@ -10,6 +10,7 @@ export const mockAuthSearchResult: IAuthMemberSearchResponse = {
             middleName: 'Middle',
             lastName: 'Last',
             groupName: 'Group 1',
+            displayName: 'Group 1',
             roles: [
                 { name: 'admin', grain: 'app', securableItem: 'foo' },
                 { name: 'superuser', grain: 'app', securableItem: 'foo' }
@@ -23,6 +24,7 @@ export const mockAuthSearchResult: IAuthMemberSearchResponse = {
             middleName: 'Middle2',
             lastName: 'Last2',
             groupName: 'Group 2',
+            displayName: 'Group 2',
             roles: [{ name: 'viewer', grain: 'app', securableItem: 'foo' }],
             entityType: 'CustomGroup'
         }
