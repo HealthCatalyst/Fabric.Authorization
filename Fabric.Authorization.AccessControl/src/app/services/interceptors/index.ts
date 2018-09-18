@@ -2,6 +2,7 @@
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { FabricHttpRequestInterceptorService } from './fabric-http-request-interceptor.service';
 import { FabricHttpErrorHandlerInterceptorService } from './fabric-http-error-handler-interceptor.service';
+import { StandardHeaderInterceptor } from './standard-header-interceptor';
 
 /** Http interceptor providers in outside-in order */
 export const httpInterceptorProviders = [
@@ -13,6 +14,11 @@ export const httpInterceptorProviders = [
   {
     provide: HTTP_INTERCEPTORS,
     useClass: FabricHttpErrorHandlerInterceptorService,
+    multi: true
+  },
+  {
+    provide: HTTP_INTERCEPTORS,
+    useClass: StandardHeaderInterceptor,
     multi: true
   }
 ];
