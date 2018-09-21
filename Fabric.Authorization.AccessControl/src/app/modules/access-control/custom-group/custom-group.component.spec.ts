@@ -33,6 +33,7 @@ describe('CustomGroupComponent', () => {
   let fixture: ComponentFixture<CustomGroupComponent>;
   let IdpSearchResultsSubject: Subject<IdPSearchResult>;
   let searchService: FabricExternalIdpSearchServiceMock;
+  let groupService: FabricAuthGroupServiceMock;
 
   beforeEach(
     async(() => {
@@ -58,14 +59,15 @@ describe('CustomGroupComponent', () => {
     FabricExternalIdpSearchService,
     FabricAuthUserService,
     CurrentUserService],
-    (groupService: FabricAuthGroupServiceMock,
+    (group: FabricAuthGroupServiceMock,
       roleService: FabricAuthRoleServiceMock,
       search: FabricExternalIdpSearchServiceMock,
       userService: FabricAuthUserServiceMock,
       currentUserServiceMock: CurrentUserServiceMock) => {
-      groupService.getGroupUsers.and.returnValue(Observable.of(mockUsersResponse));
-      groupService.getGroupRoles.and.returnValue(Observable.of(mockRolesResponse));
-      groupService.search.and.returnValue(Observable.of(mockGroupsResponse));
+      group.getGroupUsers.and.returnValue(Observable.of(mockUsersResponse));
+      group.getGroupRoles.and.returnValue(Observable.of(mockRolesResponse));
+      group.search.and.returnValue(Observable.of(mockGroupsResponse));
+      groupService = group;
 
       roleService.getRolesBySecurableItemAndGrain.and.returnValue(Observable.of(mockRolesResponse));
       searchService = search;
@@ -141,5 +143,25 @@ describe('CustomGroupComponent', () => {
       // assert
       expect(component.principals.length).toBe(mockExternalIdpSearchResult.principals.length + 1);
     }));
+  });
+
+  describe('save', () => {
+    it('returns descriptive error when groupname conflict', () => {
+      // arrange
+      const mockErrorResponse = {
+          statusCode: 409
+      };
+      groupService.getChildGroups.and.returnValue(Observable.throw(mockErrorResponse));
+      component.editMode = true;
+      component.groupName = mockGroupsResponse[0].groupName;
+
+      // act
+      component.save();
+
+      // assert
+      expect(component.groupNameInvalid).toBe(true);
+      expect(component.groupNameError).toBeTruthy();
+      expect(component.groupNameError).toMatch(`Could not create group named "${mockGroupsResponse[0].groupName}"\.*`);
+    });
   });
 });

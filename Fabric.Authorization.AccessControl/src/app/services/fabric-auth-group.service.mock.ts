@@ -86,4 +86,6 @@ export class FabricAuthGroupServiceMock {
     removeRolesFromGroup: jasmine.Spy = jasmine.createSpy('removeRolesFromGroup');
 
     createGroup: jasmine.Spy = jasmine.createSpy('createGroup');
+
+    getChildGroups: jasmine.Spy = jasmine.createSpy('getChildGroup');
 }
