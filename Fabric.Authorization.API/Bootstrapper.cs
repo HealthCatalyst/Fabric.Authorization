@@ -121,6 +121,7 @@ namespace Fabric.Authorization.API
             securitySchemeBuilder.Scope("fabric/authorization.read", "Grants read access to fabric.authorization resources.");
             securitySchemeBuilder.Scope("fabric/authorization.write", "Grants write access to fabric.authorization resources.");
             securitySchemeBuilder.Scope("fabric/authorization.manageclients", "Grants 'manage clients' access to fabric.authorization resources.");
+            securitySchemeBuilder.Scope("fabric/authorization.dos.write", "Grants write access to fabric.authorization.dos resources.");
             try
             {
                 SwaggerMetadataProvider.SetSecuritySchemeBuilder(securitySchemeBuilder, "fabric.identity");
