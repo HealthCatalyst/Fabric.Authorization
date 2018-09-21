@@ -439,7 +439,8 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
       .subscribe(null, (error) => {
         if (error.statusCode === 409) {
           this.groupNameInvalid = true;
-          this.groupNameError = `Group ${this.groupName} already exists`;
+          this.groupNameError = `Could not create group named "${this.groupName}". ` +
+          `A group with the same name exists as a Custom group or a Directory group`;
         }
 
         // TODO: Error handling
