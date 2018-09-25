@@ -59,7 +59,7 @@ export class MemberListComponent implements OnInit, OnChanges {
   }
 
   ngOnInit() {
-
+    sessionStorage.removeItem('selectedMember');
   }
 
   ngOnChanges() {
@@ -162,6 +162,7 @@ export class MemberListComponent implements OnInit, OnChanges {
   }
 
   goToMemberEdit(member: IAuthMemberSearchResult) {
+    sessionStorage.setItem('selectedMember', JSON.stringify(member));
     if (member.entityType !== 'CustomGroup') {
       this.router.navigate([
         '/access-control/member',

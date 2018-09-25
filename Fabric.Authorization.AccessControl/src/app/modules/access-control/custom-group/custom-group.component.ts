@@ -21,6 +21,7 @@ import 'rxjs/add/operator/takeUntil';
 import 'rxjs/add/observable/empty';
 import { CurrentUserService } from '../../../services/current-user.service';
 import { AlertService } from '../../../services/global/alert.service';
+import { IAuthMemberSearchResult } from '../../../models/authMemberSearchResult.model';
 
 @Component({
   selector: 'app-custom-group',
@@ -39,6 +40,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   public returnRoute = '/access-control';
 
   public groupName = '';
+  public displayName = '';
   public groupNameSubject = new Subject<string>();
   public groupNameInvalid = false;
   public groupNameError: string;
@@ -82,6 +84,16 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     this.savingInProgress = false;
 
     if (this.editMode) {
+      const selectedGroupJson = sessionStorage.getItem('selectedMember');
+      if (!!selectedGroupJson) {
+        const selectedGroup: IGroup = JSON.parse(selectedGroupJson);
+        this.displayName = selectedGroup.displayName;
+      } else {
+        this.groupService.getGroup(this.groupName).subscribe(g => {
+          this.displayName = g.displayName;
+        });
+      }
+
       Observable.zip(this.getGroupRolesBySecurableItemAndGrain(), this.getGroupUsers(), this.getChildGroups())
         .do((result: [IRole[], IUser[], IGroup[]]) => {
           this.roles = result[0];
@@ -482,6 +494,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
 
   public customGroupSelected(selectedGroup: IGroup) {
     this.groupName = selectedGroup.groupName;
+    this.displayName = selectedGroup.displayName;
     this.editMode = true;
     this.groupNameInvalid = false;
     this.groupNameError = '';

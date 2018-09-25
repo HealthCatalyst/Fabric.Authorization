@@ -25,6 +25,7 @@ import { IUser } from '../../../models/user.model';
 import { IGroup } from '../../../models/group.model';
 import { CurrentUserService } from '../../../services/current-user.service';
 import { AlertService } from '../../../services/global/alert.service';
+import { IAuthMemberSearchResult } from '../../../models/authMemberSearchResult.model';
 
 @Component({
   selector: 'app-member',
@@ -49,6 +50,8 @@ export class MemberComponent implements OnInit, OnDestroy {
 
   private ngUnsubscribe: any = new Subject();
 
+  private selectedMember: IAuthMemberSearchResult;
+
   constructor(
     private idpSearchService: FabricExternalIdpSearchService,
     private roleService: FabricAuthRoleService,
@@ -66,9 +69,32 @@ export class MemberComponent implements OnInit, OnDestroy {
   ngOnInit() {
 
     const subjectId: string = this.route.snapshot.paramMap.get('subjectid');
-
     this.editMode = !!subjectId;
+
     const principalType: string = (this.route.snapshot.paramMap.get('type') || '').toLowerCase();
+
+    if (this.editMode) {
+      if (!this.selectedMember) {
+        const selectedMemberJson = sessionStorage.getItem('selectedMember');
+        if (!!selectedMemberJson) {
+          this.selectedMember = JSON.parse(selectedMemberJson);
+          this.searchText = this.selectedMember.displayName;
+        } else {
+            if (principalType === 'directorygroup') {
+              this.groupService.getGroup(subjectId).subscribe(g => {
+                this.searchText = g.displayName;
+              });
+            } else {
+              this.searchText = subjectId;
+            }
+        }
+      } else {
+        this.searchText = this.selectedMember.displayName;
+      }
+    } else {
+      this.searchText = subjectId;
+    }
+
     this.savingInProgress = false;
 
     this.grain = this.route.snapshot.paramMap.get('grain');
@@ -85,13 +111,12 @@ export class MemberComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.searchText = subjectId;
-        if (subjectId && principalType) {
-            this.selectedPrincipal = {
-                subjectId,
-                principalType
-            };
-        }
+    if (subjectId && principalType) {
+        this.selectedPrincipal = {
+            subjectId,
+            principalType
+        };
+    }
 
     // Roles
     this.roleService
