@@ -312,7 +312,6 @@ namespace Fabric.Authorization.UnitTests.Search
 
         private void InitializeAtlasData()
         {
-
             _adminAtlasRole = new Role
             {
                 Id = Guid.NewGuid(),
@@ -451,17 +450,17 @@ namespace Fabric.Authorization.UnitTests.Search
             Assert.Equal(MemberSearchServiceFixture.UserAtlasRoleName, result0.Roles.FirstOrDefault()?.Name);
 
             var result1 = results[1];
-            Assert.Equal("atlas_user", result1.SubjectId);
-            Assert.Equal("Robert", result1.FirstName);
-            Assert.Equal("Brian", result1.MiddleName);
-            Assert.Equal("Smith", result1.LastName);
-            Assert.NotNull(result1.LastLoginDateTimeUtc);
-            Assert.Equal(lastLoginDate, result1.LastLoginDateTimeUtc.Value.ToUniversalTime());
-            Assert.Empty(result1.Roles);
+            Assert.Equal(MemberSearchServiceFixture.DosGroupName, result1.DisplayName);
+            Assert.Equal(MemberSearchServiceFixture.DosRoleName, result1.Roles.FirstOrDefault()?.Name);
 
             var result2 = results[2];
-            Assert.Equal(MemberSearchServiceFixture.DosGroupName, result2.DisplayName);
-            Assert.Equal(MemberSearchServiceFixture.DosRoleName, result2.Roles.FirstOrDefault()?.Name);
+            Assert.Equal("atlas_user", result2.SubjectId);
+            Assert.Equal("Robert", result2.FirstName);
+            Assert.Equal("Brian", result2.MiddleName);
+            Assert.Equal("Smith", result2.LastName);
+            Assert.NotNull(result2.LastLoginDateTimeUtc);
+            Assert.Equal(lastLoginDate, result2.LastLoginDateTimeUtc.Value.ToUniversalTime());
+            Assert.Empty(result2.Roles);
 
             var result3 = results[3];
             Assert.Equal(MemberSearchServiceFixture.AdminAtlasGroupName, result3.DisplayName);

@@ -349,23 +349,23 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(2, results.Count);
 
             var result1 = results[0];
-            Assert.Equal(Fixture.AtlasUserName, result1.SubjectId);
-            Assert.Equal("Robert", result1.FirstName);
-            Assert.Equal("Brian", result1.MiddleName);
-            Assert.Equal("Smith", result1.LastName);
+            Assert.Equal(Fixture.AtlasUserNoGroupName, result1.SubjectId);
+            Assert.Equal("Shawn", result1.FirstName);
+            Assert.Equal("James", result1.MiddleName);
+            Assert.Equal("Brian", result1.LastName);
             Assert.NotNull(result1.LastLoginDateTimeUtc);
             Assert.Equal(lastLoginDate, result1.LastLoginDateTimeUtc.Value.ToUniversalTime());
-            Assert.Single(result1.Roles);
+            Assert.True(2 == result1.Roles.Count(), $"Role count = {result1.Roles.Count()}, roles = ${string.Join(",", result1.Roles)}");
             Assert.Contains(Fixture.ContributorAtlasRoleName, result1.Roles.Select(r => r.Name));
 
             var result2 = results[1];
-            Assert.Equal(Fixture.AtlasUserNoGroupName, result2.SubjectId);
-            Assert.Equal("Shawn", result2.FirstName);
-            Assert.Equal("James", result2.MiddleName);
-            Assert.Equal("Brian", result2.LastName);
+            Assert.Equal(Fixture.AtlasUserName, result2.SubjectId);
+            Assert.Equal("Robert", result2.FirstName);
+            Assert.Equal("Brian", result2.MiddleName);
+            Assert.Equal("Smith", result2.LastName);
             Assert.NotNull(result2.LastLoginDateTimeUtc);
             Assert.Equal(lastLoginDate, result2.LastLoginDateTimeUtc.Value.ToUniversalTime());
-            Assert.True(2 == result2.Roles.Count(), $"Role count = {result2.Roles.Count()}, roles = ${string.Join(",", result2.Roles)}");
+            Assert.Single(result2.Roles);
             Assert.Contains(Fixture.ContributorAtlasRoleName, result2.Roles.Select(r => r.Name));
         }
 
