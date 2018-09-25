@@ -58,7 +58,7 @@ namespace Fabric.Authorization.API.Services
             {
                 SubjectId = g.Name,
                 GroupName = g.Name,
-                DisplayName = string.IsNullOrWhiteSpace(g.DisplayName) ? g.Name : g.DisplayName,
+                DisplayName = string.IsNullOrWhiteSpace(g.DisplayName) || !string.Equals(g.Source, GroupConstants.CustomSource, StringComparison.OrdinalIgnoreCase) ? g.Name : g.DisplayName,
                 Roles = g.Roles
                     .Where(r => string.IsNullOrWhiteSpace(request.Grain) || string.Equals(request.Grain, r.Grain, StringComparison.OrdinalIgnoreCase))
                     .Where(r => string.IsNullOrWhiteSpace(request.SecurableItem) || string.Equals(request.SecurableItem, r.SecurableItem, StringComparison.OrdinalIgnoreCase))
