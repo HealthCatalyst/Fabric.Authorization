@@ -62,6 +62,10 @@ namespace Catalyst.Fabric.Authorization.Models.Search
 
             return results.Where(r =>
                 (!string.IsNullOrWhiteSpace(r.DisplayName) && r.DisplayName.ToLower().Contains(filter))
+                || (!string.IsNullOrWhiteSpace(r.FirstName) && r.FirstName.ToLower().Contains(filter))
+                || (!string.IsNullOrWhiteSpace(r.MiddleName) && r.MiddleName.ToLower().Contains(filter))
+                || (!string.IsNullOrWhiteSpace(r.LastName) && r.LastName.ToLower().Contains(filter))
+                || (!string.IsNullOrWhiteSpace(r.GroupName) && r.GroupName.ToLower().Contains(filter))
                 || (!string.IsNullOrWhiteSpace(r.SubjectId) && r.SubjectId.ToLower().Contains(filter))
                 || r.Roles.Select(role => role.Name).Contains(filter, StringComparer.OrdinalIgnoreCase));
         }
