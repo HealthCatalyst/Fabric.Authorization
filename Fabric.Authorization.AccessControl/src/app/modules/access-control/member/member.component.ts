@@ -42,6 +42,7 @@ export class MemberComponent implements OnInit, OnDestroy {
   public savingInProgress = false;
   public disabledSaveReason = '';
   public returnRoute = '/access-control';
+  public editMode = true;
 
   private grain: string;
   private securableItem: string;
@@ -63,7 +64,10 @@ export class MemberComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+
     const subjectId: string = this.route.snapshot.paramMap.get('subjectid');
+
+    this.editMode = !!subjectId;
     const principalType: string = (this.route.snapshot.paramMap.get('type') || '').toLowerCase();
     this.savingInProgress = false;
 
@@ -105,6 +109,7 @@ export class MemberComponent implements OnInit, OnDestroy {
     // Search text
     this.searchTextSubject
       .takeUntil(this.ngUnsubscribe)
+      .filter((term) => !this.editMode)
       .distinctUntilChanged()
       .debounceTime(500)
       .do((term) => {
@@ -126,6 +131,7 @@ export class MemberComponent implements OnInit, OnDestroy {
     this.idpSearchService
       .search(this.searchTextSubject, null)
       .takeUntil(this.ngUnsubscribe)
+      .filter((term) => !this.editMode)
       .subscribe(result => {
         this.searching = false;
         this.principals =
