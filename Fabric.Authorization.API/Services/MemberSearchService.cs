@@ -102,9 +102,6 @@ namespace Fabric.Authorization.API.Services
                     userSearchResponse.FirstName = user.FirstName;
                     userSearchResponse.MiddleName = user.MiddleName;
                     userSearchResponse.LastName = user.LastName;
-                    userSearchResponse.DisplayName = string.IsNullOrEmpty(user.FirstName)
-                        ? user.SubjectId
-                        : $"{user.FirstName} {user.MiddleName} {user.LastName}".Trim();
                     userSearchResponse.LastLoginDateTimeUtc = user.LastLoginDate;
                 }
             }
