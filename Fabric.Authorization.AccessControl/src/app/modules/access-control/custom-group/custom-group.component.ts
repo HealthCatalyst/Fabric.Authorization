@@ -371,12 +371,16 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   save() {
     this.savingInProgress = true;
 
-    if (!this.checkGroupNameProvided(this.groupName)) {
+    if (!this.checkGroupNameProvided(this.displayName)) {
       this.savingInProgress = false;
       return;
     }
 
-    const newGroup: IGroup = { groupName: this.groupName, groupSource: 'custom' };
+    if (!this.editMode) {
+      this.groupName = this.displayName;
+    }
+
+    const newGroup: IGroup = { groupName: this.groupName, displayName: this.displayName, groupSource: 'custom' };
     const groupObservable = this.editMode ? Observable.of(newGroup) : this.groupService.createGroup(newGroup);
 
     return groupObservable
