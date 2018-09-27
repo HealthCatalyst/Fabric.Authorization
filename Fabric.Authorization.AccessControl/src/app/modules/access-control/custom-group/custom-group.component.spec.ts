@@ -154,6 +154,7 @@ describe('CustomGroupComponent', () => {
       groupService.getChildGroups.and.returnValue(Observable.throw(mockErrorResponse));
       component.editMode = true;
       component.groupName = mockGroupsResponse[0].groupName;
+      component.displayName = mockGroupsResponse[0].displayName;
 
       // act
       component.save();
