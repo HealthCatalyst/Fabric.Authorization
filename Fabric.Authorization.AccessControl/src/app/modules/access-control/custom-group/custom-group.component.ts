@@ -1,3 +1,7 @@
+
+import {zip as observableZip,  Subject ,  Observable, of } from 'rxjs';
+
+import {map, mergeMap, takeUntil, tap, debounceTime, distinctUntilChanged, filter} from 'rxjs/operators';
 import { Component, OnInit, OnDestroy, Inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -11,14 +15,12 @@ import { IRole } from '../../../models/role.model';
 import { IUser } from '../../../models/user.model';
 import { IFabricPrincipal } from '../../../models/fabricPrincipal.model';
 import { IGroup } from '../../../models/group.model';
-import { Subject } from 'rxjs/Subject';
-import { Observable } from 'rxjs/Observable';
-import 'rxjs/add/observable/zip';
-import 'rxjs/add/operator/mergeMap';
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/do';
-import 'rxjs/add/operator/takeUntil';
-import 'rxjs/add/observable/empty';
+
+
+
+
+
+
 import { CurrentUserService } from '../../../services/current-user.service';
 import { AlertService } from '../../../services/global/alert.service';
 import { IAuthMemberSearchResult } from '../../../models/authMemberSearchResult.model';
@@ -94,8 +96,8 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
         });
       }
 
-      Observable.zip(this.getGroupRolesBySecurableItemAndGrain(), this.getGroupUsers(), this.getChildGroups())
-        .do((result: [IRole[], IUser[], IGroup[]]) => {
+      observableZip(this.getGroupRolesBySecurableItemAndGrain(), this.getGroupUsers(), this.getChildGroups()).pipe(
+        tap((result: [IRole[], IUser[], IGroup[]]) => {
           this.roles = result[0];
           this.associatedUsers = result[1];
           this.associatedGroups = result[2];
@@ -114,8 +116,8 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
 
             this.configureSaveButton();
           });
-        })
-        .takeUntil(this.ngUnsubscribe)
+        }),
+        takeUntil(this.ngUnsubscribe),)
         .subscribe(null, null, () => {
           this.initializing = false;
         });
@@ -125,20 +127,20 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
         .getRolesBySecurableItemAndGrain(
           this.grain,
           this.securableItem
-        )
-        .do((roles: IRole[]) => {
+        ).pipe(
+        tap((roles: IRole[]) => {
           this.roles = roles;
           this.configureSaveButton();
-        })
-        .takeUntil(this.ngUnsubscribe)
+        }),
+        takeUntil(this.ngUnsubscribe),)
         .subscribe(null, null, () => {
           this.initializing = false;
         });
     }
 
-    this.searchTermSubject
-      .takeUntil(this.ngUnsubscribe)
-      .do((term) => {
+    this.searchTermSubject.pipe(
+      takeUntil(this.ngUnsubscribe),
+      tap((term) => {
         this.principals.map(p => p.selected = false);
         if (term && term.length > 2) {
           this.searching = true;
@@ -146,14 +148,14 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           this.searching = false;
           this.principals = [];
         }
-      })
-      .takeUntil(this.ngUnsubscribe)
+      }),
+      takeUntil(this.ngUnsubscribe),)
       .subscribe();
 
-    this.groupNameSubject
-      .takeUntil(this.ngUnsubscribe)
-      .filter((term) => !this.editMode)
-      .do((term) => {
+    this.groupNameSubject.pipe(
+      takeUntil(this.ngUnsubscribe),
+      filter((term) => !this.editMode),
+      tap((term) => {
         this.roles.map(r => r.selected = false);
         this.principals.map(p => p.selected = false);
         if (term && term.length > 2) {
@@ -162,20 +164,20 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           this.searchingGroup = false;
           this.customGroups = [];
         }
-      }).subscribe();
+      })).subscribe();
 
     // custom group search
     this.groupService
-    .search(this.groupNameSubject)
-    .takeUntil(this.ngUnsubscribe)
+    .search(this.groupNameSubject).pipe(
+    takeUntil(this.ngUnsubscribe))
     .subscribe(result => {
       this.searchingGroup = false;
       this.customGroups = result.map(group => <IGroup>group);
     });
 
     this.idpSearchService
-      .search(this.searchTermSubject, null)
-      .takeUntil(this.ngUnsubscribe)
+      .search(this.searchTermSubject, null).pipe(
+      takeUntil(this.ngUnsubscribe))
       .subscribe(result => {
         this.searching = false;
         const returnedPrincipals: IFabricPrincipal[] =
@@ -271,8 +273,8 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   }
 
   getGroupRolesBySecurableItemAndGrain(): Observable<IRole[]> {
-    return Observable.zip(this.getRolesBySecurableItemAndGrain(), this.getGroupRoles())
-      .map((result: [IRole[], IRole[]]) => {
+    return observableZip(this.getRolesBySecurableItemAndGrain(), this.getGroupRoles()).pipe(
+      map((result: [IRole[], IRole[]]) => {
         let allRoles = result[0];
         this.groupRoles = result[1];
 
@@ -282,7 +284,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
         });
 
         return allRoles;
-      });
+      }));
   }
 
   associateUsersAndGroups() {
@@ -381,17 +383,17 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     }
 
     const newGroup: IGroup = { groupName: this.groupName, displayName: this.displayName, groupSource: 'custom' };
-    const groupObservable = this.editMode ? Observable.of(newGroup) : this.groupService.createGroup(newGroup);
+    const groupObservable = this.editMode ? of(newGroup) : this.groupService.createGroup(newGroup);
 
-    return groupObservable
-      .mergeMap((group) => {
+    return groupObservable.pipe(
+      mergeMap((group) => {
         const groupRolesObservable = this.groupService
           .getGroupRoles(this.groupName, this.grain, this.securableItem);
         const groupUsersObservable = this.getGroupUsers();
         const childGroupsObservable = this.getChildGroups();
 
-        return Observable.zip(groupRolesObservable, groupUsersObservable, childGroupsObservable)
-          .mergeMap((result: [IRole[], IUser[], IGroup[]]) => {
+        return observableZip(groupRolesObservable, groupUsersObservable, childGroupsObservable).pipe(
+          mergeMap((result: [IRole[], IUser[], IGroup[]]) => {
             const existingRoles = result[0];
             const existingUsers = result[1];
             const existingChildGroups = result[2];
@@ -429,7 +431,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
             // child groups
             saveObservables.push(this.groupService.addChildGroups(group.groupName, childGroupsToAdd));
             saveObservables.push(this.groupService.removeChildGroups(group.groupName, childGroupsToRemove.map(g => g.groupName)));
-              return Observable.zip(...saveObservables)
+              return observableZip(...saveObservables)
                   .toPromise()
                   .then(value => {
                       return this.edwAdminService.syncGroupWithEdwAdmin(newGroup.groupName)
@@ -449,9 +451,9 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
                         });
                       }
                   });
-          });
-      })
-      .takeUntil(this.ngUnsubscribe)
+          }));
+      }),
+      takeUntil(this.ngUnsubscribe))
       .subscribe(null, (error) => {
         if (error.statusCode === 409) {
           this.groupNameInvalid = true;
@@ -479,12 +481,12 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
 
     this.groupNameSubject = new Subject();
 
-    this.groupNameSubject
-      .debounceTime(250)
-      .distinctUntilChanged()
-      .do((term) => {
+    this.groupNameSubject.pipe(
+      debounceTime(250),
+      distinctUntilChanged(),
+      tap((term) => {
         this.checkGroupNameProvided(term);
-      }).subscribe();
+      }),).subscribe();
   }
 
   private checkGroupNameProvided(name: string) {
@@ -503,16 +505,16 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     this.groupNameInvalid = false;
     this.groupNameError = '';
     this.customGroups = [];
-    return Observable.zip(this.getGroupRolesBySecurableItemAndGrain(), this.getGroupUsers(), this.getChildGroups())
-        .do((result: [IRole[], IUser[], IGroup[]]) => {
+    return observableZip(this.getGroupRolesBySecurableItemAndGrain(), this.getGroupUsers(), this.getChildGroups()).pipe(
+        tap((result: [IRole[], IUser[], IGroup[]]) => {
           this.roles = result[0];
           this.associatedUsers = result[1];
           this.associatedGroups = result[2];
 
           this.associatedUsers.forEach(u => u.type = this.userType);
           this.associatedGroups.forEach(g => g.type = this.groupType);
-        })
-        .takeUntil(this.ngUnsubscribe)
+        }),
+        takeUntil(this.ngUnsubscribe),)
         .subscribe();
   }
 }

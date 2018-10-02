@@ -1,7 +1,9 @@
+
+import {debounceTime, map, distinctUntilChanged, filter} from 'rxjs/operators';
 import { Component, OnInit, ViewChild, TemplateRef, Inject, Input, OnChanges } from '@angular/core';
-import { Subject } from 'rxjs/Subject';
-import 'rxjs/add/operator/debounceTime';
-import 'rxjs/add/operator/distinctUntilChanged';
+import { Subject } from 'rxjs';
+
+
 import { Router } from '@angular/router';
 import { ModalService } from '@healthcatalyst/cashmere';
 import { IAuthMemberSearchResult } from '../../../models/authMemberSearchResult.model';
@@ -49,10 +51,10 @@ export class MemberListComponent implements OnInit, OnChanges {
     private router: Router,
     private modalService: ModalService
   ) {
-    this.keyUp
-      .debounceTime(500)
-      .map(value => this.filter)
-      .distinctUntilChanged()
+    this.keyUp.pipe(
+      debounceTime(500),
+      map(value => this.filter),
+      distinctUntilChanged())
       .subscribe(() => {
         this.onSearchChanged();
       });
@@ -136,8 +138,8 @@ export class MemberListComponent implements OnInit, OnChanges {
       data: {member: member, grain: this.grain, securableItem: this.securableItem},
       size: 'md'
     })
-      .result
-      .filter(r => !!r)
+      .result.pipe(
+      filter(r => !!r))
       .subscribe(r => this.doRemoveRoles(member));
   }
 

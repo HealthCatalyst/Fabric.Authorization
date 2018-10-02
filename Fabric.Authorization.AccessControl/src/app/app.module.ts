@@ -12,8 +12,7 @@ import { httpInterceptorProviders } from './services/interceptors';
 import { AuthService } from './services/global/auth.service';
 import { ClientAccessControlConfigService } from './services/global/client-access-control-config.service';
 
-import { ButtonModule, ProgressIndicatorsModule, NavbarModule, PopoverModule, AppSwitcherModule, IconModule,
-  MockAppSwitcherService } from '@healthcatalyst/cashmere';
+import { ButtonModule, ProgressIndicatorsModule, NavbarModule, PopoverModule, AppSwitcherModule, IconModule } from '@healthcatalyst/cashmere';
 import { NavbarComponent } from './navbar/navbar.component';
 import { LoggedOutComponent } from './logged-out/logged-out.component';
 import { ServicesService } from './services/global/services.service';
@@ -37,10 +36,6 @@ import { NotFoundComponent } from './not-found/not-found.component';
     ServicesService,
     ConfigService,
     InitializerService,
-    {
-      provide: 'IAppSwitcherService',
-      useClass: MockAppSwitcherService
-    },
     {
         provide: APP_INITIALIZER,
         useFactory: initialize,

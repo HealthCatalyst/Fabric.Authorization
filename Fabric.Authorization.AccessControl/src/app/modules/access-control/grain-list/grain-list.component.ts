@@ -1,8 +1,7 @@
 import { Component, OnInit, DoCheck } from '@angular/core';
 import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
 import { FlatTreeControl } from '@angular/cdk/tree';
-import { Observable } from 'rxjs';
-import { of as observableOf } from 'rxjs/observable/of';
+import { Observable ,  of as observableOf } from 'rxjs';
 
 import { FabricAuthGrainService } from '../../../services/fabric-auth-grain.service';
 import { IGrain } from '../../../models/grain.model';

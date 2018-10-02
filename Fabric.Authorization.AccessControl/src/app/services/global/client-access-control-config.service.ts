@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { AuthService } from './auth.service';
 import { IAccessControlConfigService } from '../access-control-config.service';
 import { IDataChangedEventArgs } from '../../models/changedDataEventArgs.model';
-import { Subject } from 'rxjs/Subject';
+import { Subject } from 'rxjs';
 import { Exception } from '../../models/exception.model';
 import { ServicesService } from './services.service';
 

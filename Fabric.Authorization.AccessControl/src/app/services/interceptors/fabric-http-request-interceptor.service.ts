@@ -1,3 +1,7 @@
+
+import {from as observableFrom,  Observable } from 'rxjs';
+
+import {mergeMap} from 'rxjs/operators';
 import { Injectable, Inject } from '@angular/core';
 import {
   HttpInterceptor,
@@ -5,9 +9,8 @@ import {
   HttpHandler,
   HttpEvent
 } from '@angular/common/http';
-import { Observable } from 'rxjs/Observable';
-import 'rxjs/add/observable/fromPromise';
-import 'rxjs/add/operator/mergeMap';
+
+
 import { IAuthService } from '../global/auth.service';
 import { ServicesService } from '../global/services.service';
 
@@ -25,7 +28,7 @@ export class FabricHttpRequestInterceptorService implements HttpInterceptor {
   ): Observable<HttpEvent<any>> {
 
     if (this.servicesService.needsAuthToken(req.url)) {
-      const tokenObservable = Observable.fromPromise(
+      const tokenObservable = observableFrom(
         this.authService.getUser()
           .then(user => {
             if (user) {
@@ -34,7 +37,7 @@ export class FabricHttpRequestInterceptorService implements HttpInterceptor {
           })
       );
 
-      return tokenObservable.mergeMap(accessToken => {
+      return tokenObservable.pipe(mergeMap(accessToken => {
         const modifiedRequest = req.clone({
           setHeaders: {
             Authorization: `${
@@ -46,7 +49,7 @@ export class FabricHttpRequestInterceptorService implements HttpInterceptor {
         });
 
         return next.handle(modifiedRequest);
-      });
+      }));
     } else {
         const modifiedRequest = req.clone({
           setHeaders: {

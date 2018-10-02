@@ -1,5 +1,5 @@
 import { IDataChangedEventArgs } from '../models/changedDataEventArgs.model';
-import { Subject } from 'rxjs/Subject';
+import { Subject } from 'rxjs';
 import { Exception } from '../models/exception.model';
 
 export interface IAccessControlConfigService {
