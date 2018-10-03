@@ -58,7 +58,9 @@ if(!$noDiscoveryService){
 }
 $identityServiceUrl = Get-IdentityServiceUrl -identityServiceUrl $installSettings.identityService -installConfigPath $installConfigPath -quiet $quiet
 $authorizationServiceUrl = Get-ApplicationEndpoint -appName $installSettings.appName -applicationEndpoint $installSettings.applicationEndPoint -installConfigPath $installConfigPath -scope $installSettingsScope -quiet $quiet
-#Get domain and admin user
+$currentUserDomain = Get-CurrentUserDomain -quiet $quiet
+$adminAccount = Get-AdminAccount -accountName $installSettings.adminAccount -currentUserDomain $currentUserDomain -quiet $quiet
+$dosAdminGroupName = "DosAdmins"
 
 Add-DatabaseSecurity $iisUser.UserName $installSettings.metadataDatabaseRole $metadataDatabase.DbConnectionString
 $installApplication = Publish-Application -site $selectedSite `
@@ -69,29 +71,33 @@ $installApplication = Publish-Application -site $selectedSite `
 
 Add-DatabaseSecurity $iisUser.UserName $installSettings.authorizationDatabaseRole $authorizationDatabase.DbConnectionString           
 if(!$noDiscoveryService){
-    #Register-AuthorizationWithDiscovery -iisUserName $iisUser.UserName -metadataConnStr $metadataDatabase.DbConnectionString -version $installApplication.version -identityServerUrl "$authorizationServiceUrl/v1"
-    #Register-AccessControlWithDiscovery -iisUserName $iisUser.UserName -metadataConnStr $metadataDatabase.DbConnectionString -version $installApplication.version -identityServerUrl $authorizationServiceUrl
+    Register-AuthorizationWithDiscovery -iisUserName $iisUser.UserName -metadataConnStr $metadataDatabase.DbConnectionString -version $installApplication.version -authorizationServiceUrl $authorizationServiceUrl
+    Register-AccessControlWithDiscovery -iisUserName $iisUser.UserName -metadataConnStr $metadataDatabase.DbConnectionString -version $installApplication.version -authorizationServiceUrl $authorizationServiceUrl
 }      
 
 $accessToken = Get-AccessToken -authUrl $identityServiceUrl -clientId "fabric-installer" -scope "fabric/identity.manageresources" -secret $installSettings.fabricInstallerSecret
 
 $authorizationApiSecret = Add-AuthorizationApiRegistration -identityServerUrl $identityServiceUrl -accessToken $accessToken
 $authorizationClientSecret = Add-AuthorizationClientRegistration -identityServerUrl $identityServiceUrl -accessToken $accessToken
-$accessControlClientSecret = Add-AccessControlClientRegistration -identityServerUrl $identityServiceUrl -accessToken $accessToken
+Add-AccessControlClientRegistration -identityServerUrl $identityServiceUrl -accessToken $accessToken
 
 $accessToken = Get-AccessToken -authUrl $identityServiceUrl -clientId "fabric-installer" -scope "fabric/identity.manageresources fabric/authorization.read fabric/authorization.write fabric/authorization.dos.write fabric/authorization.manageclients" $installSettings.fabricInstallerSecret
 Add-AuthorizationRegistration -clientId "fabric-installer" -clientName "Fabric Installer" -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken | Out-Null
 Add-AuthorizationRegistration -clientId "fabric-access-control" -clientName "Fabric.AccessControl" -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken | Out-Null
 
-Set-AuthorizationEnvironmentVariables
+Set-AuthorizationEnvironmentVariables -clientName $clientName `
+    -encryptionCertificateThumbprint $selectedCerts.EncryptionCertificate.Thumbprint `
+    -appInsightsInstrumentationKey $appInsightsKey `
+    -authorizationClientSecret $authorizationClientSecret `
+    -identityServiceUrl $identityServiceUrl `
+    -authorizationDbConnStr $authorizationDatabase.DbConnectionString `
+    -metadataConnStr $metadataDatabase.DbConnectionString `
+    -adminAccount $adminAccount `
+    -authorizationApiSecret $authorizationApiSecret `
+    -authorizationServiceUrl $authorizationServiceUrl `
+    -discoveryServiceUrl $discoveryServiceUrl
 
-Move-DosAdminRoleToDosAdminGroup -authUrl "$authorizationServiceUrl/v1" -accessToken $accessToken -connectionString $authorizationDbConnStr -groupName $dosAdminGroupName
-Add-AccountToDosAdminGroup -accountName $adminAccount -domain $currentUserDomain -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken -connString $authorizationDbConnStr
-
-$edwAdminUsers = Get-EdwAdminUsersAndGroups -connectionString $metadataConnStr	
-Write-Host "There are $($edwAdminUsers.Count) users with this role"	
-Write-Host ""	
-Add-ListOfUsersToDosAdminGroup -edwAdminUsers $edwAdminUsers -connString $authorizationDbConnStr -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken
-
-
+Move-DosAdminRoleToDosAdminGroup -authUrl "$authorizationServiceUrl/v1" -accessToken $accessToken -connectionString $authorizationDatabase.DbConnectionString -groupName $dosAdminGroupName
+Add-AccountToDosAdminGroup -accountName $adminAccount.AdminAccountName -domain $currentUserDomain -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken -connString $authorizationDatabase.DbConnectionString
+Add-EdwAdminUsersToDosAdminGroup -metadataConnStr $metadataDatabase.DbConnectionString -authorizationDbConnStr $authorizationDatabase.DbConnectionString -authorizationServiceUrl $authorizationServiceUrl -accessToken $accessToken
 Invoke-MonitorShallow "$authorizationServiceUrl"
