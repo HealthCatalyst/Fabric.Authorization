@@ -60,8 +60,6 @@ function Invoke-Post($url, $body, $accessToken) {
     }
     
     $postResponse = Invoke-RestMethod -Method Post -Uri $url -Body $body -ContentType "application/json" -Headers $headers
-    Write-Success "    Success."
-    Write-Host ""
     return $postResponse
 }
 
@@ -77,7 +75,7 @@ function Get-Role($name, $grain, $securableItem, $authorizationServiceUrl, $acce
 }
 
 function Add-Group($authUrl, $name, $source, $accessToken) {
-    Write-Host "Adding Group $($name)"
+    Write-DosMessage -Level "Information" -Message "Adding Group $($name)"
     $url = "$authUrl/groups"
     $body = @{
         groupName     = "$name"
@@ -88,7 +86,7 @@ function Add-Group($authUrl, $name, $source, $accessToken) {
 }
 
 function Add-User($authUrl, $name, $accessToken) {
-    Write-Host "Adding User $($name)"
+    Write-DosMessage -Level "Information" -Message "Adding User $($name)"
     $url = "$authUrl/user"
     $body = @{
         subjectId        = "$name"
@@ -121,7 +119,7 @@ function Add-ChildGroupToParentGroup($parentGroup, $childGroup, $connString, $cl
 }
 
 function Add-RoleToGroup($role, $group, $connString, $clientId) {
-    Write-Host "Adding Role: $($role.Name) to Group: $($group.Name)"
+    Write-DosMessage -Level "Information" -Message "Adding Role: $($role.Name) to Group: $($group.Name)"
     $query = "INSERT INTO GroupRoles
               (CreatedBy, CreatedDateTimeUtc, GroupId, IsDeleted, RoleId)
               VALUES(@clientId, GetUtcDate(), @groupId, 0, @roleId)"
@@ -161,7 +159,7 @@ function Test-IsGroup($samAccountName, $domain) {
 function Get-SamAccountFromAccountName($accountName) {
     $accountNameParts = $accountName.Split('\')
     if ($accountNameParts.Count -ne 2) {
-        Write-Error "Please enter an account in the form DOMAIN\account. Halting installation." 
+        Write-DosMessage -Level "Error" -Message "Please enter an account in the form DOMAIN\account. Halting installation." 
         throw
     }
     $samAccountName = $accountNameParts[1]
@@ -188,13 +186,12 @@ function Add-ListOfUsersToDosAdminGroup($edwAdminUsers, $connString, $authorizat
             # continue with the next user, so we will catch and swallow the exception.
             $exception = $_.Exception
             if ($null -ne $exception-and $null -ne $exception.Response -and $exception.Response.StatusCode.value__ -eq 409) {
-                Write-Success "    User: $accountName has already been registered as Dos Admin with Fabric.Authorization"
-                Write-Host ""
+                Write-DosMessage -Level "Information" -Message  "User: $accountName has already been registered as Dos Admin with Fabric.Authorization"
             }
             else {
                 if ($null -ne $exception.Response) {
                     $error = Get-ErrorFromResponse -response $exception.Response
-                    Write-Error "    There was an error updating the resource: $error. "
+                    Write-DosMessage -Level "Error" -Message "There was an error updating the resource: $error. "
                 }
             }
         }        
@@ -211,13 +208,13 @@ function Add-DosAdminGroup($authUrl, $accessToken, $groupName)
         $exception = $_.Exception
         if ($null -ne $exception -and $null -ne $exception.Response -and $exception.Response.StatusCode.value__ -eq 409) {
             $group = Get-Group -authorizationServiceUrl $authUrl -name $groupName -accessToken $accessToken
-            Write-Success "$groupName group already exists..."
+            Write-DosMessage -Level "Information" -Message "$groupName group already exists..."
             return $group;
         }
         else{
             if ($null -ne $exception.Response) {
                 $error = Get-ErrorFromResponse -response $exception.Response
-                Write-Error "    There was an error adding the Dos Admin group: $error. Halting installation."
+                Write-DosMessage -Level "Error" -Message "There was an error adding the Dos Admin group: $error. Halting installation."
             }
             throw $exception
         }
@@ -236,10 +233,10 @@ function Add-DosAdminRoleUsersToDosAdminGroup([GUID]$groupId, $connectionString,
               AND s.[Name] = @securableName
               AND ru.IsDeleted = 0;"
     try{
-        Write-Host "Migrating $dosAdminRole role users to Dos Admin group..."
+        Write-DosMessage -Level "Information" -Message "Migrating $dosAdminRole role users to Dos Admin group..."
         Invoke-Sql -connectionString $connectionString -sql $query -parameters @{dosAdminGroupId=$groupId;clientId=$clientId;roleName=$roleName;securableName=$securableName} | Out-Null
     }catch{
-        Write-Error $_.Exception
+        Write-DosMessage -Level "Error" -Message $_.Exception
         throw $_.Exception
     }
 }
@@ -257,11 +254,11 @@ function Remove-UsersFromDosAdminRole($connectionString, $clientId, $roleName, $
             AND s.[Name] = @securableName
             AND ru.IsDeleted = 0;"
     
-    Write-Host "Removing users from $dosAdminRole role..."
+    Write-DosMessage -Level "Information" -Message "Removing users from $dosAdminRole role..."
     try{
         Invoke-Sql $connectionString $sql @{clientId=$clientId;roleName=$roleName;securableName=$securableName} | Out-Null
     }catch{
-        Write-Error $_.Exception
+        Write-DosMessage -Level "Error" -Message $_.Exception
         throw $_.Exception
     }
 }
@@ -281,10 +278,10 @@ function Add-DosAdminGroupRolesToDosAdminChildGroups([GUID]$groupId, $connection
               AND r.IsDeleted = 0;"
 
     try{
-        Write-Host "Migrating $dosAdminRole role groups to Dos Admin group..."
+        Write-DosMessage -Level "Information" -Message "Migrating $dosAdminRole role groups to Dos Admin group..."
         Invoke-Sql $connectionString $query @{dosAdminGroupId = $groupId;clientId=$clientId;roleName=$roleName;securableName=$securableName} | Out-Null
     }catch{
-        Write-Error $_.Exception
+        Write-DosMessage -Level "Error" -Message $_.Exception
         throw
     }
 }
@@ -304,11 +301,11 @@ function Remove-GroupsFromDosAdminRole($connectionString, $clientId, $roleName, 
             AND g.Source != 'custom'
             AND gr.IsDeleted = 0;"
 
-    Write-Host "Removing groups from $dosAdminRole role..."
+    Write-DosMessage -Level "Information" -Message "Removing groups from $dosAdminRole role..."
     try{
         Invoke-Sql $connectionString $sql @{clientId=$clientId;roleName=$roleName;securableName=$securableName} | Out-Null
     }catch{
-        Write-Error $_.Exception
+        Write-DosMessage -Level "Error" -Message $_.Exception
         throw $_.Exception
     }
 }
@@ -324,10 +321,10 @@ function Add-DosAdminRoleToDosAdminGroup([GUID]$groupId, $connectionString, $cli
               AND s.[Name] = @securableName
               AND r.IsDeleted = 0;"
     try{
-        Write-Host "Associating $dosAdminRole role to Dos Admin group..."
+        Write-DosMessage -Level "Information" -Message "Associating $dosAdminRole role to Dos Admin group..."
         Invoke-Sql $connectionString $query @{dosAdminGroupId = $groupId;clientId=$clientId;roleName=$roleName;securableName=$securableName} | Out-Null
     }catch{
-        Write-Error $_.Exception
+        Write-DosMessage -Level "Error" -Message $_.Exception
         throw
     }
 }
@@ -345,11 +342,11 @@ function Update-DosAdminRoleToDataMartAdmin($connectionString, $clientId, $oldRo
             AND s.[Name] = @securableName
             AND r.IsDeleted = 0;"
 
-    Write-Host "Renaming $dosAdminRole role to $dataMartAdminRole..."
+    Write-DosMessage -Level "Information" -Message "Renaming $dosAdminRole role to $dataMartAdminRole..."
     try{
         Invoke-Sql $connectionString $sql @{clientId=$clientId;oldRoleName=$oldRoleName;newRoleName=$newRoleName;securableName=$securableName} | Out-Null
     }catch{
-        Write-Error $_.Exception
+        Write-DosMessage -Level "Error" -Message $_.Exception
         throw
     }
 }
@@ -366,11 +363,11 @@ function Remove-DosAdminRole($connectionString, $clientId, $roleName, $securable
             AND s.[Name] = @securableName
             AND r.IsDeleted = 0;"
 
-    Write-Host "Deleting $dosAdminRole role..."
+    Write-DosMessage -Level "Information" -Message "Deleting $dosAdminRole role..."
     try{
         Invoke-Sql $connectionString $sql @{clientId=$clientId;roleName=$roleName;securableName=$securableName} | Out-Null
     }catch{
-        Write-Error $_.Exception
+        Write-DosMessage -Level "Error" -Message $_.Exception
         throw
     }
 }
@@ -389,7 +386,7 @@ function Test-FabricRegistrationStepAlreadyComplete($authUrl, $accessToken)
         $exception = $_.Exception
         if ($null -ne $exception.Response) {
             $error = Get-ErrorFromResponse -response $exception.Response
-            Write-Error "    There was an error getting the resource: $error. "
+            Write-DosMessage -Level "Error" -Message "There was an error getting the resource: $error. "
         }
         throw $exception
     }      
@@ -417,7 +414,7 @@ function Get-EdwAdminUsersAndGroups($connectionString) {
     
     }	
     catch [System.Data.SqlClient.SqlException] {	
-        Write-Error "An error ocurred while executing the command. Please ensure the connection string is correct and the metadata database has been setup. Connection String: $($connectionString). Error $($_.Exception.Message)"  -ErrorAction Stop	
+        Write-DosMessage -Level "Error" -Message "An error ocurred while executing the command. Please ensure the connection string is correct and the metadata database has been setup. Connection String: $($connectionString). Error $($_.Exception.Message)"  -ErrorAction Stop	
     }    	
     
     return $usersAndGroups;	
@@ -720,13 +717,12 @@ function Add-AccountToDosAdminGroup($accountName, $domain, $authorizationService
         catch {
             $exception = $_.Exception
             if ($null -ne $exception-and $null -ne $exception.Response -and $exception.Response.StatusCode.value__ -eq 409) {
-                Write-Success "    User: $accountName has already been registered as $dosAdminRole with Fabric.Authorization"
-                Write-Host ""
+                Write-DosMessage -Level "Information" -Message  "User: $accountName has already been registered as $dosAdminRole with Fabric.Authorization"
             }
             else {
                 if ($null -ne $exception.Response) {
                     $error = Get-ErrorFromResponse -response $exception.Response
-                    Write-Error "    There was an error updating the resource: $error. Halting installation."
+                    Write-DosMessage -Level "Error" -Message "There was an error updating the resource: $error. Halting installation."
                 }
                 throw $exception
             }
@@ -740,20 +736,19 @@ function Add-AccountToDosAdminGroup($accountName, $domain, $authorizationService
         catch {
             $exception = $_.Exception
             if ($null -ne $exception-and $null -ne $exception.Response -and $exception.Response.StatusCode.value__ -eq 409) {
-                Write-Success "    Group: $accountName has already been registered as $dosAdminRole with Fabric.Authorization"
-                Write-Host ""
+                Write-DosMessage -Level "Information" -Message  "Group: $accountName has already been registered as $dosAdminRole with Fabric.Authorization"
             }
             else {
                 if ($null -ne $exception.Response) {
                     $error = Get-ErrorFromResponse -response $exception.Response
-                    Write-Error "    There was an error updating the resource: $error. Halting installation."
+                    Write-DosMessage -Level "Error" -Message "There was an error updating the resource: $error. Halting installation."
                 }
                 throw $exception
             }
         }
     }
     else {
-        Write-Error "$samAccountName is not a valid principal in the $domain domain. Please enter a valid account. Halting installation."
+        Write-DosMessage -Level "Error" -Message "$samAccountName is not a valid principal in the $domain domain. Please enter a valid account. Halting installation."
         throw
     }
 }
@@ -782,13 +777,12 @@ function Add-AuthorizationRegistration($clientId, $clientName, $authorizationSer
     catch {
         $exception = $_.Exception
         if ($null -ne $exception -and $null -ne $exception.Response -and $exception.Response.StatusCode.value__ -eq 409) {
-            Write-Success "    Client: $clientId has already been registered with Fabric.Authorization"
-            Write-Host ""
+            Write-DosMessage -Level "Information" -Message  "Client: $clientId has already been registered with Fabric.Authorization"
         }
         else {
             if ($null -ne $exception.Response) {
                 $error = Get-ErrorFromResponse -response $exception.Response
-                Write-Error "    There was an error registering $clientId with Fabric.Authorization: $error. Halting installation."
+                Write-DosMessage -Level "Error" -Message "There was an error registering $clientId with Fabric.Authorization: $error. Halting installation."
             }
             throw $exception
         }
