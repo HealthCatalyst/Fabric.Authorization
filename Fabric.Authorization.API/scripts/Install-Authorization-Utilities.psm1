@@ -31,6 +31,7 @@ $dataMartsSecurable = "datamarts"
 $dosAdminRole = "dosadmin"
 $dataMartAdminRole = "DataMartAdmin"
 $fabricInstallerClientId = "fabric-installer"
+$dosAdminGroupName = "DosAdmins"
 
 function Get-FullyQualifiedMachineName() {
 	return "https://$env:computername.$((Get-WmiObject Win32_ComputerSystem).Domain.tolower())"
@@ -444,7 +445,7 @@ function Get-DefaultIdentityServiceUrl([string] $identityServiceUrl)
 }
 
 function Install-UrlRewriteIfNeeded([string] $version, [string] $downloadUrl){
-    if(!(Test-PrerequisiteExact "*IIS URL Rewrite Module 2*" $version))
+    if(!(Test-Prerequisite "*IIS URL Rewrite Module 2" $version))
     {    
         try{
             Write-DosMessage -Level "Information" -Message "IIS URL Rewrite Module 2 version $version not installed...installing version $version"        
@@ -497,18 +498,18 @@ function Get-IdentityServiceUrl([string]$identityServiceUrl, [string] $installCo
 
 function Register-AuthorizationWithDiscovery([string] $iisUserName, [string] $metadataConnStr, [string] $version, [string] $authorizationServiceUrl){
     Add-ServiceUserToDiscovery $iisUserName $metadataConnStr
-
+    $serviceUrl = "$authorizationServiceUrl/v1"
     $discoveryPostBody = @{
         buildVersion = $version;
         serviceName = "AuthorizationService";
         serviceVersion = 1;
         friendlyName = "Fabric.Authorization";
         description = "The Fabric.Authorization service provides centralized authentication across the Fabric ecosystem.";
-        serviceUrl = "$authorizationServiceUrl/v1";
+        serviceUrl = "$serviceUrl";
         discoveryType = "Service";
     }
     Add-DiscoveryRegistrationSql -discoveryPostBody $discoveryPostBody -connectionString $metadataConnStr | Out-Null
-    Write-DosMessage -Level "Information" -Message "Authorization registered URL: $authorizationServiceUrl with DiscoveryService."
+    Write-DosMessage -Level "Information" -Message "Authorization registered URL: $serviceUrl with DiscoveryService."
 }
 
 function Register-AccessControlWithDiscovery([string] $iisUserName, [string] $metadataConnStr, [string] $version, [string] $authorizationServiceUrl){
@@ -529,7 +530,7 @@ function Register-AccessControlWithDiscovery([string] $iisUserName, [string] $me
     Write-DosMessage -Level "Information" -Message "Access Control registered URL: $authorizationServiceUrl with DiscoveryService."
 }
 
-function Add-AuthorizationApiRegistration([string] $identityServerUrl, [string] $accessToken)
+function Add-AuthorizationApiRegistration([string] $identityServiceUrl, [string] $accessToken)
 {
     $body = @{
         Name = "authorization-api";
@@ -543,7 +544,7 @@ function Add-AuthorizationApiRegistration([string] $identityServerUrl, [string] 
     return $authorizationApiSecret
 }
 
-function Add-AuthorizationClientRegistration([string] $identityServerUrl, [string] $accessToken)
+function Add-AuthorizationClientRegistration([string] $identityServiceUrl, [string] $accessToken)
 {
     $body = @{
         ClientId = "fabric-authorization-client";
@@ -559,7 +560,7 @@ function Add-AuthorizationClientRegistration([string] $identityServerUrl, [strin
     return $authorizationClientSecret
 }
 
-function Add-AccessControlClientRegistration([string] $identityServerUrl, [string] $accessToken)
+function Add-AccessControlClientRegistration([string] $identityServiceUrl, [string] $accessToken)
 {
     $body = @{
         clientId = "fabric-access-control";
@@ -586,15 +587,17 @@ function Add-AccessControlClientRegistration([string] $identityServerUrl, [strin
 }
 
 function Get-AdminAccount([string] $adminAccount, [string] $currentUserDomain, [bool] $quiet){
-    if ([string]::IsNullOrEmpty($adminAccount)) {
-        $userEnteredAdminAccount = Read-Host "Please enter the user/group account for dos administration in the format [DOMAIN\user]"
-    }
-    else {
-        $userEnteredAdminAccount = Read-Host "Press Enter to accept the default admin account '$($adminAccount)' for the user/group who will administrate dos or enter a new account"
-    }
-        
-    if (![string]::IsNullOrEmpty($userEnteredAdminAccount)) {
-        $adminAccount = $userEnteredAdminAccount
+    if(!$quiet){
+        if ([string]::IsNullOrEmpty($adminAccount)) {
+            $userEnteredAdminAccount = Read-Host "Please enter the user/group account for dos administration in the format [DOMAIN\user]"
+        }
+        else {
+            $userEnteredAdminAccount = Read-Host "Press Enter to accept the default admin account '$($adminAccount)' for the user/group who will administrate dos or enter a new account"
+        }
+            
+        if (![string]::IsNullOrEmpty($userEnteredAdminAccount)) {
+            $adminAccount = $userEnteredAdminAccount
+        }
     }
     
     $samAccountName = Get-SamAccountFromAccountName -accountName $adminAccount
@@ -616,6 +619,8 @@ function Get-AdminAccount([string] $adminAccount, [string] $currentUserDomain, [
 function Set-AuthorizationEnvironmentVariables
 {
     param(
+        [string] $appDirectory,
+        [System.Security.Cryptography.X509Certificates.X509Certificate2] $encryptionCert,
         [string] $clientName,
         [string] $encryptionCertificateThumbprint,
         [string] $appInsightsInstrumentationKey,
@@ -623,7 +628,7 @@ function Set-AuthorizationEnvironmentVariables
         [string] $identityServiceUrl,
         [string] $authorizationDbConnStr,
         [string] $metadataConnStr,
-        [HashSet] $adminAccount,
+        [Hashtable] $adminAccount,
         [string] $authorizationApiSecret,
         [string] $authorizationServiceUrl,
         [string] $discoveryServiceUrl

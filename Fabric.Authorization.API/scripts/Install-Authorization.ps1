@@ -17,7 +17,7 @@ param(
 Import-Module -Name .\Install-Authorization-Utilities.psm1 -Force
 
 # Import Identity Install Utilities
-$identityInstallUtilities = ".\Identity-Install-Utilities.psm1"
+$identityInstallUtilities = ".\Install-Identity-Utilities.psm1"
 if (!(Test-Path $identityInstallUtilities -PathType Leaf)) {
     Write-DosMessage -Level "Warning" -Message "Could not find identity install utilities. Manually downloading and installing"
     Invoke-WebRequest -Uri https://raw.githubusercontent.com/HealthCatalyst/Fabric.Identity/master/Fabric.Identity.API/scripts/Install-Identity-Utilities.psm1 -Headers @{"Cache-Control" = "no-cache"} -OutFile $fabricInstallUtilities
@@ -59,10 +59,10 @@ if(!$noDiscoveryService){
 $identityServiceUrl = Get-IdentityServiceUrl -identityServiceUrl $installSettings.identityService -installConfigPath $installConfigPath -quiet $quiet
 $authorizationServiceUrl = Get-ApplicationEndpoint -appName $installSettings.appName -applicationEndpoint $installSettings.applicationEndPoint -installConfigPath $installConfigPath -scope $installSettingsScope -quiet $quiet
 $currentUserDomain = Get-CurrentUserDomain -quiet $quiet
-$adminAccount = Get-AdminAccount -accountName $installSettings.adminAccount -currentUserDomain $currentUserDomain -quiet $quiet
+$adminAccount = Get-AdminAccount -adminAccount $installSettings.adminAccount -currentUserDomain $currentUserDomain -quiet $quiet
 $dosAdminGroupName = "DosAdmins"
 
-Add-DatabaseSecurity $iisUser.UserName $installSettings.metadataDatabaseRole $metadataDatabase.DbConnectionString
+Add-DatabaseSecurity $iisUser.UserName $installSettings.edwAdminDatabaseRole $metadataDatabase.DbConnectionString
 $installApplication = Publish-Application -site $selectedSite `
                  -appName $installSettings.appName `
                  -iisUser $iisUser `
@@ -77,15 +77,13 @@ if(!$noDiscoveryService){
 
 $accessToken = Get-AccessToken -authUrl $identityServiceUrl -clientId "fabric-installer" -scope "fabric/identity.manageresources" -secret $installSettings.fabricInstallerSecret
 
-$authorizationApiSecret = Add-AuthorizationApiRegistration -identityServerUrl $identityServiceUrl -accessToken $accessToken
-$authorizationClientSecret = Add-AuthorizationClientRegistration -identityServerUrl $identityServiceUrl -accessToken $accessToken
-Add-AccessControlClientRegistration -identityServerUrl $identityServiceUrl -accessToken $accessToken
+$authorizationApiSecret = Add-AuthorizationApiRegistration -identityServiceUrl $identityServiceUrl -accessToken $accessToken
+$authorizationClientSecret = Add-AuthorizationClientRegistration -identityServiceUrl $identityServiceUrl -accessToken $accessToken
+Add-AccessControlClientRegistration -identityServiceUrl $identityServiceUrl -accessToken $accessToken | Out-Null
 
-$accessToken = Get-AccessToken -authUrl $identityServiceUrl -clientId "fabric-installer" -scope "fabric/identity.manageresources fabric/authorization.read fabric/authorization.write fabric/authorization.dos.write fabric/authorization.manageclients" $installSettings.fabricInstallerSecret
-Add-AuthorizationRegistration -clientId "fabric-installer" -clientName "Fabric Installer" -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken | Out-Null
-Add-AuthorizationRegistration -clientId "fabric-access-control" -clientName "Fabric.AccessControl" -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken | Out-Null
-
-Set-AuthorizationEnvironmentVariables -clientName $clientName `
+Set-AuthorizationEnvironmentVariables -appDirectory $installApplication.applicationDirectory `
+    -encryptionCert $selectedCerts.EncryptionCertificate `
+    -clientName $clientName `
     -encryptionCertificateThumbprint $selectedCerts.EncryptionCertificate.Thumbprint `
     -appInsightsInstrumentationKey $appInsightsKey `
     -authorizationClientSecret $authorizationClientSecret `
@@ -96,6 +94,10 @@ Set-AuthorizationEnvironmentVariables -clientName $clientName `
     -authorizationApiSecret $authorizationApiSecret `
     -authorizationServiceUrl $authorizationServiceUrl `
     -discoveryServiceUrl $discoveryServiceUrl
+
+$accessToken = Get-AccessToken -authUrl $identityServiceUrl -clientId "fabric-installer" -scope "fabric/identity.manageresources fabric/authorization.read fabric/authorization.write fabric/authorization.dos.write fabric/authorization.manageclients" $installSettings.fabricInstallerSecret
+Add-AuthorizationRegistration -clientId "fabric-installer" -clientName "Fabric Installer" -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken | Out-Null
+Add-AuthorizationRegistration -clientId "fabric-access-control" -clientName "Fabric.AccessControl" -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken | Out-Null
 
 Move-DosAdminRoleToDosAdminGroup -authUrl "$authorizationServiceUrl/v1" -accessToken $accessToken -connectionString $authorizationDatabase.DbConnectionString -groupName $dosAdminGroupName
 Add-AccountToDosAdminGroup -accountName $adminAccount.AdminAccountName -domain $currentUserDomain -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken -connString $authorizationDatabase.DbConnectionString
