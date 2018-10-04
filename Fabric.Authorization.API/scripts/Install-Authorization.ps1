@@ -20,7 +20,7 @@ Import-Module -Name .\Install-Authorization-Utilities.psm1 -Force
 $identityInstallUtilities = ".\Install-Identity-Utilities.psm1"
 if (!(Test-Path $identityInstallUtilities -PathType Leaf)) {
     Write-DosMessage -Level "Warning" -Message "Could not find identity install utilities. Manually downloading and installing"
-    Invoke-WebRequest -Uri https://raw.githubusercontent.com/HealthCatalyst/Fabric.Identity/master/Fabric.Identity.API/scripts/Install-Identity-Utilities.psm1 -Headers @{"Cache-Control" = "no-cache"} -OutFile $fabricInstallUtilities
+    Invoke-WebRequest -Uri https://raw.githubusercontent.com/HealthCatalyst/Fabric.Identity/master/Fabric.Identity.API/scripts/Install-Identity-Utilities.psm1 -Headers @{"Cache-Control" = "no-cache"} -OutFile $identityInstallUtilities
 }
 Import-Module -Name $identityInstallUtilities -Force
 
@@ -43,7 +43,8 @@ if(!(Test-IsRunAsAdministrator))
 Write-DosMessage -Level "Information" -Message "Using install.config: $installConfigPath"
 $installSettingsScope = "authorization"
 $installSettings = Get-InstallationSettings $installSettingsScope -installConfigPath $installConfigPath
-$zipPackage = Get-FullyQualifiedInstallationZipFile -zipPackage $installSettings.zipPackage -workingDirecory $PSScriptRoot
+$currentDirectory = $PSScriptRoot
+$zipPackage = Get-FullyQualifiedInstallationZipFile -zipPackage $installSettings.zipPackage -workingDirectory $currentDirectory
 Install-DotNetCoreIfNeeded -version "1.1.30503.82" -downloadUrl "https://go.microsoft.com/fwlink/?linkid=848766"
 Install-UrlRewriteIfNeeded -version "7.2.1952" -downloadUrl "http://download.microsoft.com/download/D/D/E/DDE57C26-C62C-4C59-A1BB-31D58B36ADA2/rewrite_amd64_en-US.msi"
 $selectedSite = Get-IISWebSiteForInstall -selectedSiteName $installSettings.siteName -quiet $quiet -installConfigPath $installConfigPath -scope $installSettingsScope
@@ -59,7 +60,7 @@ if(!$noDiscoveryService){
 $identityServiceUrl = Get-IdentityServiceUrl -identityServiceUrl $installSettings.identityService -installConfigPath $installConfigPath -quiet $quiet
 $authorizationServiceUrl = Get-ApplicationEndpoint -appName $installSettings.appName -applicationEndpoint $installSettings.applicationEndPoint -installConfigPath $installConfigPath -scope $installSettingsScope -quiet $quiet
 $currentUserDomain = Get-CurrentUserDomain -quiet $quiet
-$adminAccount = Get-AdminAccount -adminAccount $installSettings.adminAccount -currentUserDomain $currentUserDomain -quiet $quiet
+$adminAccount = Get-AdminAccount -adminAccount $installSettings.adminAccount -currentUserDomain $currentUserDomain -installConfigPath $installConfigPath -quiet $quiet
 $dosAdminGroupName = "DosAdmins"
 
 Add-DatabaseSecurity $iisUser.UserName $installSettings.edwAdminDatabaseRole $metadataDatabase.DbConnectionString
@@ -79,7 +80,7 @@ $accessToken = Get-AccessToken -authUrl $identityServiceUrl -clientId "fabric-in
 
 $authorizationApiSecret = Add-AuthorizationApiRegistration -identityServiceUrl $identityServiceUrl -accessToken $accessToken
 $authorizationClientSecret = Add-AuthorizationClientRegistration -identityServiceUrl $identityServiceUrl -accessToken $accessToken
-Add-AccessControlClientRegistration -identityServiceUrl $identityServiceUrl -accessToken $accessToken | Out-Null
+Add-AccessControlClientRegistration -identityServiceUrl $identityServiceUrl -authorizationServiceUrl $authorizationServiceUrl -accessToken $accessToken | Out-Null
 
 Set-AuthorizationEnvironmentVariables -appDirectory $installApplication.applicationDirectory `
     -encryptionCert $selectedCerts.EncryptionCertificate `
