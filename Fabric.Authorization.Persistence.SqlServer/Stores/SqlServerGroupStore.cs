@@ -457,7 +457,11 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                  && groupNames.Contains(g.Name)
                  );
 
-            var missingGroups = groupNames.Except(groupEntities.Select(g => g.Name)).ToList();
+            // Case sensitive name comparison
+            var groupList = groupEntities.ToList();
+            groupList = groupList.Where(g => groupNames.Contains(g.Name)).ToList();
+
+            var missingGroups = groupNames.Except(groupList.Select(g => g.Name)).ToList();
 
             if (missingGroups.Count > 0)
             {
@@ -466,7 +470,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                     missingGroups.Select(g => new NotFoundExceptionDetail {Identifier = g}).ToList());
             }
 
-            return Task.FromResult(groupEntities.Select(g => g.ToModel()).AsEnumerable());
+            return Task.FromResult(groupList.Select(g => g.ToModel()).AsEnumerable());
         }
 
         public async Task<IEnumerable<Group>> GetGroups(string name, string type)
