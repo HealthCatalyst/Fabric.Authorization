@@ -557,7 +557,7 @@ function Add-AuthorizationClientRegistration([string] $identityServiceUrl, [stri
     return $authorizationClientSecret
 }
 
-function Add-AccessControlClientRegistration([string] $identityServiceUrl, [string] $accessToken)
+function Add-AccessControlClientRegistration([string] $identityServiceUrl, [string] $authorizationServiceUrl, [string] $accessToken)
 {
     $body = @{
         clientId = "fabric-access-control";
@@ -583,7 +583,7 @@ function Add-AccessControlClientRegistration([string] $identityServiceUrl, [stri
     Add-ClientRegistration -authUrl $identityServiceUrl -body $jsonBody -accessToken $accessToken
 }
 
-function Get-AdminAccount([string] $adminAccount, [string] $currentUserDomain, [bool] $quiet){
+function Get-AdminAccount([string] $adminAccount, [string] $currentUserDomain, [string] $installConfigPath, [bool] $quiet){
     if(!$quiet){
         if ([string]::IsNullOrEmpty($adminAccount)) {
             $userEnteredAdminAccount = Read-Host "Please enter the user/group account for dos administration in the format [DOMAIN\user]"
@@ -609,7 +609,7 @@ function Get-AdminAccount([string] $adminAccount, [string] $currentUserDomain, [
         Write-DosMessage -Level "Error" -Message "$samAccountName is not a valid principal in the $currentUserDomain domain. Please enter a valid account. Halting installation."
         throw
     }
-    if ($adminAccount) {Add-InstallationSetting "authorization" "adminAccount" "$adminAccount" | Out-Null}
+    if ($adminAccount) {Add-InstallationSetting "authorization" "adminAccount" "$adminAccount" $installConfigPath | Out-Null}
     return @{AdminAccountName = $adminAccount; AdminAccountIsUser = $adminAccountIsUser}
 }
 
