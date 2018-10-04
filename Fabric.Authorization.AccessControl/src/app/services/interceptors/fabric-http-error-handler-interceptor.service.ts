@@ -34,13 +34,9 @@ export class FabricHttpErrorHandlerInterceptorService {
             )}`
           );
         }
-        console.log(
-          `response.status = ${response.status}, response.statusText = ${
-            response.statusText
-          }`
-        );
+
         return Observable.throw(
-          new Exception(response.status, response.statusText)
+          new Exception(response.status, JSON.stringify(response.error))
         );
     });
   }
