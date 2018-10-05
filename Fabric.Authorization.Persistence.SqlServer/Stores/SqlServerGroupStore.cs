@@ -470,12 +470,12 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             if (!ignoreMissingGroups)
             {
-                var missingGroups = groupNames.Except(groupEntities.Select(g => g.Name)).ToList();
+                var missingGroups = groupNames.Except(groupEntities.Select(g => g.Name), StringComparer.OrdinalIgnoreCase).ToList();
                 if (missingGroups.Count > 0)
                 {
                     throw new NotFoundException<Group>(
                         $"The following groups could not be found: {string.Join(",", missingGroups)}",
-                        missingGroups.Select(g => new NotFoundExceptionDetail {Identifier = g}).ToList());
+                        missingGroups.Select(g => new NotFoundExceptionDetail { Identifier = g }).ToList());
                 }
             }
 
