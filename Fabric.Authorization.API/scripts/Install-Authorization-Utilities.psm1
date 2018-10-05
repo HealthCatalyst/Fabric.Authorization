@@ -366,8 +366,20 @@ function Add-DosAdminGroup
     }
 }
 
-function Add-DosAdminRoleUsersToDosAdminGroup([GUID]$groupId, $connectionString, $clientId, $roleName, $securableName)
+function Add-DosAdminRoleUsersToDosAdminGroup
 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [GUID] $groupId,
+        [Parameter(Mandatory=$true)]
+        [string] $connectionString,
+        [Parameter(Mandatory=$true)]
+        [string] $clientId,
+        [Parameter(Mandatory=$true)]
+        [string] $roleName,
+        [Parameter(Mandatory=$true)]
+        [string] $securableName
+    )
     $query = "INSERT INTO GroupUsers
               (CreatedBy, CreatedDateTimeUtc, GroupId, IdentityProvider, SubjectId, IsDeleted)
               SELECT @clientId, GETUTCDATE(), @dosAdminGroupId, u.IdentityProvider, ru.subjectid, 0 from RoleUsers ru
@@ -386,8 +398,18 @@ function Add-DosAdminRoleUsersToDosAdminGroup([GUID]$groupId, $connectionString,
     }
 }
 
-function Remove-UsersFromDosAdminRole($connectionString, $clientId, $roleName, $securableName)
+function Remove-UsersFromDosAdminRole
 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $connectionString,
+        [Parameter(Mandatory=$true)]
+        [string] $clientId,
+        [Parameter(Mandatory=$true)]
+        [string] $roleName,
+        [Parameter(Mandatory=$true)]
+        [string] $securableName
+    )
     $sql = "UPDATE ru 
             SET ru.IsDeleted = 1,
                 ru.ModifiedBy = @clientId,
@@ -408,8 +430,20 @@ function Remove-UsersFromDosAdminRole($connectionString, $clientId, $roleName, $
     }
 }
 
-function Add-DosAdminGroupRolesToDosAdminChildGroups([GUID]$groupId, $connectionString, $clientId, $roleName, $securableName)
+function Add-DosAdminGroupRolesToDosAdminChildGroups
 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [GUID] $groupId,
+        [Parameter(Mandatory=$true)]
+        [string] $connectionString,
+        [Parameter(Mandatory=$true)]
+        [string] $clientId,
+        [Parameter(Mandatory=$true)]
+        [string] $roleName,
+        [Parameter(Mandatory=$true)]
+        [string] $securableName
+    )
     $query = "INSERT INTO ChildGroups
               (ParentGroupId, ChildGroupId, CreatedBy, CreatedDateTimeUtc, IsDeleted)
               SELECT @dosAdminGroupId, g.GroupId, @clientId, GETUTCDATE(), 0 
