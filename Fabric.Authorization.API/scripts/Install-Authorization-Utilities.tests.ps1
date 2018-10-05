@@ -363,3 +363,109 @@ Describe 'Add-DosAdminGroup tests' -Tag 'Unit' {
         }
     }
 }
+
+Describe 'Add-DosAdminRoleUsersToDosAdminGroup' -Tag 'Unit'{
+    InModuleScope Install-Authorization-Utilities{
+        It 'Constructs proper SQL parameters'{
+            # Arrange
+            Mock Invoke-Sql {}
+            $groupId = [Guid]::NewGuid()
+            $connString = "localhost"
+            $clientId = "testclient"
+            $roleName = "testrole"
+            $securableName = "testapp"
+
+            # Act
+            Add-DosAdminRoleUsersToDosAdminGroup -groupId $groupId -connectionString $connString -clientId $clientId -roleName $roleName -securableName $securableName
+
+            # Assert
+            Assert-MockCalled Invoke-Sql -Times 1 -ParameterFilter {$connectionString -eq $connString `
+                                                                    -and $parameters.dosAdminGroupId -eq $groupId `
+                                                                    -and $parameters.clientId -eq $clientId `
+                                                                    -and $parameters.roleName -eq $roleName `
+                                                                    -and $parameters.securableName -eq $securableName}
+        }
+        It 'throws an exception if the sql statment fails'{
+            # Arrange
+            Mock Invoke-Sql {throw "bad stuff happened"}
+            $groupId = [Guid]::NewGuid()
+            $connString = "localhost"
+            $clientId = "testclient"
+            $roleName = "testrole"
+            $securableName = "testapp"
+
+            #Act
+            {Add-DosAdminRoleUsersToDosAdminGroup -groupId $groupId -connectionString $connString -clientId $clientId -roleName $roleName -securableName $securableName} | Should -Throw "bad stuff happened"
+        }
+    }
+}
+
+Describe 'Remove-UsersFromDosAdminRole' -Tag 'Unit'{
+    InModuleScope Install-Authorization-Utilities{
+        It 'Constructs proper SQL parameters'{
+            # Arrange
+            Mock Invoke-Sql {}
+            $connString = "localhost"
+            $clientId = "testclient"
+            $roleName = "testrole"
+            $securableName = "testapp"
+
+            # Act
+            Remove-UsersFromDosAdminRole -connectionString $connString -clientId $clientId -roleName $roleName -securableName $securableName
+
+            # Assert
+            Assert-MockCalled Invoke-Sql -Times 1 -ParameterFilter {$connectionString -eq $connString `
+                                                                    -and $parameters.clientId -eq $clientId `
+                                                                    -and $parameters.roleName -eq $roleName `
+                                                                    -and $parameters.securableName -eq $securableName}
+        }
+        It 'throws an exception if the sql statment fails'{
+            # Arrange
+            Mock Invoke-Sql {throw "bad stuff happened"}
+            $connString = "localhost"
+            $clientId = "testclient"
+            $roleName = "testrole"
+            $securableName = "testapp"
+
+            #Act
+            {Remove-UsersFromDosAdminRole -connectionString $connString -clientId $clientId -roleName $roleName -securableName $securableName} | Should -Throw "bad stuff happened"
+        }
+    }
+}
+
+Describe 'Add-DosAdminGroupRolesToDosAdminChildGroups' -Tag 'Unit'{
+    InModuleScope Install-Authorization-Utilities{
+        It 'Constructs proper SQL parameters'{
+            # Arrange
+            Mock Invoke-Sql {}
+            $groupId = [Guid]::NewGuid()
+            $connString = "localhost"
+            $clientId = "testclient"
+            $roleName = "testrole"
+            $securableName = "testapp"
+
+            # Act
+            Add-DosAdminGroupRolesToDosAdminChildGroups -groupId $groupId -connectionString $connString -clientId $clientId -roleName $roleName -securableName $securableName
+
+            # Assert
+            Assert-MockCalled Invoke-Sql -Times 1 -ParameterFilter {$connectionString -eq $connString `
+                                                                    -and $parameters.dosAdminGroupId -eq $groupId `
+                                                                    -and $parameters.clientId -eq $clientId `
+                                                                    -and $parameters.roleName -eq $roleName `
+                                                                    -and $parameters.securableName -eq $securableName}
+        }
+        It 'throws an exception if the sql statment fails'{
+            # Arrange
+            Mock Invoke-Sql {throw "bad stuff happened"}
+            $groupId = [Guid]::NewGuid()
+            $connString = "localhost"
+            $clientId = "testclient"
+            $roleName = "testrole"
+            $securableName = "testapp"
+
+            #Act
+            {Add-DosAdminGroupRolesToDosAdminChildGroups -groupId $groupId -connectionString $connString -clientId $clientId -roleName $roleName -securableName $securableName} | Should -Throw "bad stuff happened"
+        }
+    }
+}
+
