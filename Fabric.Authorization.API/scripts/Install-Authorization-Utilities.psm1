@@ -335,15 +335,23 @@ function Add-ListOfUsersToDosAdminGroup($edwAdminUsers, $connString, $authorizat
     }	
 }
 
-function Add-DosAdminGroup($authUrl, $accessToken, $groupName)
+function Add-DosAdminGroup
 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $authUrl,
+        [Parameter(Mandatory=$true)]
+        [string] $accessToken,
+        [Parameter(Mandatory=$true)]
+        [string] $groupName
+    )
     try {
         $group = Add-Group -authUrl $authUrl -name $groupName -source "custom" -accessToken $accessToken
         return $group
     }
     catch {
         $exception = $_.Exception
-        if ($null -ne $exception -and $null -ne $exception.Response -and $exception.Response.StatusCode.value__ -eq 409) {
+        if (Assert-WebExceptionType -exception $exception -typeCode 409) {
             $group = Get-Group -authorizationServiceUrl $authUrl -name $groupName -accessToken $accessToken
             Write-DosMessage -Level "Information" -Message "$groupName group already exists..."
             return $group;
@@ -575,6 +583,20 @@ function Get-DefaultIdentityServiceUrl([string] $identityServiceUrl)
         return "$(Get-FullyQualifiedMachineName)/$identity"
     }else{
         return $identityServiceUrl
+    }
+}
+
+function Assert-WebExceptionType
+{
+    param(
+        [object] $exception,
+        [int] $typeCode
+    )
+    if ($null -ne $exception -and $exception.Response.StatusCode.value__ -eq $typeCode) {
+        return $true
+    }
+    else {
+        return $false
     }
 }
 
