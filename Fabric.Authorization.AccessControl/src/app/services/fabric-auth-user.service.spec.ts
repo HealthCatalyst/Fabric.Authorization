@@ -84,7 +84,7 @@ describe('FabricAuthUserService', () => {
             .catch(error => {
               expect(Observable.of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
-              expect(error.message).toBe('User not found');
+              expect(error.message).toBe('"User not found"');
               return Observable.of(error);
             })
             .subscribe();
@@ -97,7 +97,7 @@ describe('FabricAuthUserService', () => {
             )
           );
           expect(req.request.method).toBe('GET');
-          req.flush(null, { status: 404, statusText: 'User not found' });
+          req.flush('User not found', { status: 404, statusText: 'User not found' });
           httpTestingController.verify();
         }
       )
@@ -144,7 +144,7 @@ describe('FabricAuthUserService', () => {
             .catch(error => {
               expect(Observable.of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
-              expect(error.message).toBe('User not found');
+              expect(error.message).toBe('"User not found"');
               return Observable.of(error);
             })
             .subscribe();
@@ -157,7 +157,7 @@ describe('FabricAuthUserService', () => {
             )
           );
           expect(req.request.method).toBe('GET');
-          req.flush(null, { status: 404, statusText: 'User not found' });
+          req.flush('User not found', { status: 404, statusText: 'User not found' });
           httpTestingController.verify();
         }
       )
@@ -210,7 +210,7 @@ describe('FabricAuthUserService', () => {
             .catch(error => {
               expect(Observable.of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
-              expect(error.message).toBe('User not found');
+              expect(error.message).toBe('"User not found"');
               return Observable.of(error);
             })
             .subscribe();
@@ -223,7 +223,7 @@ describe('FabricAuthUserService', () => {
             )
           );
           expect(req.request.method).toBe('POST');
-          req.flush(null, { status: 404, statusText: 'User not found' });
+          req.flush('User not found', { status: 404, statusText: 'User not found' });
           httpTestingController.verify();
         }
       )
@@ -290,7 +290,7 @@ describe('FabricAuthUserService', () => {
             .catch(error => {
               expect(Observable.of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
-              expect(error.message).toBe('User not found');
+              expect(error.message).toBe('"User not found"');
               return Observable.of(error);
             })
             .subscribe();
@@ -303,7 +303,7 @@ describe('FabricAuthUserService', () => {
             )
           );
           expect(req.request.method).toBe('DELETE');
-          req.flush(null, { status: 404, statusText: 'User not found' });
+          req.flush('User not found', { status: 404, statusText: 'User not found' });
           httpTestingController.verify();
         }
       )
