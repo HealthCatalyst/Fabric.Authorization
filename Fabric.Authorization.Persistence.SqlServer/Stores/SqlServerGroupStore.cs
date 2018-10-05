@@ -457,7 +457,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                  && groupNames.Contains(g.Name)
                  );
 
-            var missingGroups = groupNames.Except(groupEntities.Select(g => g.Name)).ToList();
+            var missingGroups = groupNames.Except(groupEntities.Select(g => g.Name), StringComparer.OrdinalIgnoreCase).ToList();
 
             if (missingGroups.Count > 0)
             {
