@@ -309,3 +309,57 @@ Describe 'Get-SamAccountFromAccountName tests' -Tag 'Unit'{
         }
     }
 }
+
+Describe 'Add-DosAdminGroup tests' -Tag 'Unit' {
+    InModuleScope Install-Authorization-Utilities{
+        Context 'Success'{
+            It 'Should add the group'{
+                # Arrange
+                Mock Add-Group {}
+                $testAuthUrl = "https://localhost/authorization"
+                $testAccessToken = "12345"
+                $testGroup = "testgroup"
+
+                # Act
+                $group = Add-DosAdminGroup -authUrl $testAuthUrl -accessToken $testAccessToken -groupName $testGroup
+
+                # Assert
+                Assert-MockCalled Add-Group -Times 1 -ParameterFilter { $authUrl -eq $testAuthUrl `
+                                                                        -and $name -eq $testGroup `
+                                                                        -and $source -eq "custom" `
+                                                                        -and $accessToken -eq $testAccessToken }
+            }
+            It 'Should get the group if the group exists'{
+                #Arrange
+                $testAuthUrl = "https://localhost/authorization"
+                $testAccessToken = "12345"
+                $testGroup = "testgroup"
+
+                Mock Add-Group {throw "bad stuff that we can handle"}
+                Mock Get-Group { return $testGroup }
+                Mock Assert-WebExceptionType { $true }
+
+                #Act
+                $group = Add-DosAdminGroup -authUrl $testAuthUrl -accessToken $testAccessToken -groupName $testGroup
+
+                # Assert
+                $group | Should -Be $testGroup
+                Assert-MockCalled Get-Group -Times 1 -ParameterFilter { $authorizationServiceUrl -eq $testAuthUrl `
+                                                                        -and $name -eq $testGroup `
+                                                                        -and $accessToken -eq $testAccessToken }
+            }
+        }
+        Context 'Failure'{
+            It 'Should throw an exception if we cannot add the group'{
+                # Arrange
+                Mock Add-Group { throw "bad error that we can't handle" }
+                $testAuthUrl = "https://localhost/authorization"
+                $testAccessToken = "12345"
+                $testGroup = "testgroup"
+
+                # Act
+                {Add-DosAdminGroup -authUrl $testAuthUrl -accessToken $testAccessToken -groupName $testGroup} | Should -Throw "bad error that we can't handle"
+            }
+        }
+    }
+}
