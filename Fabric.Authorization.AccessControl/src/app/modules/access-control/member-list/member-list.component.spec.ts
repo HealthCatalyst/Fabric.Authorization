@@ -9,6 +9,7 @@ import { FabricAuthMemberSearchServiceMock, mockAuthSearchResult } from '../../.
 import { Observable } from 'rxjs/Observable';
 import { FormsModule } from '@angular/forms';
 import { FabricAuthMemberSearchService } from '../../../services/fabric-auth-member-search.service';
+import { IAuthMemberSearchResult } from '../../../models/authMemberSearchResult.model';
 
 describe('MemberListComponent', () => {
   let component: MemberListComponent;
@@ -45,5 +46,100 @@ describe('MemberListComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('getMemberNameToDisplay', () => {
+
+    it('should return the display name if exist', () => {
+      // Arrange
+      const displayName = 'displayName';
+      const member = {
+        displayName: displayName,
+        groupName: 'groupName',
+        subjectId: '1',
+        identityProvider: 'test',
+        roles: null,
+        firstName: 'test',
+        middleName: 'test',
+        lastName: 'test',
+        lastLoginDateTimeUtc: null,
+        entityType: null,
+        name: null
+      };
+      // Act
+      const result = component.getMemberNameToDisplay(member);
+
+      // Assert
+      expect(result).toBe(displayName);
+    });
+
+    it('should return the group name if exist and display name is null', () => {
+      // Arrange
+      const groupName = 'groupName';
+      const member = {
+        displayName: null,
+        groupName: groupName,
+        subjectId: '1',
+        identityProvider: 'test',
+        roles: null,
+        firstName: 'test',
+        middleName: 'test',
+        lastName: 'test',
+        lastLoginDateTimeUtc: null,
+        entityType: null,
+        name: null
+      };
+      // Act
+      const result = component.getMemberNameToDisplay(member);
+
+      // Assert
+      expect(result).toBe(groupName);
+    });
+
+    it('should return the group name if exist and display name is undefined', () => {
+      // Arrange
+      const groupName = 'groupName';
+      const member = {
+        displayName: undefined,
+        groupName: groupName,
+        subjectId: '1',
+        identityProvider: 'test',
+        roles: null,
+        firstName: 'test',
+        middleName: 'test',
+        lastName: 'test',
+        lastLoginDateTimeUtc: null,
+        entityType: null,
+        name: null
+      };
+      // Act
+      const result = component.getMemberNameToDisplay(member);
+
+      // Assert
+      expect(result).toBe(groupName);
+    });
+
+    it('should return the group name if exist and display name is empty string', () => {
+      // Arrange
+      const groupName = '';
+      const member = {
+        displayName: undefined,
+        groupName: groupName,
+        subjectId: '1',
+        identityProvider: 'test',
+        roles: null,
+        firstName: 'test',
+        middleName: 'test',
+        lastName: 'test',
+        lastLoginDateTimeUtc: null,
+        entityType: null,
+        name: null
+      };
+      // Act
+      const result = component.getMemberNameToDisplay(member);
+
+      // Assert
+      expect(result).toBe(groupName);
+    });
   });
 });

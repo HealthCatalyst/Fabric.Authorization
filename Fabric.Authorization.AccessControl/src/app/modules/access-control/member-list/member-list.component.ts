@@ -210,6 +210,14 @@ export class MemberListComponent implements OnInit, OnChanges {
         });
     }
   }
+
+  getMemberNameToDisplay(member: IAuthMemberSearchResult): string {
+    if (member.displayName !== '' && member.displayName !== null && member.displayName !== undefined) {
+      return member.displayName;
+    }
+
+    return member.groupName;
+  }
 }
 
 
