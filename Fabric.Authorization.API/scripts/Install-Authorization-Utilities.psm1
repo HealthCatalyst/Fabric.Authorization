@@ -37,7 +37,11 @@ function Get-FullyQualifiedMachineName() {
 	return "https://$env:computername.$((Get-WmiObject Win32_ComputerSystem).Domain.tolower())"
 }
 
-function Get-Headers($accessToken) {
+function Get-Headers 
+{
+    param(
+        [string] $accessToken
+    )
     $headers = @{"Accept" = "application/json"}
     if ($accessToken) {
         $headers.Add("Authorization", "Bearer $accessToken")
@@ -45,14 +49,29 @@ function Get-Headers($accessToken) {
     return $headers
 }
 
-function Invoke-Get($url, $accessToken) {
+function Invoke-Get
+{
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $url,
+        [string] $accessToken
+    )
     $headers = Get-Headers -accessToken $accessToken
         
     $getResponse = Invoke-RestMethod -Method Get -Uri $url -Headers $headers
     return $getResponse
 }
 
-function Invoke-Post($url, $body, $accessToken) {
+function Invoke-Post
+{
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $url,
+        [Parameter(Mandatory=$true)]
+        [object] $body,
+        [string] $accessToken
+    )
+
     $headers = Get-Headers -accessToken $accessToken
 
     if (!($body -is [String])) {
@@ -63,18 +82,50 @@ function Invoke-Post($url, $body, $accessToken) {
     return $postResponse
 }
 
-function Get-Group($name, $authorizationServiceUrl, $accessToken){
+function Get-Group{
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $name, 
+        [Parameter(Mandatory=$true)]
+        [string] $authorizationServiceUrl, 
+        [Parameter(Mandatory=$true)]
+        [string] $accessToken
+    )
     $url = "$authorizationServiceUrl/groups/$name"
     return Invoke-Get -url $url -accessToken $accessToken
 }
 
-function Get-Role($name, $grain, $securableItem, $authorizationServiceUrl, $accessToken) {
+function Get-Role 
+{
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $name,
+        [Parameter(Mandatory=$true)]
+        [string] $grain,
+        [Parameter(Mandatory=$true)]
+        [string] $securableItem,
+        [Parameter(Mandatory=$true)]
+        [string] $authorizationServiceUrl,
+        [Parameter(Mandatory=$true)]
+        [string] $accessToken
+    )
     $url = "$authorizationServiceUrl/roles/$grain/$securableItem/$name"
     $role = Invoke-Get -url $url -accessToken $accessToken
     return $role
 }
 
-function Add-Group($authUrl, $name, $source, $accessToken) {
+function Add-Group
+{
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $authUrl,
+        [Parameter(Mandatory=$true)]
+        [string] $name,
+        [Parameter(Mandatory=$true)]
+        [string] $source,
+        [Parameter(Mandatory=$true)]
+        [string] $accessToken
+    )
     Write-DosMessage -Level "Information" -Message "Adding Group $($name)"
     $url = "$authUrl/groups"
     $body = @{
@@ -85,7 +136,16 @@ function Add-Group($authUrl, $name, $source, $accessToken) {
     return Invoke-Post $url $body $accessToken
 }
 
-function Add-User($authUrl, $name, $accessToken) {
+function Add-User
+{
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $authUrl,
+        [Parameter(Mandatory=$true)]
+        [string] $name,
+        [Parameter(Mandatory=$true)]
+        [string] $accessToken
+    )
     Write-DosMessage -Level "Information" -Message "Adding User $($name)"
     $url = "$authUrl/user"
     $body = @{
@@ -95,8 +155,18 @@ function Add-User($authUrl, $name, $accessToken) {
     return Invoke-Post $url $body $accessToken
 }
 
-function Add-UserToGroup($group, $user, $connString, $clientId)
+function Add-UserToGroup
 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [object] $group,
+        [Parameter(Mandatory=$true)]
+        [object] $user,
+        [Parameter(Mandatory=$true)]
+        [string] $connString,
+        [Parameter(Mandatory=$true)]
+        [string] $clientId
+    )
     $query = "INSERT INTO GroupUsers
              (CreatedBy, CreatedDateTimeUtc, GroupId, IdentityProvider, SubjectId, IsDeleted)
              VALUES(@clientId, GETUTCDATE(), @groupId, @identityProvider, @subjectId, 0)"
@@ -107,8 +177,18 @@ function Add-UserToGroup($group, $user, $connString, $clientId)
     Invoke-Sql $connString $query @{groupId = $groupId; identityProvider = $identityProvider; subjectId = $subjectId; clientId = $clientId} | Out-Null
 }
 
-function Add-ChildGroupToParentGroup($parentGroup, $childGroup, $connString, $clientId)
+function Add-ChildGroupToParentGroup
 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [object] $parentGroup,
+        [Parameter(Mandatory=$true)]
+        [object] $childGroup,
+        [Parameter(Mandatory=$true)]
+        [string] $connString,
+        [Parameter(Mandatory=$true)]
+        [string] $clientId
+    )
     $query = "INSERT INTO ChildGroups
               (ParentGroupId, ChildGroupId, CreatedBy, CreatedDateTimeUtc, IsDeleted)
               VALUES(@parentGroupId, @childGroupId, @clientId, GETUTCDATE(), 0)"
@@ -118,7 +198,18 @@ function Add-ChildGroupToParentGroup($parentGroup, $childGroup, $connString, $cl
     Invoke-Sql $connString $query @{parentGroupId = $parentGroupId; childGroupId = $childGroupId; clientId = $clientId} | Out-Null
 }
 
-function Add-RoleToGroup($role, $group, $connString, $clientId) {
+function Add-RoleToGroup
+{
+    param(
+        [Parameter(Mandatory=$true)]
+        [object] $role,
+        [Parameter(Mandatory=$true)]
+        [object] $group,
+        [Parameter(Mandatory=$true)]
+        [string] $connString,
+        [Parameter(Mandatory=$true)]
+        [string] $clientId
+    )
     Write-DosMessage -Level "Information" -Message "Adding Role: $($role.Name) to Group: $($group.Name)"
     $query = "INSERT INTO GroupRoles
               (CreatedBy, CreatedDateTimeUtc, GroupId, IsDeleted, RoleId)
@@ -129,34 +220,80 @@ function Add-RoleToGroup($role, $group, $connString, $clientId) {
     Invoke-Sql $connString $query @{groupId = $groupId; roleId = $roleId; ; clientId = $clientId} | Out-Null
 }
 
-function Get-PrincipalContext($domain) {
+function Get-PrincipalContext
+{
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $domain
+    )
     [System.Reflection.Assembly]::LoadWithPartialName("System.DirectoryServices.AccountManagement") | Out-Null
     $ct = [System.DirectoryServices.AccountManagement.ContextType]::Domain 
     $pc = New-Object System.DirectoryServices.AccountManagement.PrincipalContext -ArgumentList $ct, $domain
     return $pc
 }
 
-function Test-IsUser($samAccountName, $domain) {
+function Test-IsUser
+{
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $samAccountName,
+        [Parameter(Mandatory=$true)]
+        [string] $domain
+    )
     $isUser = $false
     $pc = Get-PrincipalContext -domain $domain
-    $user = [System.DirectoryServices.AccountManagement.UserPrincipal]::FindByIdentity($pc, $samAccountName)
+    $user = Get-UserPrincipal -pc $pc -samAccountName $samAccountName
     if ($null -ne $user) {
         $isUser = $true
     }
     return $isUser
 }
 
-function Test-IsGroup($samAccountName, $domain) {
+function Test-IsGroup
+{
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $samAccountName,
+        [Parameter(Mandatory=$true)]
+        [string] $domain
+    )
     $isGroup = $false
     $pc = Get-PrincipalContext -domain $domain
-    $group = [System.DirectoryServices.AccountManagement.GroupPrincipal]::FindByIdentity($pc, $samAccountName)
+    $group = Get-GroupPrincipal -pc $pc -samAccountName $samAccountName
     if ($null -ne $group) {
         $isGroup = $true
     }
     return $isGroup
 }
 
-function Get-SamAccountFromAccountName($accountName) {
+function Get-UserPrincipal
+{
+    param(
+        [Parameter(Mandatory=$true)]
+        [object] $pc,
+        [Parameter(Mandatory=$true)]
+        [string] $samAccountName
+    )
+    return [System.DirectoryServices.AccountManagement.UserPrincipal]::FindByIdentity($pc, $samAccountName)
+}
+
+function Get-GroupPrincipal
+{
+    param(
+        [Parameter(Mandatory=$true)]
+        [object] $pc,
+        [Parameter(Mandatory=$true)]
+        [string] $samAccountName
+    )
+    return [System.DirectoryServices.AccountManagement.GroupPrincipal]::FindByIdentity($pc, $samAccountName)
+}
+
+function Get-SamAccountFromAccountName 
+{
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $accountName
+    )
     $accountNameParts = $accountName.Split('\')
     if ($accountNameParts.Count -ne 2) {
         Write-DosMessage -Level "Error" -Message "Please enter an account in the form DOMAIN\account. Halting installation." 
