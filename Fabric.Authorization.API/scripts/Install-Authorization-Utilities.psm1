@@ -465,8 +465,18 @@ function Add-DosAdminGroupRolesToDosAdminChildGroups
     }
 }
 
-function Remove-GroupsFromDosAdminRole($connectionString, $clientId, $roleName, $securableName)
+function Remove-GroupsFromDosAdminRole
 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $connectionString,
+        [Parameter(Mandatory=$true)]
+        [string] $clientId,
+        [Parameter(Mandatory=$true)]
+        [string] $roleName,
+        [Parameter(Mandatory=$true)]
+        [string] $securableName
+    )
     $sql = "UPDATE gr
             SET gr.IsDeleted = 1, 
                 gr.ModifiedBy = @clientId, 
@@ -489,8 +499,20 @@ function Remove-GroupsFromDosAdminRole($connectionString, $clientId, $roleName, 
     }
 }
 
-function Add-DosAdminRoleToDosAdminGroup([GUID]$groupId, $connectionString, $clientId, $roleName, $securableName)
+function Add-DosAdminRoleToDosAdminGroup
 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [GUID] $groupId,
+        [Parameter(Mandatory=$true)]
+        [string] $connectionString,
+        [Parameter(Mandatory=$true)]
+        [string] $clientId,
+        [Parameter(Mandatory=$true)]
+        [string] $roleName,
+        [Parameter(Mandatory=$true)]
+        [string] $securableName
+    )
     $query = "INSERT INTO GroupRoles
               (CreatedBy, CreatedDateTimeUtc, GroupId, RoleId, IsDeleted)
               SELECT @clientId, GETUTCDATE(), @dosAdminGroupId, r.RoleId, 0
@@ -508,8 +530,20 @@ function Add-DosAdminRoleToDosAdminGroup([GUID]$groupId, $connectionString, $cli
     }
 }
 
-function Update-DosAdminRoleToDataMartAdmin($connectionString, $clientId, $oldRoleName, $newRoleName, $securableName)
+function Update-DosAdminRoleToDataMartAdmin
 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $connectionString,
+        [Parameter(Mandatory=$true)]
+        [string] $clientId,
+        [Parameter(Mandatory=$true)]
+        [string] $oldRoleName,
+        [Parameter(Mandatory=$true)]
+        [string] $newRoleName,
+        [Parameter(Mandatory=$true)]
+        [string] $securableName
+    )
     $sql = "UPDATE r
             SET r.[Name]  = @newRoleName, 
                 r.DisplayName = 'DataMart Admin', 
@@ -530,8 +564,18 @@ function Update-DosAdminRoleToDataMartAdmin($connectionString, $clientId, $oldRo
     }
 }
 
-function Remove-DosAdminRole($connectionString, $clientId, $roleName, $securableName)
+function Remove-DosAdminRole
 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $connectionString,
+        [Parameter(Mandatory=$true)]
+        [string] $clientId,
+        [Parameter(Mandatory=$true)]
+        [string] $roleName,
+        [Parameter(Mandatory=$true)]
+        [string] $securableName
+    )
     $sql = "UPDATE r
             SET r.IsDeleted = 1,
                 r.ModifiedBy = @clientId,
