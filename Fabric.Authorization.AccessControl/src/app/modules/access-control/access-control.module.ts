@@ -34,6 +34,7 @@ import { MemberComponent } from './member/member.component';
 import { CustomGroupComponent } from './custom-group/custom-group.component';
 import { GrainListComponent } from './grain-list/grain-list.component';
 import { CurrentUserService } from '../../services/current-user.service';
+import { InputDirective } from './input.directive';
 
 @NgModule({
   imports: [
@@ -60,7 +61,8 @@ import { CurrentUserService } from '../../services/current-user.service';
     GrainListComponent,
     MemberListComponent,
     MemberComponent,
-    CustomGroupComponent
+    CustomGroupComponent,
+    InputDirective
   ],
   providers: [
     FabricBaseService,
