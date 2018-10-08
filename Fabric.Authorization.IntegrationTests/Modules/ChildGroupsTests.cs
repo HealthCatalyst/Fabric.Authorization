@@ -20,7 +20,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
     [Collection("InMemoryTests")]
     public class ChildGroupsTests : IClassFixture<IntegrationTestsFixture>
     {
-        private readonly Browser _browser;
+        protected readonly Browser _browser;
         private readonly IntegrationTestsFixture _fixture;
         private readonly string _storageProvider;
 
@@ -113,7 +113,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             return role.ToRoleDomainModel();
         }
 
-        private async Task<GroupRoleApiModel> SetupGroupAsync(string groupName, string groupSource, string displayName, string description)
+        protected async Task<GroupRoleApiModel> SetupGroupAsync(string groupName, string groupSource, string displayName, string description)
         {
             var postResponse = await _browser.Post("/groups", with =>
             {
@@ -369,7 +369,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         {
             var parentGroup = await SetupGroupAsync(Guid.NewGuid().ToString(), GroupConstants.CustomSource, "Custom Parent Group", "Custom Parent Group");
             var childGroup1 = await SetupGroupAsync(Guid.NewGuid().ToString(), GroupConstants.DirectorySource, "Child Group 1", "Child Group 1");
-            var childGroup2 = await SetupGroupAsync(Guid.NewGuid().ToString(), GroupConstants.DirectorySource, "Child Group 2", "Child Group 2");
+            var childGroup2 = await SetupGroupAsync(Guid.NewGuid().ToString(), GroupConstants.DirectorySource, "Child Group 1", "Child Group 1");
 
             var postResponse = await _browser.Post($"/groups/{parentGroup.GroupName}/groups", with =>
             {
