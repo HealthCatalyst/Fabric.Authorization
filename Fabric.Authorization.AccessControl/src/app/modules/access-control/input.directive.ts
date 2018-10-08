@@ -9,7 +9,7 @@ export class InputDirective {
 
   constructor(el: ElementRef, private renderer: Renderer2) {
     if (this.highlight) {
-      this.renderer.setStyle(el.nativeElement, 'color', 'green');
+      this.renderer.setStyle(el.nativeElement, 'color', 'red');
       }
   }
 }

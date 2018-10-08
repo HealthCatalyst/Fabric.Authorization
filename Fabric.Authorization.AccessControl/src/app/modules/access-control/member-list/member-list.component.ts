@@ -34,7 +34,7 @@ export class MemberListComponent implements OnInit, OnChanges {
   filter = '';
   sortKey: SortKey = 'name';
   sortDirection: SortDirection = 'asc';
-  searchesInProgress = 0;
+  searchesInProgress = 1;
   grain: string = this.configService.grain;
   securableItem: string = this.configService.securableItem;
   @Input() selectedNode: GrainFlatNode;
@@ -116,20 +116,24 @@ export class MemberListComponent implements OnInit, OnChanges {
       filter: this.filter,
       sortKey: this.sortKey,
       sortDirection: this.sortDirection,
-
       grain: this.grain,
       securableItem: this.securableItem
     };
+
+    if (this.pageNumber == null) {
+      this.pageNumber = 1;
+    }
+
     searchRequest.grain = this.grain;
     searchRequest.securableItem = this.securableItem;
 
-    this.searchesInProgress++;
+    this.searchesInProgress = 1;
     return this.memberSearchService
       .searchMembers(searchRequest)
       .subscribe(response => {
         this.totalMembers = response.totalCount;
         this.members = response.results;
-        this.searchesInProgress--;
+        this.searchesInProgress = 0;
       });
   }
 
