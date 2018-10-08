@@ -390,7 +390,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             Assert.Equal(HttpStatusCode.OK, post.StatusCode);
 
-            var subjectId = "bob.smith";
+            var subjectId = "bob.smith" + Guid.NewGuid();
             var idP = "Windows";
 
             // add user to group
@@ -451,7 +451,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var roleName = "Administrator" + Guid.NewGuid();
             var permissionNames = new[] { "viewpatients" + Guid.NewGuid(), "editpatients" + Guid.NewGuid(), "adminpatients" + Guid.NewGuid(), "deletepatients" + Guid.NewGuid() };
 
-            const string subjectId = "first.last";
+            string subjectId = "first.last" + Guid.NewGuid();
             const string identityProvider = "Windows";
 
             // add custom group

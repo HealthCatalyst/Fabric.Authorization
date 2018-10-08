@@ -442,7 +442,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.OK, postResponse.StatusCode);
 
             // add user to parent group
-            var subjectId = "bob.smith";
+            var subjectId = "bob.smith" + Guid.NewGuid();
             var idP = "Windows";
 
             var userGroupResponse = await _browser.Post($"/groups/{parentGroup.GroupName}/users", with =>
