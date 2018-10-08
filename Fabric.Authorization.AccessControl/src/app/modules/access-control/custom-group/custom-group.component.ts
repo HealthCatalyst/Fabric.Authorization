@@ -515,4 +515,12 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
         .takeUntil(this.ngUnsubscribe)
         .subscribe();
   }
+
+  getGroupNameToDisplay(customGroup: IGroup): string {
+    if (customGroup.displayName !== '' && customGroup.displayName !== null && customGroup.displayName !== undefined) {
+      return customGroup.displayName;
+    }
+
+    return customGroup.groupName;
+  }
 }

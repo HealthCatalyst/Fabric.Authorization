@@ -165,4 +165,91 @@ describe('CustomGroupComponent', () => {
       expect(component.groupNameError).toMatch(`Could not create group named "${mockGroupsResponse[0].groupName}"\.*`);
     });
   });
+
+  describe('getGroupNameToDisplay', () => {
+
+    it('should return the display name if exist', () => {
+      // Arrange
+      const displayName = 'displayName';
+      const group = {
+        displayName: displayName,
+        groupName: 'groupName',
+        id: '1',
+        roles: null,
+        users: null,
+        groupSource: '',
+        description: '',
+        children: null,
+        parents: null
+      };
+      // Act
+      const result = component.getGroupNameToDisplay(group);
+
+      // Assert
+      expect(result).toBe(displayName);
+    });
+
+    it('should return the group name if exist and display name is null', () => {
+      // Arrange
+      const groupName = 'groupName';
+      const group = {
+        displayName: null,
+        groupName: groupName,
+        id: '1',
+        roles: null,
+        users: null,
+        groupSource: '',
+        description: '',
+        children: null,
+        parents: null
+      };
+      // Act
+      const result = component.getGroupNameToDisplay(group);
+
+      // Assert
+      expect(result).toBe(groupName);
+    });
+
+    it('should return the group name if exist and display name is undefined', () => {
+      // Arrange
+      const groupName = 'groupName';
+      const group = {
+        displayName: undefined,
+        groupName: groupName,
+        id: '1',
+        roles: null,
+        users: null,
+        groupSource: '',
+        description: '',
+        children: null,
+        parents: null
+      };
+      // Act
+      const result = component.getGroupNameToDisplay(group);
+
+      // Assert
+      expect(result).toBe(groupName);
+    });
+
+    it('should return the group name if exist and display name is empty string', () => {
+      // Arrange
+      const groupName = '';
+      const group = {
+        displayName: undefined,
+        groupName: groupName,
+        id: '1',
+        roles: null,
+        users: null,
+        groupSource: '',
+        description: '',
+        children: null,
+        parents: null
+      };
+      // Act
+      const result = component.getGroupNameToDisplay(group);
+
+      // Assert
+      expect(result).toBe(groupName);
+    });
+  });
 });
