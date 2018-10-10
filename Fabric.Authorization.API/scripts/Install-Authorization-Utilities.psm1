@@ -754,7 +754,15 @@ function Get-AuthorizationDatabaseConnectionString
     return @{DbName = $authorizationDbName; DbConnectionString = $authorizationDbConnStr}
 }
 
-function Get-IdentityServiceUrl([string]$identityServiceUrl, [string] $installConfigPath, [bool]$quiet){
+function Get-IdentityServiceUrl
+{
+    param(
+        [string]$identityServiceUrl,
+        [Parameter(Mandatory=$true)]
+        [string] $installConfigPath,
+        [Parameter(Mandatory=$true)]
+        [bool]$quiet
+    )
     $defaultIdentityUrl = Get-DefaultIdentityServiceUrl -identityServiceUrl $identityServiceUrl
     if(!$quiet){
         $userEnteredIdentityServiceUrl = Read-Host "Press Enter to accept the default DiscoveryService URL [$defaultIdentityUrl] or enter a new URL"
@@ -766,7 +774,17 @@ function Get-IdentityServiceUrl([string]$identityServiceUrl, [string] $installCo
     return $defaultIdentityUrl
 }
 
-function Register-AuthorizationWithDiscovery([string] $iisUserName, [string] $metadataConnStr, [string] $version, [string] $authorizationServiceUrl){
+function Register-AuthorizationWithDiscovery{
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $iisUserName,
+        [Parameter(Mandatory=$true)]
+        [string] $metadataConnStr,
+        [Parameter(Mandatory=$true)]
+        [string] $version,
+        [Parameter(Mandatory=$true)]
+        [string] $authorizationServiceUrl
+    )
     Add-ServiceUserToDiscovery $iisUserName $metadataConnStr
     $serviceUrl = "$authorizationServiceUrl/v1"
     $discoveryPostBody = @{
