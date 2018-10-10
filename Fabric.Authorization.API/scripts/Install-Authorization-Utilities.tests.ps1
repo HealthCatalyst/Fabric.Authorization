@@ -805,6 +805,7 @@ Describe 'Get-AuthorizationDatabaseConnectionString Tests' -Tag 'Unit'{
                 # Arrange
                 Mock Invoke-Sql {}
                 Mock Add-InstallationSetting {}
+                Mock Read-Host {}
                 $authorizationDbName = "Authorization"
                 $sqlServerAddress = "localhost"
                 $expectedSqlServerAddress = "Server=$($sqlServerAddress);Database=$($authorizationDbName);Trusted_Connection=True;MultipleActiveResultSets=True;"
@@ -817,6 +818,7 @@ Describe 'Get-AuthorizationDatabaseConnectionString Tests' -Tag 'Unit'{
                 $authorizationDatabase.DbName | Should -Be $authorizationDbName
                 Assert-MockCalled Invoke-Sql -Times 1
                 Assert-MockCalled Add-InstallationSetting -Times 1
+                Assert-MockCalled Read-Host -Times 0
             }
         }
         Context 'Interactive Mode'{
@@ -838,6 +840,7 @@ Describe 'Get-AuthorizationDatabaseConnectionString Tests' -Tag 'Unit'{
                 $authorizationDatabase.DbName | Should -Be $userEnteredAuthorizationDbName
                 Assert-MockCalled Invoke-Sql -Times 1
                 Assert-MockCalled Add-InstallationSetting -Times 1
+                Assert-MockCalled Read-Host -Times 1
             }
             It 'Should prompt for database name and use default value if no value is entered'{
                 # Arrange
@@ -857,7 +860,133 @@ Describe 'Get-AuthorizationDatabaseConnectionString Tests' -Tag 'Unit'{
                 $authorizationDatabase.DbName | Should -Be $storedAuthorizationDbName
                 Assert-MockCalled Invoke-Sql -Times 1
                 Assert-MockCalled Add-InstallationSetting -Times 1
+                Assert-MockCalled Read-Host -Times 1
             }
+        }
+    }
+}
+
+Describe 'Get-IdentityServiceUrl tests' -Tag 'Unit'{
+    InModuleScope Install-Authorization-Utilities{
+        Context 'Quiet mode with no default'{
+            It 'Should not prompt for Identity URL, and returns default URL when none is provided'{
+                # Arrange
+                $defaultIdentityServiceUrl = "https://host.domain.local/identity"
+                Mock Get-DefaultIdentityServiceUrl { $defaultIdentityServiceUrl }
+                Mock Add-InstallationSetting {}
+                Mock Read-Host {}
+
+                # Act
+                $identityServiceUrl = Get-IdentityServiceUrl -identityServiceUrl "" -installConfigPath "install.config" -quiet $true
+
+                # Assert
+                $identityServiceUrl | Should -Be $defaultIdentityServiceUrl
+                Assert-MockCalled Add-InstallationSetting -Times 1
+                Assert-MockCalled Read-Host -Times 0
+            }
+        }
+        Context 'Quiet mode with default'{
+            It 'Should not prompt for Identity URL, and returns stored URL when passed in'{
+                # Arrange
+                $storedIdentityServiceUrl = "https://host.domain.local/identity2"
+                Mock Add-InstallationSetting {}
+                Mock Read-Host {}
+
+                # Act
+                $identityServiceUrl = Get-IdentityServiceUrl -identityServiceUrl $storedIdentityServiceUrl -installConfigPath "install.config" -quiet $true
+
+                # Assert
+                $identityServiceUrl | Should -Be $storedIdentityServiceUrl
+                Assert-MockCalled Add-InstallationSetting -Times 1
+                Assert-MockCalled Read-Host -Times 0
+            }
+        }
+        Context 'Interactive mode with no default'{
+            It 'Should prompt for Identity URL, and return user entered URL'{
+                # Arrange
+                $defaultIdentityServiceUrl = "https://host.domain.local/identity"
+                $userEnteredIdentityServiceUrl = "https://host.domain.local/identity2"
+                Mock Get-DefaultIdentityServiceUrl { $defaultIdentityServiceUrl }
+                Mock Add-InstallationSetting {}
+                Mock Read-Host { return $userEnteredIdentityServiceUrl }
+
+                # Act
+                $identityServiceUrl = Get-IdentityServiceUrl -identityServiceUrl "" -installConfigPath "install.config" -quiet $false
+
+                # Assert
+                $identityServiceUrl | Should -Be $userEnteredIdentityServiceUrl
+                Assert-MockCalled Add-InstallationSetting -Times 1
+                Assert-MockCalled Read-Host -Times 1
+            }
+        }
+        Context 'Interactive mode with no default'{
+            It 'Should prompt for Identity URL, and return deafult URL when user does not enter a url'{
+                # Arrange
+                $defaultIdentityServiceUrl = "https://host.domain.local/identity"
+                $userEnteredIdentityServiceUrl = ""
+                Mock Get-DefaultIdentityServiceUrl { $defaultIdentityServiceUrl }
+                Mock Add-InstallationSetting {}
+                Mock Read-Host { return $userEnteredIdentityServiceUrl }
+
+                # Act
+                $identityServiceUrl = Get-IdentityServiceUrl -identityServiceUrl "" -installConfigPath "install.config" -quiet $false
+
+                # Assert
+                $identityServiceUrl | Should -Be $defaultIdentityServiceUrl
+                Assert-MockCalled Add-InstallationSetting -Times 1
+                Assert-MockCalled Read-Host -Times 1
+            }
+        }
+    }
+}
+Describe 'Register-AuthorizationWithDiscovery tests' -Tag 'Unit'{
+    InModuleScope Install-Authorization-Utilities{
+        It 'Should register with Discovery'{
+            # Arrange
+            Mock Add-ServiceUserToDiscovery {}
+            Mock Add-DiscoveryRegistrationSql {}
+            $iisUserName = "domain\service.user"
+            $metadataConnStr = "localhost"
+
+            # Act
+            Register-AuthorizationWithDiscovery -iisUserName $iisUserName -metadataConnStr $metadataConnStr -version "1.1.1.1" -authorizationServiceUrl "https://host.domain.local/authorization"
+
+            # Assert
+            Assert-MockCalled Add-ServiceUserToDiscovery -ParameterFilter { $userName -eq $iisUserName -and $connString -eq $metadataConnStr } -Times 1
+            Assert-MockCalled Add-DiscoveryRegistrationSql -Times 1 -ParameterFilter {$discoveryPostBody.buildVersion -eq "1.1.1.1" -and `
+                                                                                      $discoveryPostBody.serviceName -eq "AuthorizationService" -and `
+                                                                                      $discoveryPostBody.serviceVersion -eq 1 -and `
+                                                                                      $discoveryPostBody.friendlyName -eq "Fabric.Authorization" -and `
+                                                                                      $discoveryPostBody.description -eq "The Fabric.Authorization service provides centralized authentication across the Fabric ecosystem." -and `
+                                                                                      $discoveryPostBody.serviceUrl -eq "https://host.domain.local/authorization/v1" -and `
+                                                                                      $discoveryPostBody.discoveryType -eq "Service"}
+        }
+    }
+}
+
+Describe 'Register-AccessControlWithDiscovery tests' -Tag 'Unit'{
+    InModuleScope Install-Authorization-Utilities{
+        It 'Should register with Discovery'{
+            # Arrange
+            Mock Add-ServiceUserToDiscovery {}
+            Mock Add-DiscoveryRegistrationSql {}
+            $iisUserName = "domain\service.user"
+            $metadataConnStr = "localhost"
+
+            # Act
+            Register-AccessControlWithDiscovery -iisUserName $iisUserName -metadataConnStr $metadataConnStr -version "1.1.1.1" -authorizationServiceUrl "https://host.domain.local/authorization"
+
+            # Assert
+            Assert-MockCalled Add-ServiceUserToDiscovery -ParameterFilter { $userName -eq $iisUserName -and $connString -eq $metadataConnStr } -Times 1
+            Assert-MockCalled Add-DiscoveryRegistrationSql -Times 1 -ParameterFilter {$discoveryPostBody.buildVersion -eq "1.1.1.1" -and `
+                                                                                      $discoveryPostBody.serviceName -eq "AccessControl" -and `
+                                                                                      $discoveryPostBody.serviceVersion -eq 1 -and `
+                                                                                      $discoveryPostBody.friendlyName -eq "Access Control" -and `
+                                                                                      $discoveryPostBody.description -eq "Fabric Access Control provides a UI to manage permissions across DOS." -and `
+                                                                                      $discoveryPostBody.serviceUrl -eq "https://host.domain.local/authorization" -and `
+                                                                                      $discoveryPostBody.discoveryType -eq "Application" -and `
+                                                                                      $discoveryPostBody.isHidden -eq $false -and `
+                                                                                      $discoveryPostBody.iconTxt -ne $null}
         }
     }
 }
