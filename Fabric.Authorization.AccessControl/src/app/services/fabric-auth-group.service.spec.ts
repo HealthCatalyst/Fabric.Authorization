@@ -96,7 +96,7 @@ describe('FabricAuthGroupService', () => {
             .catch(error => {
               expect(Observable.of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
-              expect(error.message).toBe('"Group not found"');
+              expect(error.message).toBe('Group not found');
               return Observable.of(error);
             })
             .subscribe();
@@ -106,7 +106,7 @@ describe('FabricAuthGroupService', () => {
           );
 
           expect(req.request.method).toBe('GET');
-          req.flush('Group not found', {status: 404, statusText: 'Group not found'});
+          req.flush('{"message": "Group not found"}', {status: 404, statusText: 'Group not found'});
           httpTestingController.verify();
         }
       )
@@ -160,7 +160,7 @@ describe('FabricAuthGroupService', () => {
             .catch(error => {
               expect(Observable.of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
-              expect(error.message).toBe('"Group not found"');
+              expect(error.message).toBe('Group not found');
               return Observable.of(error);
             })
             .subscribe();
@@ -169,7 +169,7 @@ describe('FabricAuthGroupService', () => {
             `${FabricAuthGroupService.baseGroupApiUrl}/${encodeURI(groupName)}/users`
           );
           expect(req.request.method).toBe('POST');
-          req.flush('Group not found', { status: 404, statusText: 'Group not found' });
+          req.flush('{"message": "Group not found"}', { status: 404, statusText: 'Group not found' });
           httpTestingController.verify();
         }
       )
@@ -227,7 +227,7 @@ describe('FabricAuthGroupService', () => {
             .catch(error => {
               expect(Observable.of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
-              expect(error.message).toBe('"Group not found"');
+              expect(error.message).toBe('Group not found');
               return Observable.of(error);
             })
             .subscribe();
@@ -236,7 +236,7 @@ describe('FabricAuthGroupService', () => {
             `${FabricAuthGroupService.baseGroupApiUrl}/${encodeURI(groupName)}/users`
           );
           expect(req.request.method).toBe('DELETE');
-          req.flush('Group not found', { status: 404, statusText: 'Group not found' });
+          req.flush('{"message": "Group not found"}', { status: 404, statusText: 'Group not found' });
           httpTestingController.verify();
         }
       )
@@ -283,7 +283,7 @@ describe('FabricAuthGroupService', () => {
             .catch(error => {
               expect(Observable.of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
-              expect(error.message).toBe('"Group not found"');
+              expect(error.message).toBe('Group not found');
               return Observable.of(error);
             })
             .subscribe();
@@ -292,7 +292,7 @@ describe('FabricAuthGroupService', () => {
             `${FabricAuthGroupService.baseGroupApiUrl}/${encodeURI(groupName)}/${encodeURI(grain)}/${encodeURI(securableItem)}/roles`
           );
           expect(req.request.method).toBe('GET');
-          req.flush('Group not found', { status: 404, statusText: 'Group not found' });
+          req.flush('{"message": "Group not found"}', { status: 404, statusText: 'Group not found' });
           httpTestingController.verify();
         }
       )
@@ -339,7 +339,7 @@ describe('FabricAuthGroupService', () => {
             .catch(error => {
               expect(Observable.of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
-              expect(error.message).toBe('"Group not found"');
+              expect(error.message).toBe('Group not found');
               return Observable.of(error);
             })
             .subscribe();
@@ -348,7 +348,7 @@ describe('FabricAuthGroupService', () => {
             `${FabricAuthGroupService.baseGroupApiUrl}/${encodeURI(groupName)}/roles`
           );
           expect(req.request.method).toBe('POST');
-          req.flush('Group not found', { status: 404, statusText: 'Group not found' });
+          req.flush('{"message": "Group not found"}', { status: 404, statusText: 'Group not found' });
           httpTestingController.verify();
         }
       )
@@ -418,7 +418,7 @@ describe('FabricAuthGroupService', () => {
             .catch(error => {
               expect(Observable.of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
-              expect(error.message).toBe('"Group not found"');
+              expect(error.message).toBe('Group not found');
               return Observable.of(error);
             })
             .subscribe();
@@ -427,7 +427,7 @@ describe('FabricAuthGroupService', () => {
             `${FabricAuthGroupService.baseGroupApiUrl}/${encodeURI(groupName)}/roles`
           );
           expect(req.request.method).toBe('DELETE');
-          req.flush('Group not found', { status: 404, statusText: 'Group not found' });
+          req.flush('{"message": "Group not found"}', { status: 404, statusText: 'Group not found' });
           httpTestingController.verify();
         }
       )
