@@ -1,15 +1,18 @@
-import { Directive, ElementRef, Renderer2, Input } from '@angular/core';
+import { Directive, ElementRef, Renderer2, Input, OnChanges } from '@angular/core';
 
 @Directive({
   selector: '[highlight]'
 })
-export class InputDirective {
+export class InputDirective implements OnChanges {
 
   @Input() highlight: boolean;
 
-  constructor(el: ElementRef, private renderer: Renderer2) {
-    if (this.highlight) {
-      this.renderer.setStyle(el.nativeElement, 'color', 'red');
-      }
+  constructor(private el: ElementRef, private renderer: Renderer2) { }
+
+  ngOnChanges() {
+    if (this.highlight == true) {
+      this.renderer.setStyle(this.el.nativeElement, 'border', '1.5px solid red');
+    }
   }
+
 }

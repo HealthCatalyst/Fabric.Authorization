@@ -30,11 +30,11 @@ export class MemberListComponent implements OnInit, OnChanges {
 
   pageSize = 10;
   members: IAuthMemberSearchResult[];
-  totalMembers = null;
+  totalMembers = 10;
   filter = '';
   sortKey: SortKey = 'name';
   sortDirection: SortDirection = 'asc';
-  searchesInProgress = 1;
+  searchesInProgress = 0;
   grain: string = this.configService.grain;
   securableItem: string = this.configService.securableItem;
   @Input() selectedNode: GrainFlatNode;
@@ -67,6 +67,7 @@ export class MemberListComponent implements OnInit, OnChanges {
   ngOnChanges() {
     if (this.selectedNode && this.selectedNode.parentName && this.selectedNode.name) {
       console.log('Changed securableItem to Grain: ' + this.selectedNode.parentName + ', SecurableItem: ' + this.selectedNode.name);
+
       this.getMembers();
     }
   }
@@ -119,21 +120,17 @@ export class MemberListComponent implements OnInit, OnChanges {
       grain: this.grain,
       securableItem: this.securableItem
     };
-
-    if (this.pageNumber == null) {
-      this.pageNumber = 1;
-    }
-
+    
     searchRequest.grain = this.grain;
     searchRequest.securableItem = this.securableItem;
 
-    this.searchesInProgress = 1;
+    this.searchesInProgress++;
     return this.memberSearchService
       .searchMembers(searchRequest)
       .subscribe(response => {
         this.totalMembers = response.totalCount;
         this.members = response.results;
-        this.searchesInProgress = 0;
+        this.searchesInProgress--;
       });
   }
 
