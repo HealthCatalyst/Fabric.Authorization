@@ -606,3 +606,258 @@ Describe 'Remove-DosAdminRole' -Tag 'Unit'{
         }
     }
 }
+
+Describe 'Test-FabricRegistrationStepAlreadyComplete' -Tag 'Unit'{
+    InModuleScope Install-Authorization-Utilities{
+        It 'Returns true when dosadmin Role and DataMartAdmin Role exist'{
+            # Arrange
+            Mock Get-Role -ParameterFilter {$name -eq "DataMartAdmin"} { return "DataMartAdmin" }
+            Mock Get-Role -ParameterFilter {$name -eq "dosadmin"} { return "dosadmin" }
+
+            # Act
+            $result = Test-FabricRegistrationStepAlreadyComplete -authUrl "http://host.domain.local/authorization" -accessToken "12345"
+
+            # Assert
+            $result | Should -Be $true
+        }
+        It 'Returns false when dosadmin Role does not exist'{
+            # Arrange
+            Mock Get-Role -ParameterFilter {$name -eq "DataMartAdmin"} { return "DataMartAdmin" }
+            Mock Get-Role -ParameterFilter {$name -eq "dosadmin"} { return $null }
+
+            # Act
+            $result = Test-FabricRegistrationStepAlreadyComplete -authUrl "http://host.domain.local/authorization" -accessToken "12345"
+
+            # Assert
+            $result | Should -Be $false
+        }
+        It 'Returns false when DataMartAdmin role does not exist'{
+            # Arrange
+            Mock Get-Role -ParameterFilter {$name -eq "DataMartAdmin"} { return $null }
+            Mock Get-Role -ParameterFilter {$name -eq "dosadmin"} { return "dosadmin" }
+
+            # Act
+            $result = Test-FabricRegistrationStepAlreadyComplete -authUrl "http://host.domain.local/authorization" -accessToken "12345"
+
+            # Assert
+            $result | Should -Be $false
+        }
+        It 'Returns false when DataMartAdmin and dosadmin roles do not exist'{
+            # Arrange
+            Mock Get-Role -ParameterFilter {$name -eq "DataMartAdmin"} { return $null }
+            Mock Get-Role -ParameterFilter {$name -eq "dosadmin"} { return $null }
+
+            # Act
+            $result = Test-FabricRegistrationStepAlreadyComplete -authUrl "http://host.domain.local/authorization" -accessToken "12345"
+
+            # Assert
+            $result | Should -Be $false
+        }
+        It 'Throws exception when Get-Role throws an exception'{
+            # Arrange
+            Mock Get-Role -ParameterFilter {$name -eq "DataMartAdmin"} { return $null }
+            Mock Get-Role -ParameterFilter {$name -eq "dosadmin"} { throw "bad stuff happened" }
+
+            # Act
+            {Test-FabricRegistrationStepAlreadyComplete -authUrl "http://host.domain.local/authorization" -accessToken "12345" } | Should -Throw
+        }
+    }
+}
+
+Describe 'Get-CurrentUserDomain tests' -Tag 'Unit'{
+    InModuleScope Install-Authorization-Utilities{
+        Context 'Quiet mode'{
+            It 'Should not prompt for domain in quiet mode'{
+                # Arrange
+                $expectedCurrentDomain = $env:USERDNSDOMAIN
+                Mock Read-Host {}
+
+                # Act
+                $currentDomain = Get-CurrentUserDomain -quiet $true
+
+                # Assert
+                Assert-MockCalled Read-Host -Times 0
+                $currentDomain | Should -Be $expectedCurrentDomain
+            }
+        }
+        Context 'Interactive mode'{
+            It 'Should prompt for domain in interactive mode and return user entered domain'{
+                # Arrange
+                $expectedCurrentDomain = "domain.local"
+                Mock Read-Host { $expectedCurrentDomain }
+
+                # Act
+                $currentDomain = Get-CurrentUserDomain -quiet $false
+
+                # Assert
+                Assert-MockCalled Read-Host -Times 1
+                $currentDomain | Should -Be $expectedCurrentDomain
+            }
+            It 'Should prompt for domain in interactive mode and return default domain'{
+                # Arrange
+                $expectedCurrentDomain = $env:USERDNSDOMAIN
+                Mock Read-Host { "" }
+
+                # Act
+                $currentDomain = Get-CurrentUserDomain -quiet $false
+
+                # Assert
+                Assert-MockCalled Read-Host -Times 1
+                $currentDomain | Should -Be $expectedCurrentDomain
+            }
+        }
+    }
+}
+
+Describe 'Get-DefaultIdentityServiceUrl' -Tag 'Unit'{
+    InModuleScope Install-Authorization-Utilities{
+        It 'Should return the passed in URL'{
+            # Arrange
+            $expectedIdentityUrl = "http://host.domain.local/identity"
+
+            # Act
+            $identityUrl = Get-DefaultIdentityServiceUrl -identityServiceUrl $expectedIdentityUrl
+
+            # Assert
+            $identityUrl | Should -Be $expectedIdentityUrl
+        }
+        It 'Should return the constructed URL'{
+            # Arrange
+            $expectedMachineHostName = "http://host.domain.local"
+            $expectedIdentityUrl = "$expectedMachineHostName/identity"
+            Mock Get-FullyQualifiedMachineName { return $expectedMachineHostName}
+
+            # Act
+            $identityUrl = Get-DefaultIdentityServiceUrl -identityServiceUrl $null
+
+            # Assert
+            $identityUrl | Should -Be $expectedIdentityUrl
+        }
+    }
+}
+
+Describe 'Install-UrlRewriteIfNeeded' -Tag 'Unit'{
+    InModuleScope Install-Authorization-Utilities{
+        Context 'url rewrite does not exist'{
+            It 'Installs url rewrite if minimum version is not present'{
+                # Arrange
+                Mock Test-Prerequisite { return $false}
+                Mock Invoke-WebRequest {}
+                Mock Start-Process {}
+                Mock Remove-Item {}
+
+                # Act
+                Install-UrlRewriteIfNeeded -version "1.1.1.1" -downloadUrl "http://host.domain.local/url-rewrite.msi"
+
+                # Assert
+                Assert-MockCalled Invoke-WebRequest -Times 1
+                Assert-MockCalled Start-Process -Times 1
+            }
+            It 'Throws an exception when Start-Process fails'{
+                # Arrange
+                Mock Test-Prerequisite { return $false}
+                Mock Invoke-WebRequest {}
+                Mock Start-Process {throw "bad stuff happened"}
+                Mock Remove-Item {}
+
+                # Act
+                {Install-UrlRewriteIfNeeded -version "1.1.1.1" -downloadUrl "http://host.domain.local/url-rewrite.msi"} | Should -Throw
+            }
+            It 'Should warn when we cannot clean up the install files, but not throw an error'{
+                # Arrange
+                Mock Test-Prerequisite { return $false}
+                Mock Invoke-WebRequest {}
+                Mock Start-Process {}
+                Mock Remove-Item { throw "bad stuff happened"}
+                Mock Write-DosMessage {}
+
+                # Act
+                {Install-UrlRewriteIfNeeded -version "1.1.1.1" -downloadUrl "http://host.domain.local/url-rewrite.msi"} | Should -Not -Throw
+
+                # Assert
+                Assert-MockCalled Write-DosMessage -ParameterFilter {$Level -eq "Warning"} -Times 2
+            }
+        }
+        Context 'Url rewrite exists'{
+            It 'Does not install url rewrite if minimum version is present'{
+                # Arrange
+                Mock Test-Prerequisite { return $true}
+                Mock Invoke-WebRequest {}
+                Mock Start-Process {}
+                Mock Write-DosMessage {}
+
+                # Act
+                Install-UrlRewriteIfNeeded -version "1.1.1.1" -downloadUrl "http://host.domain.local/url-rewrite.msi"
+
+                # Assert
+                Assert-MockCalled Invoke-WebRequest -Times 0
+                Assert-MockCalled Start-Process -Times 0
+                Assert-MockCalled Write-DosMessage -Times 1
+            }
+        }
+    }
+}
+
+Describe 'Get-AuthorizationDatabaseConnectionString Tests' -Tag 'Unit'{
+    InModuleScope Install-Authorization-Utilities{
+        Context 'Quiet Mode'{
+            It 'Should not prompt for the database name'{
+                # Arrange
+                Mock Invoke-Sql {}
+                Mock Add-InstallationSetting {}
+                $authorizationDbName = "Authorization"
+                $sqlServerAddress = "localhost"
+                $expectedSqlServerAddress = "Server=$($sqlServerAddress);Database=$($authorizationDbName);Trusted_Connection=True;MultipleActiveResultSets=True;"
+
+                # Act
+                $authorizationDatabase = Get-AuthorizationDatabaseConnectionString -authorizationDbName $authorizationDbName -sqlServerAddress $sqlServerAddress -installConfigPath "install.config" -quiet $true
+
+                # Assert
+                $authorizationDatabase.DbConnectionString | Should -Be $expectedSqlServerAddress
+                $authorizationDatabase.DbName | Should -Be $authorizationDbName
+                Assert-MockCalled Invoke-Sql -Times 1
+                Assert-MockCalled Add-InstallationSetting -Times 1
+            }
+        }
+        Context 'Interactive Mode'{
+            It 'Should prompt for database name and use entered value'{
+                # Arrange
+                Mock Invoke-Sql {}
+                Mock Add-InstallationSetting {}
+                $storedAuthorizationDbName = "Authorization"
+                $userEnteredAuthorizationDbName = "Authorization2"
+                $sqlServerAddress = "localhost"
+                $expectedSqlServerAddress = "Server=$($sqlServerAddress);Database=$($userEnteredAuthorizationDbName);Trusted_Connection=True;MultipleActiveResultSets=True;"
+                Mock Read-Host { return $userEnteredAuthorizationDbName }
+
+                # Act
+                $authorizationDatabase = Get-AuthorizationDatabaseConnectionString -authorizationDbName $storedAuthorizationDbName -sqlServerAddress $sqlServerAddress -installConfigPath "install.config" -quiet $false
+
+                # Assert
+                $authorizationDatabase.DbConnectionString | Should -Be $expectedSqlServerAddress
+                $authorizationDatabase.DbName | Should -Be $userEnteredAuthorizationDbName
+                Assert-MockCalled Invoke-Sql -Times 1
+                Assert-MockCalled Add-InstallationSetting -Times 1
+            }
+            It 'Should prompt for database name and use default value if no value is entered'{
+                # Arrange
+                Mock Invoke-Sql {}
+                Mock Add-InstallationSetting {}
+                $storedAuthorizationDbName = "Authorization"
+                $userEnteredAuthorizationDbName = ""
+                $sqlServerAddress = "localhost"
+                $expectedSqlServerAddress = "Server=$($sqlServerAddress);Database=$($storedAuthorizationDbName);Trusted_Connection=True;MultipleActiveResultSets=True;"
+                Mock Read-Host { return $userEnteredAuthorizationDbName }
+
+                # Act
+                $authorizationDatabase = Get-AuthorizationDatabaseConnectionString -authorizationDbName $storedAuthorizationDbName -sqlServerAddress $sqlServerAddress -installConfigPath "install.config" -quiet $false
+
+                # Assert
+                $authorizationDatabase.DbConnectionString | Should -Be $expectedSqlServerAddress
+                $authorizationDatabase.DbName | Should -Be $storedAuthorizationDbName
+                Assert-MockCalled Invoke-Sql -Times 1
+                Assert-MockCalled Add-InstallationSetting -Times 1
+            }
+        }
+    }
+}

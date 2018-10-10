@@ -595,8 +595,14 @@ function Remove-DosAdminRole
     }
 }
 
-function Test-FabricRegistrationStepAlreadyComplete($authUrl, $accessToken)
+function Test-FabricRegistrationStepAlreadyComplete()
 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $authUrl,
+        [Parameter(Mandatory=$true)]
+        [string] $accessToken
+    )
     try{
         $dataMartAdminRole = Get-Role -name $dataMartAdminRole -grain $dosGrain -securableItem $dataMartsSecurable -authorizationServiceUrl $authUrl -accessToken $accessToken
         $dosAdminRole = Get-Role -name $dosAdminRole -grain $dosGrain -securableItem $dataMartsSecurable -authorizationServiceUrl $authUrl -accessToken $accessToken
@@ -615,7 +621,12 @@ function Test-FabricRegistrationStepAlreadyComplete($authUrl, $accessToken)
     }      
 }
 
-function Get-EdwAdminUsersAndGroups($connectionString) {	
+function Get-EdwAdminUsersAndGroups
+{	
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $connectionString
+    )
     $connection = New-Object System.Data.SqlClient.SqlConnection($connectionString)	
     $sql = "SELECT i.IdentityID, i.IdentityNM, r.RoleNM	
             FROM [CatalystAdmin].[RoleBASE] r	
@@ -643,8 +654,12 @@ function Get-EdwAdminUsersAndGroups($connectionString) {
     return $usersAndGroups;	
 }
 
-function Get-CurrentUserDomain([bool] $quiet)
+function Get-CurrentUserDomain
 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [bool] $quiet
+    )
     $currentUserDomain = $env:userdnsdomain
     if(!$quiet){
         $userEnteredDomain = Read-Host "Press Enter to accept the default domain '$($currentUserDomain)' that the user/group who will administrate dos is a member or enter a new domain" 
@@ -655,10 +670,13 @@ function Get-CurrentUserDomain([bool] $quiet)
     return $currentUserDomain
 }
 
-function Get-DefaultIdentityServiceUrl([string] $identityServiceUrl)
+function Get-DefaultIdentityServiceUrl
 {
+    param(
+        [string] $identityServiceUrl
+    )
     if([string]::IsNullOrEmpty($identityServiceUrl)){
-        return "$(Get-FullyQualifiedMachineName)/$identity"
+        return "$(Get-FullyQualifiedMachineName)/identity"
     }else{
         return $identityServiceUrl
     }
@@ -678,7 +696,14 @@ function Assert-WebExceptionType
     }
 }
 
-function Install-UrlRewriteIfNeeded([string] $version, [string] $downloadUrl){
+function Install-UrlRewriteIfNeeded
+{
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $version,
+        [Parameter(Mandatory=$true)]
+        [string] $downloadUrl
+    )
     if(!(Test-Prerequisite "*IIS URL Rewrite Module 2" $version))
     {    
         try{
@@ -703,7 +728,18 @@ function Install-UrlRewriteIfNeeded([string] $version, [string] $downloadUrl){
     }
 }
 
-function Get-AuthorizationDatabaseConnectionString([string] $authorizationDbName, [string] $sqlServerAddress, [string] $installConfigPath, [bool] $quiet){
+function Get-AuthorizationDatabaseConnectionString
+{
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $authorizationDbName,
+        [Parameter(Mandatory=$true)]
+        [string] $sqlServerAddress,
+        [Parameter(Mandatory=$true)]
+        [string] $installConfigPath,
+        [Parameter(Mandatory=$true)]
+        [bool] $quiet
+    )
     if(!$quiet){
         $userEnteredAuthorizationDbName = Read-Host "Press Enter to accept the default Authorization DB Name '$($authorizationDbName)' or enter a new Authorization DB Name"
         if(![string]::IsNullOrEmpty($userEnteredAuthorizationDbName)){
