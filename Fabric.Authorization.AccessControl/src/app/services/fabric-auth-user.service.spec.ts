@@ -1,3 +1,5 @@
+import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import {
   HttpClient,
   HTTP_INTERCEPTORS
@@ -7,8 +9,6 @@ import {
   HttpTestingController
 } from '@angular/common/http/testing';
 import { TestBed, inject, async } from '@angular/core/testing';
-import { Observable } from 'rxjs/Observable';
-import 'rxjs/add/observable/of';
 
 import { FabricHttpErrorHandlerInterceptorService } from './interceptors/fabric-http-error-handler-interceptor.service';
 import { mockGroupsResponse, mockRolesResponse, mockUserResponse } from './fabric-auth-user.service.mock';
@@ -80,13 +80,13 @@ describe('FabricAuthUserService', () => {
           service: FabricAuthUserService
         ) => {
           service
-            .getUserGroups(idP, subjectId)
-            .catch(error => {
-              expect(Observable.of(error)).toBeTruthy();
+            .getUserGroups(idP, subjectId).pipe(
+            catchError(error => {
+              expect(of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
               expect(error.message).toBe('"User not found"');
-              return Observable.of(error);
-            })
+              return of(error);
+            }))
             .subscribe();
 
           const req = httpTestingController.expectOne(
@@ -140,13 +140,13 @@ describe('FabricAuthUserService', () => {
           service: FabricAuthUserService
         ) => {
           service
-            .getUserRoles(idP, subjectId)
-            .catch(error => {
-              expect(Observable.of(error)).toBeTruthy();
+            .getUserRoles(idP, subjectId).pipe(
+            catchError(error => {
+              expect(of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
               expect(error.message).toBe('"User not found"');
-              return Observable.of(error);
-            })
+              return of(error);
+            }))
             .subscribe();
 
           const req = httpTestingController.expectOne(
@@ -206,13 +206,13 @@ describe('FabricAuthUserService', () => {
           service: FabricAuthUserService
         ) => {
           service
-            .addRolesToUser(idP, subjectId, mockRolesResponse)
-            .catch(error => {
-              expect(Observable.of(error)).toBeTruthy();
+            .addRolesToUser(idP, subjectId, mockRolesResponse).pipe(
+            catchError(error => {
+              expect(of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
               expect(error.message).toBe('"User not found"');
-              return Observable.of(error);
-            })
+              return of(error);
+            }))
             .subscribe();
 
           const req = httpTestingController.expectOne(
@@ -286,13 +286,13 @@ describe('FabricAuthUserService', () => {
           service: FabricAuthUserService
         ) => {
           service
-            .removeRolesFromUser(idP, subjectId, mockRolesResponse)
-            .catch(error => {
-              expect(Observable.of(error)).toBeTruthy();
+            .removeRolesFromUser(idP, subjectId, mockRolesResponse).pipe(
+            catchError(error => {
+              expect(of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
               expect(error.message).toBe('"User not found"');
-              return Observable.of(error);
-            })
+              return of(error);
+            }))
             .subscribe();
 
           const req = httpTestingController.expectOne(

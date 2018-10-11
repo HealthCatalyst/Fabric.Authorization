@@ -1,3 +1,5 @@
+import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import {
   HttpClient,
   HTTP_INTERCEPTORS
@@ -7,9 +9,6 @@ import {
   HttpTestingController
 } from '@angular/common/http/testing';
 import { TestBed, inject, async } from '@angular/core/testing';
-import { Observable } from 'rxjs/Observable';
-import 'rxjs/add/observable/of';
-import 'rxjs/add/observable/throw';
 
 import { FabricHttpErrorHandlerInterceptorService } from './interceptors/fabric-http-error-handler-interceptor.service';
 import { mockUsersResponse, mockGroupResponse, mockRolesResponse } from './fabric-auth-group.service.mock';
@@ -92,13 +91,13 @@ describe('FabricAuthGroupService', () => {
           service: FabricAuthGroupService
         ) => {
           service
-            .getGroupUsers(groupName)
-            .catch(error => {
-              expect(Observable.of(error)).toBeTruthy();
+            .getGroupUsers(groupName).pipe(
+            catchError(error => {
+              expect(of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
               expect(error.message).toBe('"Group not found"');
-              return Observable.of(error);
-            })
+              return of(error);
+            }))
             .subscribe();
 
           const req = httpTestingController.expectOne(
@@ -156,13 +155,13 @@ describe('FabricAuthGroupService', () => {
           service: FabricAuthGroupService
         ) => {
           service
-            .addUsersToCustomGroup(groupName, mockUsersResponse)
-            .catch(error => {
-              expect(Observable.of(error)).toBeTruthy();
+            .addUsersToCustomGroup(groupName, mockUsersResponse).pipe(
+            catchError(error => {
+              expect(of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
               expect(error.message).toBe('"Group not found"');
-              return Observable.of(error);
-            })
+              return of(error);
+            }))
             .subscribe();
 
           const req = httpTestingController.expectOne(
@@ -223,13 +222,13 @@ describe('FabricAuthGroupService', () => {
           service: FabricAuthGroupService
         ) => {
           service
-            .removeUserFromCustomGroup(groupName, null)
-            .catch(error => {
-              expect(Observable.of(error)).toBeTruthy();
+            .removeUserFromCustomGroup(groupName, null).pipe(
+            catchError(error => {
+              expect(of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
               expect(error.message).toBe('"Group not found"');
-              return Observable.of(error);
-            })
+              return of(error);
+            }))
             .subscribe();
 
           const req = httpTestingController.expectOne(
@@ -279,13 +278,13 @@ describe('FabricAuthGroupService', () => {
           service: FabricAuthGroupService
         ) => {
           service
-            .getGroupRoles(groupName, grain, securableItem)
-            .catch(error => {
-              expect(Observable.of(error)).toBeTruthy();
+            .getGroupRoles(groupName, grain, securableItem).pipe(
+            catchError(error => {
+              expect(of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
               expect(error.message).toBe('"Group not found"');
-              return Observable.of(error);
-            })
+              return of(error);
+            }))
             .subscribe();
 
           const req = httpTestingController.expectOne(
@@ -335,13 +334,13 @@ describe('FabricAuthGroupService', () => {
           service: FabricAuthGroupService
         ) => {
           service
-            .addRolesToGroup(groupName, mockRolesResponse)
-            .catch(error => {
-              expect(Observable.of(error)).toBeTruthy();
+            .addRolesToGroup(groupName, mockRolesResponse).pipe(
+            catchError(error => {
+              expect(of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
               expect(error.message).toBe('"Group not found"');
-              return Observable.of(error);
-            })
+              return of(error);
+            }))
             .subscribe();
 
           const req = httpTestingController.expectOne(
@@ -414,13 +413,13 @@ describe('FabricAuthGroupService', () => {
           service: FabricAuthGroupService
         ) => {
           service
-            .removeRolesFromGroup(groupName, mockRolesResponse)
-            .catch(error => {
-              expect(Observable.of(error)).toBeTruthy();
+            .removeRolesFromGroup(groupName, mockRolesResponse).pipe(
+            catchError(error => {
+              expect(of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
               expect(error.message).toBe('"Group not found"');
-              return Observable.of(error);
-            })
+              return of(error);
+            }))
             .subscribe();
 
           const req = httpTestingController.expectOne(

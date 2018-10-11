@@ -1,3 +1,4 @@
+import { Observable, of } from 'rxjs';
 import { async, ComponentFixture, TestBed, inject } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
@@ -8,7 +9,6 @@ import { GrainListComponent, GrainFlatNode, GrainNode } from './grain-list.compo
 import { IGrain } from '../../../models/grain.model';
 import { ISecurableItem } from '../../../models/securableItem.model';
 import { MemberListComponent } from '../member-list/member-list.component';
-import { Observable } from 'rxjs/Observable';
 
 import { FabricAuthGrainServiceMock, mockGrains } from '../../../services/fabric-auth-grain.service.mock';
 import { FabricAuthGrainService } from '../../../services/fabric-auth-grain.service';
@@ -42,12 +42,12 @@ describe('GrainListComponent', () => {
   }));
 
   beforeEach(inject([FabricAuthGrainService], (grainService: FabricAuthGrainServiceMock) => {
-    grainService.getAllGrains.and.returnValue((Observable.of(mockGrains)));
+    grainService.getAllGrains.and.returnValue((of(mockGrains)));
     grainService.isGrainVisible.and.returnValue(true);
   }));
 
   beforeEach(inject([FabricAuthMemberSearchService], (memberSearchService: FabricAuthMemberSearchServiceMock) => {
-    memberSearchService.searchMembers.and.returnValue(Observable.of(mockAuthSearchResult));
+    memberSearchService.searchMembers.and.returnValue(of(mockAuthSearchResult));
     testGrains = mockGrains;
     testSecurableItems = [
       { id: 'datamarts', name: 'datamarts', grain: 'dos', securableItems: null, clientOwner: '', createdBy: '', modifiedBy: '' }
