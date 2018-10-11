@@ -34,7 +34,21 @@ namespace Fabric.Authorization.API.Configuration
 
             var appConfig = new AppConfiguration();
             ConfigurationBinder.Bind(config, appConfig);
+            DecryptEncryptedValues(appConfig);
             return appConfig;
+        }
+
+        private void DecryptEncryptedValues(IAppConfiguration appConfiguration)
+        {
+            if (appConfiguration.IdentityServerConfidentialClientSettings != null)
+            {
+                if (IsEncrypted(appConfiguration.IdentityServerConfidentialClientSettings.ClientSecret))
+                {
+                    appConfiguration.IdentityServerConfidentialClientSettings.ClientSecret =
+                        DecryptString(appConfiguration.IdentityServerConfidentialClientSettings.ClientSecret,
+                            appConfiguration);
+                }
+            }
         }
 
         private static bool IsEncrypted(string value)
