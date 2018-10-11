@@ -1,4 +1,4 @@
-import { Observable, of } from 'rxjs';
+import { of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import {
   HttpClient,
@@ -95,7 +95,7 @@ describe('FabricAuthGroupService', () => {
             catchError(error => {
               expect(of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
-              expect(error.message).toBe('"Group not found"');
+              expect(error.message).toBe('Group not found');
               return of(error);
             }))
             .subscribe();
@@ -159,7 +159,7 @@ describe('FabricAuthGroupService', () => {
             catchError(error => {
               expect(of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
-              expect(error.message).toBe('"Group not found"');
+              expect(error.message).toBe('Group not found');
               return of(error);
             }))
             .subscribe();
@@ -226,7 +226,7 @@ describe('FabricAuthGroupService', () => {
             catchError(error => {
               expect(of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
-              expect(error.message).toBe('"Group not found"');
+              expect(error.message).toBe('Group not found');
               return of(error);
             }))
             .subscribe();
@@ -282,7 +282,7 @@ describe('FabricAuthGroupService', () => {
             catchError(error => {
               expect(of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
-              expect(error.message).toBe('"Group not found"');
+              expect(error.message).toBe('Group not found');
               return of(error);
             }))
             .subscribe();
@@ -338,7 +338,7 @@ describe('FabricAuthGroupService', () => {
             catchError(error => {
               expect(of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
-              expect(error.message).toBe('"Group not found"');
+              expect(error.message).toBe('Group not found');
               return of(error);
             }))
             .subscribe();
@@ -417,7 +417,7 @@ describe('FabricAuthGroupService', () => {
             catchError(error => {
               expect(of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
-              expect(error.message).toBe('"Group not found"');
+              expect(error.message).toBe('Group not found');
               return of(error);
             }))
             .subscribe();

@@ -1,4 +1,4 @@
-import { Observable, of } from 'rxjs';
+import { of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import {
   HttpClient,
@@ -84,7 +84,7 @@ describe('FabricAuthUserService', () => {
             catchError(error => {
               expect(of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
-              expect(error.message).toBe('"User not found"');
+              expect(error.message).toBe('User not found');
               return of(error);
             }))
             .subscribe();
@@ -144,7 +144,7 @@ describe('FabricAuthUserService', () => {
             catchError(error => {
               expect(of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
-              expect(error.message).toBe('"User not found"');
+              expect(error.message).toBe('User not found');
               return of(error);
             }))
             .subscribe();
@@ -210,7 +210,7 @@ describe('FabricAuthUserService', () => {
             catchError(error => {
               expect(of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
-              expect(error.message).toBe('"User not found"');
+              expect(error.message).toBe('User not found');
               return of(error);
             }))
             .subscribe();
@@ -290,7 +290,7 @@ describe('FabricAuthUserService', () => {
             catchError(error => {
               expect(of(error)).toBeTruthy();
               expect(error.statusCode).toBe(404);
-              expect(error.message).toBe('"User not found"');
+              expect(error.message).toBe('User not found');
               return of(error);
             }))
             .subscribe();

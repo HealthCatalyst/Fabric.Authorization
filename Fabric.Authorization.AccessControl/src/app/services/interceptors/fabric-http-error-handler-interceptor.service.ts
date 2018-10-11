@@ -39,7 +39,7 @@ export class FabricHttpErrorHandlerInterceptorService {
         }
 
         return observableThrowError(
-          new Exception(response.status, JSON.stringify(response.error))
+          new Exception(response.status, response.error.message || JSON.stringify(response.error))
         );
     }));
   }
