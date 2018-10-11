@@ -99,6 +99,11 @@ namespace Fabric.Authorization.API.Services
                         continue;
                     }
 
+                    userSearchResponse.DisplayName =
+                        string.IsNullOrWhiteSpace(user.FirstName) && string.IsNullOrWhiteSpace(user.LastName)
+                            ? user.SubjectId
+                            : $"{user.FirstName} {user.LastName}";
+
                     userSearchResponse.FirstName = user.FirstName;
                     userSearchResponse.MiddleName = user.MiddleName;
                     userSearchResponse.LastName = user.LastName;
