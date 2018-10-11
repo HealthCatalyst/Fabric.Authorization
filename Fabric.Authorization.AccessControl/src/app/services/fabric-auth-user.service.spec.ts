@@ -97,7 +97,7 @@ describe('FabricAuthUserService', () => {
             )
           );
           expect(req.request.method).toBe('GET');
-          req.flush('User not found', { status: 404, statusText: 'User not found' });
+          req.flush({message: 'User not found'}, { status: 404, statusText: 'User not found' });
           httpTestingController.verify();
         }
       )
@@ -157,7 +157,7 @@ describe('FabricAuthUserService', () => {
             )
           );
           expect(req.request.method).toBe('GET');
-          req.flush('User not found', { status: 404, statusText: 'User not found' });
+          req.flush({message: 'User not found'}, { status: 404, statusText: 'User not found' });
           httpTestingController.verify();
         }
       )
@@ -223,7 +223,7 @@ describe('FabricAuthUserService', () => {
             )
           );
           expect(req.request.method).toBe('POST');
-          req.flush('User not found', { status: 404, statusText: 'User not found' });
+          req.flush({message: 'User not found'}, { status: 404, statusText: 'User not found' });
           httpTestingController.verify();
         }
       )
@@ -303,7 +303,7 @@ describe('FabricAuthUserService', () => {
             )
           );
           expect(req.request.method).toBe('DELETE');
-          req.flush('User not found', { status: 404, statusText: 'User not found' });
+          req.flush({message: 'User not found'}, { status: 404, statusText: 'User not found' });
           httpTestingController.verify();
         }
       )
