@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, Inject } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
+import { Observable, of } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
 import { FabricBaseService } from './fabric-base.service';
 import { IAccessControlConfigService } from './access-control-config.service';
@@ -34,12 +35,12 @@ export class FabricAuthGrainService extends FabricBaseService {
     const currentTimeStamp = new Date().getTime();
     if (this.lastUpdateTimestamp === 0 || (Math.abs(currentTimeStamp - this.lastUpdateTimestamp) / 60000) > 2) {
       this.lastUpdateTimestamp = currentTimeStamp;
-      return this.httpClient.get<Array<IGrain>>(FabricAuthGrainService.baseUrl).do(g => {
+      return this.httpClient.get<Array<IGrain>>(FabricAuthGrainService.baseUrl).pipe(tap(g => {
         this.grains = g;
-      });
+      }));
     }
 
-    return Observable.of(this.grains);
+    return of(this.grains);
   }
 
   public isGrainVisible(): boolean {

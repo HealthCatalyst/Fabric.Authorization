@@ -1,7 +1,9 @@
+
+import {debounceTime, map, distinctUntilChanged, filter} from 'rxjs/operators';
 import { Component, OnInit, ViewChild, TemplateRef, Inject, Input, OnChanges } from '@angular/core';
-import { Subject } from 'rxjs/Subject';
-import 'rxjs/add/operator/debounceTime';
-import 'rxjs/add/operator/distinctUntilChanged';
+import { Subject } from 'rxjs';
+
+
 import { Router } from '@angular/router';
 import { ModalService } from '@healthcatalyst/cashmere';
 import { IAuthMemberSearchResult } from '../../../models/authMemberSearchResult.model';
@@ -28,11 +30,11 @@ export class MemberListComponent implements OnInit, OnChanges {
 
   pageSize = 10;
   members: IAuthMemberSearchResult[];
-  totalMembers = null;
+  totalMembers = 10;
   filter = '';
   sortKey: SortKey = 'name';
   sortDirection: SortDirection = 'asc';
-  searchesInProgress = 0;
+  searchesInProgress = 1;
   grain: string = this.configService.grain;
   securableItem: string = this.configService.securableItem;
   @Input() selectedNode: GrainFlatNode;
@@ -49,10 +51,10 @@ export class MemberListComponent implements OnInit, OnChanges {
     private router: Router,
     private modalService: ModalService
   ) {
-    this.keyUp
-      .debounceTime(500)
-      .map(value => this.filter)
-      .distinctUntilChanged()
+    this.keyUp.pipe(
+      debounceTime(500),
+      map(value => this.filter),
+      distinctUntilChanged())
       .subscribe(() => {
         this.onSearchChanged();
       });
@@ -65,6 +67,7 @@ export class MemberListComponent implements OnInit, OnChanges {
   ngOnChanges() {
     if (this.selectedNode && this.selectedNode.parentName && this.selectedNode.name) {
       console.log('Changed securableItem to Grain: ' + this.selectedNode.parentName + ', SecurableItem: ' + this.selectedNode.name);
+
       this.getMembers();
     }
   }
@@ -114,20 +117,20 @@ export class MemberListComponent implements OnInit, OnChanges {
       filter: this.filter,
       sortKey: this.sortKey,
       sortDirection: this.sortDirection,
-
       grain: this.grain,
       securableItem: this.securableItem
     };
+    
     searchRequest.grain = this.grain;
     searchRequest.securableItem = this.securableItem;
 
-    this.searchesInProgress++;
+    this.searchesInProgress = 1;
     return this.memberSearchService
       .searchMembers(searchRequest)
       .subscribe(response => {
         this.totalMembers = response.totalCount;
         this.members = response.results;
-        this.searchesInProgress--;
+        this.searchesInProgress = 0;
       });
   }
 
@@ -136,8 +139,8 @@ export class MemberListComponent implements OnInit, OnChanges {
       data: {member: member, grain: this.grain, securableItem: this.securableItem},
       size: 'md'
     })
-      .result
-      .filter(r => !!r)
+      .result.pipe(
+      filter(r => !!r))
       .subscribe(r => this.doRemoveRoles(member));
   }
 

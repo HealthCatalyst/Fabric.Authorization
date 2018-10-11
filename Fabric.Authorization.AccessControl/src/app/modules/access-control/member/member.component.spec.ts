@@ -1,3 +1,4 @@
+import { Observable, of } from 'rxjs';
 import { async, ComponentFixture, TestBed, inject } from '@angular/core/testing';
 
 import { ToastrModule } from 'ngx-toastr';
@@ -16,7 +17,6 @@ import { FormsModule } from '@angular/forms';
 import { FabricExternalIdpSearchServiceMock, mockExternalIdpSearchResult } from '../../../services/fabric-external-idp-search.service.mock';
 import { ServicesMockModule } from '../services.mock.module';
 import { FabricAuthRoleServiceMock, mockRoles } from '../../../services/fabric-auth-role.service.mock';
-import { Observable } from 'rxjs/Observable';
 import { FabricAuthRoleService } from '../../../services/fabric-auth-role.service';
 import { FabricExternalIdpSearchService } from '../../../services/fabric-external-idp-search.service';
 import { CurrentUserServiceMock, mockCurrentUserPermissions } from '../../../services/current-user.service.mock';
@@ -55,10 +55,10 @@ describe('MemberAddComponent', () => {
       idpSearch: FabricExternalIdpSearchServiceMock,
       userService: FabricAuthUserServiceMock,
       currentUserServiceMock: CurrentUserServiceMock) => {
-        roleService.getRolesBySecurableItemAndGrain.and.returnValue(Observable.of(mockRoles));
-        idpSearch.search.and.returnValue(Observable.of(mockExternalIdpSearchResult));
-        userService.getCurrentUserPermissions.and.returnValue(Observable.of(mockUserPermissionResponse));
-        currentUserServiceMock.getPermissions.and.returnValue(Observable.of(mockCurrentUserPermissions));
+        roleService.getRolesBySecurableItemAndGrain.and.returnValue(of(mockRoles));
+        idpSearch.search.and.returnValue(of(mockExternalIdpSearchResult));
+        userService.getCurrentUserPermissions.and.returnValue(of(mockUserPermissionResponse));
+        currentUserServiceMock.getPermissions.and.returnValue(of(mockCurrentUserPermissions));
   }));
 
   beforeEach(() => {

@@ -1,12 +1,14 @@
+
+import {throwError as observableThrowError,  Observable } from 'rxjs';
+
+import {catchError, map,  tap } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { Response } from '@angular/http';
 import { HttpClient } from '@angular/common/http';
 import { UserManager, User, Log } from 'oidc-client';
-import { Observable } from 'rxjs/Observable';
-import 'rxjs/add/operator/catch';
-import 'rxjs/add/operator/map';
+
+
 import { ServicesService } from './services.service';
-import { tap } from 'rxjs/operators';
 
 export interface IAuthService {
   userManager: UserManager;
@@ -129,18 +131,18 @@ export class AuthService implements IAuthService {
   private handleError(error: Response | any) {
     Log.error('Error Response:');
     Log.error(error.message || error);
-    return Observable.throw(error.message || error);
+    return observableThrowError(error.message || error);
   }
 
   get<T>(resource: string): Promise<T> {
     return this.getAccessToken().then(token => {
       const requestUrl = this.authority + '/' + resource;
       return this.httpClient
-        .get(requestUrl)
-        .map((res: Response) => {
+        .get(requestUrl).pipe(
+        map((res: Response) => {
           return res.json();
-        })
-        .catch(error => this.handleError(error))
+        }),
+        catchError(error => this.handleError(error)),)
         .toPromise<T>();
     });
   }

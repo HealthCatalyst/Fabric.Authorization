@@ -4,13 +4,27 @@ $fa-font-path: '../node_modules/font-awesome/fonts';
 $FontPathOpenSans: "../node_modules/typeface-open-sans/files";
 @import '../node_modules/typeface-open-sans/index.css';
 
-@import "~@healthcatalyst/cashmere/cashmere";
+@import "~@healthcatalyst/cashmere/scss/cashmere";
 
 @import '~ngx-toastr/toastr.css';
 
 /////////// #TODO: Fix Cashmere in IE
 input.hc-input, div.input-icon {
   height: 35px !important;
+}
+.hc-input{
+  color: #333;
+  font-size: 1rem;
+  line-height: 32px;
+  border: 1.5px solid #ccc;
+  font-family: inherit;
+  padding: 0 12px;
+  }
+hc-icon.filter {
+  color: #a1a1a1;
+  position: relative;
+  right: 35px;
+  pointer-events: none;
 }
 .hc-inner-button, .hc-left-button, .hc-right-button {
   min-width: 15px !important;
@@ -19,7 +33,6 @@ input.hc-input, div.input-icon {
   z-index: 20000;
 }
 /////////// #endtodo
-
 body {
   font-family: "Open Sans", sans-serif;
   margin: 0;

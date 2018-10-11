@@ -3,8 +3,8 @@
     <hc-modal-header>Confirm</hc-modal-header>
     <hc-modal-body>Are you sure you want to remove all {{data.grain}}/{{data.securableItem}} roles from {{data.member.subjectId}}?</hc-modal-body>
     <hc-modal-footer>
-      <button hc-button color="tertiary" (click)="dismiss()"> Cancel </button>
-      <button hc-button color="primary" (click)="close(data)"> OK </button>
+      <button hc-button buttonStyle="secondary" (click)="dismiss()"> Cancel </button>
+      <button hc-button buttonStyle="primary" (click)="close(data)"> OK </button>
       </hc-modal-footer>
   </hc-modal>
 </ng-template>
@@ -31,8 +31,8 @@
     </hc-popover-content>
 
     <div hcInputIcon>
-      <input hc-input name="filter" placeholder="filter" [(ngModel)]="filter" (keyup)="keyUp.next($event)" />
-      <hc-icon fontSet="fa" fontIcon="fa-filter"></hc-icon>
+      <input hc-input class="hc-input" name="filter" placeholder="filter" [(ngModel)]="filter" (keyup)="keyUp.next($event)" />
+      <hc-icon class="filter" fontSet="fa" fontIcon="fa-filter"></hc-icon>
     </div>
   </div>
 

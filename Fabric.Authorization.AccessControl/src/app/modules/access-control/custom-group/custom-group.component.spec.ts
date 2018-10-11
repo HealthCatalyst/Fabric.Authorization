@@ -1,3 +1,4 @@
+import { Subject ,  Observable, of, throwError as observableThrowError } from 'rxjs';
 import { async, ComponentFixture, TestBed, inject } from '@angular/core/testing';
 
 import { ToastrModule } from 'ngx-toastr';
@@ -10,7 +11,6 @@ import { FabricAuthRoleService } from '../../../services/fabric-auth-role.servic
 import { FabricExternalIdpSearchService } from '../../../services/fabric-external-idp-search.service';
 import { FabricAuthRoleServiceMock } from '../../../services/fabric-auth-role.service.mock';
 import { FabricAuthGroupServiceMock, mockUsersResponse, mockGroupsResponse } from '../../../services/fabric-auth-group.service.mock';
-import { Observable } from 'rxjs/Observable';
 import { mockRolesResponse, FabricAuthUserServiceMock, mockUserPermissionResponse } from '../../../services/fabric-auth-user.service.mock';
 import {
   ButtonModule,
@@ -21,9 +21,9 @@ import {
   CheckboxModule,
   ProgressIndicatorsModule
 } from '@healthcatalyst/cashmere';
+import { InputDirective } from '../input.directive'
 import { FabricExternalIdpSearchServiceMock, mockExternalIdpSearchResult } from '../../../services/fabric-external-idp-search.service.mock';
 import { IdPSearchResult } from '../../../models/idpSearchResult.model';
-import { Subject } from 'rxjs/Subject';
 import { CurrentUserServiceMock, mockCurrentUserPermissions } from '../../../services/current-user.service.mock';
 import { FabricAuthUserService } from '../../../services/fabric-auth-user.service';
 import { CurrentUserService } from '../../../services/current-user.service';
@@ -38,7 +38,7 @@ describe('CustomGroupComponent', () => {
   beforeEach(
     async(() => {
       TestBed.configureTestingModule({
-        declarations: [CustomGroupComponent],
+        declarations: [CustomGroupComponent, InputDirective],
         imports: [FormsModule,
           ServicesMockModule,
           ButtonModule,
@@ -64,12 +64,12 @@ describe('CustomGroupComponent', () => {
       search: FabricExternalIdpSearchServiceMock,
       userService: FabricAuthUserServiceMock,
       currentUserServiceMock: CurrentUserServiceMock) => {
-      group.getGroupUsers.and.returnValue(Observable.of(mockUsersResponse));
-      group.getGroupRoles.and.returnValue(Observable.of(mockRolesResponse));
-      group.search.and.returnValue(Observable.of(mockGroupsResponse));
+      group.getGroupUsers.and.returnValue(of(mockUsersResponse));
+      group.getGroupRoles.and.returnValue(of(mockRolesResponse));
+      group.search.and.returnValue(of(mockGroupsResponse));
       groupService = group;
 
-      roleService.getRolesBySecurableItemAndGrain.and.returnValue(Observable.of(mockRolesResponse));
+      roleService.getRolesBySecurableItemAndGrain.and.returnValue(of(mockRolesResponse));
       searchService = search;
 
       IdpSearchResultsSubject = new Subject<IdPSearchResult>();
@@ -77,8 +77,8 @@ describe('CustomGroupComponent', () => {
         return IdpSearchResultsSubject;
       });
 
-      userService.getCurrentUserPermissions.and.returnValue(Observable.of(mockUserPermissionResponse));
-      currentUserServiceMock.getPermissions.and.returnValue(Observable.of(mockCurrentUserPermissions));
+      userService.getCurrentUserPermissions.and.returnValue(of(mockUserPermissionResponse));
+      currentUserServiceMock.getPermissions.and.returnValue(of(mockCurrentUserPermissions));
     }));
 
   beforeEach(() => {
@@ -151,7 +151,7 @@ describe('CustomGroupComponent', () => {
       const mockErrorResponse = {
           statusCode: 409
       };
-      groupService.getChildGroups.and.returnValue(Observable.throw(mockErrorResponse));
+      groupService.getChildGroups.and.returnValue(observableThrowError(mockErrorResponse));
       component.editMode = true;
       component.groupName = mockGroupsResponse[0].groupName;
       component.displayName = mockGroupsResponse[0].displayName;

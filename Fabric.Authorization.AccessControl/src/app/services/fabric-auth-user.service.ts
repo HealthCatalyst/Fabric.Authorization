@@ -1,6 +1,8 @@
+
+import {tap} from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { Injectable, Inject } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
+import { Observable, of } from 'rxjs';
 
 import { FabricBaseService } from './fabric-base.service';
 import { IAccessControlConfigService } from './access-control-config.service';
@@ -81,7 +83,7 @@ export class FabricAuthUserService extends FabricBaseService {
     roles: IRole[]
   ): Observable<IUser> {
     if (!roles || roles.length === 0) {
-      return Observable.of(undefined);
+      return of(undefined);
     }
 
     const url = this.replaceUserIdSegment(
@@ -92,9 +94,9 @@ export class FabricAuthUserService extends FabricBaseService {
     return this.httpClient.post<IUser>(
       url,
       roles
-    ).do((user) => {
+    ).pipe(tap((user) => {
       this.sendUserRoleDataChanges(roles, subjectId, 'added');
-    });
+    }));
   }
 
   private sendUserRoleDataChanges(roles: IRole[], subjectId: string, action: string) {
@@ -116,7 +118,7 @@ export class FabricAuthUserService extends FabricBaseService {
     roles: IRole[]
   ): Observable<IUser> {
     if (!roles || roles.length === 0) {
-      return Observable.of(undefined);
+      return of(undefined);
     }
 
     return this.httpClient.request<IUser>(
@@ -127,9 +129,9 @@ export class FabricAuthUserService extends FabricBaseService {
         subjectId
       ),
       { body: roles }
-    ).do((user) => {
+    ).pipe(tap((user) => {
       this.sendUserRoleDataChanges(roles, subjectId, 'removed');
-    });
+    }));
   }
 
   public createUser(user: IUser): Observable<IUser> {

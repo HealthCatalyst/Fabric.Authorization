@@ -1,15 +1,15 @@
+
+import {zip as observableZip, throwError as observableThrowError,  Subject ,  Subscription ,  Observable, of } from 'rxjs';
+
+import { tap, takeUntil, mergeMap, catchError, debounceTime, filter, distinctUntilChanged} from 'rxjs/operators';
 import { Component, OnInit, OnDestroy, Inject } from '@angular/core';
 
-import { Subject } from 'rxjs/Subject';
-import { Subscription } from 'rxjs/Subscription';
-import { Observable } from 'rxjs/Observable';
-import 'rxjs/add/operator/do';
-import 'rxjs/add/operator/takeUntil';
-import 'rxjs/add/operator/catch';
-import 'rxjs/add/observable/throw';
-import 'rxjs/add/observable/zip';
-import 'rxjs/add/operator/mergeMap';
-import 'rxjs/add/operator/distinctUntilChanged';
+
+
+
+
+
+
 
 import { Router, ActivatedRoute } from '@angular/router';
 
@@ -98,21 +98,21 @@ export class MemberComponent implements OnInit, OnDestroy {
       .getRolesBySecurableItemAndGrain(
         this.grain,
         this.securableItem
-      )
-      .takeUntil(this.ngUnsubscribe)
-      .mergeMap((roles: IRole[]) => {
+      ).pipe(
+      takeUntil(this.ngUnsubscribe),
+      mergeMap((roles: IRole[]) => {
         this.roles = roles.map(role => <IRole>role);
         return this.bindExistingRoles(this.selectedPrincipal);
-      })
+      }),)
       .subscribe();
 
     // Search text
-    this.searchTextSubject
-      .takeUntil(this.ngUnsubscribe)
-      .filter((term) => !this.editMode)
-      .distinctUntilChanged()
-      .debounceTime(500)
-      .do((term) => {
+    this.searchTextSubject.pipe(
+      takeUntil(this.ngUnsubscribe),
+      filter((term) => !this.editMode),
+      distinctUntilChanged(),
+      debounceTime(500),
+      tap((term) => {
         if (this.selectedPrincipal && term !== this.selectedPrincipal.subjectId) {
           this.selectedPrincipal = null;
         }
@@ -125,13 +125,13 @@ export class MemberComponent implements OnInit, OnDestroy {
           this.searching = false;
           this.principals = [];
         }
-      }).subscribe();
+      })).subscribe();
 
     // User / Group IDP search
     this.idpSearchService
-      .search(this.searchTextSubject, null)
-      .takeUntil(this.ngUnsubscribe)
-      .filter((term) => !this.editMode)
+      .search(this.searchTextSubject, null).pipe(
+      takeUntil(this.ngUnsubscribe),
+      filter((term) => !this.editMode))
       .subscribe(result => {
         this.searching = false;
         this.principals =
@@ -186,11 +186,11 @@ export class MemberComponent implements OnInit, OnDestroy {
       .getUser(
         this.configService.identityProvider,
         subjectId
-      )
-      .mergeMap((userResult: IUser) => {
-        return Observable.of(userResult);
-      })
-      .catch(err => {
+      ).pipe(
+      mergeMap((userResult: IUser) => {
+        return of(userResult);
+      }),
+      catchError(err => {
         if (err.statusCode === 404) {
           this.savingInProgress = false;
           return this
@@ -198,16 +198,16 @@ export class MemberComponent implements OnInit, OnDestroy {
             .createUser(user);
         }
 
-        return Observable.throw(err.message);
-      })
-      .mergeMap((newUser: IUser) => {
+        return observableThrowError(err.message);
+      }),
+      mergeMap((newUser: IUser) => {
         return this.userService.getUserRoles(user.identityProvider, user.subjectId);
-      })
-      .mergeMap((userRoles: IRole[]) => {
+      }),
+      mergeMap((userRoles: IRole[]) => {
         const filteredUserRoles = userRoles.filter(role => role.grain === this.grain && role.securableItem === this.securableItem);
         const rolesToAdd = selectedRoles.filter(userRole => !filteredUserRoles.some(selectedRole => userRole.id === selectedRole.id));
         const rolesToDelete = filteredUserRoles.filter(userRole => !selectedRoles.some(selectedRole => userRole.id === selectedRole.id));
-        return Observable.zip(
+        return observableZip(
           this.userService
             .addRolesToUser(
               user.identityProvider,
@@ -229,21 +229,21 @@ export class MemberComponent implements OnInit, OnDestroy {
                 this.alertService.showSyncWarning(err.message);
               });
             });
-      })
-      .catch(err => {
+      }),
+      catchError(err => {
         this.alertService.showSaveError(err.message);
-        return Observable.throw(err.message);
-      });
+        return observableThrowError(err.message);
+      }),);
   }
 
   private saveGroup(subjectId: string, selectedRoles: IRole[]): Observable<any> {
     const group: IGroup = { groupName: subjectId, groupSource: '' };
     return this.groupService
-      .getGroup(group.groupName)
-      .mergeMap((groupResult: IGroup) => {
-        return Observable.of(groupResult);
-      })
-      .catch(err => {
+      .getGroup(group.groupName).pipe(
+      mergeMap((groupResult: IGroup) => {
+        return of(groupResult);
+      }),
+      catchError(err => {
         if (err.statusCode === 404) {
           this.savingInProgress = false;
           return this
@@ -251,17 +251,17 @@ export class MemberComponent implements OnInit, OnDestroy {
             .createGroup(group);
         }
 
-        return Observable.throw(err.message);
-      })
-      .mergeMap((newGroup: IGroup) => {
+        return observableThrowError(err.message);
+      }),
+      mergeMap((newGroup: IGroup) => {
         return this.groupService.getGroupRoles(group.groupName,
           this.grain,
           this.securableItem);
-      })
-      .mergeMap((groupRoles: IRole[]) => {
+      }),
+      mergeMap((groupRoles: IRole[]) => {
         const rolesToAdd = selectedRoles.filter(userRole => !groupRoles.some(selectedRole => userRole.id === selectedRole.id));
         const rolesToDelete = groupRoles.filter(userRole => !selectedRoles.some(selectedRole => userRole.id === selectedRole.id));
-        return Observable.zip(
+        return observableZip(
           this.groupService.addRolesToGroup(group.groupName, rolesToAdd),
           this.groupService.removeRolesFromGroup(group.groupName, rolesToDelete))
           .toPromise()
@@ -274,29 +274,29 @@ export class MemberComponent implements OnInit, OnDestroy {
               this.alertService.showSyncWarning(err.message);
             });
           });
-      })
-      .catch(err => {
+      }),
+      catchError(err => {
         this.savingInProgress = false;
         this.alertService.showSaveError(err.message);
-        return Observable.throw(err.message);
-      });
+        return observableThrowError(err.message);
+      }),);
   }
 
   private bindExistingRoles(principal: IFabricPrincipal): Observable<any> {
     if (!principal || !principal.subjectId) {
-        return Observable.of(undefined);
+        return of(undefined);
     }
     const roleObservable: Observable<any> =
         principal.principalType === 'user'
             ? this.userService.getUserRoles(this.configService.identityProvider, principal.subjectId)
             : this.groupService.getGroupRoles(principal.subjectId, this.grain, this.securableItem);
 
-    return roleObservable.do((existingRoles: IRole[]) => {
+    return roleObservable.pipe(tap((existingRoles: IRole[]) => {
         if (!existingRoles) {
             this.roles.map(role => (role.selected = false));
         } else {
             this.roles.map(role => (role.selected = existingRoles.some(userRole => userRole.id === role.id)));
         }
-    });
+    }));
   }
 }

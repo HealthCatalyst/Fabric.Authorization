@@ -1,3 +1,4 @@
+import { Observable, of } from 'rxjs';
 import { async, ComponentFixture, TestBed, inject } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -6,7 +7,6 @@ import { MemberListComponent } from './member-list.component';
 import { ServicesMockModule } from '../services.mock.module';
 import { PopoverModule, IconModule, ProgressIndicatorsModule, SelectModule, ModalModule, PaginationModule } from '@healthcatalyst/cashmere';
 import { FabricAuthMemberSearchServiceMock, mockAuthSearchResult } from '../../../services/fabric-auth-member-search.service.mock';
-import { Observable } from 'rxjs/Observable';
 import { FormsModule } from '@angular/forms';
 import { FabricAuthMemberSearchService } from '../../../services/fabric-auth-member-search.service';
 import { IAuthMemberSearchResult } from '../../../models/authMemberSearchResult.model';
@@ -35,7 +35,7 @@ describe('MemberListComponent', () => {
   );
 
   beforeEach(inject([FabricAuthMemberSearchService], (memberSearchService: FabricAuthMemberSearchServiceMock) => {
-    memberSearchService.searchMembers.and.returnValue(Observable.of(mockAuthSearchResult));
+    memberSearchService.searchMembers.and.returnValue(of(mockAuthSearchResult));
   }));
 
   beforeEach(() => {

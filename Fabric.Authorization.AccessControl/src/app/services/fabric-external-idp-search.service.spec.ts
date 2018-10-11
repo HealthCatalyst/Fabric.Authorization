@@ -1,3 +1,4 @@
+import { Subject } from 'rxjs';
 import {
   HttpClient,
   HTTP_INTERCEPTORS
@@ -10,7 +11,6 @@ import { TestBed, inject, async } from '@angular/core/testing';
 
 import { FabricHttpErrorHandlerInterceptorService } from './interceptors/fabric-http-error-handler-interceptor.service';
 import { mockExternalIdpSearchResult } from './fabric-external-idp-search.service.mock';
-import { Subject } from 'rxjs/Subject';
 import { FabricExternalIdpSearchService } from './fabric-external-idp-search.service';
 import { MockAccessControlConfigService } from './access-control-config.service.mock';
 

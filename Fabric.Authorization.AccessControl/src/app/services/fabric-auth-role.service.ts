@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 
 import { FabricBaseService } from './fabric-base.service';
 import { IAccessControlConfigService } from './access-control-config.service';

@@ -1,6 +1,8 @@
+
+import {distinctUntilChanged, debounceTime, tap, filter, switchMap } from 'rxjs/operators';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, Inject } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
+import { Observable, of } from 'rxjs';
 
 import { FabricBaseService } from './fabric-base.service';
 import { IAccessControlConfigService } from './access-control-config.service';
@@ -58,7 +60,7 @@ export class FabricAuthGroupService extends FabricBaseService {
     users: IUser[]
   ): Observable<IGroup> {
     if (!users || users.length === 0) {
-      return Observable.of(undefined);
+      return of(undefined);
     }
 
     return this.httpClient.post<IGroup>(
@@ -72,9 +74,9 @@ export class FabricAuthGroupService extends FabricBaseService {
           subjectId: u.subjectId
         };
       })
-    ).do((user) => {
+    ).pipe(tap((user) => {
       this.sendGroupUserDataChanges(users, groupName, 'added');
-    });
+    }));
   }
 
   public removeUserFromCustomGroup(
@@ -88,9 +90,9 @@ export class FabricAuthGroupService extends FabricBaseService {
         groupName
       ),
       { body: user }
-    ).do(() => {
+    ).pipe(tap(() => {
       this.sendGroupUserDataChanges([user], groupName, 'removed');
-    });
+    }));
   }
 
   private sendGroupUserDataChanges(users: IUser[], groupName: string, action: string) {
@@ -120,7 +122,7 @@ export class FabricAuthGroupService extends FabricBaseService {
     roles: Array<IRole>
   ): Observable<IGroup> {
     if (!roles || roles.length === 0) {
-      return Observable.of(undefined);
+      return of(undefined);
     }
 
     return this.httpClient.post<IGroup>(
@@ -129,9 +131,9 @@ export class FabricAuthGroupService extends FabricBaseService {
         groupName
       ),
       roles
-    ).do((user) => {
+    ).pipe(tap((user) => {
       this.sendGroupRoleDataChanges(roles, groupName, 'added');
-    });
+    }));
   }
 
   public removeRolesFromGroup(
@@ -139,7 +141,7 @@ export class FabricAuthGroupService extends FabricBaseService {
     roles: IRole[]
   ): Observable<IGroup> {
     if (!roles || roles.length === 0) {
-      return Observable.of(undefined);
+      return of(undefined);
     }
 
     const url = this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName);
@@ -153,9 +155,9 @@ export class FabricAuthGroupService extends FabricBaseService {
           };
         })
       }
-    ).do((user) => {
+    ).pipe(tap((user) => {
       this.sendGroupRoleDataChanges(roles, groupName, 'removed');
-    });
+    }));
   }
 
   private sendGroupRoleDataChanges(roles: IRole[], groupName: string, action: string) {
@@ -186,10 +188,10 @@ export class FabricAuthGroupService extends FabricBaseService {
   }
 
   public search(groupName: Observable<string>): Observable<IGroup[]> {
-    return groupName.debounceTime(250)
-      .distinctUntilChanged()
-      .filter((term: string) =>  term && term.length > 2)
-      .switchMap((term) => {
+    return groupName.pipe(debounceTime(250),
+      distinctUntilChanged(),
+      filter((term: string) =>  term && term.length > 2),
+      switchMap((term) => {
         let params = new HttpParams()
           .set('name', term);
 
@@ -199,7 +201,7 @@ export class FabricAuthGroupService extends FabricBaseService {
           FabricAuthGroupService.baseGroupApiUrl,
           { params }
         );
-      });
+      }));
   }
 
   public getChildGroups(groupName: string): Observable<IGroup[]> {
@@ -216,7 +218,7 @@ export class FabricAuthGroupService extends FabricBaseService {
     childGroups: IGroup[]
   ): Observable<IGroup> {
     if (!childGroups || childGroups.length === 0) {
-      return Observable.of(undefined);
+      return of(undefined);
     }
 
     return this.httpClient.post<IGroup>(

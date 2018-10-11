@@ -1,6 +1,6 @@
+import { Subject } from 'rxjs';
 import { IAccessControlConfigService } from './access-control-config.service';
 import { IDataChangedEventArgs } from '../models/changedDataEventArgs.model';
-import { Subject } from 'rxjs/Subject';
 import { Exception } from '../models/exception.model';
 
 export class MockAccessControlConfigService implements IAccessControlConfigService {

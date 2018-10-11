@@ -1,3 +1,7 @@
+
+import {throwError as observableThrowError,  Observable } from 'rxjs';
+
+import {catchError} from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import {
   HttpInterceptor,
@@ -6,9 +10,8 @@ import {
   HttpEvent,
   HttpErrorResponse
 } from '@angular/common/http';
-import { Observable } from 'rxjs/Observable';
-import 'rxjs/add/observable/throw';
-import 'rxjs/add/operator/catch';
+
+
 import { Exception } from '../../models/exception.model';
 
 @Injectable()
@@ -20,8 +23,8 @@ export class FabricHttpErrorHandlerInterceptorService {
     req: HttpRequest<any>,
     next: HttpHandler
   ): Observable<HttpEvent<any>> {
-    return next.handle(req)
-      .catch((response: HttpErrorResponse) => {
+    return next.handle(req).pipe(
+      catchError((response: HttpErrorResponse) => {
         if (response.error instanceof ErrorEvent) {
           // A client-side or network error occurred. Handle it accordingly.
           console.error('An error occurred:', response.error.message);
@@ -35,9 +38,9 @@ export class FabricHttpErrorHandlerInterceptorService {
           );
         }
 
-        return Observable.throw(
+        return observableThrowError(
           new Exception(response.status, response.error.message || JSON.stringify(response.error))
         );
-    });
+    }));
   }
 }
