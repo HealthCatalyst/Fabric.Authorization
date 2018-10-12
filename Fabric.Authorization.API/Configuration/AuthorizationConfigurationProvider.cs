@@ -61,7 +61,7 @@ namespace Fabric.Authorization.API.Configuration
             var cert = _certificateService.GetCertificate(appConfiguration.EncryptionCertificateSettings);
             var encryptedPasswordAsBytes =
                 Convert.FromBase64String(
-                    encryptedString.TrimStart(EncryptionPrefix.ToCharArray()));
+                    encryptedString.Replace(EncryptionPrefix, string.Empty));
             var decryptedPasswordAsBytes = cert.GetRSAPrivateKey()
                 .Decrypt(encryptedPasswordAsBytes, RSAEncryptionPadding.OaepSHA1);
             return System.Text.Encoding.UTF8.GetString(decryptedPasswordAsBytes);
