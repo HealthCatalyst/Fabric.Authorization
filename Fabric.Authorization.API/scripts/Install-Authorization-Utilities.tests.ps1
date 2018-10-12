@@ -990,3 +990,287 @@ Describe 'Register-AccessControlWithDiscovery tests' -Tag 'Unit'{
         }
     }
 }
+
+Describe 'Add-AuthorizationApiRegistration tests' -Tag 'Unit'{
+    InModuleScope Install-Authorization-Utilities{
+        It 'Should register the API with Identity'{
+            # Arrange
+            $expectedSecret = "some-secret"
+            $identityServiceUrl = "https://host.domain.local/identity"
+            $registrationAccessToken = "12345"
+            Mock Add-ApiRegistration { $expectedSecret }
+            Mock ConvertTo-Json { return $InputObject }
+            
+            # Act
+            $secret = Add-AuthorizationApiRegistration -identityServiceUrl $identityServiceUrl -accessToken $registrationAccessToken
+
+            # Assert
+            $secret | Should -Be $expectedSecret
+            Assert-MockCalled Add-ApiRegistration -Times 1 -ParameterFilter {$authUrl -eq $identityServiceUrl -and `
+                                                                             $accessToken -eq $registrationAccessToken -and `
+                                                                             $body.Name -eq "authorization-api" -and `
+                                                                             $body.UserClaims.Count -eq 4 -and `
+                                                                             $body.Scopes.Count -eq 5 -and `
+                                                                             $body.Scopes[0].Name -eq "fabric/authorization.read" -and `
+                                                                             $body.Scopes[1].Name -eq "fabric/authorization.write" -and `
+                                                                             $body.Scopes[2].Name -eq "fabric/authorization.internal" -and `
+                                                                             $body.Scopes[3].Name -eq "fabric/authorization.dos.write" -and `
+                                                                             $body.Scopes[4].Name -eq "fabric/authorization.manageclients" }
+        }
+    }
+}
+
+Describe 'Add-AuthorizationClientRegistration tests' -Tag 'Unit'{
+    InModuleScope Install-Authorization-Utilities{
+        It 'Should register the API with Identity'{
+            # Arrange
+            $expectedSecret = "some-secret"
+            $identityServiceUrl = "https://host.domain.local/identity"
+            $registrationAccessToken = "12345"
+            Mock Add-ClientRegistration { $expectedSecret }
+            Mock ConvertTo-Json { return $InputObject }
+            
+            # Act
+            $secret = Add-AuthorizationClientRegistration -identityServiceUrl $identityServiceUrl -accessToken $registrationAccessToken
+
+            # Assert
+            $secret | Should -Be $expectedSecret
+            Assert-MockCalled Add-ClientRegistration -Times 1 -ParameterFilter {$authUrl -eq $identityServiceUrl -and `
+                                                                             $accessToken -eq $registrationAccessToken -and `
+                                                                             $body.ClientId -eq "fabric-authorization-client" -and `
+                                                                             $body.ClientName -eq "Fabric Authorization Client" -and `
+                                                                             $body.RequireConsent -eq $false -and `
+                                                                             $body.AllowedGrantTypes[0] -eq "client_credentials" -and `
+                                                                             $body.AllowedScopes[0] -eq "fabric/identity.read" -and `
+                                                                             $body.AllowedScopes[1] -eq "fabric/identity.searchusers" }
+        }
+    }
+}
+
+Describe 'Add-AccessControlClientRegistration tests' -Tag 'Unit'{
+    InModuleScope Install-Authorization-Utilities{
+        It 'Should register the API with Identity'{
+            # Arrange
+            $identityServiceUrl = "https://host.domain.local/identity"
+            $authorizationServiceUrl = "https://host.domain.local/Authorization"
+            $registrationAccessToken = "12345"
+            Mock Add-ClientRegistration { $expectedSecret }
+            Mock Get-FullyQualifiedMachineName { return "https://host.domain.local" }
+            Mock ConvertTo-Json { return $InputObject }
+            
+            # Act
+            $secret = Add-AccessControlClientRegistration -identityServiceUrl $identityServiceUrl -authorizationServiceUrl $authorizationServiceUrl -accessToken $registrationAccessToken
+
+            # Assert
+            $secret | Should -Be $null
+            Assert-MockCalled Add-ClientRegistration -Times 1 -ParameterFilter {$authUrl -eq $identityServiceUrl -and `
+                                                                             $accessToken -eq $registrationAccessToken -and `
+                                                                             $body.clientId -eq "fabric-access-control" -and `
+                                                                             $body.clientName -eq "Fabric Authorization Access Control Client" -and `
+                                                                             $body.requireConsent -eq "false" -and `
+                                                                             $body.allowedScopes.Count -eq 8 -and `
+                                                                             $body.allowOfflineAccess -eq $false -and `
+                                                                             $body.allowAccessTokensViaBrowser -eq $true -and `
+                                                                             $body.enableLocalLogin -eq $false -and `
+                                                                             $body.accessTokenLifetime -eq 1200 -and `
+                                                                             $body.allowedGrantTypes[0] -eq "implicit" -and `
+                                                                             $body.redirectUris.Count -eq 2 -and `
+                                                                             $body.redirectUris[0] -eq "$authorizationServiceUrl/client/oidc-callback.html" -and `
+                                                                             $body.allowedCorsOrigins[0] -eq "https://host.domain.local" -and `
+                                                                             $body.postLogoutRedirectUris[0] -eq "$authorizationServiceUrl/client/logged-out" }
+            Assert-MockCalled Get-FullyQualifiedMachineName -Times 1
+        }
+    }
+}
+
+Describe 'Get-AdminAccount tests' -Tag 'Unit'{
+    InModuleScope Install-Authorization-Utilities{
+        Context 'Quiet mode'{
+            It 'Should return specified user without prompt'{
+                # Arrange
+                Mock Test-IsUser { return $true }
+                Mock Test-IsGroup { return $false }
+                Mock Add-InstallationSetting {}
+                Mock Read-Host {}
+                $adminAccount = "domain\admin.user"
+                $currentUserDomain = "domain.local"
+
+                # Act
+                $account = Get-AdminAccount -adminAccount $adminAccount -currentUserDomain $currentUserDomain -installConfigPath "install.config" -quiet $true
+
+                # Assert
+                $account.AdminAccountName | Should -Be $adminAccount
+                $account.AdminAccountIsUser | Should -Be $true
+                Assert-MockCalled Read-Host -Times 0
+            }
+            It 'Should return specified group without prompt'{
+                # Arrange
+                Mock Test-IsUser { return $false }
+                Mock Test-IsGroup { return $true }
+                Mock Add-InstallationSetting {}
+                Mock Read-Host {}
+                $adminAccount = "domain\admin.group"
+                $currentUserDomain = "domain.local"
+
+                # Act
+                $account = Get-AdminAccount -adminAccount $adminAccount -currentUserDomain $currentUserDomain -installConfigPath "install.config" -quiet $true
+
+                # Assert
+                $account.AdminAccountName | Should -Be $adminAccount
+                $account.AdminAccountIsUser | Should -Be $false
+                Assert-MockCalled Read-Host -Times 0
+            }
+            It 'Should throw an exception when account is not a user or group'{
+                # Arrange
+                Mock Test-IsUser { return $false }
+                Mock Test-IsGroup { return $false }
+                Mock Add-InstallationSetting {}
+                Mock Read-Host {}
+                $adminAccount = "domain\admin.group"
+                $currentUserDomain = "domain.local"
+
+                # Act/Assert
+                {Get-AdminAccount -adminAccount $adminAccount -currentUserDomain $currentUserDomain -installConfigPath "install.config" -quiet $true} | Should -Throw
+
+                # Assert
+                Assert-MockCalled Read-Host -Times 0
+            }
+        }
+        Context 'Interactive Mode accept default'{
+            It 'Should prompt and return the default when the user does not enter a value'{
+                Mock Test-IsUser { return $true }
+                Mock Test-IsGroup { return $false }
+                Mock Add-InstallationSetting {}
+                Mock Read-Host { return "" }
+                $expectedAdminAccount = "domain\admin.user"
+                $currentUserDomain = "domain.local"
+
+                # Act
+                $account = Get-AdminAccount -adminAccount $expectedAdminAccount -currentUserDomain $currentUserDomain -installConfigPath "install.config" -quiet $false
+
+                # Assert
+                $account.AdminAccountName | Should -Be $expectedAdminAccount
+                $account.AdminAccountIsUser | Should -Be $true
+                Assert-MockCalled Read-Host -Times 1
+
+            }
+        }
+        Context 'Interactive Mode override default'{
+            It 'Should prompt and return the user entered value'{
+                Mock Test-IsUser { return $true }
+                Mock Test-IsGroup { return $false }
+                Mock Add-InstallationSetting {}
+                $expectedAdminAccount = "domain\admin.user"
+                $currentUserDomain = "domain.local"
+                Mock Read-Host { $expectedAdminAccount }
+
+                # Act
+                $account = Get-AdminAccount -adminAccount "domain\test.user" -currentUserDomain $currentUserDomain -installConfigPath "install.config" -quiet $false
+
+                # Assert
+                $account.AdminAccountName | Should -Be $expectedAdminAccount
+                $account.AdminAccountIsUser | Should -Be $true
+                #Assert-MockCalled Read-Host -Times 1
+            }
+        }
+    }
+}
+
+Describe 'Set-AuthorizationEnvironmentVariables tests' -Tag 'Unit'{
+    InModuleScope Install-Authorization-Utilities{
+        It 'Should add all environment variables'{
+            # Arrange
+            Mock Set-EnvironmentVariables {}
+            Mock Get-EncryptedString { return $stringToEncrypt }
+            $cert = New-MockObject -Type System.Security.Cryptography.X509Certificates.X509Certificate2
+            $expectedClientName = "test-client"
+            $expectedThumbprint = "12345"
+            $expectedAppInsightsKey = "678910"
+            $expectedClientSecret = "secret"
+            $expectedIdentityUrl = "http://host.domain.local/identity"
+            $expectedAuthDbConnString = "Authorization"
+            $expectedMetadataConnString = "Metadata"
+            $expectedAdminAccount = @{AdminAccountName = "domain/test.user"; AdminAccountIsUser = $true}
+            $expectedApiSecret = "apisecret"
+            $expectedAuthUrl = "http://host.domain.local/authorization"
+            $expectedDiscoveryUrl = "http://host.domain.local/discovery"
+
+            # Act
+            Set-AuthorizationEnvironmentVariables -appDirectory "C:\inetpub\wwwroot\authorization" `
+                                                  -encryptionCert $cert `
+                                                  -clientName $expectedClientName `
+                                                  -encryptionCertificateThumbprint $expectedThumbprint `
+                                                  -appInsightsInstrumentationKey $expectedAppInsightsKey `
+                                                  -authorizationClientSecret $expectedClientSecret `
+                                                  -identityServiceUrl $expectedIdentityUrl `
+                                                  -authorizationDbConnStr $expectedAuthDbConnString `
+                                                  -metadataConnStr $expectedMetadataConnString `
+                                                  -adminAccount $expectedAdminAccount `
+                                                  -authorizationApiSecret $expectedApiSecret `
+                                                  -authorizationServiceUrl $expectedAuthUrl `
+                                                  -discoveryServiceUrl $expectedDiscoveryUrl
+            
+            # Assert
+            Assert-MockCalled Set-EnvironmentVariables -Times 1 -ParameterFilter { $environmentVariables["StorageProvider"] -eq "sqlserver" -and `
+                                                                                   $environmentVariables["ClientName"] -eq  $expectedClientName -and `
+                                                                                   $environmentVariables["EncryptionCertificateSettings__EncryptionCertificateThumbprint"] -eq $expectedThumbprint -and ` 
+                                                                                   $environmentVariables["ApplicationInsights__Enabled"] -eq "true" -and `
+                                                                                   $environmentVariables["ApplicationInsights__InstrumentationKey"] -eq $expectedAppInsightsKey -and `
+                                                                                   $environmentVariables["IdentityServerConfidentialClientSettings__ClientSecret"] -eq $expectedClientSecret -and `
+                                                                                   $environmentVariables["IdentityServerConfidentialClientSettings__Authority"] -eq $expectedIdentityUrl -and `
+                                                                                   $environmentVariables["ConnectionStrings__AuthorizationDatabase"] -eq $expectedAuthDbConnString -and `
+                                                                                   $environmentVariables["ConnectionStrings__EDWAdminDatabase"] -eq $expectedMetadataConnString -and `
+                                                                                   $environmentVariables["AdminAccount__Name"] -eq $expectedAdminAccount.AdminAccountName -and `
+                                                                                   $environmentVariables["AdminAccount__Type"] -eq "user" -and `
+                                                                                   $environmentVariables["IdentityServerApiSettings__ApiSecret"] -eq $expectedApiSecret -and `
+                                                                                   $environmentVariables["ApplicationEndpoint"] -eq $expectedAuthUrl -and `
+                                                                                   $environmentVariables["AccessControlSettings__DiscoveryServiceSettings__Value"] -eq $expectedDiscoveryUrl }
+        }
+    }
+}
+
+Describe 'Add-AuthorizationRegistration tests' -Tag 'Unit'{
+    InModuleScope Install-Authorization-Utilities{
+        Context 'Success' {
+            It 'Should create the client in authorization'{
+                # Arrange
+                Mock Invoke-Post { }
+                $authUrl = "http://host.domain.local/authorization"
+                $token = "12345"
+                $expectedClientId = "test-client"
+                $expectedClientName = "test-client name"
+                # Act
+                Add-AuthorizationRegistration -clientId $expectedClientId -clientName $expectedClientName -authorizationServiceUrl $authUrl -accessToken $token
+
+                # Assert
+                Assert-MockCalled Invoke-Post -Times 1 -ParameterFilter {$url -eq "$authUrl/clients" -and `
+                                                                         $accessToken -eq $token  -and `
+                                                                         $body.id -eq $expectedClientId -and `
+                                                                         $body.name -eq $expectedClientName }
+            }
+        }        
+        Context 'Conflict'{
+            It 'Should notify user client is already created when client already exists'{
+                # Arrange
+                Mock Invoke-Post { throw "409 conflict"}
+                Mock Assert-WebExceptionType { return $true }
+                Mock Write-DosMessage {}
+
+                # Act
+                Add-AuthorizationRegistration -clientId "test-client" -clientName "test-client" -authorizationServiceUrl "http://host.domain.local/authorization" -accessToken "12345"
+
+                # Assert
+                Assert-MockCalled Write-DosMessage -Times 1 -ParameterFilter {$Level -eq "Information"}
+            }
+        }
+        Context 'Error'{
+            It 'Should throw an exception when Invoke-Post throws an exception'{
+                # Arrange
+                Mock Invoke-Post { throw "bad stuff happened"}
+
+                # Act/Assert
+                {Add-AuthorizationRegistration -clientId "test-client" -clientName "test-client" -authorizationServiceUrl "http://host.domain.local/authorization" -accessToken "12345"} | Should -Throw
+            }
+        }
+    }
+}
