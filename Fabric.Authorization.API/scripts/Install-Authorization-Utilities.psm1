@@ -682,20 +682,6 @@ function Get-DefaultIdentityServiceUrl
     }
 }
 
-function Assert-WebExceptionType
-{
-    param(
-        [object] $exception,
-        [int] $typeCode
-    )
-    if ($null -ne $exception -and $exception.Response.StatusCode.value__ -eq $typeCode) {
-        return $true
-    }
-    else {
-        return $false
-    }
-}
-
 function Install-UrlRewriteIfNeeded
 {
     param(
@@ -800,7 +786,17 @@ function Register-AuthorizationWithDiscovery{
     Write-DosMessage -Level "Information" -Message "Authorization registered URL: $serviceUrl with DiscoveryService."
 }
 
-function Register-AccessControlWithDiscovery([string] $iisUserName, [string] $metadataConnStr, [string] $version, [string] $authorizationServiceUrl){
+function Register-AccessControlWithDiscovery{
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $iisUserName,
+        [Parameter(Mandatory=$true)]
+        [string] $metadataConnStr,
+        [Parameter(Mandatory=$true)]
+        [string] $version,
+        [Parameter(Mandatory=$true)]
+        [string] $authorizationServiceUrl
+    )
     Add-ServiceUserToDiscovery $iisUserName $metadataConnStr
 
     $discoveryPostBody = @{
@@ -818,8 +814,14 @@ function Register-AccessControlWithDiscovery([string] $iisUserName, [string] $me
     Write-DosMessage -Level "Information" -Message "Access Control registered URL: $authorizationServiceUrl with DiscoveryService."
 }
 
-function Add-AuthorizationApiRegistration([string] $identityServiceUrl, [string] $accessToken)
+function Add-AuthorizationApiRegistration
 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $identityServiceUrl,
+        [Parameter(Mandatory=$true)]
+        [string] $accessToken
+    )
     $body = @{
         Name = "authorization-api";
         UserClaims = @("name","email","role","groups");
@@ -832,8 +834,14 @@ function Add-AuthorizationApiRegistration([string] $identityServiceUrl, [string]
     return $authorizationApiSecret
 }
 
-function Add-AuthorizationClientRegistration([string] $identityServiceUrl, [string] $accessToken)
+function Add-AuthorizationClientRegistration
 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $identityServiceUrl,
+        [Parameter(Mandatory=$true)]
+        [string] $accessToken
+    )
     $body = @{
         ClientId = "fabric-authorization-client";
         ClientName = "Fabric Authorization Client";
@@ -848,8 +856,16 @@ function Add-AuthorizationClientRegistration([string] $identityServiceUrl, [stri
     return $authorizationClientSecret
 }
 
-function Add-AccessControlClientRegistration([string] $identityServiceUrl, [string] $authorizationServiceUrl, [string] $accessToken)
+function Add-AccessControlClientRegistration
 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $identityServiceUrl,
+        [Parameter(Mandatory=$true)]
+        [string] $authorizationServiceUrl,
+        [Parameter(Mandatory=$true)]
+        [string] $accessToken
+    )
     $body = @{
         clientId = "fabric-access-control";
 		clientName = "Fabric Authorization Access Control Client";
@@ -874,7 +890,17 @@ function Add-AccessControlClientRegistration([string] $identityServiceUrl, [stri
     Add-ClientRegistration -authUrl $identityServiceUrl -body $jsonBody -accessToken $accessToken
 }
 
-function Get-AdminAccount([string] $adminAccount, [string] $currentUserDomain, [string] $installConfigPath, [bool] $quiet){
+function Get-AdminAccount{
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $adminAccount,
+        [Parameter(Mandatory=$true)]
+        [string] $currentUserDomain,
+        [Parameter(Mandatory=$true)]
+        [string] $installConfigPath,
+        [Parameter(Mandatory=$true)]
+        [bool] $quiet
+    )
     if(!$quiet){
         if ([string]::IsNullOrEmpty($adminAccount)) {
             $userEnteredAdminAccount = Read-Host "Please enter the user/group account for dos administration in the format [DOMAIN\user]"
@@ -951,16 +977,19 @@ function Set-AuthorizationEnvironmentVariables
     if($metadataConnStr){
         $environmentVariables.Add("ConnectionStrings__EDWAdminDatabase", $metadataConnStr)
     }
+    
+    if($adminAccount){
+        if ($adminAccount.AdminAccountName) {
+            $environmentVariables.Add("AdminAccount__Name", $adminAccount.AdminAccountName)
+        }
 
-    if ($adminAccount.AdminAccountName) {
-        $environmentVariables.Add("AdminAccount__Name", $adminAccount.AdminAccountName)
+        if ($adminAccount.AdminAccountIsUser) {
+            $environmentVariables.Add("AdminAccount__Type", "user")
+        }
+        else {
+            $environmentVariables.Add("AdminAccount__Type", "group")
+        }
     }
-
-    if ($adminAccount.AdminAccountIsUser) {
-        $environmentVariables.Add("AdminAccount__Type", "user")
-    }
-    else {
-        $environmentVariables.Add("AdminAccount__Type", "group")}
 
     if ($authorizationApiSecret) {
         $encryptedSecret = Get-EncryptedString $encryptionCert $authorizationApiSecret
@@ -978,8 +1007,18 @@ function Set-AuthorizationEnvironmentVariables
     Set-EnvironmentVariables $appDirectory $environmentVariables | Out-Null
 }
 
-function Move-DosAdminRoleToDosAdminGroup($authUrl, $accessToken, $connectionString, $groupName)
+function Move-DosAdminRoleToDosAdminGroup
 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $authUrl,
+        [Parameter(Mandatory=$true)]
+        [string] $accessToken,
+        [Parameter(Mandatory=$true)]
+        [string] $connectionString,
+        [Parameter(Mandatory=$true)]
+        [string] $groupName
+    )
     $group = Add-DosAdminGroup -authUrl $authUrl -accessToken $accessToken -groupName $groupName
     $groupId = $group.Id
     Add-DosAdminRoleUsersToDosAdminGroup -groupId $groupId -connectionString $connectionString -clientId $fabricInstallerClientId -roleName $dosAdminRole -securableName $dataMartsSecurable
@@ -997,7 +1036,20 @@ function Move-DosAdminRoleToDosAdminGroup($authUrl, $accessToken, $connectionStr
     }
 }
 
-function Add-AccountToDosAdminGroup($accountName, $domain, $authorizationServiceUrl, $accessToken, $connString) {
+function Add-AccountToDosAdminGroup
+{
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $accountName,
+        [Parameter(Mandatory=$true)]
+        [string] $domain,
+        [Parameter(Mandatory=$true)]
+        [string] $authorizationServiceUrl,
+        [Parameter(Mandatory=$true)]
+        [string] $accessToken,
+        [Parameter(Mandatory=$true)]
+        [string] $connString
+    )
     $samAccountName = Get-SamAccountFromAccountName -accountName $accountName
     $group = Get-Group -name $dosAdminGroupName -authorizationServiceUrl $authorizationServiceUrl -accessToken $accessToken
     if (Test-IsUser -samAccountName $samAccountName -domain $domain) {
@@ -1044,19 +1096,43 @@ function Add-AccountToDosAdminGroup($accountName, $domain, $authorizationService
     }
 }
 
-function Invoke-MonitorShallow($authorizationUrl) {
+function Invoke-MonitorShallow{
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $authorizationUrl
+    )
     $url = "$authorizationUrl/_monitor/shallow"
     Invoke-RestMethod -Method Get -Uri $url
 }
 
-function Add-EdwAdminUsersToDosAdminGroup([string] $metadataConnStr, [string] $authorizationDbConnStr, [string] $authorizationServiceUrl, [string] $accessToken)
+function Add-EdwAdminUsersToDosAdminGroup
 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $metadataConnStr,
+        [Parameter(Mandatory=$true)]
+        [string] $authorizationDbConnStr,
+        [Parameter(Mandatory=$true)]
+        [string] $authorizationServiceUrl,
+        [Parameter(Mandatory=$true)]
+        [string] $accessToken
+    )
     $edwAdminUsers = Get-EdwAdminUsersAndGroups -connectionString $metadataConnStr	
     Write-DosMessage -Level "Information" -Message "There are $($edwAdminUsers.Count) users with this role"	
     Add-ListOfUsersToDosAdminGroup -edwAdminUsers $edwAdminUsers -connString $authorizationDbConnStr -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken
 }
 
-function Add-AuthorizationRegistration($clientId, $clientName, $authorizationServiceUrl, $accessToken){
+function Add-AuthorizationRegistration{
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $clientId,
+        [Parameter(Mandatory=$true)]
+        [string] $clientName,
+        [Parameter(Mandatory=$true)]
+        [string] $authorizationServiceUrl,
+        [Parameter(Mandatory=$true)]
+        [string] $accessToken
+    )
     $url = "$authorizationServiceUrl/clients"
     $body = @{
         id = "$clientId"
@@ -1067,7 +1143,7 @@ function Add-AuthorizationRegistration($clientId, $clientName, $authorizationSer
     }
     catch {
         $exception = $_.Exception
-        if ($null -ne $exception -and $null -ne $exception.Response -and $exception.Response.StatusCode.value__ -eq 409) {
+        if(Assert-WebExceptionType -exception $exception -typeCode 490) {
             Write-DosMessage -Level "Information" -Message  "Client: $clientId has already been registered with Fabric.Authorization"
         }
         else {
@@ -1077,6 +1153,22 @@ function Add-AuthorizationRegistration($clientId, $clientName, $authorizationSer
             }
             throw $exception
         }
+    }
+}
+
+function Assert-WebExceptionType
+{
+    param(
+        [Parameter(Mandatory=$true)]
+        [object] $exception,
+        [Parameter(Mandatory=$true)]
+        [int] $typeCode
+    )
+    if ($null -ne $exception -and $exception.Response.StatusCode.value__ -eq $typeCode) {
+        return $true
+    }
+    else {
+        return $false
     }
 }
 
