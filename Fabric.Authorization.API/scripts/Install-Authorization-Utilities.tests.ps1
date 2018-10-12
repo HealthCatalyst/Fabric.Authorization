@@ -193,7 +193,8 @@ Describe 'Add-User tests' -Tag 'Unit'{
                 # Assert
                 $user.SubjectId | Should -Be $postBody.subjectId
                 $user.IdentityProvider | Should -Be $postBody.identityProvider
-                Assert-MockCalled Invoke-Get -Times 1 -ParameterFilter {$url -eq "https://host.domain.local/authorization/user/$($postBody.identityProvider)/$($postBody.subjectId)" -and `
+                $encodedSubjectId = [System.Web.HttpUtility]::UrlEncode($postBody.subjectId)
+                Assert-MockCalled Invoke-Get -Times 1 -ParameterFilter {$url -eq "https://host.domain.local/authorization/user/$($postBody.identityProvider)/$encodedSubjectId" -and `
                                                                         $accessToken -eq "12345"}
             }
         }
