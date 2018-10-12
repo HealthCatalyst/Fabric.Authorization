@@ -91,7 +91,8 @@ function Get-Group{
         [Parameter(Mandatory=$true)]
         [string] $accessToken
     )
-    $url = "$authorizationServiceUrl/groups/$name"
+    $encodedName = [System.Web.HttpUtility]::UrlEncode($name)
+    $url = "$authorizationServiceUrl/groups/$encodedName"
     return Invoke-Get -url $url -accessToken $accessToken
 }
 
@@ -141,7 +142,6 @@ function Add-Group
         $exception = $_.Exception
         if (Assert-WebExceptionType -exception $exception -typeCode 409) {
             $group = Get-Group -authorizationServiceUrl $authUrl -name $body.groupName -accessToken $accessToken
-            Write-DosMessage -Level "Information" -Message "$($body.groupName) group already exists..."
             return $group;
         }
         else{
@@ -177,8 +177,9 @@ function Add-User
     catch{
         $exception = $_.Exception
             if (Assert-WebExceptionType -exception $exception -typeCode 409) {
-                Write-DosMessage -Level "Information" -Message  "User: $accountName has already been registered with Fabric.Authorization"
-                $user = Invoke-Get -url "$url/$($body.identityProvider)/$($body.subjectId)" -accessToken $accessToken
+                $encodedSubjectId = [System.Web.HttpUtility]::UrlEncode($body.subjectId)
+                $getUrl = "$url/$($body.identityProvider)/$encodedSubjectId"
+                $user = Invoke-Get -url "$getUrl" -accessToken $accessToken
                 return $user
             }
             else {
@@ -1168,7 +1169,7 @@ function Add-AuthorizationRegistration{
     }
     catch {
         $exception = $_.Exception
-        if(Assert-WebExceptionType -exception $exception -typeCode 490) {
+        if(Assert-WebExceptionType -exception $exception -typeCode 409) {
             Write-DosMessage -Level "Information" -Message  "Client: $clientId has already been registered with Fabric.Authorization"
         }
         else {
