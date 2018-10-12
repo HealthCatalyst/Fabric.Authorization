@@ -95,45 +95,122 @@ Describe 'Get-Role tests' -Tag 'Unit'{
 
 Describe 'Add-Group tests' -Tag 'Unit'{
     InModuleScope Install-Authorization-Utilities{
-        It 'Constructs proper POST'{
-            # Arrange
-            Mock Invoke-Post {}
-            $postBody = @{
-                groupName = "admins"
-                groupSource = "Windows"
+        Context 'Success'{
+            It 'Adds group'{
+                # Arrange
+                Mock Invoke-Post { return @{Name = $body.groupName; Source = $body.groupSource}}
+                $postBody = @{
+                    groupName = "admins"
+                    groupSource = "Windows"
+                }
+
+                # Act
+                $group = Add-Group -name $postBody.groupName -source $postBody.groupSource -authUrl "https://host.domain.local/authorization" -accessToken "12345"
+
+                # Assert
+                $group.Name | Should -Be $postBody.groupName
+                $group.Source | Should -Be $postBody.groupSource
+                Assert-MockCalled Invoke-Post -Times 1 -ParameterFilter {$url -eq "https://host.domain.local/authorization/groups" `
+                                                                        -and $body.groupName -eq $postBody.groupName `
+                                                                        -and $body.groupDisplayName -eq $postBody.groupDisplayName `
+                                                                        -and $body.groupSource -eq $postBody.groupSource `
+                                                                        -and $accessToken -eq "12345"}
             }
+            It 'Gets the group if the group already exists'{
+                # Arrange
+                Mock Invoke-Post { throw "bad stuff happened"}
+                Mock Get-Group {return @{Name = $body.groupName; Source = $body.groupSource}}
+                Mock Assert-WebExceptionType { return $true }
+                $postBody = @{
+                    groupName = "admins"
+                    groupSource = "Windows"
+                }
 
-            # Act
-            Add-Group -name $postBody.groupName -source $postBody.groupSource -authUrl "https://host.domain.local/authorization" -accessToken "12345"
+                # Act
+                $group = Add-Group -name $postBody.groupName -source $postBody.groupSource -authUrl "https://host.domain.local/authorization" -accessToken "12345"
 
-            # Assert
-            Assert-MockCalled Invoke-Post -Times 1 -ParameterFilter {$url -eq "https://host.domain.local/authorization/groups" `
-                                                                    -and $body.groupName -eq $postBody.groupName `
-                                                                    -and $body.groupDisplayName -eq $postBody.groupDisplayName `
-                                                                    -and $body.groupSource -eq $postBody.groupSource `
-                                                                    -and $accessToken -eq "12345"}
+                # Assert
+                $group.Name | Should -Be $postBody.groupName
+                $group.Source | Should -Be $postBody.groupSource
+                Assert-MockCalled Get-Group -Times 1 -ParameterFilter {$authorizationServiceUrl -eq "https://host.domain.local/authorization" -and `
+                                                                        $name -eq $postBody.groupName
+                                                                        $accessToken -eq "12345"}
+            }
+        }
+        Context 'Failure'{
+            It 'Should throw an exception if there is an exception we cannot handle'{
+                # Arrange
+                Mock Invoke-Post { throw "bad stuff happened"}
+                Mock Get-Group {}
+                $postBody = @{
+                    groupName = "admins"
+                    groupSource = "Windows"
+                }
+
+                # Act
+                {Add-Group -name $postBody.groupName -source $postBody.groupSource -authUrl "https://host.domain.local/authorization" -accessToken "12345"} | Should -Throw "bad stuff happened"
+                Assert-MockCalled Get-Group -Times 0
+            }
         }
     }
 }
 
 Describe 'Add-User tests' -Tag 'Unit'{
     InModuleScope Install-Authorization-Utilities{
-        It 'Constructs proper POST'{
-            # Arrange
-            Mock Invoke-Post {}
-            $postBody = @{
-                subjectId = "domain\test.user"
-                identityProvider = "Windows"
+        Context 'Success'{
+            It 'Adds user'{
+                # Arrange
+                Mock Invoke-Post {return @{SubjectId = $body.subjectId; IdentityProvider = $body.identityProvider}}
+                $postBody = @{
+                    subjectId = "domain\test.user"
+                    identityProvider = "Windows"
+                }
+
+                # Act
+                $user = Add-User -name $postBody.subjectId -authUrl "https://host.domain.local/authorization" -accessToken "12345"
+
+                # Assert
+                $user.SubjectId | Should -Be $postBody.subjectId
+                $user.IdentityProvider | Should -Be $postBody.identityProvider
+                Assert-MockCalled Invoke-Post -Times 1 -ParameterFilter {$url -eq "https://host.domain.local/authorization/user" `
+                                                                        -and $body.subjectId -eq $postBody.subjectId `
+                                                                        -and $body.identityProvider -eq $postBody.identityProvider `
+                                                                        -and $accessToken -eq "12345"}
             }
+            It 'Gets the user if the user already exists'{
+                # Arrange
+                Mock Invoke-Post { throw "bad stuff happened"}
+                Mock Invoke-Get {return @{SubjectId = $body.subjectId; IdentityProvider = $body.identityProvider}}
+                Mock Assert-WebExceptionType { return $true }
+                $postBody = @{
+                    subjectId = "domain\test.user"
+                    identityProvider = "Windows"
+                }
 
-            # Act
-            Add-User -name $postBody.subjectId -authUrl "https://host.domain.local/authorization" -accessToken "12345"
+                # Act
+                $user = Add-User -name $postBody.subjectId -authUrl "https://host.domain.local/authorization" -accessToken "12345"
 
-            # Assert
-            Assert-MockCalled Invoke-Post -Times 1 -ParameterFilter {$url -eq "https://host.domain.local/authorization/user" `
-                                                                    -and $body.subjectId -eq $postBody.subjectId `
-                                                                    -and $body.identityProvider -eq $postBody.identityProvider `
-                                                                    -and $accessToken -eq "12345"}
+                # Assert
+                $user.SubjectId | Should -Be $postBody.subjectId
+                $user.IdentityProvider | Should -Be $postBody.identityProvider
+                Assert-MockCalled Invoke-Get -Times 1 -ParameterFilter {$url -eq "https://host.domain.local/authorization/user/$($postBody.identityProvider)/$($postBody.subjectId)" -and `
+                                                                        $accessToken -eq "12345"}
+            }
+        }
+        Context 'Failure'{
+            It 'Should throw an exception if there is an exception we cannot handle'{
+                # Arrange
+                Mock Invoke-Post { throw "bad stuff happened"}
+                Mock Invoke-Get {}
+                $postBody = @{
+                    subjectId = "domain\test.user"
+                    identityProvider = "Windows"
+                }
+
+                # Act
+                {Add-User -name $postBody.subjectId -authUrl "https://host.domain.local/authorization" -accessToken "12345"} | Should -Throw
+                Assert-MockCalled Invoke-Get -Times 0
+            }
         }
     }
 }
@@ -327,25 +404,6 @@ Describe 'Add-DosAdminGroup tests' -Tag 'Unit' {
                 Assert-MockCalled Add-Group -Times 1 -ParameterFilter { $authUrl -eq $testAuthUrl `
                                                                         -and $name -eq $testGroup `
                                                                         -and $source -eq "custom" `
-                                                                        -and $accessToken -eq $testAccessToken }
-            }
-            It 'Should get the group if the group exists'{
-                #Arrange
-                $testAuthUrl = "https://localhost/authorization"
-                $testAccessToken = "12345"
-                $testGroup = "testgroup"
-
-                Mock Add-Group {throw "bad stuff that we can handle"}
-                Mock Get-Group { return $testGroup }
-                Mock Assert-WebExceptionType { $true }
-
-                #Act
-                $group = Add-DosAdminGroup -authUrl $testAuthUrl -accessToken $testAccessToken -groupName $testGroup
-
-                # Assert
-                $group | Should -Be $testGroup
-                Assert-MockCalled Get-Group -Times 1 -ParameterFilter { $authorizationServiceUrl -eq $testAuthUrl `
-                                                                        -and $name -eq $testGroup `
                                                                         -and $accessToken -eq $testAccessToken }
             }
         }
@@ -1270,6 +1328,119 @@ Describe 'Add-AuthorizationRegistration tests' -Tag 'Unit'{
 
                 # Act/Assert
                 {Add-AuthorizationRegistration -clientId "test-client" -clientName "test-client" -authorizationServiceUrl "http://host.domain.local/authorization" -accessToken "12345"} | Should -Throw
+            }
+        }
+    }
+}
+
+Describe 'Add-AccountToDosAdminGroup tests' -Tag 'Unit'{
+    InModuleScope Install-Authorization-Utilities{
+        Context 'Account is a User'{
+            It 'Should add the user to the group'{
+                # Arrange
+                $group = @{Id = "12345"}
+                $user = @{IdentityProvider = "Windows"; SubjectId = "domain\test.user"}
+                $authServiceUrl = "https://host.domain.local/authorization"
+                $token = "12345"
+                $groupName = "DosAdmins"
+                $connectionString = "localhost"
+
+                Mock Get-Group {return $group}
+                Mock Add-User { return $user }
+                Mock Test-IsUser { return $true }
+                Mock Add-UserToGroup {}
+
+                # Act
+                Add-AccountToDosAdminGroup -accountName $user.SubjectId -domain "domain" -authorizationServiceUrl $authServiceUrl -accessToken $token -connString $connectionString
+
+                # Assert
+                Assert-MockCalled Get-Group -Times 1 -ParameterFilter {$name -eq $groupName -and `
+                                                                      $authorizationServiceUrl -eq $authServiceUrl -and `
+                                                                      $accessToken -eq $token}
+                Assert-MockCalled Add-User -Times 1 -ParameterFilter {$authUrl -eq $authServiceUrl -and `
+                                                                      $name -eq $user.SubjectId -and `
+                                                                      $accessToken -eq $token}
+            }
+            It 'Should throw an exception when Add-User throws an exception'{
+                # Arrange
+                $group = @{Id = "12345"}
+                $user = @{IdentityProvider = "Windows"; SubjectId = "domain\test.user"}
+                $authServiceUrl = "https://host.domain.local/authorization"
+                $token = "12345"
+                $groupName = "DosAdmins"
+                $connectionString = "localhost"
+
+                Mock Get-Group {return $group}
+                Mock Add-User { throw "bad stuff happened" }
+                Mock Test-IsUser { return $true }
+                Mock Add-UserToGroup {}
+
+                # Act/Assert
+                {Add-AccountToDosAdminGroup -accountName $user.SubjectId -domain "domain" -authorizationServiceUrl $authServiceUrl -accessToken $token -connString $connectionString} | Should -Throw "bad stuff happened"
+            }
+        }
+        Context 'Account is a Group'{
+            It 'Should add the child group to the parent group'{
+                # Arrange
+                $group = @{Id = "12345"}
+                $childGroup = @{Name = "domain\test.group"; Id = "67890"}
+                $authServiceUrl = "https://host.domain.local/authorization"
+                $token = "12345"
+                $groupName = "DosAdmins"
+                $connectionString = "localhost"
+
+                Mock Get-Group {return $group}
+                Mock Add-Group { return $childGroup }
+                Mock Test-IsUser { return $false }
+                Mock Test-IsGroup { return $true }
+                Mock Add-ChildGroupToParentGroup {}
+
+                # Act
+                Add-AccountToDosAdminGroup -accountName $childGroup.Name -domain "domain" -authorizationServiceUrl $authServiceUrl -accessToken $token -connString $connectionString
+
+                # Assert
+                Assert-MockCalled Get-Group -Times 1 -ParameterFilter {$name -eq $groupName -and `
+                                                                      $authorizationServiceUrl -eq $authServiceUrl -and `
+                                                                      $accessToken -eq $token}
+                Assert-MockCalled Add-Group -Times 1 -ParameterFilter {$authUrl -eq $authServiceUrl -and `
+                                                                      $name -eq $childGroup.Name -and `
+                                                                      $accessToken -eq $token}
+            }
+            It 'Should throw an exception when Add-Group throws an exception'{
+                # Arrange
+                $group = @{Id = "12345"}
+                $childGroup = @{Name = "domain\test.group"; Id = "67890"}
+                $authServiceUrl = "https://host.domain.local/authorization"
+                $token = "12345"
+                $groupName = "DosAdmins"
+                $connectionString = "localhost"
+
+                Mock Get-Group {return $group}
+                Mock Add-Group { throw "bad stuff happened" }
+                Mock Test-IsUser { return $false }
+                Mock Test-IsGroup { return $true }
+                Mock Add-ChildGroupToParentGroup {}
+
+                # Act/Assert
+                {Add-AccountToDosAdminGroup -accountName $childGroup.Name -domain "domain" -authorizationServiceUrl $authServiceUrl -accessToken $token -connString $connectionString} | Should -Throw "bad stuff happened"
+            }
+        }
+        Context 'Account is Invalid'{
+            It 'Should throw an exception when account is invalid'{
+                # Arrange
+                $group = @{Id = "12345"}
+                $user = @{IdentityProvider = "Windows"; SubjectId = "domain\test.user"}
+                $authServiceUrl = "https://host.domain.local/authorization"
+                $token = "12345"
+                $groupName = "DosAdmins"
+                $connectionString = "localhost"
+
+                Mock Get-Group {return $group}
+                Mock Add-User { return $user }
+                Mock Test-IsUser { return $false }
+                Mock Test-IsGroup { return $false }
+                
+                {Add-AccountToDosAdminGroup -accountName $user.SubjectId -domain "domain" -authorizationServiceUrl $authServiceUrl -accessToken $token -connString $connectionString} | Should -Throw
             }
         }
     }
