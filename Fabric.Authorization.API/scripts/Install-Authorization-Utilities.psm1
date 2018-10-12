@@ -133,7 +133,25 @@ function Add-Group
         displayName   = "$name"
         groupSource = "$source"
     }
-    return Invoke-Post $url $body $accessToken
+    try{
+        $group = Invoke-Post $url $body $accessToken
+        return $group
+    }
+    catch {
+        $exception = $_.Exception
+        if (Assert-WebExceptionType -exception $exception -typeCode 409) {
+            $group = Get-Group -authorizationServiceUrl $authUrl -name $body.groupName -accessToken $accessToken
+            Write-DosMessage -Level "Information" -Message "$($body.groupName) group already exists..."
+            return $group;
+        }
+        else{
+            if ($null -ne $exception.Response) {
+                $error = Get-ErrorFromResponse -response $exception.Response
+                Write-DosMessage -Level "Error" -Message "There was an error adding the Dos Admin group: $error. Halting installation."
+            }
+            throw $exception
+        }
+    }
 }
 
 function Add-User
@@ -152,7 +170,25 @@ function Add-User
         subjectId        = "$name"
         identityProvider = "Windows"
     }
-    return Invoke-Post $url $body $accessToken
+    try{
+        $user = Invoke-Post $url $body $accessToken
+        return $user
+    }
+    catch{
+        $exception = $_.Exception
+            if (Assert-WebExceptionType -exception $exception -typeCode 409) {
+                Write-DosMessage -Level "Information" -Message  "User: $accountName has already been registered with Fabric.Authorization"
+                $user = Invoke-Get -url "$url/$($body.identityProvider)/$($body.subjectId)" -accessToken $accessToken
+                return $user
+            }
+            else {
+                if ($null -ne $exception.Response) {
+                    $error = Get-ErrorFromResponse -response $exception.Response
+                    Write-DosMessage -Level "Error" -Message "There was an error updating the resource: $error. "
+                }
+                throw
+            }
+    }
 }
 
 function Add-UserToGroup
@@ -167,9 +203,16 @@ function Add-UserToGroup
         [Parameter(Mandatory=$true)]
         [string] $clientId
     )
-    $query = "INSERT INTO GroupUsers
-             (CreatedBy, CreatedDateTimeUtc, GroupId, IdentityProvider, SubjectId, IsDeleted)
-             VALUES(@clientId, GETUTCDATE(), @groupId, @identityProvider, @subjectId, 0)"
+    $query = "IF NOT EXISTS (SELECT * FROM GroupUsers
+                WHERE GroupId = @groupId
+                AND IdentityProvider = @identityProvider
+                AND SubjectId = @subjectId
+                AND IsDeleted = 0)
+              BEGIN
+                INSERT INTO GroupUsers
+                (CreatedBy, CreatedDateTimeUtc, GroupId, IdentityProvider, SubjectId, IsDeleted)
+                VALUES(@clientId, GETUTCDATE(), @groupId, @identityProvider, @subjectId, 0)
+              END;"
 
     $groupId = $group.Id
     $identityProvider = $user.identityProvider
@@ -189,9 +232,15 @@ function Add-ChildGroupToParentGroup
         [Parameter(Mandatory=$true)]
         [string] $clientId
     )
-    $query = "INSERT INTO ChildGroups
-              (ParentGroupId, ChildGroupId, CreatedBy, CreatedDateTimeUtc, IsDeleted)
-              VALUES(@parentGroupId, @childGroupId, @clientId, GETUTCDATE(), 0)"
+    $query = "IF NOT EXISTS (SELECT * from ChildGroups
+                    WHERE ParentGroupId = @parentGroupId
+                    AND ChildGroupId = @childGroupId
+                    AND IsDeleted = 0)
+                BEGIN
+                INSERT INTO ChildGroups
+                (ParentGroupId, ChildGroupId, CreatedBy, CreatedDateTimeUtc, IsDeleted)
+                VALUES(@parentGroupId, @childGroupId, @clientId, GETUTCDATE(), 0)
+                END;"
 
     $parentGroupId = $parentGroup.Id
     $childGroupId = $childGroup.Id
@@ -322,14 +371,14 @@ function Add-ListOfUsersToDosAdminGroup($edwAdminUsers, $connString, $authorizat
             # If there is an exception, the function will print the error. We will want to 
             # continue with the next user, so we will catch and swallow the exception.
             $exception = $_.Exception
-            if ($null -ne $exception-and $null -ne $exception.Response -and $exception.Response.StatusCode.value__ -eq 409) {
-                Write-DosMessage -Level "Information" -Message  "User: $accountName has already been registered as Dos Admin with Fabric.Authorization"
+            if ($null -ne $exception.Response) {
+                $error = Get-ErrorFromResponse -response $exception.Response
+                Write-DosMessage -Level "Error" -Message "There was an error updating the resource: $error. "
             }
-            else {
-                if ($null -ne $exception.Response) {
-                    $error = Get-ErrorFromResponse -response $exception.Response
-                    Write-DosMessage -Level "Error" -Message "There was an error updating the resource: $error. "
-                }
+            Write-DosMessage -Level "Error" -Message "There was an error adding $edwAdmin to the $dosAdminGroupName group."
+            Write-DosMessage -Level "Error" -Message "Error: $($exception.Message)"
+            if($null -ne $error){
+                Write-DosMessage -Level "Error" -Message "Additional error details: $error"
             }
         }        
     }	
@@ -345,25 +394,9 @@ function Add-DosAdminGroup
         [Parameter(Mandatory=$true)]
         [string] $groupName
     )
-    try {
-        $group = Add-Group -authUrl $authUrl -name $groupName -source "custom" -accessToken $accessToken
-        return $group
-    }
-    catch {
-        $exception = $_.Exception
-        if (Assert-WebExceptionType -exception $exception -typeCode 409) {
-            $group = Get-Group -authorizationServiceUrl $authUrl -name $groupName -accessToken $accessToken
-            Write-DosMessage -Level "Information" -Message "$groupName group already exists..."
-            return $group;
-        }
-        else{
-            if ($null -ne $exception.Response) {
-                $error = Get-ErrorFromResponse -response $exception.Response
-                Write-DosMessage -Level "Error" -Message "There was an error adding the Dos Admin group: $error. Halting installation."
-            }
-            throw $exception
-        }
-    }
+    
+    $group = Add-Group -authUrl $authUrl -name $groupName -source "custom" -accessToken $accessToken
+    return $group
 }
 
 function Add-DosAdminRoleUsersToDosAdminGroup
@@ -1059,16 +1092,12 @@ function Add-AccountToDosAdminGroup
         }
         catch {
             $exception = $_.Exception
-            if ($null -ne $exception-and $null -ne $exception.Response -and $exception.Response.StatusCode.value__ -eq 409) {
-                Write-DosMessage -Level "Information" -Message  "User: $accountName has already been registered as $dosAdminRole with Fabric.Authorization"
+            Write-DosMessage -Level "Error" -Message "There was an error adding $accountName to the $dosAdminGroupName group."
+            if ($null -ne $exception.Response) {
+                $error = Get-ErrorFromResponse -response $exception.Response
+                Write-DosMessage -Level "Error" -Message "Additional error details: $($error)"
             }
-            else {
-                if ($null -ne $exception.Response) {
-                    $error = Get-ErrorFromResponse -response $exception.Response
-                    Write-DosMessage -Level "Error" -Message "There was an error updating the resource: $error. Halting installation."
-                }
-                throw $exception
-            }
+            throw $exception
         }
     }
     elseif (Test-IsGroup -samAccountName $samAccountName -domain $domain) {
@@ -1078,16 +1107,12 @@ function Add-AccountToDosAdminGroup
         }
         catch {
             $exception = $_.Exception
-            if ($null -ne $exception-and $null -ne $exception.Response -and $exception.Response.StatusCode.value__ -eq 409) {
-                Write-DosMessage -Level "Information" -Message  "Group: $accountName has already been registered as $dosAdminRole with Fabric.Authorization"
+            Write-DosMessage -Level "Error" -Message "There was an error adding $accountName to the $dosAdminGroupName group."
+            if ($null -ne $exception.Response) {
+                $error = Get-ErrorFromResponse -response $exception.Response
+                Write-DosMessage -Level "Error" -Message "Additional error details: $($error)"
             }
-            else {
-                if ($null -ne $exception.Response) {
-                    $error = Get-ErrorFromResponse -response $exception.Response
-                    Write-DosMessage -Level "Error" -Message "There was an error updating the resource: $error. Halting installation."
-                }
-                throw $exception
-            }
+            throw $exception
         }
     }
     else {
