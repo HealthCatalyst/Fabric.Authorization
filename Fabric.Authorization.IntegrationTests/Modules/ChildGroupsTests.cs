@@ -405,7 +405,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
-        public async Task GetUserPermissions_WithChildGroups_SuccessAsync()
+        public async Task GetUserPermissions_WithChildGroupsAndUserInParentGroup_SuccessAsync()
         {
             var parentPermission = await SetupPermissionAsync("app", "rolesprincipal", Guid.NewGuid().ToString());
             var childPermission1 = await SetupPermissionAsync("app", "rolesprincipal", Guid.NewGuid().ToString());
@@ -534,6 +534,122 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(2, userPermissions.Count);
             Assert.Contains(parentPermission.ToString(), userPermissions);
             Assert.Contains(childPermission1.ToString(), userPermissions);
+        }
+
+        [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
+        public async Task GetUserPermissions_WithChildGroupsAndUserInChildGroup_SuccessAsync()
+        {
+            var parentPermission = await SetupPermissionAsync("app", "rolesprincipal", Guid.NewGuid().ToString());
+            var childPermission1 = await SetupPermissionAsync("app", "rolesprincipal", Guid.NewGuid().ToString());
+            var childPermission2 = await SetupPermissionAsync("app", "rolesprincipal", Guid.NewGuid().ToString());
+
+            // create parent group
+            var parentGroup = await SetupGroupAsync(Guid.NewGuid().ToString(), GroupConstants.CustomSource, "Custom Parent Group", "Custom Parent Group");
+            var parentRole = await SetupRoleAndPermissionAsync("Role" + Guid.NewGuid(), new List<PermissionApiModel> { parentPermission });
+            var mappingResponse = await SetupGroupRoleMappingAsync(parentGroup.GroupName, parentRole);
+            Assert.Equal(HttpStatusCode.OK, mappingResponse.StatusCode);
+
+            // create child groups
+            var childGroup1 = await SetupGroupAsync(Guid.NewGuid().ToString(), GroupConstants.DirectorySource, "Child Group 1", "Child Group 1");
+            var childRole1 = await SetupRoleAndPermissionAsync("Role" + Guid.NewGuid(), new List<PermissionApiModel> { childPermission1 });
+            mappingResponse = await SetupGroupRoleMappingAsync(childGroup1.GroupName, childRole1);
+            Assert.Equal(HttpStatusCode.OK, mappingResponse.StatusCode);
+
+            var childGroup2 = await SetupGroupAsync(Guid.NewGuid().ToString(), GroupConstants.DirectorySource, "Child Group 2", "Child Group 2");
+            var childRole2 = await SetupRoleAndPermissionAsync("Role" + Guid.NewGuid(), new List<PermissionApiModel> { childPermission2 });
+            mappingResponse = await SetupGroupRoleMappingAsync(childGroup2.GroupName, childRole2);
+            Assert.Equal(HttpStatusCode.OK, mappingResponse.StatusCode);
+
+            // add child groups to parent
+            var postResponse = await _browser.Post($"/groups/{parentGroup.GroupName}/groups", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new[]
+                {
+                    new { childGroup1.GroupName },
+                    new { childGroup2.GroupName }
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.OK, postResponse.StatusCode);
+
+            // add user to child group
+            var subjectId = "bob.smith" + Guid.NewGuid();
+            var idP = "Windows";
+
+            // create a principal w/ the user created above
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
+            {
+                new Claim(Claims.Scope, Scopes.ManageClientsScope),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.Sub, subjectId),
+                new Claim(Claims.IdentityProvider, idP),
+                new Claim(Claims.ClientId, "rolesprincipal"),
+                new Claim("groups", childGroup1.GroupName),
+                new Claim("groups", "Some random group not in DB")
+            }, "pwd"));
+
+            var browser = _fixture.GetBrowser(principal, _storageProvider);
+
+            // get authenticated user's permissions
+            var get = await browser.Get("/user/permissions", with =>
+            {
+                with.HttpRequest();
+            });
+
+            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
+            var userPermissionsApiModel = get.Body.DeserializeJson<UserPermissionsApiModel>();
+            var userPermissions = userPermissionsApiModel.Permissions.ToList();
+            Assert.Equal(2, userPermissions.Count);
+            Assert.Contains(parentPermission.ToString(), userPermissions);
+            Assert.Contains(childPermission1.ToString(), userPermissions);
+
+            // get non-authenticated user's permissions
+/*            get = await _browser.Get($"/user/{idP}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+            });
+
+            userPermissions = get.Body.DeserializeJson<IEnumerable<ResolvedPermissionApiModel>>().Select(p => p.ToString()).ToList();
+            Assert.Equal(2, userPermissions.Count);
+            Assert.Contains(parentPermission.ToString(), userPermissions);
+            Assert.Contains(childPermission1.ToString(), userPermissions);*/
+
+            // delete childGroup1 association, which removes both permissions from the user
+            var deleteResponse = await _browser.Delete($"/groups/{parentGroup.GroupName}/groups", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new[]
+                {
+                    new { childGroup1.GroupName }
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.OK, deleteResponse.StatusCode);
+
+            // get authenticated user's permissions
+            get = await browser.Get("/user/permissions", with =>
+            {
+                with.HttpRequest();
+            });
+
+            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
+            userPermissionsApiModel = get.Body.DeserializeJson<UserPermissionsApiModel>();
+            userPermissions = userPermissionsApiModel.Permissions.ToList();
+            Assert.Single(userPermissions);
+            Assert.Contains(childPermission1.ToString(), userPermissions);
+
+            // get non-authenticated user's permissions
+/*            get = await _browser.Get($"/user/{idP}/{subjectId}/permissions", with =>
+            {
+                with.HttpRequest();
+            });
+
+            userPermissions = get.Body.DeserializeJson<IEnumerable<ResolvedPermissionApiModel>>().Select(p => p.ToString()).ToList();
+            Assert.Single(userPermissions);
+            Assert.Contains(childPermission1.ToString(), userPermissions);*/
         }
     }
 }

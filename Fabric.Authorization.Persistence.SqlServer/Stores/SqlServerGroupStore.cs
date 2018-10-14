@@ -450,20 +450,32 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return group;
         }
 
-        public Task<IEnumerable<Group>> Get(IEnumerable<string> groupNames)
+        public Task<IEnumerable<Group>> Get(IEnumerable<string> groupNames, bool ignoreMissingGroups = false)
         {
-            var groupEntities = AuthorizationDbContext.Groups.Where(g =>
-                !g.IsDeleted
-                 && groupNames.Contains(g.Name)
-                 );
+            var groupEntities = AuthorizationDbContext.Groups
+                .Include(g => g.ChildGroups)
+                .ThenInclude(cg => cg.Child)
+                .Include(g => g.ParentGroups)
+                .ThenInclude(pg => pg.Parent)
+                .Where(g =>
+                    !g.IsDeleted
+                    && groupNames.Contains(g.Name));
 
-            var missingGroups = groupNames.Except(groupEntities.Select(g => g.Name), StringComparer.OrdinalIgnoreCase).ToList();
-
-            if (missingGroups.Count > 0)
+            foreach (var groupEntity in groupEntities)
             {
-                throw new NotFoundException<Group>(
-                    $"The following groups could not be found: {string.Join(",", missingGroups)}",
-                    missingGroups.Select(g => new NotFoundExceptionDetail {Identifier = g}).ToList());
+                groupEntity.ChildGroups = groupEntity.ChildGroups.Where(cg => !cg.IsDeleted).ToList();
+                groupEntity.ParentGroups = groupEntity.ParentGroups.Where(pg => !pg.IsDeleted).ToList();
+            }
+
+            if (!ignoreMissingGroups)
+            {
+                var missingGroups = groupNames.Except(groupEntities.Select(g => g.Name), StringComparer.OrdinalIgnoreCase).ToList();
+                if (missingGroups.Count > 0)
+                {
+                    throw new NotFoundException<Group>(
+                        $"The following groups could not be found: {string.Join(",", missingGroups)}",
+                        missingGroups.Select(g => new NotFoundExceptionDetail {Identifier = g}).ToList());
+                }
             }
 
             return Task.FromResult(groupEntities.Select(g => g.ToModel()).AsEnumerable());

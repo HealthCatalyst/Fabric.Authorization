@@ -216,7 +216,7 @@ namespace Fabric.Authorization.Domain.Services
 
             try
             {
-                await _groupStore.Get(childGroupList.Select(g => g.Name));
+                await _groupStore.Get(childGroupList.Select(g => g.Name), false);
             }
             // filter out groups that already exist so we don't attempt to create an existent group
             catch (NotFoundException<Group> ex)
@@ -240,7 +240,7 @@ namespace Fabric.Authorization.Domain.Services
             var childGroupNameList = childGroupList.Select(g => g.Name).ToList();
 
             // do not allow custom groups to be children
-            childGroups = (await _groupStore.Get(childGroupNameList)).ToList();
+            childGroups = (await _groupStore.Get(childGroupNameList, false)).ToList();
             var customGroups = childGroups.Where(g => g.Source == GroupConstants.CustomSource).ToList();
             if (customGroups.Any())
             {
@@ -259,9 +259,7 @@ namespace Fabric.Authorization.Domain.Services
 
         public async Task<Group> RemoveChildGroups(Group group, IEnumerable<string> childGroupNames)
         {
-            var childGroups = await _groupStore.Get(childGroupNames);
-            var childUsers = childGroups.SelectMany(g => g.Users);
-
+            var childGroups = await _groupStore.Get(childGroupNames, false);
             return await _groupStore.RemoveChildGroups(group, childGroups);
         }
 

@@ -299,7 +299,6 @@ namespace Fabric.Authorization.API.Modules
             var groupUserRequest = this.Bind<GroupUserRequest>();
             try
             {
-               
                 var groups =
                     await _userService.GetGroupsForUser(groupUserRequest.SubjectId, groupUserRequest.IdentityProvider);
                 return groups.Select(g => g.ToGroupUserApiModel());
