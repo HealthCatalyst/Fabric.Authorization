@@ -22,6 +22,14 @@ namespace Fabric.Authorization.UnitTests.Mocks
                     }
                     throw new NotFoundException<Group>();
                 });
+
+            mockGroupStore.Setup(groupStore => groupStore.Get(It.IsAny<IEnumerable<string>>(), It.IsAny<bool>()))
+                .Returns((IEnumerable<string> groupNames, bool ignoreMissingGroups) =>
+            {
+                return Task.FromResult(groups.Where(
+                    g => groupNames.Contains(g.Name, StringComparer.OrdinalIgnoreCase)));
+            });
+
             return mockGroupStore;
         }
 

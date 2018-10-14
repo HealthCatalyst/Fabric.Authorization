@@ -11,6 +11,7 @@ using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Resolvers.Models;
 using Fabric.Authorization.Domain.Resolvers.Permissions;
 using Fabric.Authorization.Domain.Services;
+using Fabric.Authorization.Domain.Stores;
 using IdentityModel;
 using Nancy;
 using Nancy.Extensions;
@@ -23,11 +24,14 @@ namespace Fabric.Authorization.API.Services
     {
         private readonly IPermissionResolverService _permissionResolverService;
         private readonly UserService _userService;
+        private readonly IGroupStore _groupStore;
         private readonly ILogger _logger;
-        public AccessService(IPermissionResolverService permissionResolverService, UserService userService, ILogger logger)
+
+        public AccessService(IPermissionResolverService permissionResolverService, UserService userService, IGroupStore groupStore, ILogger logger)
         {
             _permissionResolverService = permissionResolverService ?? throw new ArgumentNullException(nameof(permissionResolverService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _groupStore = groupStore ?? throw new ArgumentNullException(nameof(groupStore));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -61,28 +65,31 @@ namespace Fabric.Authorization.API.Services
         
         public async Task<IEnumerable<string>> GetGroupsForAuthenticatedUser(string subjectId, string providerId, ClaimsPrincipal currentUser)
         {
-            var userClaims = currentUser?.Claims
+            var groupClaims = currentUser?.Claims
                 .Where(c => c.Type == "role" || c.Type == "groups")
                 .Distinct(new ClaimComparer())
                 .Select(c => c.Value.ToString());
 
-            var groups = new List<string>();
+            var customGroups = new List<string>();
             try
             {
-                groups = (await _userService.GetGroupsForUser(subjectId, providerId, true)).Select(g => g.Name).ToList();
+                customGroups = (await _userService.GetGroupsForUser(subjectId, providerId, true)).Select(g => g.Name).ToList();
             }
             catch (NotFoundException<User>)
             {
                 _logger.Information($"User {subjectId} not found while attempting to retrieve groups.");
             }
 
-            var allClaims = userClaims?
-                .Concat(groups)
+            var directoryGroups = (await _groupStore.Get(groupClaims, true)).ToList();
+            var flattenedDirectoryGroups = directoryGroups.Union(directoryGroups.SelectMany(g => g.Parents)).Select(g => g.Name);
+
+            var allClaims = customGroups
+                .Concat(flattenedDirectoryGroups)
                 .Distinct();
 
             _logger.Information($"found claims for user: {allClaims.ToString(",")}");
 
-            return allClaims ?? new string[] { };
+            return allClaims;
         }
 
         private async Task<IEnumerable<string>> GetPermissions<T>(FabricModule<T> module, string grain, string securableItemName)
