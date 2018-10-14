@@ -233,6 +233,7 @@ namespace Fabric.Authorization.UnitTests.Clients
                 .Dependency(MockPermissionStore.Object)
                 .Dependency(MockUserStore.Object)
                 .Dependency(MockSecurableItemStore.Object)
+                .Dependency(MockGroupStore.Object)
                 .Dependency(MockEdwStore.Object);
         }
 
