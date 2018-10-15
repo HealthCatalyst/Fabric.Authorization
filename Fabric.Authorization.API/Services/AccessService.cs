@@ -70,26 +70,34 @@ namespace Fabric.Authorization.API.Services
                 .Distinct(new ClaimComparer())
                 .Select(c => c.Value.ToString());
 
-            var customGroups = new List<string>();
+            var customAndChildGroups = new List<string>();
             try
             {
-                customGroups = (await _userService.GetGroupsForUser(subjectId, providerId, true)).Select(g => g.Name).ToList();
+                // retrieve all custom groups the user is associated with plus their child AD groups
+                customAndChildGroups = (await _userService.GetGroupsForUser(subjectId, providerId, true)).Select(g => g.Name).ToList();
             }
+            // the user may not always be in the DB but we still need to calculate permissions based on the AD groups
+            // in the access token
             catch (NotFoundException<User>)
             {
                 _logger.Information($"User {subjectId} not found while attempting to retrieve groups.");
             }
 
+            // retrieve all AD groups that are on the access token, ignoring the ones that we do not have registered in our DB
             var directoryGroups = (await _groupStore.Get(groupClaims, true)).ToList();
+
+            // extract all the parent custom groups from the list of AD groups
             var flattenedDirectoryGroups = directoryGroups.Union(directoryGroups.SelectMany(g => g.Parents)).Select(g => g.Name);
 
-            var allClaims = customGroups
+            // combine the lists and remove any duplicates
+            var allGroups = customAndChildGroups
                 .Concat(flattenedDirectoryGroups)
-                .Distinct();
+                .Distinct()
+                .ToList();
 
-            _logger.Information($"found claims for user: {allClaims.ToString(",")}");
+            _logger.Information($"found groups for user: {allGroups.ToString(",")}");
 
-            return allClaims;
+            return allGroups;
         }
 
         private async Task<IEnumerable<string>> GetPermissions<T>(FabricModule<T> module, string grain, string securableItemName)
