@@ -606,16 +606,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Contains(parentPermission.ToString(), userPermissions);
             Assert.Contains(childPermission1.ToString(), userPermissions);
 
-            // get non-authenticated user's permissions
-/*            get = await _browser.Get($"/user/{idP}/{subjectId}/permissions", with =>
-            {
-                with.HttpRequest();
-            });
-
-            userPermissions = get.Body.DeserializeJson<IEnumerable<ResolvedPermissionApiModel>>().Select(p => p.ToString()).ToList();
-            Assert.Equal(2, userPermissions.Count);
-            Assert.Contains(parentPermission.ToString(), userPermissions);
-            Assert.Contains(childPermission1.ToString(), userPermissions);*/
 
             // delete childGroup1 association, which removes both permissions from the user
             var deleteResponse = await _browser.Delete($"/groups/{parentGroup.GroupName}/groups", with =>
@@ -640,16 +630,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             userPermissions = userPermissionsApiModel.Permissions.ToList();
             Assert.Single(userPermissions);
             Assert.Contains(childPermission1.ToString(), userPermissions);
-
-            // get non-authenticated user's permissions
-/*            get = await _browser.Get($"/user/{idP}/{subjectId}/permissions", with =>
-            {
-                with.HttpRequest();
-            });
-
-            userPermissions = get.Body.DeserializeJson<IEnumerable<ResolvedPermissionApiModel>>().Select(p => p.ToString()).ToList();
-            Assert.Single(userPermissions);
-            Assert.Contains(childPermission1.ToString(), userPermissions);*/
         }
     }
 }
