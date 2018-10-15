@@ -32,7 +32,7 @@ if (!(Test-Path $fabricInstallUtilities -PathType Leaf)) {
 }
 Import-Module -Name $fabricInstallUtilities -Force
 
-Test-MeetsMinimumRequiredPowerShellVerion -majorVersion 5
+Test-MeetsMinimumRequiredPowerShellVerion -majorVersion 4
 
 if(!(Test-IsRunAsAdministrator))
 {
