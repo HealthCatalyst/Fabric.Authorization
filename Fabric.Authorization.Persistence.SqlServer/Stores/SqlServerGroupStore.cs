@@ -459,7 +459,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .ThenInclude(pg => pg.Parent)
                 .Where(g =>
                     !g.IsDeleted
-                    && groupNames.Contains(g.Name));
+                    && groupNames.Contains(g.Name))
+                .ToList();
 
             foreach (var groupEntity in groupEntities)
             {
