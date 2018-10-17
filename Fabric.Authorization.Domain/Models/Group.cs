@@ -30,6 +30,8 @@ namespace Fabric.Authorization.Domain.Models
         public ICollection<Group> Parents { get; set; }
 
         public string Source { get; set; }
+        
+        public string ExternalIdentifier { get; set; }
 
         public bool IsDeleted { get; set; }
 
