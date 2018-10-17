@@ -26,6 +26,8 @@ else {
     Import-Module -Name $dosInstallUtilities.FullName
 }
 
+Add-Type -AssemblyName System.Web
+
 $dosGrain = "dos"
 $dataMartsSecurable = "datamarts"
 $dosAdminRole = "dosadmin"
@@ -177,9 +179,7 @@ function Add-User
     catch{
         $exception = $_.Exception
             if (Assert-WebExceptionType -exception $exception -typeCode 409) {
-                $encodedSubjectId = [System.Web.HttpUtility]::UrlEncode($body.subjectId)
-                $getUrl = "$url/$($body.identityProvider)/$encodedSubjectId"
-                $user = Invoke-Get -url "$getUrl" -accessToken $accessToken
+                $user = $body
                 return $user
             }
             else {
