@@ -22,6 +22,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.EntityModels
         public string DisplayName { get; set; }
         public string Description { get; set; }
         public string Source { get; set; }
+        public string ExternalIdentifier { get; set; }
 
         public DateTime CreatedDateTimeUtc { get; set; }
         public DateTime? ModifiedDateTimeUtc { get; set; }
