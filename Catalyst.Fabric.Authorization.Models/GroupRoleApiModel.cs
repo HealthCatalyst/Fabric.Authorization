@@ -9,6 +9,8 @@ namespace Catalyst.Fabric.Authorization.Models
 
         public string GroupName { get; set; }
 
+        public string IdentityProvider { get; set; }
+
         public string DisplayName { get; set; }
 
         public string Description { get; set; }
@@ -16,9 +18,11 @@ namespace Catalyst.Fabric.Authorization.Models
         public IEnumerable<RoleApiModel> Roles { get; set; }
 
         /// <summary>
-        ///     Group source (e.g., Custom, Windows, Google). For custom groups, use "Custom".
+        ///     Group source (e.g., Custom or Directory).
         /// </summary>
         public string GroupSource { get; set; }
+
+        public string Tenant { get; set; }
 
         public IEnumerable<GroupRoleApiModel> Parents { get; set; }
         public IEnumerable<GroupRoleApiModel> Children { get; set; }

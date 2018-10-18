@@ -87,32 +87,14 @@ namespace Fabric.Authorization.API.Models
             {
                 Id = group.Id,
                 GroupName = group.Name,
+                IdentityProvider = group.IdentityProvider,
                 DisplayName = group.DisplayName,
                 Description = group.Description,
                 Roles = group.Roles?.Where(r => !r.IsDeleted).Select(r => r.ToRoleApiModel()),
                 GroupSource = group.Source,
+                Tenant = group.Tenant,
                 Parents = isRequestedGroup ? group.Parents.Select(p => p.ToGroupRoleApiModel(false)) : new List<GroupRoleApiModel>(),
                 Children = isRequestedGroup ? group.Children.Select(c => c.ToGroupRoleApiModel(false)) : new List<GroupRoleApiModel>()
-            };
-
-            return groupRoleApiModel;
-        }
-
-        public static GroupRoleApiModel ToGroupRoleApiModel(this Group group, GroupRoleRequest groupRoleRequest, Func<Role, string, string, bool> groupRoleFilter)
-        {
-            var groupRoleApiModel = new GroupRoleApiModel
-            {
-                Id = group.Id,
-                GroupName = group.Name,
-                DisplayName = group.DisplayName,
-                Description = group.Description,
-                Roles = group.Roles?
-                    .Where(r => !r.IsDeleted 
-                        && groupRoleFilter(r, groupRoleRequest.Grain, groupRoleRequest.SecurableItem))
-                    .Select(r => r.ToRoleApiModel()),
-                GroupSource = group.Source,
-                Parents = group.Parents.Select(p => p.ToGroupRoleApiModel(false)),
-                Children = group.Children.Select(c => c.ToGroupRoleApiModel(false))
             };
 
             return groupRoleApiModel;
@@ -139,9 +121,11 @@ namespace Fabric.Authorization.API.Models
             {
                 Id = groupRoleApiModel.Id ?? new Guid(),
                 Name = groupRoleApiModel.GroupName,
+                IdentityProvider = groupRoleApiModel.IdentityProvider,
                 DisplayName = groupRoleApiModel.DisplayName,
                 Description = groupRoleApiModel.Description,
-                Source = groupRoleApiModel.GroupSource
+                Source = groupRoleApiModel.GroupSource,
+                Tenant = groupRoleApiModel.Tenant
             };
 
             return group;
@@ -152,9 +136,11 @@ namespace Fabric.Authorization.API.Models
             var group = new Group
             {
                 Name = groupPostApiRequest.GroupName,
+                IdentityProvider = groupPostApiRequest.IdentityProvider,
                 DisplayName = groupPostApiRequest.DisplayName,
                 Description = groupPostApiRequest.Description,
-                Source = groupPostApiRequest.GroupSource
+                Source = groupPostApiRequest.GroupSource,
+                Tenant = groupPostApiRequest.Tenant
             };
 
             return group;
