@@ -11,7 +11,11 @@
 
     public static class IdentityScopes
     {
-        public static readonly string ReadScope = "fabric/identity.read";
         public static readonly string SearchUsersScope = "fabric/identity.searchusers";
+    }
+
+    public static class IdentityProviderSearchScopes
+    {
+        public static readonly string SearchGroupsScope = "fabric/idprovider.searchusers";
     }
 }
