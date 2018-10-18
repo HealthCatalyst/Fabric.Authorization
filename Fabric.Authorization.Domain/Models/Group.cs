@@ -17,6 +17,8 @@ namespace Fabric.Authorization.Domain.Models
 
         public string Name { get; set; }
 
+        public string IdentityProvider { get; set; }
+
         public string DisplayName { get; set; }
 
         public string Description { get; set; }
@@ -32,6 +34,8 @@ namespace Fabric.Authorization.Domain.Models
         public string Source { get; set; }
         
         public string ExternalIdentifier { get; set; }
+
+        public string Tenant { get; set; }
 
         public bool IsDeleted { get; set; }
 

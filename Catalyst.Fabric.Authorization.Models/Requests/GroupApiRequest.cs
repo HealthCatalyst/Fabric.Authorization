@@ -8,7 +8,9 @@
     public class GroupPostApiRequest : GroupPatchApiRequest
     {
         public string GroupName { get; set; }
+        public string IdentityProvider { get; set; }
         public string GroupSource { get; set; }
+        public string Tenant { get; set; }
     }
 
     public class GroupPatchApiRequest
