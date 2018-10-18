@@ -45,6 +45,8 @@ namespace Fabric.Authorization.API
                 new AuthorizationConfigurationProvider(new WindowsCertificateService()).GetAppConfiguration(env
                     .ContentRootPath);
 
+            _appConfig.ConfigureIdentityProviderSearchServiceUrl();
+
             _levelSwitch = new LoggingLevelSwitch();
             _idServerSettings = _appConfig.IdentityServerConfidentialClientSettings;
             _logger = LogFactory.CreateTraceLogger(_levelSwitch, _appConfig);
