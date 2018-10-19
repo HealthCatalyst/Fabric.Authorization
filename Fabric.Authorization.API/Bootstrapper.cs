@@ -146,7 +146,6 @@ namespace Fabric.Authorization.API
             var serilogEventWriter = new SerilogEventWriter(eventLogger);
             container.Register<IEventWriter>(serilogEventWriter);
             container.Register(options);
-            container.Register<IPropertySettings>(_appConfig.DefaultPropertySettings);
             container.Register(typeof(IOptions<>), typeof(OptionsManager<>));
             container.Register<IMemoryCache, MemoryCache>();
             container.Register<Domain.Defaults.Authorization>();

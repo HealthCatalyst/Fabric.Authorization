@@ -4,13 +4,6 @@ import {zip as observableZip, throwError as observableThrowError,  Subject ,  Su
 import { tap, takeUntil, mergeMap, catchError, debounceTime, filter, distinctUntilChanged} from 'rxjs/operators';
 import { Component, OnInit, OnDestroy, Inject } from '@angular/core';
 
-
-
-
-
-
-
-
 import { Router, ActivatedRoute } from '@angular/router';
 
 import { IFabricPrincipal } from '../../../models/fabricPrincipal.model';
@@ -233,7 +226,7 @@ export class MemberComponent implements OnInit, OnDestroy {
       catchError(err => {
         this.alertService.showSaveError(err.message);
         return observableThrowError(err.message);
-      }),);
+      }));
   }
 
   private saveGroup(subjectId: string, selectedRoles: IRole[]): Observable<any> {
