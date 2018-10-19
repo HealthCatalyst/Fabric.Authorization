@@ -23,7 +23,13 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
         private readonly IAppConfiguration _appConfiguration;
         private readonly ILogger _logger;
 
-        public IdentityServiceProvider(HttpClient httpClient, IHttpRequestMessageFactory httpRequestMessageFactory, IAppConfiguration appConfiguration, ILogger logger)
+        private const string ServiceName = "Fabric.Identity";
+
+        public IdentityServiceProvider(
+            HttpClient httpClient,
+            IHttpRequestMessageFactory httpRequestMessageFactory,
+            IAppConfiguration appConfiguration,
+            ILogger logger)
         {
             _httpClient = httpClient;
             _httpRequestMessageFactory = httpRequestMessageFactory;
@@ -46,7 +52,7 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
             var settings = _appConfiguration.IdentityServerConfidentialClientSettings;
             var baseUri = settings.Authority.EnsureTrailingSlash();
             var tokenUriAddress = $"{baseUri}connect/token";
-            var tokenClient = new TokenClient(tokenUriAddress, "fabric-authorization-client", settings.ClientSecret);
+            var tokenClient = new TokenClient(tokenUriAddress, Constants.Identity.ClientName, settings.ClientSecret);
             var accessTokenResponse = await tokenClient.RequestClientCredentialsAsync(IdentityScopes.SearchUsersScope).ConfigureAwait(false);
 
             var httpRequestMessage = _httpRequestMessageFactory.CreateWithAccessToken(HttpMethod.Post, new Uri($"{baseUri}api/users"),
@@ -58,7 +64,7 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
                 UserIds = userIdList
             };
 
-            _logger.Debug($"Invoking Fabric.Identity endpoint {httpRequestMessage.RequestUri}");
+            _logger.Debug($"Invoking {ServiceName} endpoint {httpRequestMessage.RequestUri}");
 
             httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8,
                 "application/json");
@@ -70,14 +76,14 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
 
             if (response.StatusCode != HttpStatusCode.OK)
             {
-                _logger.Error($"Response status code from Fabric.Identity api/users => {response.StatusCode}");
-                _logger.Error($"Response content from Fabric.Identity api/users => {responseContent}");
+                _logger.Error($"Response status code from {ServiceName} {httpRequestMessage.RequestUri} => {response.StatusCode}");
+                _logger.Error($"Response content from {ServiceName} {httpRequestMessage.RequestUri} => {responseContent}");
             }
             else
             {
                 results = JsonConvert.DeserializeObject<List<UserSearchResponse>>(responseContent);
 
-                _logger.Debug($"Fabric.Identity /users results: {results}");
+                _logger.Debug($"{ServiceName} {httpRequestMessage.RequestUri} results: {results}");
             }
 
             return new FabricIdentityUserResponse

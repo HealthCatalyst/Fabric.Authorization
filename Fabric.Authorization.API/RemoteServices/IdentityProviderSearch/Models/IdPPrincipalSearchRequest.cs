@@ -1,4 +1,6 @@
-﻿namespace Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Models
+﻿using System.Collections;
+
+namespace Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Models
 {
     public class IdPPrincipalSearchRequest
     {
