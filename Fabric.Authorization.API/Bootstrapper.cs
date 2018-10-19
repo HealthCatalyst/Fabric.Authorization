@@ -62,6 +62,13 @@ namespace Fabric.Authorization.API
                 var principal = owinEnvironment[OwinConstants.RequestUser] as ClaimsPrincipal;
                 context.CurrentUser = principal;
             }
+
+            pipelines.AfterRequest.AddItemToEndOfPipeline(
+                c => {
+                    c.Response.Headers["Pragma"] = "no-cache";
+                    c.Response.Headers["Expires"] = "Sat, 01 Jan 2000 00:00:00 GMT";
+                    c.Response.Headers["If-Modified-Since"] = "0";
+                });
         }
 
         protected override void ConfigureRequestContainer(TinyIoCContainer container, NancyContext context)
