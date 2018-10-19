@@ -5,7 +5,7 @@ namespace Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Models
 {
     public class IdPPrincipalSearchResponse
     {
-        public ICollection<IdPPrincipal> Principals { get; set; }
+        public ICollection<IdPPrincipal> Principals { get; set; } = new List<IdPPrincipal>();
         public int ResultCount { get; set; }
     }
 

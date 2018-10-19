@@ -208,13 +208,13 @@ namespace Fabric.Authorization.API.Modules
 
             try
             {
-                if (string.Equals(group.IdentityProvider, IdentityConstants.AzureActiveDirectory, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(incomingGroup.IdentityProvider, IdentityConstants.AzureActiveDirectory, StringComparison.OrdinalIgnoreCase))
                 {
-                    var idPSearchResponse = await _idPSearchService.GetGroup(group.GroupName, group.Tenant);
-                    if (idPSearchResponse.Result.Principals.Any())
+                    var idPSearchResponse = await _idPSearchService.GetGroup(incomingGroup.Name, incomingGroup.Tenant);
+                    if (!idPSearchResponse.Result.Principals.Any())
                     {
                         return CreateFailureResponse(
-                            $"Group name {group.GroupName} from {group.IdentityProvider} tenant {group.Tenant} was not found in the external identity provider directory.",
+                            $"Group name {incomingGroup.Name} from {incomingGroup.IdentityProvider} tenant {incomingGroup.Tenant} was not found in the external identity provider directory.",
                             HttpStatusCode.BadRequest);
                     }
 
