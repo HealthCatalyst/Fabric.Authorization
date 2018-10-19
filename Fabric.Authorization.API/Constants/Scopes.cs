@@ -16,6 +16,6 @@
 
     public static class IdentityProviderSearchScopes
     {
-        public static readonly string SearchGroupsScope = "fabric/idprovider.searchusers";
+        public static readonly string SearchUsersScope = "fabric/idprovider.searchusers";
     }
 }

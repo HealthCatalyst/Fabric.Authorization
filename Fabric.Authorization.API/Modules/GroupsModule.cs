@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
 using Catalyst.Fabric.Authorization.Models;
 using Catalyst.Fabric.Authorization.Models.Requests;
+using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Exceptions;
@@ -24,6 +25,7 @@ namespace Fabric.Authorization.API.Modules
         private readonly GroupService _groupService;
         private readonly ClientService _clientService;
         private readonly GrainService _grainService;
+        private readonly IdPSearchService _idPSearchService;
 
         public static string InvalidRoleArrayMessage =
             "No roles present in payload; please ensure you are posting an array of RoleApiModels.";
@@ -44,11 +46,13 @@ namespace Fabric.Authorization.API.Modules
             AccessService accessService,
             ClientService clientService,
             GrainService grainService,
-            IPropertySettings propertySettings = null) : base("/v1/groups", logger, validator, accessService, propertySettings)
+            IdPSearchService idPSearchService,
+            IAppConfiguration appConfiguration = null) : base("/v1/groups", logger, validator, accessService, appConfiguration)
         {
             _groupService = groupService;
             _clientService = clientService;
             _grainService = grainService;
+            _idPSearchService = idPSearchService;
 
             Get("/",
             async _ => await GetGroups().ConfigureAwait(false),
@@ -192,13 +196,31 @@ namespace Fabric.Authorization.API.Modules
 
             if (string.IsNullOrWhiteSpace(incomingGroup.Source))
             {
-                incomingGroup.Source = PropertySettings?.GroupSource;
+                incomingGroup.Source = AppConfiguration.DefaultPropertySettings?.GroupSource;
+            }
+
+            if (string.IsNullOrWhiteSpace(incomingGroup.IdentityProvider))
+            {
+                incomingGroup.IdentityProvider = AppConfiguration.DefaultPropertySettings?.IdentityProvider;
             }
 
             Validate(incomingGroup);
 
             try
             {
+                if (string.Equals(group.IdentityProvider, IdentityConstants.AzureActiveDirectory, StringComparison.OrdinalIgnoreCase))
+                {
+                    var idPSearchResponse = await _idPSearchService.GetGroup(group.GroupName, group.Tenant);
+                    if (idPSearchResponse.Result.Principals.Any())
+                    {
+                        return CreateFailureResponse(
+                            $"Group name {group.GroupName} from {group.IdentityProvider} tenant {group.Tenant} was not found in the external identity provider directory.",
+                            HttpStatusCode.BadRequest);
+                    }
+
+                    incomingGroup.ExternalIdentifier = idPSearchResponse.Result.Principals.First().ExternalIdentifier;
+                }
+
                 var createdGroup = await _groupService.AddGroup(incomingGroup);
                 return CreateSuccessfulPostResponse(createdGroup.ToGroupRoleApiModel());
             }

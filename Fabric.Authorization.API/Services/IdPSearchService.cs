@@ -17,8 +17,9 @@ namespace Fabric.Authorization.API.Services
         /// TODO: need to specify exact search
         /// </summary>
         /// <param name="groupName"></param>
+        /// <param name="tenant"></param>
         /// <returns></returns>
-        public async Task<IdPPrincipalSearchResponse> GetGroup(string groupName)
+        public async Task<FabricIdPSearchResponse> GetGroup(string groupName, string tenant)
         {
             var result = await _idPSearchProvider.Search(new IdPPrincipalSearchRequest
             {

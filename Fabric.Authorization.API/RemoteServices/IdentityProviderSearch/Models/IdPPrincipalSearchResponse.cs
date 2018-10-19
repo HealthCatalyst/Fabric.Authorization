@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net;
 
 namespace Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Models
 {
@@ -18,5 +19,12 @@ namespace Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Models
         public string PrincipalType { get; set; }
         public string ExternalIdentifier { get; set; }
         public string TenantId { get; set; }
+        public string IdentityProvider { get; set; }
+    }
+
+    public class FabricIdPSearchResponse
+    {
+        public HttpStatusCode HttpStatusCode { get; set; }
+        public IdPPrincipalSearchResponse Result { get; set; }
     }
 }
