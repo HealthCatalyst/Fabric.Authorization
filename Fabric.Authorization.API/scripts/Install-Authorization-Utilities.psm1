@@ -1103,7 +1103,7 @@ function Add-AccountToDosAdminGroup
     }
     elseif (Test-IsGroup -samAccountName $samAccountName -domain $domain) {
         try {
-            $childGroup = Add-Group -authUrl $authorizationServiceUrl -name $accountName -source "Windows" -accessToken $accessToken
+            $childGroup = Add-Group -authUrl $authorizationServiceUrl -name $accountName -source "Directory" -accessToken $accessToken
             Add-ChildGroupToParentGroup -parentGroup $group -childGroup $childGroup -connString $connString -clientId $fabricInstallerClientId
         }
         catch {
