@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using ModelHttpStatus = Catalyst.Fabric.Authorization.Models.Enums.HttpStatusCode;
 using Catalyst.Fabric.Authorization.Models.Search;
-using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Models.Search.Validators;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Exceptions;
@@ -21,9 +20,7 @@ namespace Fabric.Authorization.API.Modules
             MemberSearchService memberSearchService,
             MemberSearchRequestValidator validator,
             ILogger logger,
-            AccessService accessService,
-            IPropertySettings propertySettings = null) : base("/v1/members", logger, validator, accessService,
-            propertySettings)
+            AccessService accessService) : base("/v1/members", logger, validator, accessService)
         {
             _memberSearchService = memberSearchService;
 

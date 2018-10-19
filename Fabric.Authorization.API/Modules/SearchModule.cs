@@ -1,5 +1,4 @@
-﻿using Fabric.Authorization.API.Configuration;
-using Fabric.Authorization.API.Services;
+﻿using Fabric.Authorization.API.Services;
 using FluentValidation;
 using Serilog;
 
@@ -15,8 +14,7 @@ namespace Fabric.Authorization.API.Modules
             string path,
             ILogger logger,
             AbstractValidator<T> abstractValidator,
-            AccessService accessService,
-            IPropertySettings propertySettings = null) : base(path, logger, abstractValidator, accessService, propertySettings)
+            AccessService accessService) : base(path, logger, abstractValidator, accessService)
         {
         }
     }

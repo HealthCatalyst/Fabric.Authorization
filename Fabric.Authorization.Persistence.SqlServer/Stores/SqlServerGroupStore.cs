@@ -69,7 +69,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task<Group> Get(Guid id)
         {
-
             var groupEntity = await AuthorizationDbContext.Groups
                 .Include(g => g.GroupRoles)
                 .ThenInclude(gr => gr.Role)

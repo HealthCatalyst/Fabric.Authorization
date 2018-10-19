@@ -37,15 +37,15 @@ namespace Fabric.Authorization.API.Modules
             ILogger logger,
             AbstractValidator<T> abstractValidator,
             AccessService accessService,
-            IPropertySettings propertySettings = null) : base(path)
+            IAppConfiguration appConfiguration = null) : base(path)
         {
             Validator = abstractValidator ?? throw new ArgumentNullException(nameof(abstractValidator));
             Logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            PropertySettings = propertySettings;
+            AppConfiguration = appConfiguration;
             AccessService = accessService ?? throw new ArgumentNullException(nameof(accessService));
         }
 
-        protected IPropertySettings PropertySettings { get; set; }
+        protected IAppConfiguration AppConfiguration { get; set; }
 
         protected Predicate<Claim> AuthorizationReadClaim
         {
