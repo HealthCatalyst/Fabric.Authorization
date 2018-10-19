@@ -24,7 +24,7 @@ namespace Catalyst.Fabric.Authorization.Client.FunctionalTests
             var group = await _authorizationClient.AddGroup(accessToken, new GroupRoleApiModel
             {
                 GroupName = groupName,
-                GroupSource = "Windows"
+                GroupSource = "Directory"
             });
 
             Assert.NotNull(group);
@@ -34,7 +34,7 @@ namespace Catalyst.Fabric.Authorization.Client.FunctionalTests
             group = await _authorizationClient.GetGroup(accessToken, groupName);
             Assert.Equal(groupId, group.Id);
             Assert.Equal(groupName, group.GroupName);
-            Assert.Equal("Windows", group.GroupSource);
+            Assert.Equal("Directory", group.GroupSource);
         }
 
         [Fact]
@@ -62,7 +62,7 @@ namespace Catalyst.Fabric.Authorization.Client.FunctionalTests
             var group = await _authorizationClient.AddGroup(accessToken, new GroupRoleApiModel
             {
                 GroupName = groupName,
-                GroupSource = "Windows"
+                GroupSource = "Directory"
             });
 
             Assert.NotNull(group);
