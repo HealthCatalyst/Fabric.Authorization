@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.RemoteServices.Identity.Providers;
+using Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Providers;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Resolvers.Permissions;
 using Fabric.Authorization.Domain.Services;
@@ -22,6 +23,7 @@ namespace Fabric.Authorization.API.Extensions
             container.Register<SecurableItemService, SecurableItemService>();
             container.Register<MemberSearchService, MemberSearchService>();
             container.Register<IIdentityServiceProvider, IdentityServiceProvider>();
+            container.Register<IIdPSearchProvider, IdPSearchProvider>();
             container.Register<IPermissionResolverService, PermissionResolverService>();
             container.RegisterMultiple<IPermissionResolverService>(new List<Type>
             {
