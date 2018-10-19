@@ -8,6 +8,7 @@ using Catalyst.Fabric.Authorization.Models.Search;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.RemoteServices.Identity.Models;
 using Fabric.Authorization.API.RemoteServices.Identity.Providers;
+using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using Moq;
 using Nancy;
@@ -552,7 +553,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(new
                 {
                     GroupName = AdminAtlasGroupName,
-                    GroupSource = "Windows",
+                    GroupSource = GroupConstants.DirectorySource,
                 });
             });
 

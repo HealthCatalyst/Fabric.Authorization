@@ -275,7 +275,7 @@ namespace Fabric.Authorization.UnitTests.Search
                         }
                     }
                 },
-                Source = "Windows"
+                Source = "Directory"
             };
 
             _userPatientSafetyGroup = new Group

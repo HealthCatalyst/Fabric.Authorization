@@ -8,6 +8,7 @@ using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.Domain.Models;
+using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using Nancy;
 using Nancy.Testing;
@@ -1449,7 +1450,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             string customGroup = "CustomGroupSearch" + Guid.NewGuid();
             await SetupGroupAsync(customGroup, "custom");
             string directoryGroup = "CustomGroupSearch" + Guid.NewGuid();
-            await SetupGroupAsync(directoryGroup, "windows");
+            await SetupGroupAsync(directoryGroup, GroupConstants.DirectorySource);
 
             var response = await Browser.Get($"/groups", with =>
             {
@@ -1472,7 +1473,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             string customGroup = "DirectoryGroupSearch" + Guid.NewGuid();
             await SetupGroupAsync(customGroup, "custom");
             string directoryGroup = "DirectoryGroupSearch" + Guid.NewGuid();
-            await SetupGroupAsync(directoryGroup, "windows");
+            await SetupGroupAsync(directoryGroup, GroupConstants.DirectorySource);
 
             var response = await Browser.Get($"/groups", with =>
             {
@@ -1495,7 +1496,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             string customGroup = "AllGroupSearch" + Guid.NewGuid();
             await SetupGroupAsync(customGroup, "custom");
             string directoryGroup = "AllGroupSearch" + Guid.NewGuid();
-            await SetupGroupAsync(directoryGroup, "windows");
+            await SetupGroupAsync(directoryGroup, GroupConstants.DirectorySource);
 
             var response = await Browser.Get($"/groups", with =>
             {

@@ -74,7 +74,8 @@ namespace Fabric.Authorization.IntegrationTests
                 },
                 DefaultPropertySettings = new DefaultPropertySettings
                 {
-                    GroupSource = "Windows",
+                    GroupSource = GroupConstants.DirectorySource,
+                    IdentityProvider = "Windows",
                     DualStoreEDWAdminPermissions = true
                 }
             };
@@ -98,7 +99,7 @@ namespace Fabric.Authorization.IntegrationTests
 
         public DefaultPropertySettings DefaultPropertySettings = new DefaultPropertySettings
         {
-            GroupSource = "Windows",
+            GroupSource = GroupConstants.DirectorySource,
             DualStoreEDWAdminPermissions = true
         };
         
