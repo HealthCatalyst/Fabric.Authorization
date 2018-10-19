@@ -8,6 +8,6 @@
 
     public static class Identity
     {
-        public static readonly string ClientName = "";
+        public static readonly string ClientName = "fabric-authorization-client";
     }
 }
