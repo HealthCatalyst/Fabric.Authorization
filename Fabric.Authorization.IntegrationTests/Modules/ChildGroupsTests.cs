@@ -258,7 +258,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.HttpRequest();
                 with.JsonBody(new[]
                 {
-                    new GroupPostApiRequest { GroupName = "DoesNotExist", GroupSource = GroupConstants.DirectorySource }
+                    new GroupPostApiRequest { GroupName = "DoesNotExist", GroupSource = GroupConstants.DirectorySource, IdentityProvider = IdentityConstants.ActiveDirectory }
                 });
             });
 

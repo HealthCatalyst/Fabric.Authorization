@@ -388,8 +388,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Theory, IntegrationTestsFixture.DisplayTestMethodName,
-         InlineData("BatchUpdateGroup1", "BatchUpdateSource1"), InlineData("BatchUpdateGroup2", "BatchUpdateSource2")]
-        public async Task UpdateGroup_Batch_SuccessAsync(string groupName, string groupSource)
+         InlineData("BatchUpdateGroup1", "BatchUpdateSource1", "Windows"),
+         InlineData("BatchUpdateGroup2", "BatchUpdateSource2", "Windows")]
+        public async Task UpdateGroup_Batch_SuccessAsync(string groupName, string groupSource, string identityProvider)
         {
             groupName = groupName + Guid.NewGuid();
             var postResponse = await Browser.Post("/groups/UpdateGroups", with =>
@@ -400,17 +401,20 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     new
                     {
                         GroupName = groupName + "_0",
-                        GroupSource = groupSource + "_0"
+                        GroupSource = groupSource + "_0",
+                        IdentityProvider = identityProvider + "_0"
                     },
                     new
                     {
                         GroupName = groupName + "_1",
-                        GroupSource = groupSource + "_1"
+                        GroupSource = groupSource + "_1",
+                        IdentityProvider = identityProvider + "_1"
                     },
                     new
                     {
                         GroupName = groupName + "_2",
-                        GroupSource = groupSource + "_2"
+                        GroupSource = groupSource + "_2",
+                        IdentityProvider = identityProvider + "_2"
                     }
                 });
 
@@ -428,17 +432,20 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     new
                     {
                         GroupName = groupName + "_1",
-                        GroupSource = groupSource + "_1"
+                        GroupSource = groupSource + "_1",
+                        IdentityProvider = identityProvider + "_1"
                     },
                     new
                     {
                         GroupName = groupName + "_2",
-                        GroupSource = groupSource + "_2"
+                        GroupSource = groupSource + "_2",
+                        IdentityProvider = identityProvider + "_2"
                     },
                     new
                     {
                         GroupName = groupName + "_3",
-                        GroupSource = groupSource + "_3"
+                        GroupSource = groupSource + "_3",
+                        IdentityProvider = identityProvider + "_3"
                     }
                 });
             });
