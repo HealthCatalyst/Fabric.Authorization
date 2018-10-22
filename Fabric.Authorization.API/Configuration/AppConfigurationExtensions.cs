@@ -14,7 +14,13 @@ namespace Fabric.Authorization.API.Configuration
         /// <param name="appConfig">The <see cref="IAppConfiguration"/> instance to configure.</param>
         public static void ConfigureIdentityProviderSearchServiceUrl(this IAppConfiguration appConfig)
         {
-            using (var discoveryServiceClient = new DiscoveryServiceClient(appConfig.DiscoveryServiceEndpoint))
+            var authDiscoveryServiceSettings = appConfig.AuthDiscoveryServiceSettings;
+            if (!authDiscoveryServiceSettings.UseDiscovery)
+            {
+                return;
+            }
+
+            using (var discoveryServiceClient = new DiscoveryServiceClient(authDiscoveryServiceSettings.DiscoveryServiceEndpoint))
             {
                 var identityProviderSearchServiceRegistration = Task
                     .Run(() => discoveryServiceClient.GetServiceAsync("IdentityProviderSearchService", 1))

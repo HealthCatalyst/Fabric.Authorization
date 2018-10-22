@@ -18,8 +18,7 @@ namespace Fabric.Authorization.API.Configuration
         public EntityFrameworkSettings EntityFrameworkSettings { get; set; }
         public string ApplicationEndpoint { get; set; }
         public AccessControlSettings AccessControlSettings { get; set; }
-        public string DiscoveryServiceEndpoint { get; set; }
+        public AuthDiscoveryServiceSettings AuthDiscoveryServiceSettings { get; set; }
         public IdentityProviderSearchSettings IdentityProviderSearchSettings { get; set; }
-        public bool UseAzureAuthentication { get; set; }
     }
 }
