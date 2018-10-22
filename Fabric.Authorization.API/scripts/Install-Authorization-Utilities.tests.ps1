@@ -1280,7 +1280,7 @@ Describe 'Set-AuthorizationEnvironmentVariables tests' -Tag 'Unit'{
                                                                                    $environmentVariables["AdminAccount__Type"] -eq "user" -and `
                                                                                    $environmentVariables["IdentityServerApiSettings__ApiSecret"] -eq $expectedApiSecret -and `
                                                                                    $environmentVariables["ApplicationEndpoint"] -eq $expectedAuthUrl -and `
-                                                                                   $environmentVariables["AccessControlSettings__DiscoveryServiceSettings__Value"] -eq $expectedDiscoveryUrl }
+                                                                                   $environmentVariables["DiscoveryServiceSettings__Endpoint"] -eq $expectedDiscoveryUrl }
         }
     }
 }

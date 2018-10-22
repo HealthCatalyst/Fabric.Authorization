@@ -1035,7 +1035,8 @@ function Set-AuthorizationEnvironmentVariables
     }
 
     if ($discoveryServiceUrl) {
-        $environmentVariables.Add("AccessControlSettings__DiscoveryServiceSettings__Value", $discoveryServiceUrl)
+		$environmentVariables.Add("DiscoveryServiceSettings__UseDiscovery", "true")
+        $environmentVariables.Add("DiscoveryServiceSettings__Endpoint", $discoveryServiceUrl)
     }
 
     Set-EnvironmentVariables $appDirectory $environmentVariables | Out-Null
