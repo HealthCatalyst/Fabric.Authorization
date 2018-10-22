@@ -2,7 +2,7 @@
 {
     public class DiscoveryServiceSettings
     {
-        public string Token { get; set; }
+        public string AccessControlToken { get; set; }
         public bool UseDiscovery { get; set; }
         public string Endpoint { get; set; }
     }
