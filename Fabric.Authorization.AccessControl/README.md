@@ -223,9 +223,19 @@ b. "Authority": "https://HC2282.hqcatalyst.local/identity"
 
 5.  Run Fabric.Authorization service.  Should be visible in http://localhost:5004
 
-6.  In Fabric.Authorization.AccessControl project, there is a script. Run it in Git Bash with these settings:
+6.  In Fabric.Authorization.AccessControl project, there are 2 scripts. 
 
-a. ./setup-access-control.sh <YOUR Fabric Identity Installer secret> <YOUR fully qualified domain name of Fabric.Identity>
+a. Run this in Powershell: setup-dependencies.ps1
+
+Notes: 
+- This will install chocolatey and nodejs.  
+- If you have nodejs installed from another method, **please uninstall it and use this script**.  
+- **If you do not want to uninstall nodejs**, you will have to manually install the dependencies yourself.  
+- Also, **run as Administrator**.  
+- If you see errors uninstalling, chances are you do not have the dependency installed, just ignore it in this case.
+- If there are any errors, there should be a setup-dependencies.log file in the same directory.
+
+b. Run this in Git Bash: ./setup-access-control.sh <YOUR Fabric Identity Installer secret> <YOUR fully qualified domain name of Fabric.Identity>
 
 Example:
 
