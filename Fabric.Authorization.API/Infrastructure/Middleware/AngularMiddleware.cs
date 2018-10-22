@@ -41,7 +41,7 @@ namespace Fabric.Authorization.API.Infrastructure.Middleware
 
                 // swaps in the discovery service root
                 _indexContent =
-                    _indexContent.Replace(discoveryServiceSettings.Token, discoveryServiceSettings.Endpoint);
+                    _indexContent.Replace(discoveryServiceSettings.AccessControlToken, discoveryServiceSettings.Endpoint);
 
                 // swaps in the access control root
                 _indexContent = _indexContent.Replace(AccessControl.ClientRootToken,
