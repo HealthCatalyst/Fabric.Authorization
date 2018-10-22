@@ -211,14 +211,14 @@ namespace Fabric.Authorization.API.Modules
                 if (string.Equals(incomingGroup.IdentityProvider, IdentityConstants.AzureActiveDirectory, StringComparison.OrdinalIgnoreCase))
                 {
                     var idPSearchResponse = await _idPSearchService.GetGroup(incomingGroup.Name, incomingGroup.Tenant);
-                    if (!idPSearchResponse.Result.Principals.Any())
+                    if (idPSearchResponse.HttpStatusCode == System.Net.HttpStatusCode.OK)
                     {
                         return CreateFailureResponse(
                             $"Group name {incomingGroup.Name} from {incomingGroup.IdentityProvider} tenant {incomingGroup.Tenant} was not found in the external identity provider directory.",
                             HttpStatusCode.BadRequest);
                     }
 
-                    incomingGroup.ExternalIdentifier = idPSearchResponse.Result.Principals.First().ExternalIdentifier;
+                    incomingGroup.ExternalIdentifier = idPSearchResponse.Result.ExternalIdentifier;
                 }
 
                 var createdGroup = await _groupService.AddGroup(incomingGroup);

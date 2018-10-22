@@ -7,9 +7,13 @@ using Catalyst.Fabric.Authorization.Models;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
+using Fabric.Authorization.API.RemoteServices.Identity.Providers;
+using Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Models;
+using Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Providers;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Persistence.SqlServer.Configuration;
+using Moq;
 using Nancy;
 using Nancy.Testing;
 using Newtonsoft.Json;
@@ -81,12 +85,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 });
             });
 
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+
             var getResponse = await Browser.Get($"/groups/{groupName}", with =>
             {
                 with.HttpRequest();
             });
 
-            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
             var responseBody = getResponse.Body.AsString();
@@ -95,6 +100,50 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Contains(displayName, responseBody);
             Assert.Contains(description, responseBody);
             Assert.Contains(identityProvider, responseBody);
+        }
+
+        [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
+        public async Task AddGroup_AzureActiveDirectory_SuccessAsync()
+        {
+
+            var mockIdpSearchProvider = new Mock<IIdPSearchProvider>();
+            mockIdpSearchProvider.Setup(m => m.GetGroup(It.IsAny<IdPGroupRequest>()))
+                .ReturnsAsync(() => new FabricIdPGroupResponse
+                {
+                    HttpStatusCode = System.Net.HttpStatusCode.OK,
+                    Result = new IdPGroupResponse
+                    {
+                        DisplayName = "",
+                        PrincipalType = "Group",
+                        ExternalIdentifier = "123456",
+                        TenantId = "",
+                        SubjectId = ""
+                    }
+                });
+
+            var groupName = Guid.NewGuid();
+            var postResponse = await Browser.Post("/groups", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    GroupName = groupName,
+                    GroupSource = GroupConstants.DirectorySource,
+                    DisplayName = "My Azure AD Group",
+                    Description = "My Azure AD Group",
+                    IdentityProvider = IdentityConstants.AzureActiveDirectory
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+
+            var getResponse = await Browser.Get($"/groups/{groupName}", with =>
+            {
+                with.HttpRequest();
+            });
+
+            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
         }
 
         [Theory]
