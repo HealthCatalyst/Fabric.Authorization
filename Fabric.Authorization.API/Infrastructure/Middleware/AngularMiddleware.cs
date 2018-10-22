@@ -37,11 +37,11 @@ namespace Fabric.Authorization.API.Infrastructure.Middleware
                 var fullPath = Path.Combine(_hostingEnvironment.WebRootPath, AccessControl.Path, AccessControl.Index);
                 _indexContent = File.ReadAllText(fullPath);
 
-                var discoveryServiceSettings = _appConfiguration.AccessControlSettings.DiscoveryServiceSettings;
+                var discoveryServiceSettings = _appConfiguration.DiscoveryServiceSettings;
 
                 // swaps in the discovery service root
-                _indexContent = _indexContent.Replace(discoveryServiceSettings.Token,
-                    discoveryServiceSettings.Value);
+                _indexContent =
+                    _indexContent.Replace(discoveryServiceSettings.Token, discoveryServiceSettings.Endpoint);
 
                 // swaps in the access control root
                 _indexContent = _indexContent.Replace(AccessControl.ClientRootToken,
