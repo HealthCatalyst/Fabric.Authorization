@@ -22,7 +22,7 @@ namespace Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Models
         public string IdentityProvider { get; set; }
     }
 
-    public class FabricIdPSearchResponse
+    public class FabricIdPSearchResponse : IFabricIdPResponseModel<IdPPrincipalSearchResponse>
     {
         public HttpStatusCode HttpStatusCode { get; set; }
         public IdPPrincipalSearchResponse Result { get; set; }

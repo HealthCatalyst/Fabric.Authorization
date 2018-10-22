@@ -2,6 +2,7 @@
 using Fabric.Authorization.API;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.RemoteServices.Identity.Providers;
+using Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Providers;
 using Microsoft.AspNetCore.Hosting;
 using Nancy;
 using Nancy.Bootstrapper;
@@ -15,17 +16,20 @@ namespace Fabric.Authorization.IntegrationTests
     {
         private readonly ClaimsPrincipal _principal;
         private readonly IIdentityServiceProvider _identityServiceProvider;
+        private readonly IIdPSearchProvider _idPSearchProvider;
 
         public TestBootstrapper(ILogger logger, 
             IAppConfiguration appConfig, 
             LoggingLevelSwitch levelSwitch,
             IHostingEnvironment env, 
             ClaimsPrincipal principal, 
-            IIdentityServiceProvider identityServiceProvider = null)
+            IIdentityServiceProvider identityServiceProvider = null,
+            IIdPSearchProvider idPSearchProvider = null)
             : base(logger, appConfig, levelSwitch, env, null)
         {
             _principal = principal;
             _identityServiceProvider = identityServiceProvider;
+            _idPSearchProvider = idPSearchProvider;
         }
 
         protected override void RequestStartup(TinyIoCContainer container, IPipelines pipelines, NancyContext context)
@@ -41,8 +45,11 @@ namespace Fabric.Authorization.IntegrationTests
             {
                 container.Register(_identityServiceProvider);
             }
+
+            if (_idPSearchProvider != null)
+            {
+                container.Register(_idPSearchProvider);
+            }
         }
     }
-
-
 }
