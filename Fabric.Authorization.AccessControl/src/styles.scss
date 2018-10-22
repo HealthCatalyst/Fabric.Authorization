@@ -11,6 +11,7 @@ $FontPathOpenSans: "../node_modules/typeface-open-sans/files";
 /////////// #TODO: Fix Cashmere in IE
 input.hc-input, div.input-icon {
   height: 35px !important;
+  width: 375px !important;
 }
 .hc-input{
   color: #333;
