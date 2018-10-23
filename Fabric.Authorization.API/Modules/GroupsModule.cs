@@ -211,7 +211,7 @@ namespace Fabric.Authorization.API.Modules
                 if (string.Equals(incomingGroup.IdentityProvider, IdentityConstants.AzureActiveDirectory, StringComparison.OrdinalIgnoreCase))
                 {
                     var idPSearchResponse = await _idPSearchService.GetGroup(incomingGroup.Name, incomingGroup.Tenant);
-                    if (idPSearchResponse.HttpStatusCode == System.Net.HttpStatusCode.OK)
+                    if (idPSearchResponse.HttpStatusCode != System.Net.HttpStatusCode.OK)
                     {
                         return CreateFailureResponse(
                             $"Group name {incomingGroup.Name} from {incomingGroup.IdentityProvider} tenant {incomingGroup.Tenant} was not found in the external identity provider directory.",
