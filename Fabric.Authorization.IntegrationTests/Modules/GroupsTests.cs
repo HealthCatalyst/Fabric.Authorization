@@ -7,7 +7,6 @@ using Catalyst.Fabric.Authorization.Models;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
-using Fabric.Authorization.API.RemoteServices.Identity.Providers;
 using Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Models;
 using Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Providers;
 using Fabric.Authorization.Domain.Models;
@@ -44,11 +43,30 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             {
                 fixture.ConnectionStrings = connectionStrings;
             }
-            Browser = fixture.GetBrowser(Principal, storageProvider);
+            Browser = fixture.GetBrowser(Principal, storageProvider, null, CreateMockIdPProvider("My Azure AD Group"));
             _defaultPropertySettings = fixture.DefaultPropertySettings;
             fixture.CreateClient(Browser, "rolesprincipal");
             _fixture = fixture;
             _storageProvider = storageProvider;
+        }
+
+        private IIdPSearchProvider CreateMockIdPProvider(string groupName)
+        {
+            var mockIdpSearchProvider = new Mock<IIdPSearchProvider>();
+            mockIdpSearchProvider.Setup(m => m.GetGroup(It.IsAny<IdPGroupRequest>()))
+                .ReturnsAsync(() => new FabricIdPGroupResponse
+                {
+                    HttpStatusCode = System.Net.HttpStatusCode.OK,
+                    Result = new IdPGroupResponse
+                    {
+                        DisplayName = groupName,
+                        PrincipalType = "Group",
+                        ExternalIdentifier = "123456",
+                        TenantId = "Tenant"
+                    }
+                });
+
+            return mockIdpSearchProvider.Object;
         }
 
         [Theory]
@@ -106,23 +124,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         [IntegrationTestsFixture.DisplayTestMethodName]
         public async Task AddGroup_AzureActiveDirectory_SuccessAsync()
         {
-
-            var mockIdpSearchProvider = new Mock<IIdPSearchProvider>();
-            mockIdpSearchProvider.Setup(m => m.GetGroup(It.IsAny<IdPGroupRequest>()))
-                .ReturnsAsync(() => new FabricIdPGroupResponse
-                {
-                    HttpStatusCode = System.Net.HttpStatusCode.OK,
-                    Result = new IdPGroupResponse
-                    {
-                        DisplayName = "",
-                        PrincipalType = "Group",
-                        ExternalIdentifier = "123456",
-                        TenantId = "",
-                        SubjectId = ""
-                    }
-                });
-
-            var groupName = Guid.NewGuid();
+            var groupName = Guid.NewGuid().ToString();
             var postResponse = await Browser.Post("/groups", with =>
             {
                 with.HttpRequest();
@@ -132,7 +134,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     GroupSource = GroupConstants.DirectorySource,
                     DisplayName = "My Azure AD Group",
                     Description = "My Azure AD Group",
-                    IdentityProvider = IdentityConstants.AzureActiveDirectory
+                    IdentityProvider = IdentityConstants.AzureActiveDirectory,
+                    Tenant = "AzureTenant"
                 });
             });
 
@@ -144,6 +147,13 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             });
 
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+            var group = JsonConvert.DeserializeObject<GroupRoleApiModel>(getResponse.Body.AsString());
+            Assert.Equal(groupName, group.GroupName);
+            Assert.Equal(GroupConstants.DirectorySource, group.GroupSource);
+            Assert.Equal("My Azure AD Group", group.DisplayName);
+            Assert.Equal("My Azure AD Group", group.Description);
+            Assert.Equal("AzureTenant", group.Tenant);
         }
 
         [Theory]
