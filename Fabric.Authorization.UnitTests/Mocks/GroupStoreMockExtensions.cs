@@ -30,6 +30,15 @@ namespace Fabric.Authorization.UnitTests.Mocks
                     g => groupNames.Contains(g.Name, StringComparer.OrdinalIgnoreCase)));
             });
 
+            mockGroupStore.Setup(groupStore => groupStore.GetGroupsByIdentifiers(It.IsAny<IEnumerable<string>>()))
+                .Returns((IEnumerable<string> groupNames) =>
+                {
+                    var groupNameList = groupNames.ToList();
+                    return Task.FromResult(groups.Where(
+                        g => groupNameList.Contains(g.Name, StringComparer.OrdinalIgnoreCase)
+                             || groupNameList.Contains(g.ExternalIdentifier, StringComparer.OrdinalIgnoreCase)));
+                });
+
             return mockGroupStore;
         }
 

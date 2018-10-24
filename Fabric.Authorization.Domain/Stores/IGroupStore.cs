@@ -9,6 +9,7 @@ namespace Fabric.Authorization.Domain.Stores
     {
         Task<Group> Get(string name);
         Task<IEnumerable<Group>> Get(IEnumerable<string> groupNames, bool ignoreMissingGroups);
+        Task<IEnumerable<Group>> GetGroupsByIdentifiers(IEnumerable<string> identifiers);
         Task<IEnumerable<Group>> Add(IEnumerable<Group> groups);
         Task<bool> Exists(string name);
         Task<Group> AddRolesToGroup(Group group, IEnumerable<Role> rolesToAdd);
