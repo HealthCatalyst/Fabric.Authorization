@@ -481,6 +481,35 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return Task.FromResult(groupEntities.Select(g => g.ToModel()).AsEnumerable());
         }
 
+        public Task<IEnumerable<Group>> GetGroupsByIdentifiers(IEnumerable<string> identifiers)
+        {
+            var identifierList = identifiers.ToList();
+            try
+            {
+                var groupEntities = AuthorizationDbContext.Groups
+                    .Include(g => g.ChildGroups)
+                    .ThenInclude(cg => cg.Child)
+                    .Include(g => g.ParentGroups)
+                    .ThenInclude(pg => pg.Parent)
+                    .Where(g =>
+                        !g.IsDeleted
+                        && (identifierList.Contains(g.Name) || identifierList.Contains(g.ExternalIdentifier)))
+                    .ToList();
+
+                foreach (var groupEntity in groupEntities)
+                {
+                    groupEntity.ChildGroups = groupEntity.ChildGroups.Where(cg => !cg.IsDeleted).ToList();
+                    groupEntity.ParentGroups = groupEntity.ParentGroups.Where(pg => !pg.IsDeleted).ToList();
+                }
+
+                return Task.FromResult(groupEntities.Select(g => g.ToModel()).AsEnumerable());
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+
         public async Task<IEnumerable<Group>> GetGroups(string name, string type)
         {
             var groupEntities = await AuthorizationDbContext.Groups

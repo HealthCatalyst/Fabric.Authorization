@@ -67,7 +67,7 @@ namespace Fabric.Authorization.API.Services
         public async Task<IEnumerable<string>> GetGroupsForAuthenticatedUser(string subjectId, string providerId, ClaimsPrincipal currentUser)
         {
             var groupClaims = currentUser?.Claims
-                .Where(c => c.Type == Claims.Roles || c.Type == Claims.Groups)
+                .Where(c => c.Type == JwtClaimTypes.Role || c.Type == Claims.Groups)
                 .Distinct(new ClaimComparer())
                 .Select(c => c.Value.ToString());
 
@@ -85,7 +85,7 @@ namespace Fabric.Authorization.API.Services
             }
 
             // retrieve all AD groups that are on the access token, ignoring the ones that we do not have registered in our DB
-            var directoryGroups = (await _groupStore.Get(groupClaims, true)).ToList();
+            var directoryGroups = (await _groupStore.GetGroupsByIdentifiers(groupClaims)).ToList();
 
             // extract all the parent custom groups from the list of AD groups
             var flattenedDirectoryGroups = directoryGroups.Union(directoryGroups.SelectMany(g => g.Parents)).Select(g => g.Name);
