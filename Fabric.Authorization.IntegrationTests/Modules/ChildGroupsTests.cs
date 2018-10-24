@@ -606,7 +606,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Contains(parentPermission.ToString(), userPermissions);
             Assert.Contains(childPermission1.ToString(), userPermissions);
 
-
             // delete childGroup1 association, which removes both permissions from the user
             var deleteResponse = await _browser.Delete($"/groups/{parentGroup.GroupName}/groups", with =>
             {

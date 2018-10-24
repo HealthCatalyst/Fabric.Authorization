@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.ModuleExtensions;
 using Fabric.Authorization.API.Modules;
@@ -66,7 +67,7 @@ namespace Fabric.Authorization.API.Services
         public async Task<IEnumerable<string>> GetGroupsForAuthenticatedUser(string subjectId, string providerId, ClaimsPrincipal currentUser)
         {
             var groupClaims = currentUser?.Claims
-                .Where(c => c.Type == "role" || c.Type == "groups")
+                .Where(c => c.Type == Claims.Roles || c.Type == Claims.Groups)
                 .Distinct(new ClaimComparer())
                 .Select(c => c.Value.ToString());
 
