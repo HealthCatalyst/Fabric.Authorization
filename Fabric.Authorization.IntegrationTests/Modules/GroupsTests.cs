@@ -53,7 +53,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         private IIdPSearchProvider CreateMockIdPProvider(string groupName)
         {
             var mockIdpSearchProvider = new Mock<IIdPSearchProvider>();
-            mockIdpSearchProvider.Setup(m => m.GetGroup(It.IsAny<IdPGroupRequest>()))
+            mockIdpSearchProvider.Setup(m => m.GetGroupAsync(It.IsAny<IdPGroupRequest>()))
                 .ReturnsAsync(() => new FabricIdPGroupResponse
                 {
                     HttpStatusCode = System.Net.HttpStatusCode.OK,

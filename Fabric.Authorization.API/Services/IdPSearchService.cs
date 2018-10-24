@@ -19,21 +19,14 @@ namespace Fabric.Authorization.API.Services
         /// <param name="groupName"></param>
         /// <param name="tenant"></param>
         /// <returns></returns>
-        public async Task<FabricIdPGroupResponse> GetGroup(string groupName, string tenant)
+        public async Task<FabricIdPGroupResponse> GetGroupAsync(string groupName, string tenant)
         {
-            var result = await _idPSearchProvider.GetGroup(new IdPGroupRequest
+            var result = await _idPSearchProvider.GetGroupAsync(new IdPGroupRequest
             {
                 DisplayName = groupName
             });
 
             return result;
         }
-    }
-
-    public enum SearchType
-    {
-        User,
-        Group,
-        UserAndGroup
     }
 }
