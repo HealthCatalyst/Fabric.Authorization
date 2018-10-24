@@ -36,7 +36,7 @@ namespace Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Provide
             _logger = logger;
         }
 
-        public async Task<FabricIdPSearchResponse> Search(IdPPrincipalSearchRequest request)
+        public async Task<FabricIdPSearchResponse> SearchAsync(IdPPrincipalSearchRequest request)
         {
             var settings = _appConfiguration.IdentityServerConfidentialClientSettings;
             var baseUri = settings.Authority.EnsureTrailingSlash();
@@ -58,7 +58,7 @@ namespace Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Provide
             return await ProcessResponse<IdPPrincipalSearchResponse, FabricIdPSearchResponse>(httpRequestMessage);
         }
 
-        public async Task<FabricIdPGroupResponse> GetGroup(IdPGroupRequest request)
+        public async Task<FabricIdPGroupResponse> GetGroupAsync(IdPGroupRequest request)
         {
             var settings = _appConfiguration.IdentityServerConfidentialClientSettings;
             var baseUri = settings.Authority.EnsureTrailingSlash();
