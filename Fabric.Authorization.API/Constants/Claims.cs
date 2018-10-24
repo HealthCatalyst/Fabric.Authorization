@@ -6,5 +6,7 @@
         public static readonly string ClientId = "client_id";
         public static readonly string Sub = "sub";
         public static readonly string IdentityProvider = "idp";
+        public static readonly string Groups = "groups";
+        public static readonly string Roles = "role";
     }
 }

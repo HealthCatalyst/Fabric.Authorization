@@ -154,6 +154,58 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal("My Azure AD Group", group.DisplayName);
             Assert.Equal("My Azure AD Group", group.Description);
             Assert.Equal("AzureTenant", group.Tenant);
+            
+            var identityProvider = "windows";
+            var subjectId = @"domain\test.user" + Guid.NewGuid();
+            var response = await Browser.Post("/user", with =>
+            {
+                with.JsonBody(new
+                {
+                    identityProvider,
+                    subjectId
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+       
+            // create permissions
+            var permissionName = Guid.NewGuid().ToString();
+            var permission = await SetupPermissionAsync("app", "rolesprincipal", permissionName);
+
+            // create role and map role to permissions
+            var roleName = Guid.NewGuid().ToString();
+            var role = await SetupRoleAsync(roleName, "app", "rolesprincipal",
+                new List<PermissionApiModel> {permission});
+
+            // map group to role
+            response = await SetupGroupRoleMappingAsync(groupName, role);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            // create a principal w/ the user created above
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
+            {
+                new Claim(Claims.Scope, Scopes.ManageClientsScope),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.Sub, subjectId),
+                new Claim(Claims.IdentityProvider, identityProvider),
+                new Claim(Claims.ClientId, "rolesprincipal"),
+                new Claim(Claims.Groups, "123456")
+            }, "pwd"));
+
+            var browser = _fixture.GetBrowser(principal, _storageProvider);
+
+            // get authenticated user's permissions
+            var get = await browser.Get("/user/permissions", with =>
+            {
+                with.HttpRequest();
+            });
+
+            Assert.Equal(HttpStatusCode.OK, get.StatusCode);
+            var userPermissionsApiModel = get.Body.DeserializeJson<UserPermissionsApiModel>();
+            var userPermissions = userPermissionsApiModel.Permissions.ToList();
+            Assert.Single(userPermissions);
+            Assert.Contains(permission.ToString(), userPermissions);
         }
 
         [Theory]
@@ -600,18 +652,36 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         }
 
-        protected async Task<Role> SetupRoleAsync(string roleName, string grain = "app", string securableItem = "rolesprincipal")
+        protected async Task<Role> SetupRoleAsync(string roleName, string grain = "app", string securableItem = "rolesprincipal", IEnumerable<PermissionApiModel> permissionApiModels = null)
         {
-            var response = await Browser.Post("/roles", with =>
+            BrowserResponse response;
+            if (permissionApiModels == null)
             {
-                with.HttpRequest();
-                with.JsonBody(new
+                response = await Browser.Post("/roles", with =>
                 {
-                    Grain = grain,
-                    SecurableItem = securableItem,
-                    Name = roleName
+                    with.HttpRequest();
+                    with.JsonBody(new
+                    {
+                        Grain = grain,
+                        SecurableItem = securableItem,
+                        Name = roleName
+                    });
                 });
-            });
+            }
+            else
+            {
+                response = await Browser.Post("/roles", with =>
+                {
+                    with.HttpRequest();
+                    with.JsonBody(new
+                    {
+                        Grain = grain,
+                        SecurableItem = securableItem,
+                        Name = roleName,
+                        Permissions = permissionApiModels
+                    });
+                });
+            }
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
@@ -647,6 +717,23 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             });
 
             return response;
+        }
+
+        private async Task<PermissionApiModel> SetupPermissionAsync(string grain, string securableItem, string permissionName)
+        {
+            var post = await Browser.Post("/permissions", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    Grain = grain,
+                    SecurableItem = securableItem,
+                    Name = permissionName
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Created, post.StatusCode);
+            return JsonConvert.DeserializeObject<PermissionApiModel>(post.Body.AsString());
         }
 
         [Theory]
