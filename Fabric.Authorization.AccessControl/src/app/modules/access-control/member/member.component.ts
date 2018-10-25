@@ -96,7 +96,7 @@ export class MemberComponent implements OnInit, OnDestroy {
       mergeMap((roles: IRole[]) => {
         this.roles = roles.map(role => <IRole>role);
         return this.bindExistingRoles(this.selectedPrincipal);
-      }),)
+      }))
       .subscribe();
 
     // Search text
@@ -272,7 +272,7 @@ export class MemberComponent implements OnInit, OnDestroy {
         this.savingInProgress = false;
         this.alertService.showSaveError(err.message);
         return observableThrowError(err.message);
-      }),);
+      }));
   }
 
   private bindExistingRoles(principal: IFabricPrincipal): Observable<any> {

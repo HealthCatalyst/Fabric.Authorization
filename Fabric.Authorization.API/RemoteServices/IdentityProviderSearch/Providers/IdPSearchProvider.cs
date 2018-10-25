@@ -61,7 +61,7 @@ namespace Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Provide
 
         public async Task<FabricIdPGroupResponse> GetGroupAsync(IdPGroupRequest request)
         {
-            var route = $"/groups/{request.IdentityProvider}/{request.DisplayName}";
+            var route = $"{request.IdentityProvider}/groups/{request.DisplayName}";
 
             if (!string.IsNullOrWhiteSpace(request.Tenant))
             {
