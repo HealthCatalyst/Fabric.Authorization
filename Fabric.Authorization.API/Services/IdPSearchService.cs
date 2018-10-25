@@ -13,16 +13,12 @@ namespace Fabric.Authorization.API.Services
             _idPSearchProvider = idPSearchProvider;
         }
 
-        /// <summary>
-        /// TODO: need to specify exact search
-        /// </summary>
-        /// <param name="groupName"></param>
-        /// <param name="tenant"></param>
-        /// <returns></returns>
-        public async Task<FabricIdPGroupResponse> GetGroupAsync(string groupName, string tenant)
+        public async Task<FabricIdPGroupResponse> GetGroupAsync(string identityProvider, string groupName, string tenant = null)
         {
             var result = await _idPSearchProvider.GetGroupAsync(new IdPGroupRequest
             {
+                IdentityProvider = identityProvider,
+                Tenant = tenant,
                 DisplayName = groupName
             });
 

@@ -210,7 +210,7 @@ namespace Fabric.Authorization.API.Modules
             {
                 if (string.Equals(incomingGroup.IdentityProvider, IdentityConstants.AzureActiveDirectory, StringComparison.OrdinalIgnoreCase))
                 {
-                    var idPSearchResponse = await _idPSearchService.GetGroupAsync(incomingGroup.Name, incomingGroup.Tenant);
+                    var idPSearchResponse = await _idPSearchService.GetGroupAsync(incomingGroup.IdentityProvider, incomingGroup.Name, incomingGroup.Tenant);
                     if (idPSearchResponse.HttpStatusCode != System.Net.HttpStatusCode.OK)
                     {
                         return CreateFailureResponse(
