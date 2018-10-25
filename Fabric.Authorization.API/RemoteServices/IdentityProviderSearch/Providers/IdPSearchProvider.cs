@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -36,19 +35,21 @@ namespace Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Provide
             _logger = logger;
         }
 
+        /// <summary>
+        /// NOTE: IdPSearchService needs to be enhanced to expose this
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         public async Task<FabricIdPSearchResponse> SearchAsync(IdPPrincipalSearchRequest request)
         {
-            var settings = _appConfiguration.IdentityServerConfidentialClientSettings;
-            var baseUri = settings.Authority.EnsureTrailingSlash();
-            var tokenUriAddress = $"{baseUri}connect/token";
-            var tokenClient = new TokenClient(tokenUriAddress, "fabric-authorization-client", settings.ClientSecret);
-            var accessTokenResponse = await tokenClient
-                .RequestClientCredentialsAsync(IdentityProviderSearchScopes.SearchUsersScope).ConfigureAwait(false);
+            var route = $"/principals/search?searchText={request.SearchText}";
 
-            // TODO: fix URI path
-            var httpRequestMessage = _httpRequestMessageFactory.CreateWithAccessToken(HttpMethod.Get,
-                new Uri($"{baseUri}api/users"),
-                accessTokenResponse.AccessToken);
+            if (!string.IsNullOrWhiteSpace(request.Type))
+            {
+                route = $"{route}&type={request.Type}";
+            }
+
+            var httpRequestMessage = await CreateHttpRequestMessage(route, HttpMethod.Get);
 
             _logger.Debug($"Invoking {ServiceName} endpoint {httpRequestMessage.RequestUri}");
 
@@ -60,17 +61,14 @@ namespace Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Provide
 
         public async Task<FabricIdPGroupResponse> GetGroupAsync(IdPGroupRequest request)
         {
-            var settings = _appConfiguration.IdentityServerConfidentialClientSettings;
-            var baseUri = settings.Authority.EnsureTrailingSlash();
-            var tokenUriAddress = $"{baseUri}connect/token";
-            var tokenClient = new TokenClient(tokenUriAddress, "fabric-authorization-client", settings.ClientSecret);
-            var accessTokenResponse = await tokenClient
-                .RequestClientCredentialsAsync(IdentityProviderSearchScopes.SearchUsersScope).ConfigureAwait(false);
+            var route = $"/groups/{request.IdentityProvider}/{request.DisplayName}";
 
-            // TODO: fix URI path
-            var httpRequestMessage = _httpRequestMessageFactory.CreateWithAccessToken(HttpMethod.Get,
-                new Uri($"{baseUri}api/{IdentityConstants.AzureActiveDirectory}/tenant/{request.DisplayName}"),
-                accessTokenResponse.AccessToken);
+            if (!string.IsNullOrWhiteSpace(request.Tenant))
+            {
+                route = $"{route}?tenant={request.Tenant}";
+            }
+
+            var httpRequestMessage = await CreateHttpRequestMessage(route, HttpMethod.Get);
 
             _logger.Debug($"Invoking {ServiceName} endpoint {httpRequestMessage.RequestUri}");
 
@@ -78,6 +76,23 @@ namespace Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Provide
                 "application/json");
 
             return await ProcessResponse<IdPGroupResponse, FabricIdPGroupResponse>(httpRequestMessage);
+        }
+
+        private async Task<HttpRequestMessage> CreateHttpRequestMessage(string route, HttpMethod httpMethod)
+        {
+            var settings = _appConfiguration.IdentityServerConfidentialClientSettings;
+            var authority = settings.Authority.EnsureTrailingSlash();
+            var tokenUriAddress = $"{authority}connect/token";
+            var tokenClient = new TokenClient(tokenUriAddress, "fabric-authorization-client", settings.ClientSecret);
+            var accessTokenResponse = await tokenClient
+                .RequestClientCredentialsAsync(IdentityProviderSearchScopes.SearchUsersScope).ConfigureAwait(false);
+
+            var baseUri = _appConfiguration.IdentityProviderSearchSettings.Endpoint.EnsureTrailingSlash();
+            var httpRequestMessage = _httpRequestMessageFactory.CreateWithAccessToken(httpMethod,
+                new Uri($"{baseUri}/{route}"),
+                accessTokenResponse.AccessToken);
+
+            return httpRequestMessage;
         }
 
         private async Task<T1> ProcessResponse<T, T1>(HttpRequestMessage httpRequestMessage)
