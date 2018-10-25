@@ -147,6 +147,36 @@ function Add-User($authUrl, $name, $accessToken) {
     return Invoke-Post $url $body $accessToken
 }
 
+function Add-UserOrGroupToEdwAdmin($userOrGroup, $connString) {
+	$query = "DECLARE @userId INTEGER;
+			  DECLARE @roleId INTEGER;
+			  IF NOT EXISTS (SELECT * FROM [EDWAdmin].[CatalystAdmin].[IdentityBASE] WHERE [IdentityNM] = @identityName)
+			  BEGIN
+					BEGIN TRY
+					BEGIN TRANSACTION
+     					INSERT INTO [EDWAdmin].[CatalystAdmin].[IdentityBASE] ([IdentityNM])
+						VALUES (@identityName);
+
+						SELECT @userId = SCOPE_IDENTITY();
+
+						SELECT @roleId = [RoleID]
+						FROM [EDWAdmin].[CatalystAdmin].[RoleBASE]
+						WHERE [RoleNM] = @roleName;
+
+						INSERT INTO [EDWAdmin].[CatalystAdmin].[IdentityRoleBASE] (IdentityID, RoleID)
+						VALUES(@userId, @roleId);		
+						COMMIT;
+					END TRY
+					BEGIN CATCH
+						ROLLBACK;
+						THROW; 
+					END CATCH
+			  END"
+
+	$roleName = "EDW Admin"
+	Invoke-Sql $connString $query @{roleName = "EDW Admin"; identityName = $userOrGroup} | Out-Null
+}
+
 function Add-RoleToUser($role, $user, $connString, $clientId) {
     $query = "INSERT INTO RoleUsers
               (CreatedBy, CreatedDateTimeUtc, RoleId, IdentityProvider, IsDeleted, SubjectId)
@@ -275,6 +305,27 @@ function Add-AccountToDosAdminGroup($accountName, $domain, $authorizationService
     else {
         Write-Error "$samAccountName is not a valid principal in the $domain domain. Please enter a valid account. Halting installation."
         throw
+    }
+}
+
+function Add-AccountToEDWAdmin($accountName, $domain, $connString) {
+	$samAccountName = Get-SamAccountFromAccountName -accountName $accountName
+	if ((Test-IsUser -samAccountName $samAccountName -domain $domain) -or (Test-IsGroup -samAccountName $samAccountName -domain $domain)) {
+		try {
+			
+			Add-UserOrGroupToEdwAdmin -userOrGroup $accountName -connString $connString
+		}
+		catch {
+            $exception = $_.Exception
+            if ($exception.Response -ne $null) {
+                $error = Get-ErrorFromResponse -response $exception.Response
+                Write-Error "    There was an error updating EDWAdmin: $error. Halting installation."
+            }
+            throw $exception
+        }
+	}
+    else {
+        Write-Error "$samAccountName is not a valid principal in the $domain domain. Please enter a valid account. Halting installation."
     }
 }
 
@@ -1052,6 +1103,9 @@ Move-DosAdminRoleToDosAdminGroup -authUrl "$authorizationServiceUrl/v1" -accessT
 
 Write-Host "Setting up Default Dos Admin account."
 Add-AccountToDosAdminGroup -accountName $adminAccount -domain $currentUserDomain -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken -connString $authorizationDbConnStr
+
+Write-Host "Adding $adminAccount to EDW Admin account."
+Add-AccountToEDWAdmin -accountName $adminAccount -domain $currentUserDomain -connString $metadataConnStr	
 
 Set-Location $workingDirectory
 
