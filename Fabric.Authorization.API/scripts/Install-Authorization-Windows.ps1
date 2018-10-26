@@ -148,30 +148,36 @@ function Add-User($authUrl, $name, $accessToken) {
 }
 
 function Add-UserOrGroupToEdwAdmin($userOrGroup, $connString) {
-	$query = "DECLARE @userId INTEGER;
-			  DECLARE @roleId INTEGER;
-			  IF NOT EXISTS (SELECT * FROM [EDWAdmin].[CatalystAdmin].[IdentityBASE] WHERE [IdentityNM] = @identityName)
-			  BEGIN
-					BEGIN TRY
-					BEGIN TRANSACTION
-     					INSERT INTO [EDWAdmin].[CatalystAdmin].[IdentityBASE] ([IdentityNM])
-						VALUES (@identityName);
-
-						SELECT @userId = SCOPE_IDENTITY();
-
-						SELECT @roleId = [RoleID]
-						FROM [EDWAdmin].[CatalystAdmin].[RoleBASE]
-						WHERE [RoleNM] = @roleName;
-
-						INSERT INTO [EDWAdmin].[CatalystAdmin].[IdentityRoleBASE] (IdentityID, RoleID)
-						VALUES(@userId, @roleId);		
-						COMMIT;
-					END TRY
-					BEGIN CATCH
-						ROLLBACK;
-						THROW; 
-					END CATCH
-			  END"
+	$query   = "DECLARE @userId INTEGER;
+                DECLARE @roleId INTEGER;
+                
+                SET @userId = -1
+                SELECT @userId = COALESCE([IdentityID], -1) FROM [EDWAdmin].[CatalystAdmin].[IdentityBASE] WHERE [IdentityNM] = @identityName
+                BEGIN TRY
+                BEGIN TRANSACTION
+                    IF (@userId < 0)
+                    BEGIN
+                        INSERT INTO [EDWAdmin].[CatalystAdmin].[IdentityBASE] ([IdentityNM])
+                        VALUES (@identityName);
+                        SELECT @userId = SCOPE_IDENTITY();
+                    END
+                
+                    SELECT @roleId = [RoleID]
+                    FROM [EDWAdmin].[CatalystAdmin].[RoleBASE]
+                    WHERE [RoleNM] = @roleName;
+                
+                    IF NOT EXISTS (SELECT * FROM [EDWAdmin].[CatalystAdmin].[IdentityRoleBASE] WHERE [IdentityID] = @userId AND [RoleId] = @roleId)
+                    BEGIN
+                        INSERT INTO [EDWAdmin].[CatalystAdmin].[IdentityRoleBASE] (IdentityID, RoleID)
+                        VALUES(@userId, @roleId);
+                    END
+                        
+                    COMMIT;
+                END TRY
+                BEGIN CATCH
+                    ROLLBACK;
+                    THROW; 
+                END CATCH"
 
 	$roleName = "EDW Admin"
 	Invoke-Sql $connString $query @{roleName = "EDW Admin"; identityName = $userOrGroup} | Out-Null
@@ -311,21 +317,11 @@ function Add-AccountToDosAdminGroup($accountName, $domain, $authorizationService
 function Add-AccountToEDWAdmin($accountName, $domain, $connString) {
 	$samAccountName = Get-SamAccountFromAccountName -accountName $accountName
 	if ((Test-IsUser -samAccountName $samAccountName -domain $domain) -or (Test-IsGroup -samAccountName $samAccountName -domain $domain)) {
-		try {
-			
-			Add-UserOrGroupToEdwAdmin -userOrGroup $accountName -connString $connString
-		}
-		catch {
-            $exception = $_.Exception
-            if ($exception.Response -ne $null) {
-                $error = Get-ErrorFromResponse -response $exception.Response
-                Write-Error "    There was an error updating EDWAdmin: $error. Halting installation."
-            }
-            throw $exception
-        }
+        Add-UserOrGroupToEdwAdmin -userOrGroup $accountName -connString $connString
 	}
     else {
         Write-Error "$samAccountName is not a valid principal in the $domain domain. Please enter a valid account. Halting installation."
+        throw
     }
 }
 

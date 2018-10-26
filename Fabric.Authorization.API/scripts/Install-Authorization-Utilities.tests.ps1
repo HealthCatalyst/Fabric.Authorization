@@ -1443,3 +1443,66 @@ Describe 'Add-AccountToDosAdminGroup tests' -Tag 'Unit'{
         }
     }
 }
+
+Describe 'Test-Add-AccountToEDWAdmin tests' -Tag 'Unit' {
+    InModuleScope Install-Authorization-Utilities{
+        It 'Should throw error if not a user or group' {
+            # Arrange
+            Mock Test-IsUser { return $false }
+            Mock Test-IsGroup { return $false }
+            Mock Write-DosMessage {}
+
+            # Act and Assert
+            { Add-AccountToEDWAdmin -accountName "test\user" -domain "domain" -connString "connString" } | Should -Throw
+        }
+
+        It 'Should throw error if domain\user is incorrect' {
+            # Arrange
+            Mock Test-IsUser { return $true }
+            Mock Test-IsGroup { return $false }
+
+            # Act and Assert
+            { Add-AccountToEDWAdmin -accountName "test.user" -domain "domain" -connString "connString" } | Should -Throw
+        }
+
+        It 'Should work if accountName is user' {
+            # Arrange
+            $testUser = "test.user"
+            $samUser = "user"
+            $domain = "domain"
+            $connString = "connString"
+            Mock Get-SamAccountFromAccountName -ParameterFilter {$accountName -eq $testUser}  { $samUser }
+            Mock Test-IsUser -ParameterFilter {$samAccountName -eq $samUser} { return $true }
+            Mock Test-IsGroup -ParameterFilter {$samAccountName -eq $samUser} { return $false }
+            Mock Invoke-Sql {}
+            
+            # Act 
+            Add-AccountToEDWAdmin -accountName $testUser -domain $domain -connString $connString
+
+            # Assert
+            Assert-MockCalled Invoke-Sql -Times 1 -ParameterFilter {$connectionString -eq $connString `
+                -and $parameters.roleName -eq "EDW Admin" `
+                -and $parameters.identityName -eq $testUser} 
+        }
+        
+        It 'Should work if accountName is group' {
+            # Arrange
+            $testUser = "test.user"
+            $samUser = "user"
+            $domain = "domain"
+            $connString = "connString"
+            Mock Get-SamAccountFromAccountName -ParameterFilter {$accountName -eq $testUser}  { $samUser }
+            Mock Test-IsUser -ParameterFilter {$samAccountName -eq $samUser} { return $false }
+            Mock Test-IsGroup -ParameterFilter {$samAccountName -eq $samUser} { return $true }
+            Mock Invoke-Sql {}
+            
+            # Act 
+            Add-AccountToEDWAdmin -accountName $testUser -domain $domain -connString $connString
+
+            # Assert
+            Assert-MockCalled Invoke-Sql -Times 1 -ParameterFilter {$connectionString -eq $connString `
+                -and $parameters.roleName -eq "EDW Admin" `
+                -and $parameters.identityName -eq $testUser} 
+        }
+    }
+}
