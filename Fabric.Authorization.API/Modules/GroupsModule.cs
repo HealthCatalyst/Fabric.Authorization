@@ -165,7 +165,11 @@ namespace Fabric.Authorization.API.Modules
                 string groupName = p.groupName;
                 string grain = p.grain;
                 string securableItem = p.securableItem;
-                var group = await _groupService.GetGroup(groupName);
+                var groupIdentifier = this.Bind<GroupIdentifierApiRequest>();
+
+                // groupName is not bound to the model since it's a path parameter
+                groupIdentifier.GroupName = groupName;
+                var group = await _groupService.GetGroup(groupIdentifier.ToGroupIdentifierDomainModel());
                 return group.Roles.ToRoleApiModels(grain, securableItem, GroupService.RoleFilter);
             }
             catch (NotFoundException<Group> ex)
@@ -179,7 +183,7 @@ namespace Fabric.Authorization.API.Modules
             try
             {
                 this.RequiresClaims(AuthorizationReadClaim);
-                Group group = await _groupService.GetGroup(parameters.groupName, ClientId);
+                Group group = await _groupService.GetGroup(new GroupIdentifier { GroupName = parameters.GroupName }, ClientId);
                 return group.ToGroupRoleApiModel();
             }
             catch (NotFoundException<Group> ex)
@@ -210,11 +214,11 @@ namespace Fabric.Authorization.API.Modules
             {
                 if (string.Equals(incomingGroup.IdentityProvider, IdentityConstants.AzureActiveDirectory, StringComparison.OrdinalIgnoreCase))
                 {
-                    var idPSearchResponse = await _idPSearchService.GetGroupAsync(incomingGroup.IdentityProvider, incomingGroup.Name, incomingGroup.Tenant);
+                    var idPSearchResponse = await _idPSearchService.GetGroupAsync(incomingGroup.IdentityProvider, incomingGroup.Name, incomingGroup.TenantId);
                     if (idPSearchResponse.HttpStatusCode != System.Net.HttpStatusCode.OK)
                     {
                         return CreateFailureResponse(
-                            $"Group name {incomingGroup.Name} from {incomingGroup.IdentityProvider} tenant {incomingGroup.Tenant} was not found in the external identity provider directory.",
+                            $"Group name {incomingGroup.Name} from {incomingGroup.IdentityProvider} tenant {incomingGroup.TenantId} was not found in the external identity provider directory.",
                             HttpStatusCode.BadRequest);
                     }
 
@@ -237,8 +241,7 @@ namespace Fabric.Authorization.API.Modules
             try
             {
                 var groupPatchApiRequest = this.Bind<GroupPatchApiRequest>();
-
-                var existingGroup = (Group) await _groupService.GetGroup(parameters.groupName);
+                var existingGroup = (Group) await _groupService.GetGroup(new GroupIdentifier { GroupName = parameters.GroupName });
                 existingGroup.DisplayName = groupPatchApiRequest.DisplayName;
                 existingGroup.Description = groupPatchApiRequest.Description;
 
@@ -257,7 +260,7 @@ namespace Fabric.Authorization.API.Modules
             try
             {
                 this.RequiresClaims(AuthorizationWriteClaim);
-                Group group = await _groupService.GetGroup(parameters.groupName, ClientId);
+                Group group = await _groupService.GetGroup(new GroupIdentifier { GroupName = parameters.GroupName }, ClientId);
                 await _groupService.DeleteGroup(group);
                 return HttpStatusCode.NoContent;
             }
@@ -288,7 +291,7 @@ namespace Fabric.Authorization.API.Modules
             {
                 this.RequiresClaims(AuthorizationReadClaim);
                 var groupRoleRequest = this.Bind<GroupRoleRequest>();
-                var group = await _groupService.GetGroup(groupRoleRequest.GroupName, ClientId);
+                var group = await _groupService.GetGroup(groupRoleRequest.ToGroupIdentifierDomainModel(), ClientId);
                 return group.Roles.ToRoleApiModels(groupRoleRequest.Grain, groupRoleRequest.SecurableItem, GroupService.RoleFilter);
             }
             catch (NotFoundException<Group> ex)
@@ -311,7 +314,7 @@ namespace Fabric.Authorization.API.Modules
 
             try
             {
-                Group group = await _groupService.AddRolesToGroup(domainRoles, parameters.groupName);
+                Group group = await _groupService.AddRolesToGroup(domainRoles, new GroupIdentifier { GroupName = parameters.GroupName });
                 return CreateSuccessfulPostResponse(group.Name, group.ToGroupRoleApiModel(),
                     HttpStatusCode.OK);
             }
@@ -338,7 +341,7 @@ namespace Fabric.Authorization.API.Modules
                     return CreateFailureResponse("At least 1 role ID is required.", HttpStatusCode.BadRequest);
                 }
 
-                Group group = await _groupService.DeleteRolesFromGroup(parameters.GroupName, roleIds.Select(r => r.RoleId));
+                Group group = await _groupService.DeleteRolesFromGroup(new GroupIdentifier { GroupName = parameters.GroupName }, roleIds.Select(r => r.RoleId));
                 return CreateSuccessfulPostResponse(group.ToGroupRoleApiModel(), HttpStatusCode.OK);
             }
             catch (NotFoundException<Group> ex)
@@ -357,7 +360,7 @@ namespace Fabric.Authorization.API.Modules
             {
                 this.RequiresClaims(AuthorizationReadClaim);
                 var groupUserRequest = this.Bind<GroupUserRequest>();
-                var group = await _groupService.GetGroup(groupUserRequest.GroupName, ClientId);
+                var group = await _groupService.GetGroup(groupUserRequest.ToGroupIdentifierDomainModel(), ClientId);
                 return group.Users.Where(u => !u.IsDeleted).Select(u => u.ToUserApiModel());
             }
             catch (NotFoundException<Group> ex)
@@ -370,7 +373,7 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
-                Group group = await _groupService.GetGroup(parameters.GroupName);
+                Group group = await _groupService.GetGroup(new GroupIdentifier { GroupName = parameters.GroupName });
                 await CheckWriteAccess(group);
                 var userApiRequests = this.Bind<List<UserIdentifierApiRequest>>();
                 var validationResult = await ValidateGroupUserRequests(userApiRequests);
@@ -379,7 +382,7 @@ namespace Fabric.Authorization.API.Modules
                     return validationResult;
                 }
                 
-                group = await _groupService.AddUsersToGroup(parameters.GroupName, userApiRequests.Select(u => new User(u.SubjectId, u.IdentityProvider)).ToList());
+                group = await _groupService.AddUsersToGroup(new GroupIdentifier { GroupName = parameters.GroupName }, userApiRequests.Select(u => new User(u.SubjectId, u.IdentityProvider)).ToList());
                 return CreateSuccessfulPostResponse(group.Name, group.ToGroupUserApiModel(), HttpStatusCode.OK);
             }
             catch (NotFoundException<Group> ex)
@@ -412,7 +415,7 @@ namespace Fabric.Authorization.API.Modules
                     return validationResult;
                 }
 
-                var group = await _groupService.DeleteUserFromGroup(groupUserRequest.GroupName,
+                var group = await _groupService.DeleteUserFromGroup(groupUserRequest.ToGroupIdentifierDomainModel(),
                     groupUserRequest.SubjectId, groupUserRequest.IdentityProvider);
                 return CreateSuccessfulPostResponse(group.ToGroupUserApiModel(), HttpStatusCode.OK);
             }
@@ -431,7 +434,7 @@ namespace Fabric.Authorization.API.Modules
             try
             {
                 this.RequiresClaims(AuthorizationReadClaim);
-                Group group = await _groupService.GetGroup(parameters.GroupName, ClientId);
+                Group group = await _groupService.GetGroup(new GroupIdentifier { GroupName = parameters.GroupName }, ClientId);
                 return group.Children.Select(g => g.ToGroupRoleApiModel());
             }
             catch (NotFoundException<Group> ex)
@@ -444,7 +447,7 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
-                Group group = await _groupService.GetGroup(parameters.GroupName);
+                Group group = await _groupService.GetGroup(new GroupIdentifier { GroupName = parameters.GroupName });
                 await CheckWriteAccess(group);
                 var groupPostApiRequests = this.Bind<List<GroupPostApiRequest>>();
 
@@ -469,11 +472,11 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
-                Group group = await _groupService.GetGroup(parameters.GroupName);
+                Group group = await _groupService.GetGroup(new GroupIdentifier {GroupName = parameters.GroupName});
                 await CheckWriteAccess(group);
                 var groupIdentifiers = this.Bind<List<GroupIdentifierApiRequest>>();
 
-                group = await _groupService.RemoveChildGroups(group, groupIdentifiers.Select(g => g.GroupName).ToList());
+                group = await _groupService.RemoveChildGroups(group, groupIdentifiers.Select(g => g.ToGroupIdentifierDomainModel()).ToList());
                 return CreateSuccessfulPostResponse(group.Name, group.ToGroupRoleApiModel(), HttpStatusCode.OK);
             }
             catch (NotFoundException<Group> ex)

@@ -13,21 +13,37 @@ namespace Fabric.Authorization.UnitTests.Mocks
     {
         public static Mock<IGroupStore> SetupGetGroups(this Mock<IGroupStore> mockGroupStore, List<Group> groups)
         {
-            mockGroupStore.Setup(groupStore => groupStore.Get(It.IsAny<string>()))
-                .Returns((string groupName) =>
+            mockGroupStore.Setup(groupStore => groupStore.Get(It.IsAny<GroupIdentifier>()))
+                .Returns((GroupIdentifier groupIdentifier) =>
                 {
-                    if (groups.Any(g => g.Name == groupName))
+                    if (groups.Any(g => g.Name == groupIdentifier.GroupName && g.TenantId == groupIdentifier.TenantId && g.IdentityProvider == groupIdentifier.IdentityProvider))
                     {
-                        return Task.FromResult(groups.First(g => string.Equals(g.Name, groupName, StringComparison.OrdinalIgnoreCase)));
+                        return Task.FromResult(groups.First(g => 
+                            string.Equals(g.Name, groupIdentifier.GroupName, StringComparison.OrdinalIgnoreCase)
+                            && string.Equals(g.TenantId, groupIdentifier.TenantId, StringComparison.OrdinalIgnoreCase)
+                            && string.Equals(g.IdentityProvider, groupIdentifier.IdentityProvider, StringComparison.OrdinalIgnoreCase)));
                     }
                     throw new NotFoundException<Group>();
                 });
 
-            mockGroupStore.Setup(groupStore => groupStore.Get(It.IsAny<IEnumerable<string>>(), It.IsAny<bool>()))
-                .Returns((IEnumerable<string> groupNames, bool ignoreMissingGroups) =>
+            mockGroupStore.Setup(groupStore => groupStore.Get(It.IsAny<IEnumerable<GroupIdentifier>>(), It.IsAny<bool>()))
+                .Returns((IEnumerable<GroupIdentifier> groupIdentifiers, bool ignoreMissingGroups) =>
             {
-                return Task.FromResult(groups.Where(
-                    g => groupNames.Contains(g.Name, StringComparer.OrdinalIgnoreCase)));
+                var filteredEntities = new List<Group>();
+                foreach (var identifier in groupIdentifiers)
+                {
+                    var entity = groups.FirstOrDefault(g =>
+                        g.Name == identifier.GroupName
+                        && g.TenantId == identifier.TenantId
+                        && g.IdentityProvider == identifier.IdentityProvider);
+
+                    if (entity != null)
+                    {
+                        filteredEntities.Add(entity);
+                    }
+                }
+
+                return Task.FromResult(filteredEntities.AsEnumerable());
             });
 
             mockGroupStore.Setup(groupStore => groupStore.GetGroupsByIdentifiers(It.IsAny<IEnumerable<string>>()))
@@ -44,12 +60,14 @@ namespace Fabric.Authorization.UnitTests.Mocks
 
         public static Mock<IGroupStore> SetupGroupExists(this Mock<IGroupStore> mockGroupStore, List<Group> groups)
         {
-            mockGroupStore.Setup(groupStore => groupStore.Exists(It.IsAny<string>()))
-                .Returns((string groupName) =>
-                    {
-                        return Task.FromResult(groups.Any(
-                            g => string.Equals(g.Name, groupName, StringComparison.OrdinalIgnoreCase)));
-                    });
+            mockGroupStore.Setup(groupStore => groupStore.Exists(It.IsAny<GroupIdentifier>()))
+                .Returns((GroupIdentifier groupIdentifier) =>
+                {
+                    return Task.FromResult(groups.Any(
+                        g => string.Equals(g.Name, groupIdentifier.GroupName, StringComparison.OrdinalIgnoreCase)
+                             && string.Equals(g.TenantId, groupIdentifier.TenantId, StringComparison.OrdinalIgnoreCase)
+                             && string.Equals(g.IdentityProvider, groupIdentifier.IdentityProvider, StringComparison.OrdinalIgnoreCase)));
+                });
             return mockGroupStore;
         }
 

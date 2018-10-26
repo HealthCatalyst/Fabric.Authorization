@@ -63,9 +63,9 @@ namespace Fabric.Authorization.Domain.Services
             }
         }
 
-        public async Task<Group> GetGroup(string groupName, string clientId)
+        public async Task<Group> GetGroup(GroupIdentifier groupIdentifier, string clientId)
         {
-            var group = await _groupStore.Get(groupName);             
+            var group = await _groupStore.Get(groupIdentifier);             
             var clientRoles = (await _roleService.GetRoles(clientId)).ToList();
             group.Roles = clientRoles.Intersect(group.Roles).ToList();
             return group;
@@ -104,9 +104,9 @@ namespace Fabric.Authorization.Domain.Services
             return await _groupStore.Exists(id).ConfigureAwait(false);
         }
 
-        public async Task<Group> AddRolesToGroup(IList<Role> rolesToAdd, string groupName)
+        public async Task<Group> AddRolesToGroup(IList<Role> rolesToAdd, GroupIdentifier groupIdentifier)
         {
-            var group = await _groupStore.Get(groupName);
+            var group = await _groupStore.Get(groupIdentifier);
             var grainSecurableItems = rolesToAdd.Select(r => new Tuple<string, string>(r.Grain, r.SecurableItem))
                 .Distinct();
             var existingRoles = new List<Role>();
@@ -126,7 +126,7 @@ namespace Fabric.Authorization.Domain.Services
                 {
                     exceptions.Add(
                         new AlreadyExistsException<Role>(
-                            $"The role: {role} with Id: {role.Id} already exists for group {groupName}."));
+                            $"The role: {role} with Id: {role.Id} already exists for group {groupIdentifier}."));
                 }
             }
             if (exceptions.Count > 0)
@@ -137,20 +137,20 @@ namespace Fabric.Authorization.Domain.Services
             return await _groupStore.AddRolesToGroup(group, rolesToAdd);
         }
 
-        public async Task<Group> GetGroup(string groupName)
+        public async Task<Group> GetGroup(GroupIdentifier groupIdentifier)
         {
-            return await _groupStore.Get(groupName);
+            return await _groupStore.Get(groupIdentifier);
         }
 
-        public async Task<Group> DeleteRolesFromGroup(string groupName, IEnumerable<Guid> roleIdsToDelete)
+        public async Task<Group> DeleteRolesFromGroup(GroupIdentifier groupIdentifier, IEnumerable<Guid> roleIdsToDelete)
         {
-            var group = await _groupStore.Get(groupName);
+            var group = await _groupStore.Get(groupIdentifier);
             return await _groupStore.DeleteRolesFromGroup(group, roleIdsToDelete);
         }
 
-        public async Task<Group> AddUsersToGroup(string groupName, IList<User> usersToAdd)
+        public async Task<Group> AddUsersToGroup(GroupIdentifier groupIdentifier, IList<User> usersToAdd)
         {
-            var group = await _groupStore.Get(groupName);
+            var group = await _groupStore.Get(groupIdentifier);
 
             // only add users to a custom group
             if (!string.Equals(group.Source, GroupConstants.CustomSource, StringComparison.OrdinalIgnoreCase))
@@ -177,7 +177,7 @@ namespace Fabric.Authorization.Domain.Services
                 }
                 else
                 {
-                    exceptions.Add(new AlreadyExistsException<User>($"The user {user.IdentityProvider}:{user.SubjectId} has already been added to the group {groupName}."));
+                    exceptions.Add(new AlreadyExistsException<User>($"The user {user.IdentityProvider}:{user.SubjectId} has already been added to the group {groupIdentifier}."));
                 }
             }
 
@@ -189,9 +189,9 @@ namespace Fabric.Authorization.Domain.Services
             return await _groupStore.AddUsersToGroup(group, usersToAdd);
         }
 
-        public async Task<Group> DeleteUserFromGroup(string groupName, string subjectId, string identityProvider)
+        public async Task<Group> DeleteUserFromGroup(GroupIdentifier groupIdentifier, string subjectId, string identityProvider)
         {
-            var group = await _groupStore.Get(groupName);
+            var group = await _groupStore.Get(groupIdentifier);
             var user = await _userStore.Get($"{subjectId}:{identityProvider}");
 
             var groupUser = group.Users.FirstOrDefault(u => u.Id == user.Id);
@@ -216,7 +216,8 @@ namespace Fabric.Authorization.Domain.Services
 
             try
             {
-                await _groupStore.Get(childGroupList.Select(g => g.Name), false);
+                await _groupStore.Get(
+                    childGroupList.Select(g => g.GroupIdentifier), false);
             }
             // filter out groups that already exist so we don't attempt to create an existent group
             catch (NotFoundException<Group> ex)
@@ -237,10 +238,10 @@ namespace Fabric.Authorization.Domain.Services
                 await _groupStore.Add(missingChildGroups);
             }
 
-            var childGroupNameList = childGroupList.Select(g => g.Name).ToList();
+            var childGroupIdentifierList = childGroupList.Select(g => g.GroupIdentifier).ToList();
 
             // do not allow custom groups to be children
-            childGroups = (await _groupStore.Get(childGroupNameList, false)).ToList();
+            childGroups = (await _groupStore.Get(childGroupIdentifierList, false)).ToList();
             var customGroups = childGroups.Where(g => g.Source == GroupConstants.CustomSource).ToList();
             if (customGroups.Any())
             {
@@ -248,18 +249,19 @@ namespace Fabric.Authorization.Domain.Services
             }
 
             // if association already exists, return 409
-            var existingAssociations = group.Children.Where(c => childGroupNameList.Contains(c.Name, StringComparer.OrdinalIgnoreCase)).ToList();
+            var existingAssociations = group.Children.Where(c => childGroupIdentifierList.Contains(c.GroupIdentifier)).ToList();
             if (existingAssociations.Any())
             {
-                throw new AlreadyExistsException<Group>($"The following groups are already children of group {group.Name}: {string.Join(", ", existingAssociations.Select(g => g.Name))}");
+                throw new AlreadyExistsException<Group>(
+                    $"The following groups are already children of group {group.Name}: {string.Join(", ", existingAssociations.Select(g => $"{g.Name} (IdP={g.IdentityProvider}, Tenant={g.TenantId})"))}");
             }
 
             return await _groupStore.AddChildGroups(group, childGroups);
         }
 
-        public async Task<Group> RemoveChildGroups(Group group, IEnumerable<string> childGroupNames)
+        public async Task<Group> RemoveChildGroups(Group group, IEnumerable<GroupIdentifier> childGroupIdentifiers)
         {
-            var childGroups = await _groupStore.Get(childGroupNames, false);
+            var childGroups = await _groupStore.Get(childGroupIdentifiers, false);
             return await _groupStore.RemoveChildGroups(group, childGroups);
         }
 
@@ -267,7 +269,7 @@ namespace Fabric.Authorization.Domain.Services
         {
             if (!string.IsNullOrEmpty(type))
             {
-                if (!type.Equals(GroupConstants.CustomSource, StringComparison.OrdinalIgnoreCase) && 
+                if (!type.Equals(GroupConstants.CustomSource, StringComparison.OrdinalIgnoreCase) &&
                     !type.Equals(GroupConstants.DirectorySource, StringComparison.OrdinalIgnoreCase))
                 {
                     throw new InvalidOperationException("Invalid type provided. If provided valid values are custom or directory");

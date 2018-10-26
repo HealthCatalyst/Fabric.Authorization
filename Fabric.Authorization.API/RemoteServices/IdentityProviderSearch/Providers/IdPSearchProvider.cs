@@ -63,9 +63,9 @@ namespace Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Provide
         {
             var route = $"{request.IdentityProvider}/groups/{request.DisplayName}";
 
-            if (!string.IsNullOrWhiteSpace(request.Tenant))
+            if (!string.IsNullOrWhiteSpace(request.TenantId))
             {
-                route = $"{route}?tenant={request.Tenant}";
+                route = $"{route}?tenant={request.TenantId}";
             }
 
             var httpRequestMessage = await CreateHttpRequestMessage(route, HttpMethod.Get);

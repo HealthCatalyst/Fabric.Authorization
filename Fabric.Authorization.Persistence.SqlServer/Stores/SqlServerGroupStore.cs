@@ -27,7 +27,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task<Group> Add(Group group)
         {
-            var alreadyExists = await Exists(group.Name);
+            var alreadyExists = await Exists(group.GroupIdentifier);
             if (alreadyExists)
             {
                 throw new AlreadyExistsException<Group>(
@@ -112,8 +112,13 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return groupEntity.ToModel();
         }
 
-        public async Task<Group> Get(string name)
+        public async Task<Group> Get(GroupIdentifier groupIdentifier)
         {
+            if (string.IsNullOrWhiteSpace(groupIdentifier.IdentityProvider))
+            {
+                groupIdentifier.IdentityProvider = "Windows";
+            }
+
             var groupEntity = await AuthorizationDbContext.Groups
                 .Include(g => g.GroupRoles)
                 .ThenInclude(gr => gr.Role)
@@ -134,11 +139,14 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .ThenInclude(cg => cg.GroupRoles)
                 .ThenInclude(gr => gr.Role)
                 .AsNoTracking()
-                .SingleOrDefaultAsync(g => g.Name == name && !g.IsDeleted);
+                .SingleOrDefaultAsync(g => !g.IsDeleted
+                                           && g.Name == groupIdentifier.GroupName
+                                           && g.TenantId == groupIdentifier.TenantId
+                                           && g.IdentityProvider == groupIdentifier.IdentityProvider);
 
             if (groupEntity == null)
             {
-                throw new NotFoundException<Group>($"Could not find {typeof(Group).Name} entity with ID {name}");
+                throw new NotFoundException<Group>($"Could not find {typeof(Group).Name} entity with Identifier {groupIdentifier}");
             }
 
             groupEntity.GroupRoles = groupEntity.GroupRoles.Where(gr => !gr.IsDeleted).ToList();
@@ -252,11 +260,13 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return group != null;
         }
 
-        public async Task<bool> Exists(string name)
+        public async Task<bool> Exists(GroupIdentifier groupIdentifier)
         {
             var group = await AuthorizationDbContext.Groups
-                .SingleOrDefaultAsync(g => g.Name == name
-                                           && !g.IsDeleted).ConfigureAwait(false);
+                .SingleOrDefaultAsync(g => !g.IsDeleted
+                && g.Name == groupIdentifier.GroupName
+                                           && g.TenantId == groupIdentifier.TenantId
+                                           && g.IdentityProvider == groupIdentifier.IdentityProvider).ConfigureAwait(false);
 
             return group != null;
         }
@@ -327,21 +337,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             await AuthorizationDbContext.SaveChangesAsync();
             await EventService.RaiseEventAsync(new EntityAuditEvent<Group>(EventTypes.ChildEntityDeletedEvent, group.Id.ToString(), group));
-            return group;
-        }
-
-        public async Task<Group> AddUserToGroup(Group group, User user)
-        {
-            var groupUser = new GroupUser
-            {
-                GroupId = group.Id,
-                SubjectId = user.SubjectId,
-                IdentityProvider = user.IdentityProvider
-            };
-
-            AuthorizationDbContext.GroupUsers.Add(groupUser);
-            await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(new EntityAuditEvent<Group>(EventTypes.ChildEntityCreatedEvent, group.Id.ToString(), group));
             return group;
         }
 
@@ -449,7 +444,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return group;
         }
 
-        public Task<IEnumerable<Group>> Get(IEnumerable<string> groupNames, bool ignoreMissingGroups = false)
+        public Task<IEnumerable<Group>> Get(IEnumerable<GroupIdentifier> groupIdentifiers, bool ignoreMissingGroups = false)
         {
             var groupEntities = AuthorizationDbContext.Groups
                 .Include(g => g.ChildGroups)
@@ -457,11 +452,35 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .Include(g => g.ParentGroups)
                 .ThenInclude(pg => pg.Parent)
                 .Where(g =>
-                    !g.IsDeleted
-                    && groupNames.Contains(g.Name))
+                    !g.IsDeleted)
+                    //&& groupNames.Contains(g.Name))
                 .ToList();
 
-            foreach (var groupEntity in groupEntities)
+            var filteredEntities = new List<EntityModels.Group>();
+            var missingGroupIdentifiers = new List<GroupIdentifier>();
+            foreach (var identifier in groupIdentifiers)
+            {
+                if (string.IsNullOrWhiteSpace(identifier.IdentityProvider))
+                {
+                    identifier.IdentityProvider = "Windows";
+                }
+
+                var entity = groupEntities.FirstOrDefault(g =>
+                    g.Name == identifier.GroupName
+                    && g.TenantId == identifier.TenantId
+                    && g.IdentityProvider == identifier.IdentityProvider);
+
+                if (entity != null)
+                {
+                    filteredEntities.Add(entity);
+                }
+                else
+                {
+                    missingGroupIdentifiers.Add(identifier);
+                }
+            }
+
+            foreach (var groupEntity in filteredEntities)
             {
                 groupEntity.ChildGroups = groupEntity.ChildGroups.Where(cg => !cg.IsDeleted).ToList();
                 groupEntity.ParentGroups = groupEntity.ParentGroups.Where(pg => !pg.IsDeleted).ToList();
@@ -469,16 +488,16 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             if (!ignoreMissingGroups)
             {
-                var missingGroups = groupNames.Except(groupEntities.Select(g => g.Name), StringComparer.OrdinalIgnoreCase).ToList();
-                if (missingGroups.Count > 0)
+                if (missingGroupIdentifiers.Count > 0)
                 {
                     throw new NotFoundException<Group>(
-                        $"The following groups could not be found: {string.Join(",", missingGroups)}",
-                        missingGroups.Select(g => new NotFoundExceptionDetail {Identifier = g}).ToList());
+                        $"The following groups could not be found: {string.Join(",", missingGroupIdentifiers)}",
+                        missingGroupIdentifiers.Select(g => new NotFoundExceptionDetail {Identifier = g.ToString()})
+                            .ToList());
                 }
             }
 
-            return Task.FromResult(groupEntities.Select(g => g.ToModel()).AsEnumerable());
+            return Task.FromResult(filteredEntities.Select(g => g.ToModel()).AsEnumerable());
         }
 
         public Task<IEnumerable<Group>> GetGroupsByIdentifiers(IEnumerable<string> identifiers)

@@ -62,7 +62,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                         DisplayName = groupName,
                         PrincipalType = "Group",
                         ExternalIdentifier = "123456",
-                        TenantId = "Tenant"
+                        TenantId = "TenantId"
                     }
                 });
 
@@ -153,7 +153,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(GroupConstants.DirectorySource, group.GroupSource);
             Assert.Equal("My Azure AD Group", group.DisplayName);
             Assert.Equal("My Azure AD Group", group.Description);
-            Assert.Equal("AzureTenant", group.Tenant);
+            Assert.Equal("AzureTenant", group.TenantId);
             
             var identityProvider = "windows";
             var subjectId = @"domain\test.user" + Guid.NewGuid();
