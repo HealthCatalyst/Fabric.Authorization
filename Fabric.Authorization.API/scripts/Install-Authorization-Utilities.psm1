@@ -270,6 +270,41 @@ function Add-RoleToGroup
     Invoke-Sql $connString $query @{groupId = $groupId; roleId = $roleId; ; clientId = $clientId} | Out-Null
 }
 
+function Add-UserOrGroupToEdwAdmin($userOrGroup, $connString) {
+	$query   = "DECLARE @userId INTEGER;
+                DECLARE @roleId INTEGER;
+                
+                SET @userId = -1
+                SELECT @userId = COALESCE([IdentityID], -1) FROM [EDWAdmin].[CatalystAdmin].[IdentityBASE] WHERE [IdentityNM] = @identityName
+                BEGIN TRY
+                BEGIN TRANSACTION
+                    IF (@userId < 0)
+                    BEGIN
+                        INSERT INTO [EDWAdmin].[CatalystAdmin].[IdentityBASE] ([IdentityNM])
+                        VALUES (@identityName);
+                        SELECT @userId = SCOPE_IDENTITY();
+                    END
+                
+                    SELECT @roleId = [RoleID]
+                    FROM [EDWAdmin].[CatalystAdmin].[RoleBASE]
+                    WHERE [RoleNM] = @roleName;
+                
+                    IF NOT EXISTS (SELECT * FROM [EDWAdmin].[CatalystAdmin].[IdentityRoleBASE] WHERE [IdentityID] = @userId AND [RoleId] = @roleId)
+                    BEGIN
+                        INSERT INTO [EDWAdmin].[CatalystAdmin].[IdentityRoleBASE] (IdentityID, RoleID)
+                        VALUES(@userId, @roleId);
+                    END
+                        
+                    COMMIT;
+                END TRY
+                BEGIN CATCH
+                    ROLLBACK;
+                    THROW; 
+                END CATCH"
+                
+    Invoke-Sql -connectionString $connString -sql $query -parameters @{roleName = "EDW Admin"; identityName = $userOrGroup} | Out-Null
+}
+
 function Get-PrincipalContext
 {
     param(
@@ -383,6 +418,17 @@ function Add-ListOfUsersToDosAdminGroup($edwAdminUsers, $connString, $authorizat
             }
         }        
     }	
+}
+
+function Add-AccountToEDWAdmin($accountName, $domain, $connString) {
+	$samAccountName = Get-SamAccountFromAccountName -accountName $accountName
+	if ((Test-IsUser -samAccountName $samAccountName -domain $domain) -or (Test-IsGroup -samAccountName $samAccountName -domain $domain)) {
+        Add-UserOrGroupToEdwAdmin -userOrGroup $accountName -connString $connString
+	}
+    else {
+        Write-DosMessage "$samAccountName is not a valid principal in the $domain domain. Please enter a valid account. Halting installation."
+        throw
+    }
 }
 
 function Add-DosAdminGroup
@@ -1212,6 +1258,7 @@ Export-ModuleMember Get-AdminAccount
 Export-ModuleMember Set-AuthorizationEnvironmentVariables
 Export-ModuleMember Move-DosAdminRoleToDosAdminGroup
 Export-ModuleMember Add-AccountToDosAdminGroup
+Export-ModuleMember Add-AccountToEDWAdmin
 Export-ModuleMember Invoke-MonitorShallow
 Export-ModuleMember Add-EdwAdminUsersToDosAdminGroup
 Export-ModuleMember Add-AuthorizationRegistration
