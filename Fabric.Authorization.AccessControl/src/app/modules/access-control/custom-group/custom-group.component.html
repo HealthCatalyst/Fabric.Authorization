@@ -100,7 +100,7 @@
     </table>
 
     <div class="buttons">
-        <button hc-button color="primary" (click)="save()" [disabled]="this.initializing || this.savingInProgress || this.missingManageAuthorizationPermission" [title]="disabledSaveReason">Save</button>
+        <button hc-button id="saveButton" color="primary" (click)="save()" [disabled]="this.initializing || this.savingInProgress || this.missingManageAuthorizationPermission" [title]="disabledSaveReason">Save</button>
         <a hc-button (click)="cancel()" color="secondary">Cancel</a>
         <hc-progress-spinner class="spinner" *ngIf="this.savingInProgress"
           [diameter]="30"

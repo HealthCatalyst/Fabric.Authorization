@@ -27,6 +27,8 @@ import { IdPSearchResult } from '../../../models/idpSearchResult.model';
 import { CurrentUserServiceMock, mockCurrentUserPermissions } from '../../../services/current-user.service.mock';
 import { FabricAuthUserService } from '../../../services/fabric-auth-user.service';
 import { CurrentUserService } from '../../../services/current-user.service';
+import { DebugElement } from '@angular/core';
+import { By } from '@angular/platform-browser';
 
 describe('CustomGroupComponent', () => {
   let component: CustomGroupComponent;
@@ -164,6 +166,14 @@ describe('CustomGroupComponent', () => {
       expect(component.groupNameError).toBeTruthy();
       expect(component.groupNameError).toMatch(`Could not create group named "${mockGroupsResponse[0].groupName}"\.*`);
     });
+  });
+
+  describe('save button', () => {
+    it('is enabled for an admin user', () => {
+      // assert
+      let saveButton: DebugElement = fixture.debugElement.query(By.css('#saveButton'));
+      expect(saveButton.nativeElement.disabled).toBe(true);
+    })
   });
 
   describe('getGroupNameToDisplay', () => {

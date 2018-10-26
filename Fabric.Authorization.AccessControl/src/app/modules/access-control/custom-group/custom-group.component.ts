@@ -1,7 +1,7 @@
 
 import {zip as observableZip,  Subject ,  Observable, of } from 'rxjs';
 
-import {map, mergeMap, takeUntil, tap, debounceTime, distinctUntilChanged, filter} from 'rxjs/operators';
+import {map, mergeMap, takeUntil, tap, debounceTime, distinctUntilChanged, filter, switchMap} from 'rxjs/operators';
 import { Component, OnInit, OnDestroy, Inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -92,7 +92,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
       }
 
       observableZip(this.getGroupRolesBySecurableItemAndGrain(), this.getGroupUsers(), this.getChildGroups()).pipe(
-        tap((result: [IRole[], IUser[], IGroup[]]) => {
+        switchMap((result: [IRole[], IUser[], IGroup[]]) => {
           this.roles = result[0];
           this.associatedUsers = result[1];
           this.associatedGroups = result[2];
@@ -100,17 +100,17 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           this.associatedUsers.forEach(u => u.type = this.userType);
           this.associatedGroups.forEach(g => g.type = this.groupType);
 
-          this.currentUserService.getPermissions().subscribe(p => {
-
-            this.groupRoles.forEach(r => {
-              const requiredPermission = `${r.grain}/${r.securableItem}.manageauthorization`;
-              if (!p.includes(requiredPermission)) {
-                this.missingPermissions.push(requiredPermission);
-              }
-            });
-
-            this.configureSaveButton();
+          return this.currentUserService.getPermissions();
+        }),
+        tap(p => {
+          this.groupRoles.forEach(r => {
+            const requiredPermission = `${r.grain}/${r.securableItem}.manageauthorization`;
+            if (!p.includes(requiredPermission)) {
+              this.missingPermissions.push(requiredPermission);
+            }
           });
+
+          this.configureSaveButton();
         }),
         takeUntil(this.ngUnsubscribe),)
         .subscribe(null, null, () => {
@@ -123,8 +123,20 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           this.grain,
           this.securableItem
         ).pipe(
-        tap((roles: IRole[]) => {
+        switchMap((roles: IRole[]) => {
           this.roles = roles;
+
+          return this.currentUserService.getPermissions()
+        }),
+        tap(p => {
+          this.roles.forEach(r => {
+            const requiredPermission = `${r.grain}/${r.securableItem}.manageauthorization`;
+
+            if (!p.includes(requiredPermission)) {
+              this.missingPermissions.push(requiredPermission);
+            }
+          });
+
           this.configureSaveButton();
         }),
         takeUntil(this.ngUnsubscribe),)
