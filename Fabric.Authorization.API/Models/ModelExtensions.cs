@@ -92,7 +92,7 @@ namespace Fabric.Authorization.API.Models
                 Description = group.Description,
                 Roles = group.Roles?.Where(r => !r.IsDeleted).Select(r => r.ToRoleApiModel()),
                 GroupSource = group.Source,
-                Tenant = group.Tenant,
+                TenantId = group.TenantId,
                 Parents = isRequestedGroup ? group.Parents.Select(p => p.ToGroupRoleApiModel(false)) : new List<GroupRoleApiModel>(),
                 Children = isRequestedGroup ? group.Children.Select(c => c.ToGroupRoleApiModel(false)) : new List<GroupRoleApiModel>()
             };
@@ -125,7 +125,7 @@ namespace Fabric.Authorization.API.Models
                 DisplayName = groupRoleApiModel.DisplayName,
                 Description = groupRoleApiModel.Description,
                 Source = groupRoleApiModel.GroupSource,
-                Tenant = groupRoleApiModel.Tenant
+                TenantId = groupRoleApiModel.TenantId
             };
 
             return group;
@@ -140,7 +140,7 @@ namespace Fabric.Authorization.API.Models
                 DisplayName = groupPostApiRequest.DisplayName,
                 Description = groupPostApiRequest.Description,
                 Source = groupPostApiRequest.GroupSource,
-                Tenant = groupPostApiRequest.Tenant
+                TenantId = groupPostApiRequest.TenantId
             };
 
             return group;
@@ -292,6 +292,36 @@ namespace Fabric.Authorization.API.Models
                 ModifiedBy = securableItem.ModifiedBy
             };
             return securableItemModel;
+        }
+
+        public static GroupIdentifier ToGroupIdentifierDomainModel(this GroupIdentifierApiRequest groupIdentifierApiRequest)
+        {
+            return new GroupIdentifier
+            {
+                GroupName = groupIdentifierApiRequest.GroupName,
+                TenantId = groupIdentifierApiRequest.TenantId,
+                IdentityProvider = groupIdentifierApiRequest.IdentityProvider
+            };
+        }
+
+        public static GroupIdentifier ToGroupIdentifierDomainModel(this GroupUserRequest groupUserRequest)
+        {
+            return new GroupIdentifier
+            {
+                GroupName = groupUserRequest.GroupName,
+                TenantId = groupUserRequest.TenantId,
+                IdentityProvider = groupUserRequest.GroupIdentityProvider
+            };
+        }
+
+        public static GroupIdentifier ToGroupIdentifierDomainModel(this GroupRoleRequest groupRoleRequest)
+        {
+            return new GroupIdentifier
+            {
+                GroupName = groupRoleRequest.GroupName,
+                TenantId = groupRoleRequest.TenantId,
+                IdentityProvider = groupRoleRequest.IdentityProvider
+            };
         }
 
         public static Error ToError(this ValidationResult validationResult)

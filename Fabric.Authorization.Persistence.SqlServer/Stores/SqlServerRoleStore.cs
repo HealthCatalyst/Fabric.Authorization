@@ -41,7 +41,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
             AuthorizationDbContext.Roles.Add(roleEntity);
             await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(new EntityAuditEvent<Role>(EventTypes.EntityCreatedEvent, role.Id.ToString(), roleEntity.ToModel()));
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Role>(EventTypes.EntityCreatedEvent,
+                role.Id.ToString(), roleEntity.ToModel()));
             return roleEntity.ToModel();
         }
 
@@ -91,7 +92,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             }
 
             await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(new EntityAuditEvent<Role>(EventTypes.EntityDeletedEvent, role.Id.ToString(), roleEntity.ToModel()));
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Role>(EventTypes.EntityDeletedEvent,
+                role.Id.ToString(), roleEntity.ToModel()));
         }
 
         public async Task Update(Role role)
@@ -109,7 +111,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             role.ToEntity(roleEntity);
             AuthorizationDbContext.Roles.Update(roleEntity);
             await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(new EntityAuditEvent<Role>(EventTypes.EntityUpdatedEvent, role.Id.ToString(), roleEntity.ToModel()));
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Role>(EventTypes.EntityUpdatedEvent,
+                role.Id.ToString(), roleEntity.ToModel()));
         }
 
         public async Task<bool> Exists(Guid id)
@@ -157,7 +160,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             }
 
             await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(new EntityAuditEvent<Role>(EventTypes.EntityUpdatedEvent, role.Id.ToString(), role));
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Role>(EventTypes.EntityUpdatedEvent,
+                role.Id.ToString(), role));
             return role;
         }
 
@@ -185,7 +189,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             }
 
             await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(new EntityAuditEvent<Role>(EventTypes.EntityUpdatedEvent, role.Id.ToString(), role));
+            await EventService.RaiseEventAsync(new EntityAuditEvent<Role>(EventTypes.EntityUpdatedEvent,
+                role.Id.ToString(), role));
             return roleEntity.ToModel();
         }
 
@@ -207,7 +212,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             }
 
             await AuthorizationDbContext.SaveChangesAsync();
-            await EventService.RaiseEventAsync(new EntityBatchAuditEvent<EntityModels.Role>(EventTypes.EntityUpdatedEvent, roles));
+            await EventService.RaiseEventAsync(
+                new EntityBatchAuditEvent<EntityModels.Role>(EventTypes.EntityUpdatedEvent, roles));
         }
 
         private async Task<EntityModels.Role> GetEntityModel(Guid id)
@@ -233,53 +239,60 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         private IEnumerable<EntityModels.Role> GetRoleEntityModels(string grain, string securableItem = null,
             string roleName = null)
         {
-            var roles = AuthorizationDbContext.Roles
-                .Include(r => r.SecurableItem)
-                .Include(r => r.ParentRole)
-                .Include(r => r.ChildRoles)
-                .Include(r => r.RolePermissions)
-                .ThenInclude(rp => rp.Permission)
-                .ThenInclude(p => p.SecurableItem)
-                .Include(r => r.GroupRoles)
-                .ThenInclude(gr => gr.Group)
-                .ThenInclude(g => g.GroupRoles)
-                .ThenInclude(gr => gr.Role)
-                .ThenInclude(r => r.SecurableItem)
-                .Include(r => r.RoleUsers)
-                .ThenInclude(ru => ru.User)
-                .ThenInclude(u => u.RoleUsers)
-                .ThenInclude(ur => ur.Role)
-                .ThenInclude(r => r.SecurableItem)
-                .Include(r => r.RoleUsers)
-                .ThenInclude(ru => ru.User)
-                .ThenInclude(u => u.GroupUsers)
-                .ThenInclude(gu => gu.Group)
-                .AsNoTracking()
-                .Where(r => !r.IsDeleted);
-
-            if (!string.IsNullOrEmpty(grain))
+            try
             {
-                roles = roles.Where(r => r.Grain == grain);
-            }
+                var roles = AuthorizationDbContext.Roles
+                    .Include(r => r.SecurableItem)
+                    .Include(r => r.ParentRole)
+                    .Include(r => r.ChildRoles)
+                    .Include(r => r.RolePermissions)
+                    .ThenInclude(rp => rp.Permission)
+                    .ThenInclude(p => p.SecurableItem)
+                    .Include(r => r.GroupRoles)
+                    .ThenInclude(gr => gr.Group)
+                    .ThenInclude(g => g.GroupRoles)
+                    .ThenInclude(gr => gr.Role)
+                    .ThenInclude(r => r.SecurableItem)
+                    .Include(r => r.RoleUsers)
+                    .ThenInclude(ru => ru.User)
+                    .ThenInclude(u => u.RoleUsers)
+                    .ThenInclude(ur => ur.Role)
+                    .ThenInclude(r => r.SecurableItem)
+                    .Include(r => r.RoleUsers)
+                    .ThenInclude(ru => ru.User)
+                    .ThenInclude(u => u.GroupUsers)
+                    .ThenInclude(gu => gu.Group)
+                    .AsNoTracking()
+                    .Where(r => !r.IsDeleted);
 
-            if (!string.IsNullOrWhiteSpace(securableItem))
+                if (!string.IsNullOrEmpty(grain))
+                {
+                    roles = roles.Where(r => r.Grain == grain);
+                }
+
+                if (!string.IsNullOrWhiteSpace(securableItem))
+                {
+                    roles = roles.Where(r => r.SecurableItem.Name == securableItem);
+                }
+
+                if (!string.IsNullOrWhiteSpace(roleName))
+                {
+                    roles = roles.Where(r => r.Name == roleName);
+                }
+
+                foreach (var role in roles)
+                {
+                    role.RoleUsers = role.RoleUsers.Where(ru => !ru.IsDeleted).ToList();
+                    role.GroupRoles = role.GroupRoles.Where(gr => !gr.IsDeleted).ToList();
+                    role.RolePermissions = role.RolePermissions.Where(rp => !rp.IsDeleted).ToList();
+                }
+
+                return roles;
+            }
+            catch (Exception e)
             {
-                roles = roles.Where(r => r.SecurableItem.Name == securableItem);
+                throw e;
             }
-
-            if (!string.IsNullOrWhiteSpace(roleName))
-            {
-                roles = roles.Where(r => r.Name == roleName);
-            }
-
-            foreach (var role in roles)
-            {
-                role.RoleUsers = role.RoleUsers.Where(ru => !ru.IsDeleted).ToList();
-                role.GroupRoles = role.GroupRoles.Where(gr => !gr.IsDeleted).ToList();
-                role.RolePermissions = role.RolePermissions.Where(rp => !rp.IsDeleted).ToList();
-            }
-
-            return roles;
         }
     }
 }

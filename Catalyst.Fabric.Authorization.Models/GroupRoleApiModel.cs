@@ -22,7 +22,7 @@ namespace Catalyst.Fabric.Authorization.Models
         /// </summary>
         public string GroupSource { get; set; }
 
-        public string Tenant { get; set; }
+        public string TenantId { get; set; }
 
         public IEnumerable<GroupRoleApiModel> Parents { get; set; }
         public IEnumerable<GroupRoleApiModel> Children { get; set; }

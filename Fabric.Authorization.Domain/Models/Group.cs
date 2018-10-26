@@ -5,6 +5,8 @@ namespace Fabric.Authorization.Domain.Models
 {
     public class Group : ITrackable, IIdentifiable<Guid>, ISoftDelete
     {
+        private GroupIdentifier _groupIdentifier;
+
         public Group()
         {
             Roles = new List<Role>();
@@ -17,7 +19,7 @@ namespace Fabric.Authorization.Domain.Models
 
         public string Name { get; set; }
 
-        public string IdentityProvider { get; set; }
+        public string IdentityProvider { get; set; } = "Windows";
 
         public string DisplayName { get; set; }
 
@@ -35,7 +37,7 @@ namespace Fabric.Authorization.Domain.Models
         
         public string ExternalIdentifier { get; set; }
 
-        public string Tenant { get; set; }
+        public string TenantId { get; set; }
 
         public bool IsDeleted { get; set; }
 
@@ -46,6 +48,23 @@ namespace Fabric.Authorization.Domain.Models
         public string CreatedBy { get; set; }
 
         public string ModifiedBy { get; set; }
+
+        public GroupIdentifier GroupIdentifier
+        {
+            get
+            {
+                if (_groupIdentifier != null) return _groupIdentifier;
+
+                _groupIdentifier = new GroupIdentifier
+                {
+                    GroupName = Name,
+                    IdentityProvider = IdentityProvider,
+                    TenantId = TenantId
+                };
+
+                return _groupIdentifier;
+            }
+        } 
 
         public override string ToString()
         {
@@ -71,13 +90,33 @@ namespace Fabric.Authorization.Domain.Models
                 return false;
             }
 
-            return Name == incomingGroup.Name
+            var nameMatches = Name == incomingGroup.Name
                    || incomingGroup.Name.Equals(Name, StringComparison.OrdinalIgnoreCase);
+
+            var tenantIdMatches = TenantId == incomingGroup.TenantId
+                                  || incomingGroup.TenantId.Equals(TenantId, StringComparison.OrdinalIgnoreCase);
+
+            var idpMatches = IdentityProvider == incomingGroup.IdentityProvider
+                             || incomingGroup.IdentityProvider.Equals(TenantId, StringComparison.OrdinalIgnoreCase);
+
+            return nameMatches && tenantIdMatches && idpMatches;
         }
 
         public override int GetHashCode()
         {
             return ToString().GetHashCode();
+        }
+    }
+
+    public class GroupIdentifier
+    {
+        public string GroupName { get; set; }
+        public string TenantId { get; set; }
+        public string IdentityProvider { get; set; } = "Windows";
+
+        public override string ToString()
+        {
+            return $"IdP = {IdentityProvider}, TenantId = {TenantId}, GroupName = {GroupName}";
         }
     }
 }
