@@ -249,7 +249,7 @@ namespace Fabric.Authorization.Domain.Services
             }
 
             // if association already exists, return 409
-            var existingAssociations = group.Children.Where(c => childGroupIdentifierList.Contains(c.GroupIdentifier)).ToList();
+            var existingAssociations = group.Children.Where(c => childGroupIdentifierList.Contains(c.GroupIdentifier, new GroupIdentifierComparer())).ToList();
             if (existingAssociations.Any())
             {
                 throw new AlreadyExistsException<Group>(
