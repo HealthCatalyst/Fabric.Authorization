@@ -135,7 +135,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     DisplayName = "My Azure AD Group",
                     Description = "My Azure AD Group",
                     IdentityProvider = IdentityConstants.AzureActiveDirectory,
-                    Tenant = "AzureTenant"
+                    TenantId = "AzureTenant"
                 });
             });
 
@@ -144,6 +144,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var getResponse = await Browser.Get($"/groups/{groupName}", with =>
             {
                 with.HttpRequest();
+                with.Query("identityProvider", IdentityConstants.AzureActiveDirectory);
+                with.Query("tenantId", "AzureTenant");
             });
 
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);

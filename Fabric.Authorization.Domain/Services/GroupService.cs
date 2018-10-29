@@ -222,7 +222,7 @@ namespace Fabric.Authorization.Domain.Services
             // filter out groups that already exist so we don't attempt to create an existent group
             catch (NotFoundException<Group> ex)
             {
-                var missingChildGroups = childGroupList.Where(g => ex.ExceptionDetails.Select(e => e.Identifier).Contains(g.Name)).ToList();
+                var missingChildGroups = childGroupList.Where(g => ex.ExceptionDetails.Select(e => e.Identifier).Contains(g.GroupIdentifier.ToString())).ToList();
 
                 var invalidMissingGroups =
                     missingChildGroups.Where(g => string.IsNullOrWhiteSpace(g.Name)
