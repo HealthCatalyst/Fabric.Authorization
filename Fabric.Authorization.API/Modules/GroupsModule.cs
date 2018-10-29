@@ -58,9 +58,8 @@ namespace Fabric.Authorization.API.Modules
             async _ => await GetGroups().ConfigureAwait(false),
             null,
             "GetGroups");
-
             base.Get("/{groupName}",
-                async p => await this.GetGroup(p).ConfigureAwait(false),
+                async _ => await GetGroup().ConfigureAwait(false),
                 null,
                 "GetGroup");
 
@@ -178,12 +177,19 @@ namespace Fabric.Authorization.API.Modules
             }
         }
 
-        private async Task<dynamic> GetGroup(dynamic parameters)
+        private async Task<dynamic> GetGroup()
         {
             try
             {
                 this.RequiresClaims(AuthorizationReadClaim);
-                Group group = await _groupService.GetGroup(new GroupIdentifier { GroupName = parameters.GroupName }, ClientId);
+                var groupIdentifier = this.Bind<GroupIdentifierApiRequest>();
+                Group group = await _groupService.GetGroup(
+                    new GroupIdentifier
+                    {
+                        GroupName = groupIdentifier.GroupName,
+                        IdentityProvider = groupIdentifier.IdentityProvider,
+                        TenantId = groupIdentifier.TenantId
+                    }, ClientId);
                 return group.ToGroupRoleApiModel();
             }
             catch (NotFoundException<Group> ex)
