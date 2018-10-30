@@ -180,7 +180,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 new List<PermissionApiModel> {permission});
 
             // map group to role
-            response = await SetupGroupRoleMappingAsync(groupName, role);
+            response = await SetupGroupRoleMappingAsync(groupName, role, IdentityConstants.AzureActiveDirectory, "AzureTenant");
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             // create a principal w/ the user created above
@@ -301,18 +301,21 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
+                with.Query("identityProvider", $"{identityProvider}_0");
             });
 
             var getResponse1 = await Browser.Get($"/groups/{groupName}_1", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
+                with.Query("identityProvider", $"{identityProvider}_1");
             });
 
             var getResponse2 = await Browser.Get($"/groups/{groupName}_2", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
+                with.Query("identityProvider", $"{identityProvider}_2");
             });
 
             var response0 = getResponse0.Body.AsString();
@@ -569,24 +572,28 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
+                with.Query("identityProvider", $"{identityProvider}_0");
             });
 
             var getResponse1 = await Browser.Get($"/groups/{groupName}_1", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
+                with.Query("identityProvider", $"{identityProvider}_1");
             });
 
             var getResponse2 = await Browser.Get($"/groups/{groupName}_2", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
+                with.Query("identityProvider", $"{identityProvider}_2");
             });
 
             var getResponse3 = await Browser.Get($"/groups/{groupName}_3", with =>
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
+                with.Query("identityProvider", $"{identityProvider}_3");
             });
 
             Assert.Equal(HttpStatusCode.NotFound, getResponse0.StatusCode);
@@ -696,7 +703,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             return role.ToRoleDomainModel();
         }
 
-        protected async Task<BrowserResponse> SetupGroupRoleMappingAsync(string groupName, Role role, Browser browser = null)
+        protected async Task<BrowserResponse> SetupGroupRoleMappingAsync(string groupName, Role role, string identityProvider = null, string tenantId = null, Browser browser = null)
         {
             if (browser == null)
             {
@@ -716,6 +723,15 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                         role.Id
                     }
                 });
+
+                if (!string.IsNullOrWhiteSpace(identityProvider))
+                {
+                    with.Query("identityProvider", identityProvider);
+                }
+                if (!string.IsNullOrWhiteSpace(tenantId))
+                {
+                    with.Query("tenantId", tenantId);
+                }
             });
 
             return response;
@@ -750,7 +766,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             var browser = _fixture.GetBrowser(principal, _storageProvider);
 
-            var mappingResponse = await SetupGroupRoleMappingAsync(groupName, role, browser);
+            var mappingResponse = await SetupGroupRoleMappingAsync(groupName, role, null, null, browser);
             Assert.Equal(HttpStatusCode.Forbidden, mappingResponse.StatusCode);
 
         }
@@ -850,7 +866,14 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             // group-role mapping)
             response = await SetupGroupRoleMappingAsync(group1Name, role);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            Assert.Contains($"The role: {role} with Id: {role.Id} already exists for group {group1Name}", response.Body.AsString());
+
+            var groupIdentifier = new GroupIdentifier
+            {
+                GroupName = group1Name,
+                IdentityProvider = "Windows"
+            };
+
+            Assert.Contains($"The role: {role} with Id: {role.Id} already exists for group {groupIdentifier}", response.Body.AsString());
         }
 
         [Fact]
@@ -972,7 +995,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             });
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var responseEntity = response.Body.DeserializeJson<IEnumerable<RoleApiModel>>();
         }
 
         #endregion

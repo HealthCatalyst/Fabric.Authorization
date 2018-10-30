@@ -304,26 +304,6 @@ namespace Fabric.Authorization.API.Models
             };
         }
 
-        public static GroupIdentifier ToGroupIdentifierDomainModel(this GroupUserRequest groupUserRequest)
-        {
-            return new GroupIdentifier
-            {
-                GroupName = groupUserRequest.GroupName,
-                TenantId = groupUserRequest.TenantId,
-                IdentityProvider = groupUserRequest.GroupIdentityProvider
-            };
-        }
-
-        public static GroupIdentifier ToGroupIdentifierDomainModel(this GroupRoleRequest groupRoleRequest)
-        {
-            return new GroupIdentifier
-            {
-                GroupName = groupRoleRequest.GroupName,
-                TenantId = groupRoleRequest.TenantId,
-                IdentityProvider = groupRoleRequest.IdentityProvider
-            };
-        }
-
         public static Error ToError(this ValidationResult validationResult)
         {
             var details = validationResult.Errors.Select(validationResultError => new Error

@@ -218,5 +218,18 @@ namespace Fabric.Authorization.API.Modules
 
             return requiredClaims;
         }
+
+        protected string SetIdentityProvider(string identityProvider)
+        {
+            return string.IsNullOrWhiteSpace(identityProvider)
+                ? AppConfiguration.DefaultPropertySettings?.IdentityProvider
+                : identityProvider;
+        }
+
+        protected GroupIdentifier CreateGroupIdentifier(GroupIdentifier groupIdentifier)
+        {
+            groupIdentifier.IdentityProvider = SetIdentityProvider(groupIdentifier.IdentityProvider);
+            return groupIdentifier;
+        }
     }
 }

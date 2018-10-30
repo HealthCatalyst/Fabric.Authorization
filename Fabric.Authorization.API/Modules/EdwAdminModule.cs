@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Fabric.Authorization.API.Configuration;
 
 namespace Fabric.Authorization.API.Modules
 {
@@ -26,7 +27,8 @@ namespace Fabric.Authorization.API.Modules
             UserService userService,
             GroupService groupService,
             IEDWAdminRoleSyncService syncService,
-            ILogger logger) : base("/v1/edw/", logger, validator, accessService)
+            ILogger logger,
+            IAppConfiguration appConfiguration = null) : base("/v1/edw/", logger, validator, accessService, appConfiguration)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _groupService = groupService ?? throw new ArgumentNullException(nameof(groupService));
@@ -72,23 +74,34 @@ namespace Fabric.Authorization.API.Modules
         {
             CheckInternalAccess();
 
+            var groupIdentifier = new GroupIdentifier
+            {
+                GroupName = param.groupName,
+                IdentityProvider = SetIdentityProvider(param.identityProvider),
+                TenantId =  param.tenantId
+            };
+
             try
             {
-                Group group = await _groupService.GetGroup(param.groupName);
-                foreach(var groupUser in group.Users)
+                var group = await _groupService.GetGroup(groupIdentifier);
+                foreach (var groupUser in group.Users)
                 {
                     var user = await _userService.GetUser(groupUser.SubjectId, groupUser.IdentityProvider);
                     await _syncService.RefreshDosAdminRolesAsync(user);
                 }
+
                 return HttpStatusCode.NoContent;
             }
             catch (NotFoundException<Group>)
             {
-                return CreateFailureResponse($"The group: {param.groupName} was not found", HttpStatusCode.NotFound);
+                return CreateFailureResponse($"The group: {groupIdentifier} was not found",
+                    HttpStatusCode.NotFound);
             }
             catch (NotFoundException<User>)
             {
-                return CreateFailureResponse($"The user: {param.subjectId} for identity provider: {param.identityProvider} was not found.", HttpStatusCode.NotFound);
+                return CreateFailureResponse(
+                    $"The user: {param.subjectId} for identity provider: {param.identityProvider} was not found.",
+                    HttpStatusCode.NotFound);
             }
         }
     }

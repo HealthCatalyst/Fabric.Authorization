@@ -19,7 +19,7 @@ namespace Fabric.Authorization.Domain.Models
 
         public string Name { get; set; }
 
-        public string IdentityProvider { get; set; } = "Windows";
+        public string IdentityProvider { get; set; }
 
         public string DisplayName { get; set; }
 
@@ -112,7 +112,7 @@ namespace Fabric.Authorization.Domain.Models
     {
         public string GroupName { get; set; }
         public string TenantId { get; set; }
-        public string IdentityProvider { get; set; } = "Windows";
+        public string IdentityProvider { get; set; }
 
         public override string ToString()
         {
