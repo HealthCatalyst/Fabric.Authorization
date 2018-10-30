@@ -7,15 +7,10 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using System.Linq;
-using Fabric.Authorization.Persistence.SqlServer.EntityModels;
 using Fabric.Authorization.Persistence.SqlServer.Stores.EDW;
-using Fabric.Authorization.Domain.Stores;
-using Fabric.Authorization.Persistence.SqlServer.Stores;
-using Fabric.Authorization.Persistence.SqlServer.Services;
 
 namespace Fabric.Authorization.IntegrationTests.Modules
 {
@@ -29,8 +24,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         private readonly ISecurityContext _securityContext;
         private readonly Browser _browser;
-        private readonly IntegrationTestsFixture _fixture;
-        private readonly string _storageProvider;
 
         public EdwAdminTests(IntegrationTestsFixture fixture, string storageProvider = StorageProviders.InMemory, ConnectionStrings connectionStrings = null)
         {
@@ -52,8 +45,6 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 new Claim(Claims.ClientId, _clientId)
             }, "testprincipal"));
 
-            _storageProvider = storageProvider;
-            _fixture = fixture;
             _browser = fixture.GetBrowser(principal, storageProvider);
             fixture.CreateClient(_browser, _clientId);
         }
@@ -171,7 +162,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             await AssociateUserToRoleAsync(user, role);
 
             // Act I add role to group
-            var result = await _browser.Post($"/edw/{group.GroupName}/roles", with => with.Body(""));
+            var result = await _browser.Post($"/edw/{group.GroupName}/roles");
 
             // Assert I add role to group
             Assert.Equal(HttpStatusCode.NoContent, result.StatusCode);

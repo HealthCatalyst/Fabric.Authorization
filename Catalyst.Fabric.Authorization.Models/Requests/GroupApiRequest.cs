@@ -5,6 +5,11 @@
         public string GroupName { get; set; }
         public string TenantId { get; set; }
         public string IdentityProvider { get; set; }
+
+        public override string ToString()
+        {
+            return $"IdP = {IdentityProvider}, TenantId = {TenantId}, GroupName = {GroupName}";
+        }
     }
 
     public class GroupPostApiRequest : GroupPatchApiRequest

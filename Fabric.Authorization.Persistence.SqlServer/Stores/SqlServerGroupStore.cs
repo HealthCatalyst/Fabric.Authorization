@@ -114,11 +114,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task<Group> Get(GroupIdentifier groupIdentifier)
         {
-            if (string.IsNullOrWhiteSpace(groupIdentifier.IdentityProvider))
-            {
-                groupIdentifier.IdentityProvider = "Windows";
-            }
-
             var groupEntity = await AuthorizationDbContext.Groups
                 .Include(g => g.GroupRoles)
                 .ThenInclude(gr => gr.Role)
@@ -453,22 +448,18 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .ThenInclude(pg => pg.Parent)
                 .Where(g =>
                     !g.IsDeleted)
-                    //&& groupNames.Contains(g.Name))
                 .ToList();
 
             var filteredEntities = new List<EntityModels.Group>();
             var missingGroupIdentifiers = new List<GroupIdentifier>();
             foreach (var identifier in groupIdentifiers)
             {
-                if (string.IsNullOrWhiteSpace(identifier.IdentityProvider))
-                {
-                    identifier.IdentityProvider = "Windows";
-                }
 
                 var entity = groupEntities.FirstOrDefault(g =>
-                    g.Name == identifier.GroupName
-                    && g.TenantId == identifier.TenantId
-                    && g.IdentityProvider == identifier.IdentityProvider);
+                    string.Equals(g.Name, identifier.GroupName, StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(g.TenantId, identifier.TenantId, StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(g.IdentityProvider, identifier.IdentityProvider,
+                        StringComparison.OrdinalIgnoreCase));
 
                 if (entity != null)
                 {

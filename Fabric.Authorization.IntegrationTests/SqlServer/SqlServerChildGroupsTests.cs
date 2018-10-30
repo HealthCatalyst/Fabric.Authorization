@@ -22,7 +22,7 @@ namespace Fabric.Authorization.IntegrationTests.SqlServer
         public async Task AddChildGroup_ExistingChildGroupWithDifferentCase_SuccessAsync()
         {
             var parentGroup = await SetupGroupAsync(Guid.NewGuid().ToString(), GroupConstants.CustomSource, "Custom Parent Group", "Custom Parent Group");
-            var childGroup1 = await SetupGroupAsync("Child Group 1" + Guid.NewGuid().ToString(), GroupConstants.DirectorySource, "Child Group 1", "Child Group 1");
+            var childGroup1 = await SetupGroupAsync("Child Group 1" + Guid.NewGuid(), GroupConstants.DirectorySource, "Child Group 1", "Child Group 1");
 
             var lowerGroupName = childGroup1.GroupName.ToLower();
 
