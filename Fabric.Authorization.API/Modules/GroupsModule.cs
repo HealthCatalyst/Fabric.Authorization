@@ -182,11 +182,15 @@ namespace Fabric.Authorization.API.Modules
             {
                 this.RequiresClaims(AuthorizationReadClaim);
                 var groupIdentifierApiRequest = this.Bind<GroupIdentifierApiRequest>();
+
+                var identityProvider = GetQueryParameter("identityProvider");
+                var tenantId = GetQueryParameter("tenantId");
+
                 var groupIdentifier = new GroupIdentifier
                 {
                     GroupName = groupIdentifierApiRequest.GroupName,
-                    IdentityProvider = SetIdentityProvider(groupIdentifierApiRequest.IdentityProvider),
-                    TenantId = groupIdentifierApiRequest.TenantId
+                    IdentityProvider = SetIdentityProvider(identityProvider),
+                    TenantId = tenantId
                 };
 
                 var group = await _groupService.GetGroup(groupIdentifier, ClientId);
@@ -214,6 +218,10 @@ namespace Fabric.Authorization.API.Modules
             {
                 incomingGroup.IdentityProvider = AppConfiguration.DefaultPropertySettings?.IdentityProvider;
             }
+
+            incomingGroup.TenantId = string.IsNullOrWhiteSpace(incomingGroup.TenantId)
+                ? null
+                : incomingGroup.TenantId.Trim();
 
             Validate(incomingGroup);
 
@@ -248,11 +256,13 @@ namespace Fabric.Authorization.API.Modules
             try
             {
                 var groupPatchApiRequest = this.Bind<GroupPatchApiRequest>();
+                var identityProvider = GetQueryParameter("identityProvider");
+                var tenantId = GetQueryParameter("tenantId");
                 var groupIdentifier = new GroupIdentifier
                 {
                     GroupName = parameters.groupName,
-                    IdentityProvider = SetIdentityProvider(parameters.identityProvider),
-                    TenantId = parameters.tenantId
+                    IdentityProvider = SetIdentityProvider(identityProvider),
+                    TenantId = tenantId
                 };
 
                 var existingGroup = await _groupService.GetGroup(groupIdentifier);
@@ -275,11 +285,14 @@ namespace Fabric.Authorization.API.Modules
             {
                 this.RequiresClaims(AuthorizationWriteClaim);
 
+                var identityProvider = GetQueryParameter("identityProvider");
+                var tenantId = GetQueryParameter("tenantId");
+
                 var groupIdentifier = new GroupIdentifier
                 {
                     GroupName = parameters.groupName,
-                    IdentityProvider = SetIdentityProvider(parameters.identityProvider),
-                    TenantId = parameters.tenantId
+                    IdentityProvider = SetIdentityProvider(identityProvider),
+                    TenantId = tenantId
                 };
 
                 var group = await _groupService.GetGroup(groupIdentifier, ClientId);
@@ -314,11 +327,14 @@ namespace Fabric.Authorization.API.Modules
                 this.RequiresClaims(AuthorizationReadClaim);
                 var groupRoleRequest = this.Bind<GroupRoleRequest>();
 
+                var identityProvider = GetQueryParameter("identityProvider");
+                var tenantId = GetQueryParameter("tenantId");
+
                 var groupIdentifier = new GroupIdentifier
                 {
                     GroupName = groupRoleRequest.GroupName,
-                    TenantId = groupRoleRequest.TenantId,
-                    IdentityProvider = SetIdentityProvider(groupRoleRequest.IdentityProvider)
+                    TenantId = tenantId,
+                    IdentityProvider = SetIdentityProvider(identityProvider)
                 };
 
                 var group = await _groupService.GetGroup(groupIdentifier, ClientId);
@@ -344,8 +360,8 @@ namespace Fabric.Authorization.API.Modules
 
             try
             {
-                var identityProvider = Request.Query["identityProvider"].HasValue ? Request.Query["identityProvider"].ToString() : null;
-                var tenantId = Request.Query["tenantId"].HasValue ? Request.Query["tenantId"].ToString() : null;
+                var identityProvider = GetQueryParameter("identityProvider");
+                var tenantId = GetQueryParameter("tenantId");
                 var groupIdentifier = new GroupIdentifier
                 {
                     GroupName = parameters.groupName,
@@ -379,11 +395,14 @@ namespace Fabric.Authorization.API.Modules
                     return CreateFailureResponse("At least 1 role ID is required.", HttpStatusCode.BadRequest);
                 }
 
+                var identityProvider = GetQueryParameter("identityProvider");
+                var tenantId = GetQueryParameter("tenantId");
+
                 var groupIdentifier = new GroupIdentifier
                 {
                     GroupName = parameters.groupName,
-                    IdentityProvider = SetIdentityProvider(parameters.identityProvider),
-                    TenantId = parameters.tenantId
+                    IdentityProvider = SetIdentityProvider(identityProvider),
+                    TenantId = tenantId
                 };
 
                 var group = await _groupService.DeleteRolesFromGroup(groupIdentifier, roleIds.Select(r => r.RoleId));
@@ -405,11 +424,15 @@ namespace Fabric.Authorization.API.Modules
             {
                 this.RequiresClaims(AuthorizationReadClaim);
                 var groupUserRequest = this.Bind<GroupUserRequest>();
+
+                var identityProvider = GetQueryParameter("identityProvider");
+                var tenantId = GetQueryParameter("tenantId");
+
                 var groupIdentifier = new GroupIdentifier
                 {
                     GroupName = groupUserRequest.GroupName,
-                    IdentityProvider = SetIdentityProvider(groupUserRequest.GroupIdentityProvider),
-                    TenantId = groupUserRequest.TenantId
+                    IdentityProvider = SetIdentityProvider(identityProvider),
+                    TenantId = tenantId
                 };
 
                 var group = await _groupService.GetGroup(groupIdentifier, ClientId);
@@ -425,11 +448,14 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
+                var identityProvider = GetQueryParameter("identityProvider");
+                var tenantId = GetQueryParameter("tenantId");
+
                 var groupIdentifier = new GroupIdentifier
                 {
                     GroupName = parameters.groupName,
-                    IdentityProvider = SetIdentityProvider(parameters.identityProvider),
-                    TenantId = parameters.tenantId
+                    IdentityProvider = SetIdentityProvider(identityProvider),
+                    TenantId = tenantId
                 };
 
                 var group = await _groupService.GetGroup(groupIdentifier);
@@ -474,11 +500,14 @@ namespace Fabric.Authorization.API.Modules
                     return validationResult;
                 }
 
+                var identityProvider = GetQueryParameter("identityProvider");
+                var tenantId = GetQueryParameter("tenantId");
+
                 var groupIdentifier = new GroupIdentifier
                 {
                     GroupName = groupUserRequest.GroupName,
-                    IdentityProvider = SetIdentityProvider(groupUserRequest.GroupIdentityProvider),
-                    TenantId = groupUserRequest.TenantId
+                    IdentityProvider = SetIdentityProvider(identityProvider),
+                    TenantId = tenantId
                 };
 
                 var group = await _groupService.DeleteUserFromGroup(groupIdentifier, groupUserRequest.SubjectId, groupUserRequest.IdentityProvider);
@@ -499,11 +528,15 @@ namespace Fabric.Authorization.API.Modules
             try
             {
                 this.RequiresClaims(AuthorizationReadClaim);
+
+                var identityProvider = GetQueryParameter("identityProvider");
+                var tenantId = GetQueryParameter("tenantId");
+
                 var groupIdentifier = new GroupIdentifier
                 {
                     GroupName = parameters.groupName,
-                    IdentityProvider = SetIdentityProvider(parameters.identityProvider),
-                    TenantId = parameters.tenantId
+                    IdentityProvider = SetIdentityProvider(identityProvider),
+                    TenantId = tenantId
                 };
 
                 var group = await _groupService.GetGroup(groupIdentifier, ClientId);
@@ -519,11 +552,14 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
+                var identityProvider = GetQueryParameter("identityProvider");
+                var tenantId = GetQueryParameter("tenantId");
+
                 var groupIdentifier = new GroupIdentifier
                 {
                     GroupName = parameters.groupName,
-                    IdentityProvider = SetIdentityProvider(parameters.identityProvider),
-                    TenantId = parameters.tenantId
+                    IdentityProvider = SetIdentityProvider(identityProvider),
+                    TenantId = tenantId
                 };
 
                 var group = await _groupService.GetGroup(groupIdentifier);
@@ -557,11 +593,14 @@ namespace Fabric.Authorization.API.Modules
         {
             try
             {
+                var identityProvider = GetQueryParameter("identityProvider");
+                var tenantId = GetQueryParameter("tenantId");
+
                 var groupIdentifier = new GroupIdentifier
                 {
                     GroupName = parameters.groupName,
-                    IdentityProvider = SetIdentityProvider(parameters.identityProvider),
-                    TenantId = parameters.tenantId
+                    IdentityProvider = SetIdentityProvider(identityProvider),
+                    TenantId = tenantId
                 };
 
                 var group = await _groupService.GetGroup(groupIdentifier);
@@ -649,6 +688,19 @@ namespace Fabric.Authorization.API.Modules
             {
                 await CheckWriteAccess(_clientService, _grainService, role.Grain, role.SecurableItem);
             }
+        }
+
+        private string GetQueryParameter(string key)
+        {
+            var val = Request.Query[key];
+            if (val.HasValue)
+            {
+                return string.IsNullOrWhiteSpace(val.ToString())
+                    ? null
+                    : val.ToString();
+            }
+
+            return null;
         }
     }
 }
