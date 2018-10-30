@@ -76,7 +76,7 @@ namespace Fabric.Authorization.IntegrationTests
                 DefaultPropertySettings = new DefaultPropertySettings
                 {
                     GroupSource = GroupConstants.DirectorySource,
-                    IdentityProvider = IdentityConstants.ActiveDirectory,
+                    //IdentityProvider = IdentityConstants.ActiveDirectory,
                     DualStoreEDWAdminPermissions = true
                 }
             };
