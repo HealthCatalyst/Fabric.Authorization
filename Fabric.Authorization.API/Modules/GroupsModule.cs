@@ -344,11 +344,13 @@ namespace Fabric.Authorization.API.Modules
 
             try
             {
+                var identityProvider = Request.Query["identityProvider"].HasValue ? Request.Query["identityProvider"].ToString() : null;
+                var tenantId = Request.Query["tenantId"].HasValue ? Request.Query["tenantId"].ToString() : null;
                 var groupIdentifier = new GroupIdentifier
                 {
                     GroupName = parameters.groupName,
-                    IdentityProvider = SetIdentityProvider(Request.Query["identityProvider"].ToString()),
-                    TenantId = Request.Query["tenantId"].ToString()
+                    IdentityProvider = SetIdentityProvider(identityProvider),
+                    TenantId = tenantId
                 };
 
                 var group = await _groupService.AddRolesToGroup(domainRoles, groupIdentifier);
