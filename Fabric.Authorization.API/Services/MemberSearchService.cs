@@ -65,7 +65,9 @@ namespace Fabric.Authorization.API.Services
                     .Select(r => r.ToRoleApiModel()).ToList(),
                 EntityType = string.Equals(g.Source, GroupConstants.CustomSource, StringComparison.OrdinalIgnoreCase)
                     ? MemberSearchResponseEntityType.CustomGroup.ToString()
-                    : MemberSearchResponseEntityType.DirectoryGroup.ToString()
+                    : MemberSearchResponseEntityType.DirectoryGroup.ToString(),
+                IdentityProvider = g.IdentityProvider,
+                TenantId = g.TenantId
             }));
 
             // get users directly mapped to client roles
