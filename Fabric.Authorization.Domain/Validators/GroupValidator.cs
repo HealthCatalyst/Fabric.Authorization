@@ -23,10 +23,10 @@ namespace Fabric.Authorization.Domain.Validators
                 .WithMessage("Please specify a Name for this Group.")
                 .WithState(g => ValidationEnums.ValidationState.MissingRequiredField);
 
-            RuleFor(group => group.IdentityProvider)
+            /*RuleFor(group => group.IdentityProvider)
                 .NotEmpty()
                 .WithMessage("Please specify an IdentityProvider for this Group.")
-                .WithState(g => ValidationEnums.ValidationState.MissingRequiredField);
+                .WithState(g => ValidationEnums.ValidationState.MissingRequiredField);*/
 
             RuleFor(group => group.Source)
                 .NotEmpty()
