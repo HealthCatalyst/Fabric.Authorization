@@ -23,6 +23,7 @@ namespace Catalyst.Fabric.Authorization.Models.Search
         public string LastName { get; set; }
         public DateTime? LastLoginDateTimeUtc { get; set; }
         public string EntityType { get; set; }
+        public string TenantId { get; set; }
 
         public override string ToString()
         {
