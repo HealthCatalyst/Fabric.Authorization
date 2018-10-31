@@ -54,15 +54,18 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         {
             var mockIdpSearchProvider = new Mock<IIdPSearchProvider>();
             mockIdpSearchProvider.Setup(m => m.GetGroupAsync(It.IsAny<IdPGroupRequest>()))
-                .ReturnsAsync(() => new FabricIdPSearchGroupResponse
+                .ReturnsAsync(() => new FabricIdPGroupResponse()
                 {
                     HttpStatusCode = System.Net.HttpStatusCode.OK,
-                    Result = new IdPGroupResponse
+                    Results = new List<IdPGroup>
                     {
-                        GroupName = groupName,
-                        PrincipalType = "Group",
-                        UniqueId = "123456",
-                        TenantId = "TenantId"
+                        new IdPGroup
+                        {
+                            GroupName = groupName,
+                            PrincipalType = "Group",
+                            GroupId = "123456",
+                            TenantId = "TenantId"
+                        }
                     }
                 });
 
