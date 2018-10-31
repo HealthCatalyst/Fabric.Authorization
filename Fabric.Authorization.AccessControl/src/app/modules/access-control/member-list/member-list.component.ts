@@ -219,7 +219,7 @@ export class MemberListComponent implements OnInit, OnChanges {
         });
     } else {
       this.groupService
-        .removeRolesFromGroup(member.groupName, member.roles)
+        .removeRolesFromGroup(member.groupName, member.roles, member.identityProvider, member.tenantId)
         .toPromise()
         .then(value => {
           return this.edwAdminService.syncGroupWithEdwAdmin(member.groupName, member.identityProvider, member.tenantId)
