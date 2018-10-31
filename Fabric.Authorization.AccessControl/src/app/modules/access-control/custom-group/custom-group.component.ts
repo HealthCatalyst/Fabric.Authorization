@@ -330,13 +330,18 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     const newGroups: IGroup[] = this.principals
       .filter(principal => principal.selected === true && principal.principalType === this.groupType)
       .map((principal) => {
-        console.log('map principal' + principal.subjectId);
+        console.log('map principal ' + principal.subjectId);
         const newGroup: IGroup = {
           groupName: principal.subjectId,
           groupSource: 'directory',
           selected: false,
-          type: this.groupType
+          type: this.groupType,
+          identityProvider: principal.identityProvider,
+          tenantId: principal.tenantId,
+          displayName: principal.displayName
         };
+        console.log('newGroup idp = ' + newGroup.identityProvider);
+        console.log('newGroup tenant = ' + newGroup.tenantId);
         return newGroup;
       });
 
@@ -380,7 +385,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           selected: false,
           identityProvider: group.identityProvider,
           tenantId: group.tenantId,
-          displayName: group.groupName
+          displayName: group.displayName
         };
         return newPrincipal;
       });
@@ -458,7 +463,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
             saveObservables.push(this.groupService.addChildGroups(group.groupName, childGroupsToAdd, this.identityProvider, this.tenantId));
             saveObservables.push(this.groupService.removeChildGroups(
               group.groupName,
-              childGroupsToRemove.map(g => g.groupName),
+              childGroupsToRemove,
               this.identityProvider,
               this.tenantId));
 
