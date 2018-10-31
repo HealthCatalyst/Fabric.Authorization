@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
@@ -22,6 +24,7 @@ namespace Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Provide
         private readonly ILogger _logger;
 
         private const string ServiceName = "Fabric.IdentityProviderSearchService";
+        private const string PrincipalsEndpoint = "v1/principals/";
 
         public IdPSearchProvider(
             HttpClient httpClient,
@@ -42,7 +45,7 @@ namespace Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Provide
         /// <returns></returns>
         public async Task<FabricIdPSearchResponse> SearchAsync(IdPPrincipalSearchRequest request)
         {
-            var route = $"/principals/search?searchText={request.SearchText}";
+            var route = $"{PrincipalsEndpoint}search?searchText={request.SearchText}";
 
             if (!string.IsNullOrWhiteSpace(request.Type))
             {
@@ -56,16 +59,16 @@ namespace Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Provide
             httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8,
                 "application/json");
 
-            return await ProcessResponse<IdPPrincipalSearchResponse, FabricIdPSearchResponse>(httpRequestMessage);
+            return new FabricIdPSearchResponse();
         }
 
         public async Task<FabricIdPGroupResponse> GetGroupAsync(IdPGroupRequest request)
         {
-            var route = $"{request.IdentityProvider}/groups/{request.DisplayName}";
+            var route = $"{PrincipalsEndpoint}{request.IdentityProvider}/groups/{request.DisplayName}";
 
             if (!string.IsNullOrWhiteSpace(request.TenantId))
             {
-                route = $"{route}?tenant={request.TenantId}";
+                route = $"{route}?tenantId={request.TenantId}";
             }
 
             var httpRequestMessage = await CreateHttpRequestMessage(route, HttpMethod.Get);
@@ -75,7 +78,28 @@ namespace Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Provide
             httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8,
                 "application/json");
 
-            return await ProcessResponse<IdPGroupResponse, FabricIdPGroupResponse>(httpRequestMessage);
+            var response = await _httpClient.SendAsync(httpRequestMessage);
+            var responseContent = response.Content == null ? string.Empty : await response.Content.ReadAsStringAsync();
+            var idPGroupResponse = new IdPGroupResponse();
+
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                _logger.Error(
+                    $"Response status code from {ServiceName} {httpRequestMessage.RequestUri} => {response.StatusCode}");
+                _logger.Error(
+                    $"Response content from {ServiceName} {httpRequestMessage.RequestUri} => {responseContent}");
+            }
+            else
+            {
+                idPGroupResponse = JsonConvert.DeserializeObject<IdPGroupResponse>(responseContent);
+                _logger.Debug($"{ServiceName} {httpRequestMessage.RequestUri} result: {idPGroupResponse}");
+            }
+
+            return new FabricIdPGroupResponse
+            {
+                HttpStatusCode = response.StatusCode,
+                Results = idPGroupResponse.Principals
+            };
         }
 
         private async Task<HttpRequestMessage> CreateHttpRequestMessage(string route, HttpMethod httpMethod)
@@ -89,14 +113,16 @@ namespace Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Provide
 
             var baseUri = _appConfiguration.IdentityProviderSearchSettings.Endpoint.EnsureTrailingSlash();
             var httpRequestMessage = _httpRequestMessageFactory.CreateWithAccessToken(httpMethod,
-                new Uri($"{baseUri}/{route}"),
+                new Uri($"{baseUri}{route}"),
                 accessTokenResponse.AccessToken);
+
+            httpRequestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             return httpRequestMessage;
         }
 
-        private async Task<T1> ProcessResponse<T, T1>(HttpRequestMessage httpRequestMessage)
-            where T1 : IFabricIdPResponseModel<T>, new()
+        /*private async Task<T1> ProcessResponse<T, T1>(HttpRequestMessage httpRequestMessage)
+            where T1 : IFabricIdPSearchResponseModel<T>, new()
             where T : new()
         {
             var response = await _httpClient.SendAsync(httpRequestMessage);
@@ -120,8 +146,6 @@ namespace Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Provide
                     Result = result
                 };
             }
-
-            return new T1();
-        }
+        }*/
     }
 }
