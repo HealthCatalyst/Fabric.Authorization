@@ -9,6 +9,9 @@ export interface IGroup {
   groupSource: string;
   displayName?: string;
   description?: string;
+  tenantId?: string;
+  domain?: string;
+  identityProvider?: string;
   children?: Array<IGroup>;
   parents?: Array<IGroup>;
 

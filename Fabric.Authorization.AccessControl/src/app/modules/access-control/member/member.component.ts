@@ -36,6 +36,8 @@ export class MemberComponent implements OnInit, OnDestroy {
   public disabledSaveReason = '';
   public returnRoute = '/access-control';
   public editMode = true;
+  public identityProvider = '';
+  public tenantId = '';
 
   private grain: string;
   private securableItem: string;
@@ -60,6 +62,12 @@ export class MemberComponent implements OnInit, OnDestroy {
 
     const subjectId: string = this.route.snapshot.paramMap.get('subjectid');
 
+    this.route.queryParams
+      .subscribe(params => {
+        this.identityProvider = params.identityProvider;
+        this.tenantId = params.tenantId;
+      });
+
     this.editMode = !!subjectId;
     const principalType: string = (this.route.snapshot.paramMap.get('type') || '').toLowerCase();
     this.savingInProgress = false;
@@ -82,7 +90,9 @@ export class MemberComponent implements OnInit, OnDestroy {
     if (subjectId && principalType) {
         this.selectedPrincipal = {
             subjectId,
-            principalType
+            principalType,
+            identityProvider: this.identityProvider,
+            tenantId: this.tenantId
         };
     }
 
@@ -132,7 +142,9 @@ export class MemberComponent implements OnInit, OnDestroy {
               ? [
                     {
                         subjectId: this.searchText,
-                        principalType: 'group'
+                        principalType: 'group',
+                        identityProvider: this.identityProvider,
+                        tenantId: this.tenantId
                     },
                     {
                         subjectId: this.searchText,
@@ -162,7 +174,7 @@ export class MemberComponent implements OnInit, OnDestroy {
     const saveObservable: Observable<any> =
         this.selectedPrincipal.principalType === 'user'
             ? this.saveUser(this.selectedPrincipal.subjectId, selectedRoles)
-            : this.saveGroup(this.selectedPrincipal.subjectId, selectedRoles);
+            : this.saveGroup(this.selectedPrincipal, selectedRoles);
 
     return saveObservable.subscribe(null, null, () => {
         this.router.navigate([this.returnRoute]);
@@ -229,10 +241,16 @@ export class MemberComponent implements OnInit, OnDestroy {
       }));
   }
 
-  private saveGroup(subjectId: string, selectedRoles: IRole[]): Observable<any> {
-    const group: IGroup = { groupName: subjectId, groupSource: '' };
+  private saveGroup(principal: IFabricPrincipal, selectedRoles: IRole[]): Observable<any> {
+    const group: IGroup = {
+      groupName: principal.subjectId,
+      groupSource: 'directory',
+      identityProvider: principal.identityProvider,
+      tenantId: principal.tenantId
+    };
+
     return this.groupService
-      .getGroup(group.groupName).pipe(
+      .getGroup(group.groupName, principal.identityProvider, principal.tenantId).pipe(
       mergeMap((groupResult: IGroup) => {
         return of(groupResult);
       }),
@@ -247,19 +265,22 @@ export class MemberComponent implements OnInit, OnDestroy {
         return observableThrowError(err.message);
       }),
       mergeMap((newGroup: IGroup) => {
-        return this.groupService.getGroupRoles(group.groupName,
+        return this.groupService.getGroupRoles(
+          group.groupName,
           this.grain,
-          this.securableItem);
+          this.securableItem,
+          group.identityProvider,
+          group.tenantId);
       }),
       mergeMap((groupRoles: IRole[]) => {
         const rolesToAdd = selectedRoles.filter(userRole => !groupRoles.some(selectedRole => userRole.id === selectedRole.id));
         const rolesToDelete = groupRoles.filter(userRole => !selectedRoles.some(selectedRole => userRole.id === selectedRole.id));
         return observableZip(
-          this.groupService.addRolesToGroup(group.groupName, rolesToAdd),
-          this.groupService.removeRolesFromGroup(group.groupName, rolesToDelete))
+          this.groupService.addRolesToGroup(group.groupName, rolesToAdd, group.identityProvider, group.tenantId),
+          this.groupService.removeRolesFromGroup(group.groupName, rolesToDelete, group.identityProvider, group.tenantId))
           .toPromise()
           .then(value => {
-            return this.edwAdminService.syncGroupWithEdwAdmin(group.groupName)
+            return this.edwAdminService.syncGroupWithEdwAdmin(group.groupName, group.identityProvider, group.tenantId)
             .toPromise()
             .then(o => { this.savingInProgress = false; return value; })
             .catch(err => {
@@ -282,7 +303,12 @@ export class MemberComponent implements OnInit, OnDestroy {
     const roleObservable: Observable<any> =
         principal.principalType === 'user'
             ? this.userService.getUserRoles(this.configService.identityProvider, principal.subjectId)
-            : this.groupService.getGroupRoles(principal.subjectId, this.grain, this.securableItem);
+            : this.groupService.getGroupRoles(
+              principal.subjectId,
+              this.grain,
+              this.securableItem,
+              principal.identityProvider,
+              principal.tenantId);
 
     return roleObservable.pipe(tap((existingRoles: IRole[]) => {
         if (!existingRoles) {

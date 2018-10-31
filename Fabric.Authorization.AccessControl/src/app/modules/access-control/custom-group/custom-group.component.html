@@ -34,7 +34,7 @@
                     <li *ngFor="let principal of principals">
                         <hc-checkbox [id]="principal.subjectId + principal.principalType" [(ngModel)]="principal.selected">
                         </hc-checkbox>
-                        <span [innerText]="principal.subjectId">
+                        <span [innerText]="principal.displayName">
                         </span>
                         <span [innerText]="'(' + principal.principalType + ')'">
                         </span>

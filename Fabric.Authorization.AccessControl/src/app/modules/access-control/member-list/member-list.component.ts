@@ -15,6 +15,7 @@ import { FabricAuthGroupService } from '../../../services/fabric-auth-group.serv
 import { FabricAuthEdwAdminService } from '../../../services/fabric-auth-edwadmin.service';
 import { IRole } from '../../../models/role.model';
 import { GrainFlatNode } from '../grain-list/grain-list.component';
+import { query } from '@angular/animations';
 
 @Component({
   selector: 'app-member-list',
@@ -120,7 +121,7 @@ export class MemberListComponent implements OnInit, OnChanges {
       grain: this.grain,
       securableItem: this.securableItem
     };
-    
+
     searchRequest.grain = this.grain;
     searchRequest.securableItem = this.securableItem;
 
@@ -166,6 +167,16 @@ export class MemberListComponent implements OnInit, OnChanges {
 
   goToMemberEdit(member: IAuthMemberSearchResult) {
     sessionStorage.setItem('selectedMember', JSON.stringify(member));
+
+    const queryParams = {};
+    if (member.identityProvider) {
+      queryParams['identityProvider'] = member.identityProvider;
+    }
+
+    if (member.tenantId) {
+      queryParams['tenantId'] = member.tenantId;
+    }
+
     if (member.entityType !== 'CustomGroup') {
       this.router.navigate([
         '/access-control/member',
@@ -173,14 +184,20 @@ export class MemberListComponent implements OnInit, OnChanges {
         this.securableItem,
         member.subjectId,
         member.entityType
-      ]);
+      ],
+      {
+        queryParams: queryParams
+      });
     } else {
       this.router.navigate([
         '/access-control/customgroup',
         this.grain,
         this.securableItem,
         member.subjectId
-      ]);
+      ],
+      {
+        queryParams: queryParams // TODO: remove this when Auth is fixed so that custom groups do not have IdPs
+      });
     }
   }
 
@@ -205,7 +222,7 @@ export class MemberListComponent implements OnInit, OnChanges {
         .removeRolesFromGroup(member.groupName, member.roles)
         .toPromise()
         .then(value => {
-          return this.edwAdminService.syncGroupWithEdwAdmin(member.groupName)
+          return this.edwAdminService.syncGroupWithEdwAdmin(member.groupName, member.identityProvider, member.tenantId)
             .toPromise().then(o => value).catch(err => value);
         })
         .then(() => {

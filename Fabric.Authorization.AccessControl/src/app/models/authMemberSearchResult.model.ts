@@ -22,4 +22,5 @@ export interface IAuthMemberSearchResult {
   lastLoginDateTimeUtc?: string | Date;
   entityType: AuthMemberSearchResultEntityType;
   name?: string;
+  tenantId?: string;
 }

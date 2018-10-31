@@ -41,8 +41,9 @@ export class FabricAuthGroupService extends FabricBaseService {
     }
   }
 
-  public getGroup(groupName: string): Observable<IGroup> {
-    const url = `${FabricAuthGroupService.baseGroupApiUrl}/${encodeURI(groupName)}`;
+  public getGroup(groupName: string, identityProvider?: string, tenantId?: string): Observable<IGroup> {
+    let url = `${FabricAuthGroupService.baseGroupApiUrl}/${encodeURI(groupName)}`;
+    url = this.setIdPAndTenant(url, identityProvider, tenantId);
     return this.httpClient.get<IGroup>(url);
   }
 
@@ -111,25 +112,29 @@ export class FabricAuthGroupService extends FabricBaseService {
   public getGroupRoles(
     groupName: string,
     grain: string,
-    securableItem: string
+    securableItem: string,
+    identityProvider?: string,
+    tenantId?: string
   ): Observable<IRole[]> {
-    const url = `${FabricAuthGroupService.baseGroupApiUrl}/${encodeURI(groupName)}/${encodeURI(grain)}/${encodeURI(securableItem)}/roles`;
+    let url = `${FabricAuthGroupService.baseGroupApiUrl}/${encodeURI(groupName)}/${encodeURI(grain)}/${encodeURI(securableItem)}/roles`;
+    url = this.setIdPAndTenant(url, identityProvider, tenantId);
     return this.httpClient.get<IRole[]>(url);
   }
 
   public addRolesToGroup(
     groupName: string,
-    roles: Array<IRole>
+    roles: Array<IRole>,
+    identityProvider?: string,
+    tenantId?: string
   ): Observable<IGroup> {
     if (!roles || roles.length === 0) {
       return of(undefined);
     }
 
+    let url = this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName);
+    url = this.setIdPAndTenant(url, identityProvider, tenantId);
     return this.httpClient.post<IGroup>(
-      this.replaceGroupNameSegment(
-        FabricAuthGroupService.groupRolesApiUrl,
-        groupName
-      ),
+      url,
       roles
     ).pipe(tap((user) => {
       this.sendGroupRoleDataChanges(roles, groupName, 'added');
@@ -138,13 +143,16 @@ export class FabricAuthGroupService extends FabricBaseService {
 
   public removeRolesFromGroup(
     groupName: string,
-    roles: IRole[]
+    roles: IRole[],
+    identityProvider?: string,
+    tenantId?: string
   ): Observable<IGroup> {
     if (!roles || roles.length === 0) {
       return of(undefined);
     }
 
-    const url = this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName);
+    let url = this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName);
+    url = this.setIdPAndTenant(url, identityProvider, tenantId);
     return this.httpClient.request<IGroup>(
       'DELETE',
       url,
@@ -204,28 +212,29 @@ export class FabricAuthGroupService extends FabricBaseService {
       }));
   }
 
-  public getChildGroups(groupName: string): Observable<IGroup[]> {
-    return this.httpClient.get<IGroup[]>(
-      this.replaceGroupNameSegment(
-        FabricAuthGroupService.childGroupsApiUrl,
-        groupName
-      )
-    );
+  public getChildGroups(
+    groupName: string,
+    identityProvider?: string,
+    tenantId?: string): Observable<IGroup[]> {
+    let url = this.replaceGroupNameSegment(FabricAuthGroupService.childGroupsApiUrl, groupName);
+    url = this.setIdPAndTenant(url, identityProvider, tenantId);
+    return this.httpClient.get<IGroup[]>(url);
   }
 
   public addChildGroups(
     groupName: string,
-    childGroups: IGroup[]
+    childGroups: IGroup[],
+    identityProvider?: string,
+    tenantId?: string
   ): Observable<IGroup> {
     if (!childGroups || childGroups.length === 0) {
       return of(undefined);
     }
 
-    return this.httpClient.post<IGroup>(
-      this.replaceGroupNameSegment(
-        FabricAuthGroupService.childGroupsApiUrl,
-        groupName
-      ),
+    let url = this.replaceGroupNameSegment(FabricAuthGroupService.childGroupsApiUrl, groupName);
+    url = this.setIdPAndTenant(url, identityProvider, tenantId);
+
+    return this.httpClient.post<IGroup>(url,
       childGroups.map(function (g) {
         return {
           groupName: g.groupName,
@@ -237,14 +246,16 @@ export class FabricAuthGroupService extends FabricBaseService {
 
   public removeChildGroups(
     groupName: string,
-    childGroups: string[]
+    childGroups: string[],
+    identityProvider?: string,
+    tenantId?: string
   ): Observable<IGroup> {
+    let url = this.replaceGroupNameSegment(FabricAuthGroupService.childGroupsApiUrl, groupName);
+    url = this.setIdPAndTenant(url, identityProvider, tenantId);
+
     return this.httpClient.request<IGroup>(
       'DELETE',
-      this.replaceGroupNameSegment(
-        FabricAuthGroupService.childGroupsApiUrl,
-        groupName
-      ),
+      url,
       { body: childGroups.map(function (g) {
           return {
             groupName: g
@@ -252,5 +263,23 @@ export class FabricAuthGroupService extends FabricBaseService {
         })
       }
     );
+  }
+
+  private setIdPAndTenant(url: string, identityProvider: string, tenantId: string) {
+    url = this.setQueryParameters(url, 'identityProvider', identityProvider);
+    url = this.setQueryParameters(url, 'tenantId', tenantId);
+    return url;
+  }
+
+  private setQueryParameters(url: string, key: string, val: string) {
+    if (val) {
+      if (url.indexOf('?') < 0) {
+        url = `${url}?{key}=${val}`;
+      } else {
+        url = `${url}&{key}=${val}`;
+      }
+    }
+
+    return url;
   }
 }

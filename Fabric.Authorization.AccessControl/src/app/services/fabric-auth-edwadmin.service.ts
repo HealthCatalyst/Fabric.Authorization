@@ -36,11 +36,12 @@ export class FabricAuthEdwAdminService extends FabricBaseService {
     }
 
   public syncGroupWithEdwAdmin(
-    groupName: string): Observable<Object> {
-      return this.httpClient.post(this.replaceGroupNameSegment(
-        FabricAuthEdwAdminService.groupEdwAdminSyncUrl,
-        groupName
-      ), '');
+    groupName: string,
+    identityProvider?: string,
+    tenantId?: string): Observable<Object> {
+      let url = this.replaceGroupNameSegment(FabricAuthEdwAdminService.groupEdwAdminSyncUrl, groupName);
+      url = this.setIdPAndTenant(url, identityProvider, tenantId);
+      return this.httpClient.post(url, '');
     }
 
   private replaceGroupNameSegment(
@@ -51,5 +52,23 @@ export class FabricAuthEdwAdminService extends FabricBaseService {
       tokenizedUrl
         .replace('{groupName}', groupName)
     );
+  }
+
+  private setIdPAndTenant(url: string, identityProvider: string, tenantId: string) {
+    url = this.setQueryParameters(url, 'identityProvider', identityProvider);
+    url = this.setQueryParameters(url, 'tenantId', tenantId);
+    return url;
+  }
+
+  private setQueryParameters(url: string, key: string, val: string) {
+    if (val) {
+      if (url.indexOf('?') < 0) {
+        url = `${url}?{key}=${val}`;
+      } else {
+        url = `${url}&{key}=${val}`;
+      }
+    }
+
+    return url;
   }
 }
