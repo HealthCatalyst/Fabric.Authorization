@@ -238,7 +238,9 @@ export class FabricAuthGroupService extends FabricBaseService {
       childGroups.map(function (g) {
         return {
           groupName: g.groupName,
-          groupSource: 'directory'
+          groupSource: 'directory',
+          identityProvider: g.identityProvider,
+          tenantId: g.tenantId
         };
       })
     );
@@ -246,7 +248,7 @@ export class FabricAuthGroupService extends FabricBaseService {
 
   public removeChildGroups(
     groupName: string,
-    childGroups: string[],
+    childGroups: IGroup[],
     identityProvider?: string,
     tenantId?: string
   ): Observable<IGroup> {
@@ -258,7 +260,9 @@ export class FabricAuthGroupService extends FabricBaseService {
       url,
       { body: childGroups.map(function (g) {
           return {
-            groupName: g
+            groupName: g.groupName,
+            identityProvider: g.identityProvider,
+            tenantId: g.tenantId
           };
         })
       }
