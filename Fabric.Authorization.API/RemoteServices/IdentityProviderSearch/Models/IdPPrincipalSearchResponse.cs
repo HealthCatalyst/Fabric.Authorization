@@ -22,9 +22,9 @@ namespace Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Models
         public string IdentityProvider { get; set; }
     }
 
-    public class FabricIdPSearchResponse : IFabricIdPResponseModel<IdPPrincipalSearchResponse>
+    public class FabricIdPSearchResponse
     {
         public HttpStatusCode HttpStatusCode { get; set; }
-        public IdPPrincipalSearchResponse Result { get; set; }
+        public IEnumerable<IdPPrincipalSearchResponse> Result { get; set; }
     }
 }

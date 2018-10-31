@@ -54,14 +54,14 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         {
             var mockIdpSearchProvider = new Mock<IIdPSearchProvider>();
             mockIdpSearchProvider.Setup(m => m.GetGroupAsync(It.IsAny<IdPGroupRequest>()))
-                .ReturnsAsync(() => new FabricIdPGroupResponse
+                .ReturnsAsync(() => new FabricIdPSearchGroupResponse
                 {
                     HttpStatusCode = System.Net.HttpStatusCode.OK,
                     Result = new IdPGroupResponse
                     {
-                        DisplayName = groupName,
+                        GroupName = groupName,
                         PrincipalType = "Group",
-                        ExternalIdentifier = "123456",
+                        UniqueId = "123456",
                         TenantId = "TenantId"
                     }
                 });

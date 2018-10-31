@@ -236,7 +236,13 @@ namespace Fabric.Authorization.API.Modules
                             HttpStatusCode.BadRequest);
                     }
 
-                    incomingGroup.ExternalIdentifier = idPSearchResponse.Result.ExternalIdentifier;
+                    var results = idPSearchResponse.Results.ToList();
+                    if (results.Count > 1)
+                    {
+                        return CreateFailureResponse("There are multiple groups that match the request. Please refine your search to include IdentityProvider and/or TenantId.", HttpStatusCode.BadRequest);
+                    }
+
+                    incomingGroup.ExternalIdentifier = idPSearchResponse.Results.First().GroupId;
                 }
 
                 var createdGroup = await _groupService.AddGroup(incomingGroup);

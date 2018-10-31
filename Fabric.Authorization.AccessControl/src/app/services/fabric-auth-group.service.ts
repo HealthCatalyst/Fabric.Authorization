@@ -274,9 +274,9 @@ export class FabricAuthGroupService extends FabricBaseService {
   private setQueryParameters(url: string, key: string, val: string) {
     if (val) {
       if (url.indexOf('?') < 0) {
-        url = `${url}?{key}=${val}`;
+        url = `${url}?${key}=${val}`;
       } else {
-        url = `${url}&{key}=${val}`;
+        url = `${url}&${key}=${val}`;
       }
     }
 

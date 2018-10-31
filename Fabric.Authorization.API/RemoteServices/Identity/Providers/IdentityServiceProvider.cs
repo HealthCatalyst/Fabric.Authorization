@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
@@ -58,6 +59,8 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
             var httpRequestMessage = _httpRequestMessageFactory.CreateWithAccessToken(HttpMethod.Post, new Uri($"{baseUri}api/users"),
                 accessTokenResponse.AccessToken);
 
+            httpRequestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
             var request = new UserSearchRequest
             {
                 ClientId = clientId,
@@ -82,7 +85,6 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
             else
             {
                 results = JsonConvert.DeserializeObject<List<UserSearchResponse>>(responseContent);
-
                 _logger.Debug($"{ServiceName} {httpRequestMessage.RequestUri} results: {results}");
             }
 
