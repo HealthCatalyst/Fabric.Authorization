@@ -18,7 +18,6 @@ import { IGroup } from '../../../models/group.model';
 
 import { CurrentUserService } from '../../../services/current-user.service';
 import { AlertService } from '../../../services/global/alert.service';
-import { IAuthMemberSearchResult } from '../../../models/authMemberSearchResult.model';
 
 @Component({
   selector: 'app-custom-group',
@@ -37,6 +36,8 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   public returnRoute = '/access-control';
 
   public groupName = '';
+  public identityProvider = '';
+  public tenantId = '';
   public displayName = '';
   public groupNameSubject = new Subject<string>();
   public groupNameInvalid = false;
@@ -74,6 +75,12 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   ngOnInit() {
 
     this.groupName = this.route.snapshot.paramMap.get('subjectid');
+    this.route.queryParams
+      .subscribe(params => {
+        this.identityProvider = params.identityProvider;
+        this.tenantId = params.tenantId;
+      });
+
     this.grain = this.route.snapshot.paramMap.get('grain');
     this.securableItem = this.route.snapshot.paramMap.get('securableItem');
     this.returnRoute = `${this.returnRoute}/${this.grain}/${this.securableItem}`;
@@ -86,7 +93,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
         const selectedGroup: IGroup = JSON.parse(selectedGroupJson);
         this.displayName = selectedGroup.displayName;
       } else {
-        this.groupService.getGroup(this.groupName).subscribe(g => {
+        this.groupService.getGroup(this.groupName, this.identityProvider, this.tenantId).subscribe(g => {
           this.displayName = g.displayName;
         });
       }
@@ -112,7 +119,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
 
           this.configureSaveButton();
         }),
-        takeUntil(this.ngUnsubscribe),)
+        takeUntil(this.ngUnsubscribe))
         .subscribe(null, null, () => {
           this.initializing = false;
         });
@@ -126,7 +133,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
         switchMap((roles: IRole[]) => {
           this.roles = roles;
 
-          return this.currentUserService.getPermissions()
+          return this.currentUserService.getPermissions();
         }),
         tap(p => {
           this.roles.forEach(r => {
@@ -139,7 +146,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
 
           this.configureSaveButton();
         }),
-        takeUntil(this.ngUnsubscribe),)
+        takeUntil(this.ngUnsubscribe))
         .subscribe(null, null, () => {
           this.initializing = false;
         });
@@ -156,7 +163,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           this.principals = [];
         }
       }),
-      takeUntil(this.ngUnsubscribe),)
+      takeUntil(this.ngUnsubscribe))
       .subscribe();
 
     this.groupNameSubject.pipe(
@@ -259,7 +266,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
 
   getChildGroups(): Observable<IGroup[]> {
     return this.groupService
-      .getChildGroups(this.groupName);
+      .getChildGroups(this.groupName, this.identityProvider, this.tenantId);
   }
 
   getRolesBySecurableItemAndGrain(): Observable<IRole[]> {
@@ -275,7 +282,9 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
       .getGroupRoles(
         this.groupName,
         this.grain,
-        this.securableItem
+        this.securableItem,
+        this.identityProvider,
+        this.tenantId
       );
   }
 
@@ -368,7 +377,10 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           middleName: '',
           lastName: '',
           principalType: this.groupType,
-          selected: false
+          selected: false,
+          identityProvider: group.identityProvider,
+          tenantId: group.tenantId,
+          displayName: group.groupName
         };
         return newPrincipal;
       });
@@ -389,13 +401,20 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
       this.groupName = this.displayName;
     }
 
-    const newGroup: IGroup = { groupName: this.groupName, displayName: this.displayName, groupSource: 'custom' };
+    const newGroup: IGroup = {
+      groupName: this.groupName,
+      displayName: this.displayName,
+      groupSource: 'custom',
+      identityProvider: this.identityProvider,
+      tenantId: this.tenantId
+    };
+
     const groupObservable = this.editMode ? of(newGroup) : this.groupService.createGroup(newGroup);
 
     return groupObservable.pipe(
       mergeMap((group) => {
         const groupRolesObservable = this.groupService
-          .getGroupRoles(this.groupName, this.grain, this.securableItem);
+          .getGroupRoles(this.groupName, this.grain, this.securableItem, this.identityProvider, this.tenantId);
         const groupUsersObservable = this.getGroupUsers();
         const childGroupsObservable = this.getChildGroups();
 
@@ -436,12 +455,17 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
             }
 
             // child groups
-            saveObservables.push(this.groupService.addChildGroups(group.groupName, childGroupsToAdd));
-            saveObservables.push(this.groupService.removeChildGroups(group.groupName, childGroupsToRemove.map(g => g.groupName)));
+            saveObservables.push(this.groupService.addChildGroups(group.groupName, childGroupsToAdd, this.identityProvider, this.tenantId));
+            saveObservables.push(this.groupService.removeChildGroups(
+              group.groupName,
+              childGroupsToRemove.map(g => g.groupName),
+              this.identityProvider,
+              this.tenantId));
+
               return observableZip(...saveObservables)
                   .toPromise()
                   .then(value => {
-                      return this.edwAdminService.syncGroupWithEdwAdmin(newGroup.groupName)
+                      return this.edwAdminService.syncGroupWithEdwAdmin(newGroup.groupName, newGroup.identityProvider, newGroup.tenantId)
                           .toPromise()
                           .then(o => value)
                           .catch(err => {
@@ -493,7 +517,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
       distinctUntilChanged(),
       tap((term) => {
         this.checkGroupNameProvided(term);
-      }),).subscribe();
+      })).subscribe();
   }
 
   private checkGroupNameProvided(name: string) {
@@ -521,7 +545,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           this.associatedUsers.forEach(u => u.type = this.userType);
           this.associatedGroups.forEach(g => g.type = this.groupType);
         }),
-        takeUntil(this.ngUnsubscribe),)
+        takeUntil(this.ngUnsubscribe))
         .subscribe();
   }
 

@@ -242,7 +242,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         private static string[] SplitGranularPermissionId(string id)
         {
             var delimiter = new[] {@":"};
-            var idParts = id.Split(delimiter, StringSplitOptions.RemoveEmptyEntries);
+            var idParts = id.Split(delimiter, 2, StringSplitOptions.RemoveEmptyEntries);
             if (idParts.Length != 2)
             {
                 throw new ArgumentException(

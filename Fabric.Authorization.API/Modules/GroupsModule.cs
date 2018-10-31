@@ -12,7 +12,6 @@ using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Validators;
-using FluentValidation.TestHelper;
 using Nancy;
 using Nancy.ModelBinding;
 using Nancy.Responses.Negotiation;

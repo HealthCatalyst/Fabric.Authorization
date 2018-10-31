@@ -27,7 +27,7 @@ namespace Fabric.Authorization.UnitTests.Mocks
                 .Returns((string userId) =>
                 {
                     var delimiter = new[] { @":" };
-                    var idParts = userId.Split(delimiter, StringSplitOptions.RemoveEmptyEntries);
+                    var idParts = userId.Split(delimiter, 2, StringSplitOptions.RemoveEmptyEntries);
                     return Task.FromResult(users.Any(c => c.SubjectId == idParts[0] && c.IdentityProvider == idParts[1]));
                 });
 

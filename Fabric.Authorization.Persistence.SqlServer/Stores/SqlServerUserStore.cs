@@ -213,7 +213,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         private static string[] SplitId(string id)
         {
             var delimiter = new[] {@":"};
-            return id.Split(delimiter, StringSplitOptions.RemoveEmptyEntries);
+            return id.Split(delimiter, 2, StringSplitOptions.RemoveEmptyEntries);
         }
     }
 }
