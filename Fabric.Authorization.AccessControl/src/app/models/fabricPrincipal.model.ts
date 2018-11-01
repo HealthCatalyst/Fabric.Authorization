@@ -6,7 +6,6 @@ export interface IFabricPrincipal {
   principalType: string;
   identityProvider?: string;
   tenantId?: string;
-  displayName?: string;
 
   // Custom Property
   selected?: boolean;

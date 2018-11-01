@@ -78,7 +78,7 @@ namespace Fabric.Authorization.API.Modules
             {
                 GroupName = param.groupName,
                 IdentityProvider = SetIdentityProvider(param.identityProvider),
-                TenantId =  param.tenantId
+                TenantId = param.tenantId
             };
 
             try

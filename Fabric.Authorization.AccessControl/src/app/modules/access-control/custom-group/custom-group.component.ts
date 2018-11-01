@@ -6,7 +6,6 @@ import { Component, OnInit, OnDestroy, Inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { FabricAuthRoleService } from '../../../services/fabric-auth-role.service';
-import { IAccessControlConfigService } from '../../../services/access-control-config.service';
 import { FabricAuthGroupService } from '../../../services/fabric-auth-group.service';
 import { FabricExternalIdpSearchService } from '../../../services/fabric-external-idp-search.service';
 import { FabricAuthEdwAdminService } from '../../../services/fabric-auth-edwadmin.service';
@@ -63,7 +62,6 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    @Inject('IAccessControlConfigService') private configService: IAccessControlConfigService,
     private roleService: FabricAuthRoleService,
     private groupService: FabricAuthGroupService,
     private edwAdminService: FabricAuthEdwAdminService,
@@ -316,7 +314,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
       .map((principal) => {
         const newUser: IUser = {
           subjectId: principal.subjectId,
-          identityProvider: this.configService.identityProvider,
+          identityProvider: principal.identityProvider,
           selected: false,
           type: this.userType
         };
@@ -337,11 +335,8 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           selected: false,
           type: this.groupType,
           identityProvider: principal.identityProvider,
-          tenantId: principal.tenantId,
-          displayName: principal.displayName
+          tenantId: principal.tenantId
         };
-        console.log('newGroup idp = ' + newGroup.identityProvider);
-        console.log('newGroup tenant = ' + newGroup.tenantId);
         return newGroup;
       });
 
@@ -384,8 +379,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           principalType: this.groupType,
           selected: false,
           identityProvider: group.identityProvider,
-          tenantId: group.tenantId,
-          displayName: group.displayName
+          tenantId: group.tenantId
         };
         return newPrincipal;
       });
