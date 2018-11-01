@@ -242,7 +242,7 @@ namespace Fabric.Authorization.API.Modules
                         return CreateFailureResponse("There are multiple groups that match the request. Please refine your search to include IdentityProvider and/or TenantId.", HttpStatusCode.BadRequest);
                     }
 
-                    incomingGroup.ExternalIdentifier = idPSearchResponse.Results.First().ExternalIdentifier;
+                    incomingGroup.ExternalIdentifier = idPSearchResponse.Results.First().GroupId;
                 }
 
                 var createdGroup = await _groupService.AddGroup(incomingGroup);
