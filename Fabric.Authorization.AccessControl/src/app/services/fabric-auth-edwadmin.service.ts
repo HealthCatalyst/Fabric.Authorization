@@ -39,9 +39,8 @@ export class FabricAuthEdwAdminService extends FabricBaseService {
     groupName: string,
     identityProvider?: string,
     tenantId?: string): Observable<Object> {
-      let url = this.replaceGroupNameSegment(FabricAuthEdwAdminService.groupEdwAdminSyncUrl, groupName);
-      url = this.setIdPAndTenant(url, identityProvider, tenantId);
-      return this.httpClient.post(url, '');
+      const url = this.replaceGroupNameSegment(FabricAuthEdwAdminService.groupEdwAdminSyncUrl, groupName);
+      return this.httpClient.post(url, '', {params: this.getQueryParams(identityProvider, tenantId)});
     }
 
   private replaceGroupNameSegment(
@@ -54,21 +53,14 @@ export class FabricAuthEdwAdminService extends FabricBaseService {
     );
   }
 
-  private setIdPAndTenant(url: string, identityProvider: string, tenantId: string) {
-    url = this.setQueryParameters(url, 'identityProvider', identityProvider);
-    url = this.setQueryParameters(url, 'tenantId', tenantId);
-    return url;
-  }
-
-  private setQueryParameters(url: string, key: string, val: string) {
-    if (val) {
-      if (url.indexOf('?') < 0) {
-        url = `${url}?${key}=${val}`;
-      } else {
-        url = `${url}&${key}=${val}`;
-      }
+  private getQueryParams(identityProvider: string, tenantId: string) {
+    const params = {};
+    if (identityProvider) {
+      params['identityProvider'] = identityProvider;
     }
-
-    return url;
+    if (tenantId) {
+      params['tenantId'] = tenantId;
+    }
+    return params;
   }
 }

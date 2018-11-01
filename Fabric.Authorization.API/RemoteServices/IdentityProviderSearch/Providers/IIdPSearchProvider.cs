@@ -5,7 +5,6 @@ namespace Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Provide
 {
     public interface IIdPSearchProvider
     {
-        Task<FabricIdPSearchResponse> SearchAsync(IdPPrincipalSearchRequest request);
         Task<FabricIdPGroupResponse> GetGroupAsync(IdPGroupRequest request);
     }
 }

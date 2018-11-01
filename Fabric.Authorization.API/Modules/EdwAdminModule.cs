@@ -75,8 +75,9 @@ namespace Fabric.Authorization.API.Modules
         {
             CheckInternalAccess();
 
-
-            GroupIdentifier groupIdentifier = CreateGroupIdentifier(SetIdentityProvider(param.identityProvider), param.tenantId, param.groupName);
+            var identityProvider = GetQueryParameter("identityProvider");
+            var tenantId = GetQueryParameter("tenantId");
+            GroupIdentifier groupIdentifier = CreateGroupIdentifier(SetIdentityProvider(identityProvider), tenantId, param.groupName.ToString());
 
             try
             {

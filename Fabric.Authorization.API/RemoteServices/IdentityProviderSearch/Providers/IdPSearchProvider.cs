@@ -37,30 +37,6 @@ namespace Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Provide
             _logger = logger;
         }
 
-        /// <summary>
-        /// NOTE: IdPSearchService needs to be enhanced to expose this
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        public async Task<FabricIdPSearchResponse> SearchAsync(IdPPrincipalSearchRequest request)
-        {
-            var route = $"{PrincipalsEndpoint}search?searchText={request.SearchText}";
-
-            if (!string.IsNullOrWhiteSpace(request.Type))
-            {
-                route = $"{route}&type={request.Type}";
-            }
-
-            var httpRequestMessage = await CreateHttpRequestMessage(route, HttpMethod.Get);
-
-            _logger.Debug($"Invoking {ServiceName} endpoint {httpRequestMessage.RequestUri}");
-
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8,
-                "application/json");
-
-            return new FabricIdPSearchResponse();
-        }
-
         public async Task<FabricIdPGroupResponse> GetGroupAsync(IdPGroupRequest request)
         {
             var route = $"{PrincipalsEndpoint}{request.IdentityProvider}/groups/{request.DisplayName}";
@@ -119,32 +95,5 @@ namespace Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Provide
 
             return httpRequestMessage;
         }
-
-        /*private async Task<T1> ProcessResponse<T, T1>(HttpRequestMessage httpRequestMessage)
-            where T1 : IFabricIdPSearchResponseModel<T>, new()
-            where T : new()
-        {
-            var response = await _httpClient.SendAsync(httpRequestMessage);
-            var responseContent = response.Content == null ? string.Empty : await response.Content.ReadAsStringAsync();
-
-            if (response.StatusCode != HttpStatusCode.OK)
-            {
-                _logger.Error(
-                    $"Response status code from {ServiceName} {httpRequestMessage.RequestUri} => {response.StatusCode}");
-                _logger.Error(
-                    $"Response content from {ServiceName} {httpRequestMessage.RequestUri} => {responseContent}");
-            }
-            else
-            {
-                var result = JsonConvert.DeserializeObject<T>(responseContent);
-                _logger.Debug($"{ServiceName} {httpRequestMessage.RequestUri} result: {result}");
-
-                return new T1
-                {
-                    HttpStatusCode = response.StatusCode,
-                    Result = result
-                };
-            }
-        }*/
     }
 }

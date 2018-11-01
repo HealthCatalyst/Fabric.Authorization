@@ -42,9 +42,8 @@ export class FabricAuthGroupService extends FabricBaseService {
   }
 
   public getGroup(groupName: string, identityProvider?: string, tenantId?: string): Observable<IGroup> {
-    let url = `${FabricAuthGroupService.baseGroupApiUrl}/${encodeURI(groupName)}`;
-    url = this.setIdPAndTenant(url, identityProvider, tenantId);
-    return this.httpClient.get<IGroup>(url);
+    const url = `${FabricAuthGroupService.baseGroupApiUrl}/${encodeURI(groupName)}`;
+    return this.httpClient.get<IGroup>(url, {params: this.getQueryParams(identityProvider, tenantId)});
   }
 
   public getGroupUsers(groupName: string): Observable<IUser[]> {
@@ -116,9 +115,8 @@ export class FabricAuthGroupService extends FabricBaseService {
     identityProvider?: string,
     tenantId?: string
   ): Observable<IRole[]> {
-    let url = `${FabricAuthGroupService.baseGroupApiUrl}/${encodeURI(groupName)}/${encodeURI(grain)}/${encodeURI(securableItem)}/roles`;
-    url = this.setIdPAndTenant(url, identityProvider, tenantId);
-    return this.httpClient.get<IRole[]>(url);
+    const url = `${FabricAuthGroupService.baseGroupApiUrl}/${encodeURI(groupName)}/${encodeURI(grain)}/${encodeURI(securableItem)}/roles`;
+    return this.httpClient.get<IRole[]>(url, {params: this.getQueryParams(identityProvider, tenantId)});
   }
 
   public addRolesToGroup(
@@ -131,11 +129,11 @@ export class FabricAuthGroupService extends FabricBaseService {
       return of(undefined);
     }
 
-    let url = this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName);
-    url = this.setIdPAndTenant(url, identityProvider, tenantId);
+    const url = this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName);
     return this.httpClient.post<IGroup>(
       url,
-      roles
+      roles,
+      {params: this.getQueryParams(identityProvider, tenantId)}
     ).pipe(tap((user) => {
       this.sendGroupRoleDataChanges(roles, groupName, 'added');
     }));
@@ -151,8 +149,7 @@ export class FabricAuthGroupService extends FabricBaseService {
       return of(undefined);
     }
 
-    let url = this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName);
-    url = this.setIdPAndTenant(url, identityProvider, tenantId);
+    const url = this.replaceGroupNameSegment(FabricAuthGroupService.groupRolesApiUrl, groupName);
     return this.httpClient.request<IGroup>(
       'DELETE',
       url,
@@ -161,7 +158,8 @@ export class FabricAuthGroupService extends FabricBaseService {
           return {
             roleId: r.id
           };
-        })
+        }),
+        params: this.getQueryParams(identityProvider, tenantId)
       }
     ).pipe(tap((user) => {
       this.sendGroupRoleDataChanges(roles, groupName, 'removed');
@@ -216,9 +214,8 @@ export class FabricAuthGroupService extends FabricBaseService {
     groupName: string,
     identityProvider?: string,
     tenantId?: string): Observable<IGroup[]> {
-    let url = this.replaceGroupNameSegment(FabricAuthGroupService.childGroupsApiUrl, groupName);
-    url = this.setIdPAndTenant(url, identityProvider, tenantId);
-    return this.httpClient.get<IGroup[]>(url);
+    const url = this.replaceGroupNameSegment(FabricAuthGroupService.childGroupsApiUrl, groupName);
+    return this.httpClient.get<IGroup[]>(url, {params: this.getQueryParams(identityProvider, tenantId)});
   }
 
   public addChildGroups(
@@ -231,8 +228,7 @@ export class FabricAuthGroupService extends FabricBaseService {
       return of(undefined);
     }
 
-    let url = this.replaceGroupNameSegment(FabricAuthGroupService.childGroupsApiUrl, groupName);
-    url = this.setIdPAndTenant(url, identityProvider, tenantId);
+    const url = this.replaceGroupNameSegment(FabricAuthGroupService.childGroupsApiUrl, groupName);
 
     return this.httpClient.post<IGroup>(url,
       childGroups.map(function (g) {
@@ -242,7 +238,8 @@ export class FabricAuthGroupService extends FabricBaseService {
           identityProvider: g.identityProvider,
           tenantId: g.tenantId
         };
-      })
+      }),
+      {params: this.getQueryParams(identityProvider, tenantId)}
     );
   }
 
@@ -252,8 +249,7 @@ export class FabricAuthGroupService extends FabricBaseService {
     identityProvider?: string,
     tenantId?: string
   ): Observable<IGroup> {
-    let url = this.replaceGroupNameSegment(FabricAuthGroupService.childGroupsApiUrl, groupName);
-    url = this.setIdPAndTenant(url, identityProvider, tenantId);
+    const url = this.replaceGroupNameSegment(FabricAuthGroupService.childGroupsApiUrl, groupName);
 
     return this.httpClient.request<IGroup>(
       'DELETE',
@@ -264,26 +260,20 @@ export class FabricAuthGroupService extends FabricBaseService {
             identityProvider: g.identityProvider,
             tenantId: g.tenantId
           };
-        })
+        }),
+        params: this.getQueryParams(identityProvider, tenantId)
       }
     );
   }
 
-  private setIdPAndTenant(url: string, identityProvider: string, tenantId: string) {
-    url = this.setQueryParameters(url, 'identityProvider', identityProvider);
-    url = this.setQueryParameters(url, 'tenantId', tenantId);
-    return url;
-  }
-
-  private setQueryParameters(url: string, key: string, val: string) {
-    if (val) {
-      if (url.indexOf('?') < 0) {
-        url = `${url}?${key}=${val}`;
-      } else {
-        url = `${url}&${key}=${val}`;
-      }
+  private getQueryParams(identityProvider: string, tenantId: string) {
+    const params = {};
+    if (identityProvider) {
+      params['identityProvider'] = identityProvider;
     }
-
-    return url;
+    if (tenantId) {
+      params['tenantId'] = tenantId;
+    }
+    return params;
   }
 }

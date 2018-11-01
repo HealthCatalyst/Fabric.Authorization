@@ -228,11 +228,11 @@ namespace Fabric.Authorization.API.Modules
 
         protected GroupIdentifier CreateGroupIdentifier(string identityProvider, string tenantId, string groupName)
         {
-            new GroupIdentifier
+            return new GroupIdentifier
             {
-                GroupName = param.groupName,
-                IdentityProvider = SetIdentityProvider(param.identityProvider),
-                TenantId = param.tenantId
+                GroupName = groupName,
+                IdentityProvider = SetIdentityProvider(identityProvider),
+                TenantId = tenantId
             };
         }
 
@@ -240,6 +240,19 @@ namespace Fabric.Authorization.API.Modules
         {
             groupIdentifier.IdentityProvider = SetIdentityProvider(groupIdentifier.IdentityProvider);
             return groupIdentifier;
+        }
+
+        protected string GetQueryParameter(string key)
+        {
+            var val = Request.Query[key];
+            if (val.HasValue)
+            {
+                return string.IsNullOrWhiteSpace(val.ToString())
+                    ? null
+                    : val.ToString();
+            }
+
+            return null;
         }
     }
 }
