@@ -226,6 +226,16 @@ namespace Fabric.Authorization.API.Modules
                 : identityProvider;
         }
 
+        protected GroupIdentifier CreateGroupIdentifier(string identityProvider, string tenantId, string groupName)
+        {
+            new GroupIdentifier
+            {
+                GroupName = param.groupName,
+                IdentityProvider = SetIdentityProvider(param.identityProvider),
+                TenantId = param.tenantId
+            };
+        }
+
         protected GroupIdentifier CreateGroupIdentifier(GroupIdentifier groupIdentifier)
         {
             groupIdentifier.IdentityProvider = SetIdentityProvider(groupIdentifier.IdentityProvider);

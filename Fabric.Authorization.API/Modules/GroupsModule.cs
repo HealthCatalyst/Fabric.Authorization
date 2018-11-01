@@ -185,15 +185,8 @@ namespace Fabric.Authorization.API.Modules
                 var identityProvider = GetQueryParameter("identityProvider");
                 var tenantId = GetQueryParameter("tenantId");
 
-                var groupIdentifier = new GroupIdentifier
-                {
-                    GroupName = groupIdentifierApiRequest.GroupName,
-                    IdentityProvider = SetIdentityProvider(identityProvider),
-                    TenantId = tenantId
-                };
-
+                var groupIdentifier = CreateGroupIdentifier(SetIdentityProvider(identityProvider), tenantId, groupIdentifierApiRequest.GroupName);
                 var group = await _groupService.GetGroup(groupIdentifier, ClientId);
-
                 return group.ToGroupRoleApiModel();
             }
             catch (NotFoundException<Group> ex)
@@ -263,13 +256,8 @@ namespace Fabric.Authorization.API.Modules
                 var groupPatchApiRequest = this.Bind<GroupPatchApiRequest>();
                 var identityProvider = GetQueryParameter("identityProvider");
                 var tenantId = GetQueryParameter("tenantId");
-                var groupIdentifier = new GroupIdentifier
-                {
-                    GroupName = parameters.groupName,
-                    IdentityProvider = SetIdentityProvider(identityProvider),
-                    TenantId = tenantId
-                };
 
+                GroupIdentifier groupIdentifier = CreateGroupIdentifier(SetIdentityProvider(identityProvider), tenantId, parameters.groupName);
                 var existingGroup = await _groupService.GetGroup(groupIdentifier);
                 existingGroup.DisplayName = groupPatchApiRequest.DisplayName;
                 existingGroup.Description = groupPatchApiRequest.Description;
@@ -293,13 +281,7 @@ namespace Fabric.Authorization.API.Modules
                 var identityProvider = GetQueryParameter("identityProvider");
                 var tenantId = GetQueryParameter("tenantId");
 
-                var groupIdentifier = new GroupIdentifier
-                {
-                    GroupName = parameters.groupName,
-                    IdentityProvider = SetIdentityProvider(identityProvider),
-                    TenantId = tenantId
-                };
-
+                GroupIdentifier groupIdentifier = CreateGroupIdentifier(SetIdentityProvider(identityProvider), tenantId, parameters.groupName);
                 var group = await _groupService.GetGroup(groupIdentifier, ClientId);
                 await _groupService.DeleteGroup(group);
                 return HttpStatusCode.NoContent;
@@ -335,13 +317,7 @@ namespace Fabric.Authorization.API.Modules
                 var identityProvider = GetQueryParameter("identityProvider");
                 var tenantId = GetQueryParameter("tenantId");
 
-                var groupIdentifier = new GroupIdentifier
-                {
-                    GroupName = groupRoleRequest.GroupName,
-                    TenantId = tenantId,
-                    IdentityProvider = SetIdentityProvider(identityProvider)
-                };
-
+                var groupIdentifier = CreateGroupIdentifier(SetIdentityProvider(identityProvider), tenantId, groupRoleRequest.GroupName);
                 var group = await _groupService.GetGroup(groupIdentifier, ClientId);
                 return group.Roles.ToRoleApiModels(groupRoleRequest.Grain, groupRoleRequest.SecurableItem, GroupService.RoleFilter);
             }
@@ -367,13 +343,8 @@ namespace Fabric.Authorization.API.Modules
             {
                 var identityProvider = GetQueryParameter("identityProvider");
                 var tenantId = GetQueryParameter("tenantId");
-                var groupIdentifier = new GroupIdentifier
-                {
-                    GroupName = parameters.groupName,
-                    IdentityProvider = SetIdentityProvider(identityProvider),
-                    TenantId = tenantId
-                };
 
+                GroupIdentifier groupIdentifier = CreateGroupIdentifier(SetIdentityProvider(identityProvider), tenantId, parameters.groupName);
                 var group = await _groupService.AddRolesToGroup(domainRoles, groupIdentifier);
                 return CreateSuccessfulPostResponse(group.Name, group.ToGroupRoleApiModel(), HttpStatusCode.OK);
             }
@@ -403,13 +374,7 @@ namespace Fabric.Authorization.API.Modules
                 var identityProvider = GetQueryParameter("identityProvider");
                 var tenantId = GetQueryParameter("tenantId");
 
-                var groupIdentifier = new GroupIdentifier
-                {
-                    GroupName = parameters.groupName,
-                    IdentityProvider = SetIdentityProvider(identityProvider),
-                    TenantId = tenantId
-                };
-
+                GroupIdentifier groupIdentifier = CreateGroupIdentifier(SetIdentityProvider(identityProvider), tenantId, parameters.groupName);
                 var group = await _groupService.DeleteRolesFromGroup(groupIdentifier, roleIds.Select(r => r.RoleId));
                 return CreateSuccessfulPostResponse(group.ToGroupRoleApiModel(), HttpStatusCode.OK);
             }
@@ -433,13 +398,7 @@ namespace Fabric.Authorization.API.Modules
                 var identityProvider = GetQueryParameter("identityProvider");
                 var tenantId = GetQueryParameter("tenantId");
 
-                var groupIdentifier = new GroupIdentifier
-                {
-                    GroupName = groupUserRequest.GroupName,
-                    IdentityProvider = SetIdentityProvider(identityProvider),
-                    TenantId = tenantId
-                };
-
+                var groupIdentifier = CreateGroupIdentifier(SetIdentityProvider(identityProvider), tenantId, groupUserRequest.GroupName);
                 var group = await _groupService.GetGroup(groupIdentifier, ClientId);
                 return group.Users.Where(u => !u.IsDeleted).Select(u => u.ToUserApiModel());
             }
@@ -456,13 +415,7 @@ namespace Fabric.Authorization.API.Modules
                 var identityProvider = GetQueryParameter("identityProvider");
                 var tenantId = GetQueryParameter("tenantId");
 
-                var groupIdentifier = new GroupIdentifier
-                {
-                    GroupName = parameters.groupName,
-                    IdentityProvider = SetIdentityProvider(identityProvider),
-                    TenantId = tenantId
-                };
-
+                GroupIdentifier groupIdentifier = CreateGroupIdentifier(SetIdentityProvider(identityProvider), tenantId, parameters.groupName);
                 var group = await _groupService.GetGroup(groupIdentifier);
                 await CheckWriteAccess(group);
                 var userApiRequests = this.Bind<List<UserIdentifierApiRequest>>();
@@ -508,13 +461,7 @@ namespace Fabric.Authorization.API.Modules
                 var identityProvider = GetQueryParameter("identityProvider");
                 var tenantId = GetQueryParameter("tenantId");
 
-                var groupIdentifier = new GroupIdentifier
-                {
-                    GroupName = groupUserRequest.GroupName,
-                    IdentityProvider = SetIdentityProvider(identityProvider),
-                    TenantId = tenantId
-                };
-
+                var groupIdentifier = CreateGroupIdentifier(SetIdentityProvider(identityProvider), tenantId, groupUserRequest.GroupName);
                 var group = await _groupService.DeleteUserFromGroup(groupIdentifier, groupUserRequest.SubjectId, groupUserRequest.IdentityProvider);
                 return CreateSuccessfulPostResponse(group.ToGroupUserApiModel(), HttpStatusCode.OK);
             }
@@ -537,13 +484,7 @@ namespace Fabric.Authorization.API.Modules
                 var identityProvider = GetQueryParameter("identityProvider");
                 var tenantId = GetQueryParameter("tenantId");
 
-                var groupIdentifier = new GroupIdentifier
-                {
-                    GroupName = parameters.groupName,
-                    IdentityProvider = SetIdentityProvider(identityProvider),
-                    TenantId = tenantId
-                };
-
+                GroupIdentifier groupIdentifier = CreateGroupIdentifier(SetIdentityProvider(identityProvider), tenantId, parameters.groupName.ToString());
                 var group = await _groupService.GetGroup(groupIdentifier, ClientId);
                 return group.Children.Select(g => g.ToGroupRoleApiModel());
             }
@@ -560,13 +501,7 @@ namespace Fabric.Authorization.API.Modules
                 var identityProvider = GetQueryParameter("identityProvider");
                 var tenantId = GetQueryParameter("tenantId");
 
-                var groupIdentifier = new GroupIdentifier
-                {
-                    GroupName = parameters.groupName,
-                    IdentityProvider = SetIdentityProvider(identityProvider),
-                    TenantId = tenantId
-                };
-
+                GroupIdentifier groupIdentifier = CreateGroupIdentifier(SetIdentityProvider(identityProvider), tenantId, parameters.groupName);
                 var group = await _groupService.GetGroup(groupIdentifier);
                 await CheckWriteAccess(group);
                 var groupPostApiRequests = this.Bind<List<GroupPostApiRequest>>();
@@ -601,13 +536,8 @@ namespace Fabric.Authorization.API.Modules
                 var identityProvider = GetQueryParameter("identityProvider");
                 var tenantId = GetQueryParameter("tenantId");
 
-                var groupIdentifier = new GroupIdentifier
-                {
-                    GroupName = parameters.groupName,
-                    IdentityProvider = SetIdentityProvider(identityProvider),
-                    TenantId = tenantId
-                };
 
+                GroupIdentifier groupIdentifier = CreateGroupIdentifier(SetIdentityProvider(identityProvider), tenantId, parameters.groupName);
                 var group = await _groupService.GetGroup(groupIdentifier);
                 await CheckWriteAccess(group);
                 var childGroupIdentifierApiRequests = this.Bind<List<GroupIdentifierApiRequest>>();
