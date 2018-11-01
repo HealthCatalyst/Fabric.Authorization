@@ -148,7 +148,9 @@ export class MemberComponent implements OnInit, OnDestroy {
                     },
                     {
                         subjectId: this.searchText,
-                        principalType: 'user'
+                        principalType: 'user',
+                        identityProvider: this.identityProvider,
+                        tenantId: this.tenantId
                     }
                 ]
               : result.principals;

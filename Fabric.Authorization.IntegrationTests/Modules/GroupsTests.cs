@@ -63,7 +63,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                         {
                             GroupName = groupName,
                             PrincipalType = "Group",
-                            GroupId = "123456",
+                            ExternalIdentifier = "123456",
                             TenantId = "TenantId"
                         }
                     }
