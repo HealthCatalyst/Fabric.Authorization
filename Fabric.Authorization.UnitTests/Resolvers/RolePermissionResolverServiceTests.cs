@@ -41,7 +41,7 @@ namespace Fabric.Authorization.UnitTests.Resolvers
                 IdentityProvider = "Windows",
                 SecurableItem = securableItem,
                 SubjectId = subjectId,
-                UserGroups = groups.Select(g => g.Name),
+                UserGroups = groups,
                 IncludeSharedPermissions = false
             });
             Assert.Equal(2, resolutionResult.AllowedPermissions.Count());

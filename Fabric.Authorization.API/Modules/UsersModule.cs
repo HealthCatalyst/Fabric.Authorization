@@ -134,7 +134,7 @@ namespace Fabric.Authorization.API.Modules
                 Grain = userPermissionRequest.Grain,
                 SecurableItem = userPermissionRequest.SecurableItem,
                 IncludeSharedPermissions = isGrainEmpty,
-                UserGroups = groups?.Select(g => g.Name)
+                UserGroups = groups
             });
 
             return permissionResolutionResult.AllowedPermissions

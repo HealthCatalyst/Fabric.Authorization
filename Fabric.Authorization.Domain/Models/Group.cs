@@ -140,9 +140,9 @@ namespace Fabric.Authorization.Domain.Models
                 return false;
             }
 
-            return string.Equals(g1.IdentityProvider, g2.IdentityProvider)
-                   && string.Equals(g1.TenantId, g2.TenantId)
-                   && string.Equals(g1.GroupName, g2.GroupName);
+            return string.Equals(g1.IdentityProvider, g2.IdentityProvider, StringComparison.OrdinalIgnoreCase)
+                   && string.Equals(g1.TenantId, g2.TenantId, StringComparison.OrdinalIgnoreCase)
+                   && string.Equals(g1.GroupName, g2.GroupName, StringComparison.OrdinalIgnoreCase);
         }
 
         public int GetHashCode(GroupIdentifier groupIdentifier)
