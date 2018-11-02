@@ -21,7 +21,7 @@ namespace Fabric.Authorization.Domain.Resolvers.Permissions
         {
             var grain = resolutionRequest.Grain;
             var securableItem = resolutionRequest.SecurableItem;
-            var groupNames = resolutionRequest.UserGroups.ToList();
+            var groups = resolutionRequest.UserGroups.ToList();
 
             var roles = (await _roleService.GetRoles(grain, securableItem)).ToList();
 
@@ -30,7 +30,7 @@ namespace Fabric.Authorization.Domain.Resolvers.Permissions
 
             foreach (var role in roles)
             {
-                if (BypassRoleEvaluation(role, groupNames, resolutionRequest))
+                if (BypassRoleEvaluation(role, groups, resolutionRequest))
                 {
                     continue;
                 }
@@ -78,14 +78,16 @@ namespace Fabric.Authorization.Domain.Resolvers.Permissions
             };
         }
 
-        private static bool BypassRoleEvaluation(Role role, IReadOnlyCollection<string> groupNames, PermissionResolutionRequest permissionResolutionRequest)
+        private static bool BypassRoleEvaluation(Role role, IReadOnlyCollection<Group> groups, PermissionResolutionRequest permissionResolutionRequest)
         {
-            return !(role.Groups.Any(g => groupNames.Contains(g.Name, StringComparer.OrdinalIgnoreCase)) || role.Users.Any(
-                         u => u.SubjectId.Equals(permissionResolutionRequest.SubjectId,
-                                  StringComparison.OrdinalIgnoreCase) &&
-                              u.IdentityProvider.Equals(permissionResolutionRequest.IdentityProvider,
-                                  StringComparison.OrdinalIgnoreCase))) || role.IsDeleted ||
-                   role.Permissions == null || role.Permissions.Count == 0;
+            return !(role.Groups.Any(g => groups.Select(g1 => g1.GroupIdentifier).Contains(g.GroupIdentifier, new GroupIdentifierComparer()))
+                     || role.Users.Any(u =>
+                         u.SubjectId.Equals(permissionResolutionRequest.SubjectId, StringComparison.OrdinalIgnoreCase)
+                         && u.IdentityProvider.Equals(permissionResolutionRequest.IdentityProvider,
+                             StringComparison.OrdinalIgnoreCase))
+                   || role.IsDeleted
+                   || role.Permissions == null
+                   || role.Permissions.Count == 0);
         }
 
         private static void AddResolvedPermissions(

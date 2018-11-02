@@ -64,18 +64,18 @@ namespace Fabric.Authorization.API.Services
             module.RequiresOwnershipAndClaims<T>(doesClientOwnItem, grain, securableItem, requiredClaims);
         }
         
-        public async Task<IEnumerable<string>> GetGroupsForAuthenticatedUser(string subjectId, string providerId, ClaimsPrincipal currentUser)
+        public async Task<IEnumerable<Group>> GetGroupsForAuthenticatedUser(string subjectId, string providerId, ClaimsPrincipal currentUser)
         {
             var groupClaims = currentUser?.Claims
                 .Where(c => c.Type == JwtClaimTypes.Role || c.Type == Claims.Groups)
                 .Distinct(new ClaimComparer())
                 .Select(c => c.Value.ToString());
 
-            var customAndChildGroups = new List<string>();
+            var customAndChildGroups = new List<Group>();
             try
             {
                 // retrieve all custom groups the user is associated with plus their child AD groups
-                customAndChildGroups = (await _userService.GetGroupsForUser(subjectId, providerId, true)).Select(g => g.Name).ToList();
+                customAndChildGroups = (await _userService.GetGroupsForUser(subjectId, providerId, true)).ToList();
             }
             // the user may not always be in the DB but we still need to calculate permissions based on the AD groups
             // in the access token
@@ -88,7 +88,7 @@ namespace Fabric.Authorization.API.Services
             var directoryGroups = (await _groupStore.GetGroupsByIdentifiers(groupClaims)).ToList();
 
             // extract all the parent custom groups from the list of AD groups
-            var flattenedDirectoryGroups = directoryGroups.Union(directoryGroups.SelectMany(g => g.Parents)).Select(g => g.Name);
+            var flattenedDirectoryGroups = directoryGroups.Union(directoryGroups.SelectMany(g => g.Parents));
 
             // combine the lists and remove any duplicates
             var allGroups = customAndChildGroups
