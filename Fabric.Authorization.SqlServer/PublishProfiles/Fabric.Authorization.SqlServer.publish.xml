@@ -6,7 +6,7 @@
     <DeployScriptFileName>Fabric.Authorization.SqlServer.sql</DeployScriptFileName>
     <TargetConnectionString>Data Source=localhost;Integrated Security=True;Persist Security Info=False;Pooling=False;MultipleActiveResultSets=False;Connect Timeout=60;Encrypt=False;TrustServerCertificate=True</TargetConnectionString>
     <ScriptDatabaseOptions>True</ScriptDatabaseOptions>
-    <BlockOnPossibleDataLoss>True</BlockOnPossibleDataLoss>
+    <BlockOnPossibleDataLoss>False</BlockOnPossibleDataLoss>
     <DeployDatabaseInSingleUserMode>True</DeployDatabaseInSingleUserMode>
     <ProfileVersionNumber>1</ProfileVersionNumber>
     <AllowIncompatiblePlatform>True</AllowIncompatiblePlatform>

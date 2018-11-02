@@ -71,7 +71,7 @@ namespace Fabric.Authorization.UnitTests.Resolvers
                 }
             };
 
-            var roles = CreateRoles(securableItem, subjectId, new List<Group> {groups.First()});
+            var roles = CreateRoles(securableItem, subjectId, groups);
             var mockPermissionStore = new Mock<IPermissionStore>().Object;
             var mockRoleStore = new Mock<IRoleStore>()
                 .SetupGetRoles(roles)
