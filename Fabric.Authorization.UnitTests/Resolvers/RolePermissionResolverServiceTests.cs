@@ -16,7 +16,7 @@ namespace Fabric.Authorization.UnitTests.Resolvers
     public class RolePermissionResolverServiceTests
     {
         [Fact]
-        public async Task Resolve_RoleUserPermissions_SuccessAsync()
+        public async Task RolePermissionResolver_GroupWithNameOnly_SuccessAsync()
         {
             var securableItem = "testapp";
             var subjectId = "testuser";
@@ -45,6 +45,49 @@ namespace Fabric.Authorization.UnitTests.Resolvers
                 IncludeSharedPermissions = false
             });
             Assert.Equal(2, resolutionResult.AllowedPermissions.Count());
+        }
+
+        [Theory]
+        [InlineData(null, null, 1)]
+        [InlineData("Windows", null, 1)]
+        [InlineData("Windows", "Tenant123", 2)]
+        public async Task RolePermissionResolver_DuplicateGroupNames_SuccessAsync(string groupIdentityProvider, string tenantId, int expectedPermissions)
+        {
+            var securableItem = "testapp";
+            var subjectId = "testuser";
+            var groups = new List<Group>
+            {
+                new Group
+                {
+                    Name = "contributor",
+                    IdentityProvider = "Windows",
+                    TenantId = "Tenant123"
+                },
+                new Group
+                {
+                    Name = "contributor",
+                    IdentityProvider = "Azure",
+                    TenantId = "Tenant456"
+                }
+            };
+
+            var roles = CreateRoles(securableItem, subjectId, new List<Group> {groups.First()});
+            var mockPermissionStore = new Mock<IPermissionStore>().Object;
+            var mockRoleStore = new Mock<IRoleStore>()
+                .SetupGetRoles(roles)
+                .Object;
+            var roleService = new RoleService(mockRoleStore, mockPermissionStore);
+            var resolverService = new RolePermissionResolverService(roleService);
+            var resolutionResult = await resolverService.Resolve(new PermissionResolutionRequest
+            {
+                Grain = Domain.Defaults.Authorization.AppGrain,
+                IdentityProvider = "Windows",
+                SecurableItem = securableItem,
+                SubjectId = subjectId,
+                UserGroups = new List<Group> { new Group {IdentityProvider = groupIdentityProvider, TenantId = tenantId, Name = "contributor"}},
+                IncludeSharedPermissions = false
+            });
+            Assert.Equal(expectedPermissions, resolutionResult.AllowedPermissions.Count());
         }
 
         private List<Role> CreateRoles(string securableItem, string subjectId, IList<Group> groups)
