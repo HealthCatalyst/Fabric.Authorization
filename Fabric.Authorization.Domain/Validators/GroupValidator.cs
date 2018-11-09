@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
 using FluentValidation;
+using FluentValidation.Validators;
 
 namespace Fabric.Authorization.Domain.Validators
 {
@@ -23,38 +23,33 @@ namespace Fabric.Authorization.Domain.Validators
                 .WithMessage("Please specify a Name for this Group.")
                 .WithState(g => ValidationEnums.ValidationState.MissingRequiredField);
 
-            /*RuleFor(group => group.IdentityProvider)
-                .NotEmpty()
-                .WithMessage("Please specify an IdentityProvider for this Group.")
-                .WithState(g => ValidationEnums.ValidationState.MissingRequiredField);*/
-
             RuleFor(group => group.Source)
                 .NotEmpty()
                 .WithMessage("Please specify a Source for this Group.")
                 .WithState(g => ValidationEnums.ValidationState.MissingRequiredField);
 
-            RuleFor(group => group)
-                .Must(BeUnique)
-                .WithMessage(g => $"An active group with groupName {g.Name} already exists. Please provide a new groupName.")
-                .WithState(g => ValidationEnums.ValidationState.Duplicate);
+            RuleFor(group => group).Custom(ValidIdentityProvider);
         }
 
-        /// <summary>
-        /// This ensures an active group with the same name does not already exist. It checks the Id, which is
-        /// derived from the Name (Name + unique identifier). The check first attempts an exact match. If an
-        /// exact match is not found, it checks if any groups exist that have an ID that starts with the 
-        /// </summary>
-        /// <param name="group">Incoming group to be validated</param>
-        /// <returns>true if supplied group name does not exist on an active group document; otherwise false</returns>
-        private bool BeUnique(Group group)
+        private static void ValidIdentityProvider(Group group, CustomContext context)
         {
-            //if id is null then Name is not set which will be caught in a different validator
-            if (group.Id == null)
+            if (group.SourceEquals(GroupConstants.CustomSource))
             {
-                return true;
+                if (!string.IsNullOrWhiteSpace(group.IdentityProvider))
+                {
+                    context.AddFailure("Custom groups are not allowed to have an IdentityProvider.");
+                }
+
+                return;
             }
-            var exists = Task.Run(async () => await _groupService.Exists(group.Id)).Result;
-            return !exists;
+
+            if (group.SourceEquals(GroupConstants.DirectorySource))
+            {
+                if (string.IsNullOrWhiteSpace(group.IdentityProvider))
+                {
+                    context.AddFailure("Please specify an IdentityProvider for this Group.");
+                }
+            }
         }
     }
 }
