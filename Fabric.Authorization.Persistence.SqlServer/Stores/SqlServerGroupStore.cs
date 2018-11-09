@@ -30,8 +30,16 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             var alreadyExists = await Exists(group.GroupIdentifier);
             if (alreadyExists)
             {
-                throw new AlreadyExistsException<Group>(
-                    $"Group {group.Name} already exists. Please use a different GroupName.");
+                if (group.Source == GroupConstants.CustomSource)
+                {
+                    throw new AlreadyExistsException<Group>(
+                        $"Group {group.Name} already exists. Please use a different GroupName.");
+                }
+                else
+                {
+                    throw new AlreadyExistsException<Group>(
+                        $"Group {group.GroupIdentifier} already exists. Please use a different GroupName, IdentityProvider, or TenantId.");
+                }
             }
 
             group.Id = Guid.NewGuid();
@@ -47,7 +55,6 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             var savedEntities = new List<Group>();
             var groupList = groups.ToList();
             var eventList = new List<EntityAuditEvent<Group>>();
-           
 
             foreach (var group in groupList)
             {
@@ -114,7 +121,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task<Group> Get(GroupIdentifier groupIdentifier)
         {
-            var groupEntity = await AuthorizationDbContext.Groups
+            var groupEntities = AuthorizationDbContext.Groups
                 .Include(g => g.GroupRoles)
                 .ThenInclude(gr => gr.Role)
                 .ThenInclude(r => r.RolePermissions)
@@ -134,10 +141,44 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .ThenInclude(cg => cg.GroupRoles)
                 .ThenInclude(gr => gr.Role)
                 .AsNoTracking()
-                .SingleOrDefaultAsync(g => !g.IsDeleted
-                                           && g.Name == groupIdentifier.GroupName
-                                           && g.TenantId == groupIdentifier.TenantId
-                                           && g.IdentityProvider == groupIdentifier.IdentityProvider);
+                .Where(g => !g.IsDeleted && g.Name == groupIdentifier.GroupName)
+                .ToList();
+
+            EntityModels.Group groupEntity = null;
+            if (groupEntities.Count == 0)
+            {
+                throw new NotFoundException<Group>($"Could not find {typeof(Group).Name} entity with Identifier {groupIdentifier}");
+            }
+
+            if (groupEntities.Count == 1)
+            {
+                if (string.Equals(groupEntities[0].Source, GroupConstants.CustomSource, StringComparison.OrdinalIgnoreCase))
+                {
+                    groupEntity = groupEntities[0];
+                }
+                else
+                {
+                    groupEntity = groupEntities.FirstOrDefault(g =>
+                        string.Equals(g.IdentityProvider, groupIdentifier.IdentityProvider, StringComparison.OrdinalIgnoreCase)
+                        && string.Equals(g.TenantId, groupIdentifier.TenantId, StringComparison.OrdinalIgnoreCase));
+                }
+            }
+            else
+            {
+                if (!string.IsNullOrWhiteSpace(groupIdentifier.TenantId))
+                {
+                    groupEntity = groupEntities.FirstOrDefault(g =>
+                        string.Equals(g.IdentityProvider, groupIdentifier.IdentityProvider, StringComparison.OrdinalIgnoreCase)
+                        && string.Equals(g.TenantId, groupIdentifier.TenantId, StringComparison.OrdinalIgnoreCase));
+                }
+                else
+                {
+                    groupEntity = groupEntities.FirstOrDefault(g =>
+                        string.Equals(g.Source, GroupConstants.CustomSource, StringComparison.OrdinalIgnoreCase)
+                        || (string.Equals(g.IdentityProvider, groupIdentifier.IdentityProvider, StringComparison.OrdinalIgnoreCase)
+                            && string.Equals(g.TenantId, groupIdentifier.TenantId, StringComparison.OrdinalIgnoreCase)));
+                }
+            }
 
             if (groupEntity == null)
             {
@@ -288,15 +329,16 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             return group != null;
         }
 
-        public async Task<bool> Exists(GroupIdentifier groupIdentifier)
+        public Task<bool> Exists(GroupIdentifier groupIdentifier)
         {
-            var group = await AuthorizationDbContext.Groups
-                .SingleOrDefaultAsync(g => !g.IsDeleted
-                && g.Name == groupIdentifier.GroupName
-                                           && g.TenantId == groupIdentifier.TenantId
-                                           && g.IdentityProvider == groupIdentifier.IdentityProvider).ConfigureAwait(false);
+            var groups = AuthorizationDbContext.Groups
+                .Where(g => !g.IsDeleted
+                && g.Name == groupIdentifier.GroupName).Select(e => e.ToModel()).ToList();
 
-            return group != null;
+            return Task.FromResult(groups.Any(g => g.SourceEquals(GroupConstants.CustomSource)
+                                   || (g.SourceEquals(GroupConstants.DirectorySource)
+                                       && g.IdentityProviderEquals(groupIdentifier.IdentityProvider)
+                                       && g.TenantIdEquals(groupIdentifier.TenantId))));
         }
 
         public async Task<Group> AddRolesToGroup(Group group, IEnumerable<Role> rolesToAdd)

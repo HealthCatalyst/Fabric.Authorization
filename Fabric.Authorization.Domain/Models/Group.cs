@@ -94,10 +94,10 @@ namespace Fabric.Authorization.Domain.Models
                    || incomingGroup.Name.Equals(Name, StringComparison.OrdinalIgnoreCase);
 
             var tenantIdMatches = TenantId == incomingGroup.TenantId
-                                  || incomingGroup.TenantId.Equals(TenantId, StringComparison.OrdinalIgnoreCase);
+                                  || incomingGroup.TenantIdEquals(TenantId);
 
             var idpMatches = IdentityProvider == incomingGroup.IdentityProvider
-                             || incomingGroup.IdentityProvider.Equals(TenantId, StringComparison.OrdinalIgnoreCase);
+                             || incomingGroup.IdentityProviderEquals(TenantId);
 
             return nameMatches && tenantIdMatches && idpMatches;
         }
@@ -105,6 +105,30 @@ namespace Fabric.Authorization.Domain.Models
         public override int GetHashCode()
         {
             return ToString().GetHashCode();
+        }
+
+        public bool SourceEquals(string source)
+        {
+            return Source == source
+                   || string.Equals(Source, source, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public bool IdentityProviderEquals(string identityProvider)
+        {
+            return IdentityProvider == identityProvider
+                   || string.Equals(IdentityProvider, identityProvider, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public bool TenantIdEquals(string tenantId)
+        {
+            return TenantId == tenantId
+                   || string.Equals(TenantId, tenantId, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public bool NameEquals(string name)
+        {
+            return Name == name
+                   || string.Equals(Name, name, StringComparison.OrdinalIgnoreCase);
         }
     }
 
