@@ -42,6 +42,16 @@ namespace Fabric.Authorization.Domain.Defaults
                         {
                             Name = "valuesets",
                             ClientOwner = "terminology-service"
+                        },
+                        new SecurableItem
+                        {
+                            Name = "analytics",
+                            ClientOwner = "analytics-service"
+                        },
+                        new SecurableItem
+                        {
+                            Name = "userconfig",
+                            ClientOwner = "user-config-service"
                         }
                     }
                 }

@@ -39,7 +39,7 @@ namespace Fabric.Authorization.UnitTests.DbBootstrappers
         {
             var grains = dbContext.Grains.ToList();
             Assert.Equal(2, grains.Count);
-            Assert.Equal(3, dbContext.SecurableItems.Count());
+            Assert.Equal(5, dbContext.SecurableItems.Count());
             Assert.Equal(1, dbContext.Roles.Count());
             Assert.Equal(1, dbContext.Permissions.Count());
 
@@ -57,6 +57,16 @@ namespace Fabric.Authorization.UnitTests.DbBootstrappers
             Assert.NotNull(valuesetsSecurableItem);
             Assert.Equal("terminology-service", valuesetsSecurableItem.ClientOwner);
             Assert.Equal("valuesets", valuesetsSecurableItem.Name);
+
+            var analyticsSecurableItem = dbContext.SecurableItems.FirstOrDefault(si => si.Name == "analytics");
+            Assert.NotNull(analyticsSecurableItem);
+            Assert.Equal("analytics-service", analyticsSecurableItem.ClientOwner);
+            Assert.Equal("analytics", analyticsSecurableItem.Name);
+
+            var userConfigSecurableItem = dbContext.SecurableItems.FirstOrDefault(si => si.Name == "userconfig");
+            Assert.NotNull(userConfigSecurableItem);
+            Assert.Equal("user-config-service", userConfigSecurableItem.ClientOwner);
+            Assert.Equal("userconfig", userConfigSecurableItem.Name);
 
             var roles = dbContext.Roles
                 .Include(r => r.RolePermissions)
