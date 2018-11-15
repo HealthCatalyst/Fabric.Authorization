@@ -18,5 +18,6 @@ namespace Fabric.Authorization.API.Configuration
         public EntityFrameworkSettings EntityFrameworkSettings { get; set; }
         public string ApplicationEndpoint { get; set; }
         public AccessControlSettings AccessControlSettings { get; set; }
+        public bool MigrateDuplicateGroups { get; set; }
     }
 }
