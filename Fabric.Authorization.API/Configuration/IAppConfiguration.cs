@@ -19,5 +19,6 @@ namespace Fabric.Authorization.API.Configuration
         string ApplicationEndpoint { get; set; }
         DiscoveryServiceSettings DiscoveryServiceSettings { get; set; }
         IdentityProviderSearchSettings IdentityProviderSearchSettings { get; set; }
+        bool MigrateDuplicateGroups { get; set; }
     }
 }

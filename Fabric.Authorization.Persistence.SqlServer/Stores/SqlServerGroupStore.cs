@@ -169,6 +169,10 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .ThenInclude(gr => gr.Role)
                 .Include(g => g.GroupUsers)
                 .ThenInclude(gu => gu.User)
+                .Include(g => g.ParentGroups)
+                .ThenInclude(cg => cg.Parent)
+                .Include(g => g.ChildGroups)
+                .ThenInclude(cg => cg.Child)
                 .Where(g => !g.IsDeleted)
                 .ToArrayAsync();
 
