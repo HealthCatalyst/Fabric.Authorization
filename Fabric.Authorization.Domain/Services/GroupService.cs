@@ -41,7 +41,7 @@ namespace Fabric.Authorization.Domain.Services
         {
             _roleStore = roleStore;
             _userStore = userStore;
-            _groupStore = groupStore ?? throw new ArgumentNullException(nameof(groupStore));          
+            _groupStore = groupStore ?? throw new ArgumentNullException(nameof(groupStore));
             _roleService = roleService ?? throw new ArgumentNullException(nameof(roleService));
         }
 

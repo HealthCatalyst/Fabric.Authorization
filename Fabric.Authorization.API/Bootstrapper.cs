@@ -114,6 +114,9 @@ namespace Fabric.Authorization.API
             ConfigureApplicationRegistrations(container);
             var dbBootstrapper = container.Resolve<IDbBootstrapper>();
             dbBootstrapper.Setup();
+
+            var appConfig = container.Resolve<IAppConfiguration>();
+            if (appConfig.MigrateDuplicateGroups) { }
         }
 
         private void InitializeSwaggerMetadata()
@@ -156,6 +159,7 @@ namespace Fabric.Authorization.API
             container.Register(typeof(IOptions<>), typeof(OptionsManager<>));
             container.Register<IMemoryCache, MemoryCache>();
             container.Register<Domain.Defaults.Authorization>();
+            container.Register<GroupMigratorService, GroupMigratorService>();
 
             var httpClient = new HttpClient();
             container.Register(httpClient);
@@ -177,6 +181,13 @@ namespace Fabric.Authorization.API
 
             var configurator = container.Resolve<IPersistenceConfigurator>();
             configurator.ConfigureApplicationInstances(container);
+
+            var appConfig = container.Resolve<IAppConfiguration>();
+            if (appConfig.MigrateDuplicateGroups)
+            {
+                var groupMigratorService = container.Resolve<GroupMigratorService>();
+                groupMigratorService.MigrateDuplicateGroups();
+            }
         }
 
         protected override void ConfigureConventions(NancyConventions nancyConventions)

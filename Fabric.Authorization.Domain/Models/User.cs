@@ -40,6 +40,11 @@ namespace Fabric.Authorization.Domain.Models
         public string CreatedBy { get; set; }
 
         public string ModifiedBy { get; set; }
+
+        public override string ToString()
+        {
+            return $"{IdentityProvider}:{SubjectId}";
+        }
     }
 
     public class UserComparer : IEqualityComparer<User>
