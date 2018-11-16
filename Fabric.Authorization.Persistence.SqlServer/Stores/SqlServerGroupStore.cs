@@ -167,6 +167,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             var groupEntities = await AuthorizationDbContext.Groups
                 .Include(g => g.GroupRoles)
                 .ThenInclude(gr => gr.Role)
+                .ThenInclude(r => r.SecurableItem)
                 .Include(g => g.GroupUsers)
                 .ThenInclude(gu => gu.User)
                 .Include(g => g.ParentGroups)

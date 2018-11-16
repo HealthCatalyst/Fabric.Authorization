@@ -30,11 +30,13 @@ namespace Fabric.Authorization.IntegrationTests
     {
         public ConnectionStrings ConnectionStrings { get; set; }
         private string DatabaseNameSuffix { get; }
+
         public IntegrationTestsFixture()
         {
             DatabaseNameSuffix = GetDatabaseNameSuffix();
             ConnectionStrings = GetSqlServerConnection(DatabaseNameSuffix);
         }
+
         public Browser Browser { get; set; }
 
         public string TestHost => "http://testhost:80/v1";
@@ -78,20 +80,23 @@ namespace Fabric.Authorization.IntegrationTests
                     GroupSource = GroupConstants.DirectorySource,
                     //IdentityProvider = IdentityConstants.ActiveDirectory,
                     DualStoreEDWAdminPermissions = true
-                }
+                },
+                MigrateDuplicateGroups = false
             };
             var hostingEnvironment = new Mock<IHostingEnvironment>();
 
-            var bootstrapper = new TestBootstrapper(new Mock<ILogger>().Object, appConfiguration,
+            Bootstrapper = new TestBootstrapper(new Mock<ILogger>().Object, appConfiguration,
                 new LoggingLevelSwitch(), hostingEnvironment.Object, principal, identityServiceProvider, idPSearchProvider);
 
-            return new Browser(bootstrapper, context =>
+            return new Browser(Bootstrapper, context =>
             {
                 context.HostName("testhost");
                 context.Header("Content-Type", "application/json");
                 context.Header("Accept", "application/json");
             });
         }
+
+        public TestBootstrapper Bootstrapper { get; set; }
 
         public ILogger Logger { get; set; } = new Mock<ILogger>().Object;
 

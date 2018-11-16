@@ -3,6 +3,8 @@ using Fabric.Authorization.API;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.RemoteServices.Identity.Providers;
 using Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Providers;
+using Fabric.Authorization.Domain.Stores;
+using Fabric.Authorization.Persistence.SqlServer.Stores;
 using Microsoft.AspNetCore.Hosting;
 using Nancy;
 using Nancy.Bootstrapper;
@@ -30,6 +32,13 @@ namespace Fabric.Authorization.IntegrationTests
             _principal = principal;
             _identityServiceProvider = identityServiceProvider;
             _idPSearchProvider = idPSearchProvider;
+        }
+
+        protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
+        {
+            // needed for GroupMigratorServiceTests
+            container.Register<IGroupStore, SqlServerGroupStore>();
+            base.ApplicationStartup(container, pipelines);
         }
 
         protected override void RequestStartup(TinyIoCContainer container, IPipelines pipelines, NancyContext context)

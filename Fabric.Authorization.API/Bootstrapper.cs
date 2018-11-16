@@ -83,7 +83,7 @@ namespace Fabric.Authorization.API
             configurator.ConfigureRequestInstances(container);
         }
         
-        protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
+        protected override async void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
         {
             TinyIoCContainer = container;
 
@@ -116,7 +116,11 @@ namespace Fabric.Authorization.API
             dbBootstrapper.Setup();
 
             var appConfig = container.Resolve<IAppConfiguration>();
-            if (appConfig.MigrateDuplicateGroups) { }
+            if (appConfig.MigrateDuplicateGroups)
+            {
+                var groupMigratorService = container.Resolve<GroupMigratorService>();
+                var migrationResults = await groupMigratorService.MigrateDuplicateGroups();
+            }
         }
 
         private void InitializeSwaggerMetadata()
@@ -159,7 +163,6 @@ namespace Fabric.Authorization.API
             container.Register(typeof(IOptions<>), typeof(OptionsManager<>));
             container.Register<IMemoryCache, MemoryCache>();
             container.Register<Domain.Defaults.Authorization>();
-            container.Register<GroupMigratorService, GroupMigratorService>();
 
             var httpClient = new HttpClient();
             container.Register(httpClient);
@@ -181,13 +184,6 @@ namespace Fabric.Authorization.API
 
             var configurator = container.Resolve<IPersistenceConfigurator>();
             configurator.ConfigureApplicationInstances(container);
-
-            var appConfig = container.Resolve<IAppConfiguration>();
-            if (appConfig.MigrateDuplicateGroups)
-            {
-                var groupMigratorService = container.Resolve<GroupMigratorService>();
-                groupMigratorService.MigrateDuplicateGroups();
-            }
         }
 
         protected override void ConfigureConventions(NancyConventions nancyConventions)
