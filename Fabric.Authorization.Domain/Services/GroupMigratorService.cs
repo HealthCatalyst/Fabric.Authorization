@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
 using Serilog;
@@ -20,7 +21,7 @@ namespace Fabric.Authorization.Domain.Services
             _logger = logger;
         }
 
-        public async void MigrateDuplicateGroups()
+        public async Task<GroupMigrationResult> MigrateDuplicateGroups()
         {
             var groups = (await _groupStore.GetAll()).ToList();
 
@@ -29,11 +30,18 @@ namespace Fabric.Authorization.Domain.Services
                 .Where(g => g.Count() > 1)
                 .Select(g => g.Key);
 
+            var groupMigrationResult = new GroupMigrationResult();
             foreach (var key in groupKeys)
             {
                 var duplicateGroups = groups.Where(g => string.Equals(key, g.Name, StringComparison.OrdinalIgnoreCase)).ToList();
                 var originalGroup = duplicateGroups.First();
                 duplicateGroups.RemoveAt(0);
+
+                var groupMigrationRecord = new GroupMigrationRecord
+                {
+                    DuplicateCount = duplicateGroups.Count,
+                    GroupName = originalGroup.Name
+                };
 
                 foreach (var duplicateGroup in duplicateGroups)
                 {
@@ -43,7 +51,7 @@ namespace Fabric.Authorization.Domain.Services
                         var roleExists = originalGroup.Roles.Any(r => r.Equals(role));
                         if (!roleExists)
                         {
-                            _logger.Information($"Migrating Role {role} to group {originalGroup}");
+                            _logger.Information($"Migrating Role {role} from {duplicateGroup} to group {originalGroup}");
                             originalGroup.Roles.Add(role);
                         }
                     }
@@ -54,7 +62,7 @@ namespace Fabric.Authorization.Domain.Services
                         var userExists = originalGroup.Users.Any(u => new UserComparer().Equals(u, user));
                         if (!userExists)
                         {
-                            _logger.Information($"Migrating User {user} to group {originalGroup}");
+                            _logger.Information($"Migrating User {user} from {duplicateGroup} to group {originalGroup}");
                             originalGroup.Users.Add(user);
                         }
                     }
@@ -66,14 +74,18 @@ namespace Fabric.Authorization.Domain.Services
                         if (!parentExists)
                         {
                             _logger.Information($"Migrating Group {originalGroup} to Parent Group {parent}");
+                            originalGroup.Parents.Add(parent);
+                            /*
                             try
                             {
                                 await _groupStore.AddChildGroups(parent, new List<Group> {originalGroup});
                             }
                             catch (Exception e)
                             {
-                                _logger.Error(e, $"Migrating Child Group {originalGroup} to Parent Group {parent}");
-                            }
+                                var msg = $"Error migrating Directory Child Group {originalGroup} to Parent Group {parent}";
+                                _logger.Error(e, msg);
+                                groupMigrationRecord.Errors.Add($"{msg} ({e.Message})");
+                            }*/
                         }
                     }
 
@@ -83,15 +95,19 @@ namespace Fabric.Authorization.Domain.Services
                         var childExists = originalGroup.Children.Any(c => c.Id == child.Id);
                         if (!childExists)
                         {
-                            _logger.Information($"Migrating Group {originalGroup} to Child Group {child}");
+                            _logger.Information($"Error migrating Custom Parent Group {originalGroup} to Child Group {child}");
+                            originalGroup.Children.Add(child);
+                            /*
                             try
                             {
                                 await _groupStore.AddChildGroups(originalGroup, new List<Group> {child});
                             }
                             catch (Exception e)
                             {
-                                _logger.Error(e, $"Migrating Parent Group {originalGroup} to Child Group {child}");
-                            }
+                                var msg = $"Error migrating Custom Parent Group {originalGroup} to Child Group {child}";
+                                _logger.Error(e, msg);
+                                groupMigrationRecord.Errors.Add($"{msg} ({e.Message})");
+                            }*/
                         }
                     }
 
@@ -101,20 +117,40 @@ namespace Fabric.Authorization.Domain.Services
                     }
                     catch (Exception e)
                     {
-                        _logger.Error(e, $"Exception thrown while migrating ORIGINAL group {originalGroup}");
+                        var msg = $"Exception thrown while updating database with migration from group {duplicateGroup} to {originalGroup}.";
+                        _logger.Error(e, msg);
+                        groupMigrationRecord.Errors.Add($"{msg} ({e.Message})");
                     }
 
                     try
                     {
-                        duplicateGroup.IsDeleted = true;
-                        await _groupStore.Update(duplicateGroup);
+                        await _groupStore.Delete(duplicateGroup);
                     }
                     catch (Exception e)
                     {
-                        _logger.Error(e, $"Exception thrown while deprecating DUPLICATE group {duplicateGroup}");
+                        var msg = $"Exception thrown while deleting DUPLICATE group {duplicateGroup}";
+                        _logger.Error(e, msg);
+                        groupMigrationRecord.Errors.Add($"{msg} ({e.Message})");
                     }
                 }
+
+                groupMigrationResult.GroupMigrationRecords.Add(groupMigrationRecord);
             }
+
+            return groupMigrationResult;
         }
+    }
+
+    public class GroupMigrationResult
+    {
+        public IList<GroupMigrationRecord> GroupMigrationRecords { get; set; } = new List<GroupMigrationRecord>();
+    }
+
+    public class GroupMigrationRecord
+    {
+        public string GroupName { get; set; }
+        public int DuplicateCount { get; set; }
+        public IList<string> Errors { get; set; } = new List<string>();
+        public int ErrorCount => Errors.Count;
     }
 }
