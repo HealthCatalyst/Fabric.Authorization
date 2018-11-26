@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Constants;
-using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using Fabric.Authorization.Persistence.SqlServer.EntityModels;
+using Fabric.Authorization.Persistence.SqlServer.Mappers;
 using Fabric.Authorization.Persistence.SqlServer.Services;
 using Nancy.Testing;
 using Xunit;
@@ -19,7 +19,6 @@ namespace Fabric.Authorization.IntegrationTests.Services
     {
         protected readonly Browser Browser;
         private readonly IntegrationTestsFixture _fixture;
-        private readonly string _storageProvider;
 
         protected ClaimsPrincipal Principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
         {
@@ -43,7 +42,6 @@ namespace Fabric.Authorization.IntegrationTests.Services
             Browser = fixture.GetBrowser(Principal, storageProvider);
             fixture.CreateClient(Browser, "rolesprincipal");
             _fixture = fixture;
-            _storageProvider = storageProvider;
         }
 
         [Fact]
@@ -51,7 +49,6 @@ namespace Fabric.Authorization.IntegrationTests.Services
         {
             var container = _fixture.Bootstrapper.TinyIoCContainer;
             var dbContext = container.Resolve<IAuthorizationDbContext>();
-            var store = container.Resolve<IGroupStore>();
             var groupMigratorService = container.Resolve<GroupMigratorService>();
 
             var customGroup1 = new Group
@@ -133,6 +130,12 @@ namespace Fabric.Authorization.IntegrationTests.Services
 
             var result = await groupMigratorService.MigrateDuplicateGroups();
             Assert.Empty(result.GroupMigrationRecords);
+
+            var groupStore = container.Resolve<IGroupStore>();
+            await groupStore.Delete(customGroup1.ToModel());
+            await groupStore.Delete(customGroup2.ToModel());
+            await groupStore.Delete(group1.ToModel());
+            await groupStore.Delete(group2.ToModel());
         }
 
         [Fact]
@@ -320,6 +323,12 @@ namespace Fabric.Authorization.IntegrationTests.Services
 
             var results = await groupMigratorService.MigrateDuplicateGroups();
             Assert.Equal(1, results.GroupMigrationRecords.Count);
+
+            var groupStore = container.Resolve<IGroupStore>();
+            await groupStore.Delete(customGroup1.ToModel());
+            await groupStore.Delete(customGroup2.ToModel());
+            await groupStore.Delete(group1.ToModel());
+            await groupStore.Delete(group2.ToModel());
         }
 
         [Fact]
