@@ -39,8 +39,7 @@ namespace Fabric.Authorization.Domain.Services
 
                 var groupMigrationRecord = new GroupMigrationRecord
                 {
-                    DuplicateCount = duplicateGroups.Count,
-                    GroupName = originalGroup.Name
+                    DuplicateCount = duplicateGroups.Count
                 };
 
                 foreach (var duplicateGroup in duplicateGroups)
@@ -52,18 +51,36 @@ namespace Fabric.Authorization.Domain.Services
                         if (!roleExists)
                         {
                             _logger.Information($"Migrating Role {role} from {duplicateGroup} to group {originalGroup}");
-                            originalGroup.Roles.Add(role);
+                            try
+                            {
+                                await _groupStore.AddRolesToGroup(originalGroup, new List<Role> {role});
+                            }
+                            catch (Exception e)
+                            {
+                                var msg = $"Error migrating Role {role} to Group {originalGroup}";
+                                _logger.Error(e, msg);
+                                groupMigrationRecord.Errors.Add($"{msg} ({e.Message})");
+                            }
                         }
                     }
 
-                    // migrate users
+                    // migrate users (applies custom groups only)
                     foreach (var user in duplicateGroup.Users)
                     {
                         var userExists = originalGroup.Users.Any(u => new UserComparer().Equals(u, user));
                         if (!userExists)
                         {
                             _logger.Information($"Migrating User {user} from {duplicateGroup} to group {originalGroup}");
-                            originalGroup.Users.Add(user);
+                            try
+                            {
+                                await _groupStore.AddUserToGroup(originalGroup, user);
+                            }
+                            catch (Exception e)
+                            {
+                                var msg = $"Error migrating User {user} to Group {originalGroup}";
+                                _logger.Error(e, msg);
+                                groupMigrationRecord.Errors.Add($"{msg} ({e.Message})");
+                            }
                         }
                     }
 
@@ -74,8 +91,6 @@ namespace Fabric.Authorization.Domain.Services
                         if (!parentExists)
                         {
                             _logger.Information($"Migrating Group {originalGroup} to Parent Group {parent}");
-                            originalGroup.Parents.Add(parent);
-                            /*
                             try
                             {
                                 await _groupStore.AddChildGroups(parent, new List<Group> {originalGroup});
@@ -85,7 +100,7 @@ namespace Fabric.Authorization.Domain.Services
                                 var msg = $"Error migrating Directory Child Group {originalGroup} to Parent Group {parent}";
                                 _logger.Error(e, msg);
                                 groupMigrationRecord.Errors.Add($"{msg} ({e.Message})");
-                            }*/
+                            }
                         }
                     }
 
@@ -96,8 +111,6 @@ namespace Fabric.Authorization.Domain.Services
                         if (!childExists)
                         {
                             _logger.Information($"Error migrating Custom Parent Group {originalGroup} to Child Group {child}");
-                            originalGroup.Children.Add(child);
-                            /*
                             try
                             {
                                 await _groupStore.AddChildGroups(originalGroup, new List<Group> {child});
@@ -107,19 +120,8 @@ namespace Fabric.Authorization.Domain.Services
                                 var msg = $"Error migrating Custom Parent Group {originalGroup} to Child Group {child}";
                                 _logger.Error(e, msg);
                                 groupMigrationRecord.Errors.Add($"{msg} ({e.Message})");
-                            }*/
+                            }
                         }
-                    }
-
-                    try
-                    {
-                        await _groupStore.Update(originalGroup);
-                    }
-                    catch (Exception e)
-                    {
-                        var msg = $"Exception thrown while updating database with migration from group {duplicateGroup} to {originalGroup}.";
-                        _logger.Error(e, msg);
-                        groupMigrationRecord.Errors.Add($"{msg} ({e.Message})");
                     }
 
                     try
@@ -134,6 +136,7 @@ namespace Fabric.Authorization.Domain.Services
                     }
                 }
 
+                groupMigrationRecord.MigratedGroup = originalGroup;
                 groupMigrationResult.GroupMigrationRecords.Add(groupMigrationRecord);
             }
 
@@ -148,9 +151,8 @@ namespace Fabric.Authorization.Domain.Services
 
     public class GroupMigrationRecord
     {
-        public string GroupName { get; set; }
+        public Group MigratedGroup { get; set; }
         public int DuplicateCount { get; set; }
         public IList<string> Errors { get; set; } = new List<string>();
-        public int ErrorCount => Errors.Count;
     }
 }
