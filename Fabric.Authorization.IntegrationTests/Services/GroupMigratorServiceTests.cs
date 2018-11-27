@@ -225,6 +225,14 @@ namespace Fabric.Authorization.IntegrationTests.Services
                 SecurableItem = securableItem,
             };
 
+            var role3 = new Role
+            {
+                RoleId = Guid.NewGuid(),
+                Name = "Role 3",
+                Grain = grain.Name,
+                SecurableItem = securableItem,
+            };
+
             var group1Role1 = new GroupRole
             {
                 Group = group1,
@@ -241,6 +249,13 @@ namespace Fabric.Authorization.IntegrationTests.Services
             {
                 Group = group2,
                 Role = role2
+            };
+
+            var group2Role3 = new GroupRole
+            {
+                Group = group2,
+                Role = role3,
+                IsDeleted = true
             };
 
             var user1 = new User
@@ -292,7 +307,8 @@ namespace Fabric.Authorization.IntegrationTests.Services
             dbContext.Roles.AddRange(new List<Role>
             {
                 role1,
-                role2
+                role2,
+                role3
             });
 
             dbContext.Groups.AddRange(new List<Group>
@@ -307,7 +323,8 @@ namespace Fabric.Authorization.IntegrationTests.Services
             {
                 group1Role1,
                 group2Role1,
-                group2Role2
+                group2Role2,
+                group2Role3
             });
 
             dbContext.Users.Add(user1);
@@ -350,6 +367,7 @@ namespace Fabric.Authorization.IntegrationTests.Services
 
             var groupRoleApiModel = getResponse.Body.DeserializeJson<GroupRoleApiModel>();
             var roles = groupRoleApiModel.Roles.ToList();
+            Assert.Equal(2, roles.Count);
             Assert.Contains(roles, r => r.Name == role1.Name);
             Assert.Contains(roles, r => r.Name == role2.Name);
 
