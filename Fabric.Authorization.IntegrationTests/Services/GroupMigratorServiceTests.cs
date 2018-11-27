@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Catalyst.Fabric.Authorization.Models;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
@@ -9,6 +11,7 @@ using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using Fabric.Authorization.Persistence.SqlServer.EntityModels;
 using Fabric.Authorization.Persistence.SqlServer.Mappers;
 using Fabric.Authorization.Persistence.SqlServer.Services;
+using Nancy.Helpers;
 using Nancy.Testing;
 using Xunit;
 
@@ -19,6 +22,7 @@ namespace Fabric.Authorization.IntegrationTests.Services
     {
         protected readonly Browser Browser;
         private readonly IntegrationTestsFixture _fixture;
+        private readonly string _storageProvider;
 
         protected ClaimsPrincipal Principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
         {
@@ -41,6 +45,7 @@ namespace Fabric.Authorization.IntegrationTests.Services
 
             Browser = fixture.GetBrowser(Principal, storageProvider);
             fixture.CreateClient(Browser, "rolesprincipal");
+            _storageProvider = storageProvider;
             _fixture = fixture;
         }
 
@@ -208,7 +213,7 @@ namespace Fabric.Authorization.IntegrationTests.Services
             {
                 RoleId = Guid.NewGuid(),
                 Name = "Role 1",
-                Grain = "dos",
+                Grain = grain.Name,
                 SecurableItem = securableItem
             };
 
@@ -216,8 +221,8 @@ namespace Fabric.Authorization.IntegrationTests.Services
             {
                 RoleId = Guid.NewGuid(),
                 Name = "Role 2",
-                Grain = "dos",
-                SecurableItem = securableItem
+                Grain = grain.Name,
+                SecurableItem = securableItem,
             };
 
             var group1Role1 = new GroupRole
@@ -326,6 +331,31 @@ namespace Fabric.Authorization.IntegrationTests.Services
 
             var results = await groupMigratorService.MigrateDuplicateGroups();
             Assert.Equal(1, results.GroupMigrationRecords.Count);
+
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
+            {
+                new Claim(Claims.Scope, Scopes.ManageClientsScope),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.ClientId, client.ClientId),
+                new Claim(Claims.IdentityProvider, "idP1")
+            }, "rolesprincipal"));
+
+            var browser = _fixture.GetBrowser(principal, _storageProvider);
+
+            var getResponse = await browser.Get(HttpUtility.UrlEncode($"/groups/Group 1-{groupGuid}"), with =>
+            {
+                with.HttpRequest();
+            });
+
+            var groupRoleApiModel = getResponse.Body.DeserializeJson<GroupRoleApiModel>();
+            var roles = groupRoleApiModel.Roles.ToList();
+            Assert.Contains(roles, r => r.Name == role1.Name);
+            Assert.Contains(roles, r => r.Name == role2.Name);
+
+            var parents = groupRoleApiModel.Parents.ToList();
+            Assert.Contains(parents, p => p.GroupName == customGroup1.Name);
+            Assert.Contains(parents, p => p.GroupName == customGroup2.Name);
 
             var groupStore = container.Resolve<IGroupStore>();
             await groupStore.Delete(customGroup1.ToModel());
