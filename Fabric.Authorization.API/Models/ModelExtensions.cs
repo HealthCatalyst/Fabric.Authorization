@@ -140,7 +140,8 @@ namespace Fabric.Authorization.API.Models
                 DisplayName = groupPostApiRequest.DisplayName,
                 Description = groupPostApiRequest.Description,
                 Source = groupPostApiRequest.GroupSource,
-                TenantId = groupPostApiRequest.TenantId
+                TenantId = groupPostApiRequest.TenantId,
+                ExternalIdentifier = groupPostApiRequest.ExternalIdentifier
             };
 
             return group;

@@ -236,7 +236,8 @@ export class FabricAuthGroupService extends FabricBaseService {
           groupName: g.groupName,
           groupSource: 'directory',
           identityProvider: g.identityProvider,
-          tenantId: g.tenantId
+          tenantId: g.tenantId,
+          externalIdentifier: g.externalIdentifier
         };
       }),
       {params: this.getQueryParams(identityProvider, tenantId)}

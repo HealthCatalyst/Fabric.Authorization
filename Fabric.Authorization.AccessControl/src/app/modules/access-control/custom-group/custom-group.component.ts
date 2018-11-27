@@ -335,7 +335,8 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           selected: false,
           type: this.groupType,
           identityProvider: principal.identityProvider,
-          tenantId: principal.tenantId
+          tenantId: principal.tenantId,
+          externalIdentifier: principal.externalIdentifier
         };
         return newGroup;
       });
@@ -379,7 +380,8 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           principalType: this.groupType,
           selected: false,
           identityProvider: group.identityProvider,
-          tenantId: group.tenantId
+          tenantId: group.tenantId,
+          externalIdentifier: group.externalIdentifier
         };
         return newPrincipal;
       });
