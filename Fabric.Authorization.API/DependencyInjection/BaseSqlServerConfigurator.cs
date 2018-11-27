@@ -24,6 +24,7 @@ namespace Fabric.Authorization.API.DependencyInjection
             container.Register<IEventService, EventService>().AsMultiInstance();
             container.Register<IGrainStore, SqlServerGrainStore>().AsMultiInstance();
             container.Register<IClientStore, SqlServerClientStore>().AsMultiInstance();
+            container.Register<IGroupStore, SqlServerGroupStore>().AsMultiInstance();
             container.Register(AppConfiguration.ConnectionStrings);
             container.Register(AppConfiguration.DefaultPropertySettings);
         }
