@@ -10,6 +10,7 @@ export interface IGroup {
   displayName?: string;
   description?: string;
   tenantId?: string;
+  externalIdentifier?: string;
   domain?: string;
   identityProvider?: string;
   children?: Array<IGroup>;

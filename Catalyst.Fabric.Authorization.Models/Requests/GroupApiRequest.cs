@@ -18,6 +18,7 @@
         public string IdentityProvider { get; set; }
         public string GroupSource { get; set; }
         public string TenantId { get; set; }
+        public string ExternalIdentifier { get; set; }
     }
 
     public class GroupPatchApiRequest
