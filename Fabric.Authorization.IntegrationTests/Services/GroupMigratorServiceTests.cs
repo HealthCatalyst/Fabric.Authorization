@@ -54,7 +54,7 @@ namespace Fabric.Authorization.IntegrationTests.Services
             var customGroup1 = new Group
             {
                 GroupId = Guid.NewGuid(),
-                Name = "Custom Group 1",
+                Name = $"Custom Group 1-{Guid.NewGuid()}",
                 Source = GroupConstants.CustomSource,
                 CreatedBy = "test",
                 CreatedDateTimeUtc = DateTime.UtcNow
@@ -63,7 +63,7 @@ namespace Fabric.Authorization.IntegrationTests.Services
             var customGroup2 = new Group
             {
                 GroupId = Guid.NewGuid(),
-                Name = "Custom Group 2",
+                Name = $"Custom Group 2-{Guid.NewGuid()}",
                 Source = GroupConstants.CustomSource,
                 CreatedBy = "test",
                 CreatedDateTimeUtc = DateTime.UtcNow
@@ -72,7 +72,7 @@ namespace Fabric.Authorization.IntegrationTests.Services
             var group1 = new Group
             {
                 GroupId = Guid.NewGuid(),
-                Name = "Group 1",
+                Name = $"Group 1-{Guid.NewGuid()}",
                 Source = GroupConstants.DirectorySource,
                 CreatedBy = "test",
                 CreatedDateTimeUtc = DateTime.UtcNow
@@ -81,7 +81,7 @@ namespace Fabric.Authorization.IntegrationTests.Services
             var group2 = new Group
             {
                 GroupId = Guid.NewGuid(),
-                Name = "Group 2",
+                Name = $"Group 2-{Guid.NewGuid()}",
                 Source = GroupConstants.DirectorySource,
                 CreatedBy = "test",
                 CreatedDateTimeUtc = DateTime.UtcNow
@@ -149,26 +149,28 @@ namespace Fabric.Authorization.IntegrationTests.Services
 
             var client = new Client
             {
-                ClientId = "client1",
-                Name = "Client 1"
+                ClientId = $"client1-{Guid.NewGuid()}",
+                Name = $"Client 1-{Guid.NewGuid()}"
             };
 
             var grain = new Grain
             {
-                Name = "dos"
+                Name = $"dos-{Guid.NewGuid()}"
             };
 
             var securableItem = new SecurableItem
             {
-                Name = "datamarts",
+                Name = $"datamarts-{Guid.NewGuid()}",
                 Grain = grain,
                 ClientOwner = client.ClientId
             };
 
+            client.TopLevelSecurableItem = securableItem;
+
             var customGroup1 = new Group
             {
                 GroupId = Guid.NewGuid(),
-                Name = "Custom Group 1",
+                Name = $"Custom Group 1-{Guid.NewGuid()}",
                 Source = GroupConstants.CustomSource,
                 CreatedBy = "test",
                 CreatedDateTimeUtc = DateTime.UtcNow
@@ -177,16 +179,17 @@ namespace Fabric.Authorization.IntegrationTests.Services
             var customGroup2 = new Group
             {
                 GroupId = Guid.NewGuid(),
-                Name = "Custom Group 2",
+                Name = $"Custom Group 2-{Guid.NewGuid()}",
                 Source = GroupConstants.CustomSource,
                 CreatedBy = "test",
                 CreatedDateTimeUtc = DateTime.UtcNow
             };
 
+            var groupGuid = Guid.NewGuid();
             var group1 = new Group
             {
                 GroupId = Guid.NewGuid(),
-                Name = "Group 1",
+                Name = $"Group 1-{groupGuid}",
                 Source = GroupConstants.DirectorySource,
                 CreatedBy = "test",
                 CreatedDateTimeUtc = DateTime.UtcNow
@@ -195,7 +198,7 @@ namespace Fabric.Authorization.IntegrationTests.Services
             var group2 = new Group
             {
                 GroupId = Guid.NewGuid(),
-                Name = "groUP 1",
+                Name = $"groUP 1-{groupGuid}",
                 Source = GroupConstants.DirectorySource,
                 CreatedBy = "test",
                 CreatedDateTimeUtc = DateTime.UtcNow
