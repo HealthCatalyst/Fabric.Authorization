@@ -177,6 +177,34 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 .Where(g => !g.IsDeleted)
                 .ToArrayAsync();
 
+            foreach (var groupEntity in groupEntities)
+            {
+                groupEntity.GroupRoles = groupEntity.GroupRoles.Where(gr => !gr.IsDeleted).ToList();
+                foreach (var groupRole in groupEntity.GroupRoles)
+                {
+                    groupRole.Role.RolePermissions = groupRole.Role.RolePermissions.Where(rp => !rp.IsDeleted).ToList();
+                }
+            }
+
+            foreach (var groupEntity in groupEntities)
+            {
+                groupEntity.GroupUsers = groupEntity.GroupUsers.Where(gu => !gu.IsDeleted).ToList();
+            }
+
+            foreach (var groupEntity in groupEntities)
+            {
+                foreach (var groupUser in groupEntity.GroupUsers)
+                {
+                    groupUser.User.UserPermissions = groupUser.User.UserPermissions.Where(up => !up.IsDeleted).ToList();
+                }
+            }
+
+            foreach (var groupEntity in groupEntities)
+            {
+                groupEntity.ChildGroups = groupEntity.ChildGroups.Where(cg => !cg.IsDeleted).ToList();
+                groupEntity.ParentGroups = groupEntity.ParentGroups.Where(pg => !pg.IsDeleted).ToList();
+            }
+
             return groupEntities.Select(g => g.ToModel());
         }
 
