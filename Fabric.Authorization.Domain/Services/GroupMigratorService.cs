@@ -42,7 +42,24 @@ namespace Fabric.Authorization.Domain.Services
                     DuplicateCount = duplicateGroups.Count
                 };
 
+                var deletedDuplicateGroups = new List<Group>();
                 foreach (var duplicateGroup in duplicateGroups)
+                {
+                    try
+                    {
+                        await _groupStore.Delete(duplicateGroup);
+                        deletedDuplicateGroups.Add(duplicateGroup);
+                    }
+                    catch (Exception e)
+                    {
+                        var msg = $"Exception thrown while deleting DUPLICATE group {duplicateGroup}";
+                        _logger.Error(e, msg);
+                        groupMigrationRecord.Errors.Add($"{msg} ({e.Message})");
+                    }
+                }
+
+                // only migrate the groups that were successfully deleted
+                foreach (var duplicateGroup in deletedDuplicateGroups)
                 {
                     // migrate roles
                     foreach (var role in duplicateGroup.Roles)
@@ -122,17 +139,6 @@ namespace Fabric.Authorization.Domain.Services
                                 groupMigrationRecord.Errors.Add($"{msg} ({e.Message})");
                             }
                         }
-                    }
-
-                    try
-                    {
-                        await _groupStore.Delete(duplicateGroup);
-                    }
-                    catch (Exception e)
-                    {
-                        var msg = $"Exception thrown while deleting DUPLICATE group {duplicateGroup}";
-                        _logger.Error(e, msg);
-                        groupMigrationRecord.Errors.Add($"{msg} ({e.Message})");
                     }
                 }
 
