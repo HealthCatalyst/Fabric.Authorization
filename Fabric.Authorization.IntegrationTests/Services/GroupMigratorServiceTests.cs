@@ -348,6 +348,7 @@ namespace Fabric.Authorization.IntegrationTests.Services
 
             var results = await groupMigratorService.MigrateDuplicateGroups();
             Assert.Equal(1, results.GroupMigrationRecords.Count);
+            Assert.Empty(results.GroupMigrationRecords.SelectMany(r => r.Errors));
 
             var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
             {
