@@ -67,7 +67,6 @@ export class MemberListComponent implements OnInit, OnChanges {
   }
 
   initialize() {
-    console.log('initializing');
     this.currentUserService.getPermissions().subscribe(p => {
       const requiredPermission = `${this.grain}/${this.securableItem}.manageauthorization`;
       if (p.includes(requiredPermission)) {
