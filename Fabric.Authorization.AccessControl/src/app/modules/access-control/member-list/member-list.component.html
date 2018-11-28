@@ -68,8 +68,10 @@
           </td>
           <td>{{member.entityType}}</td>
           <td>{{selectRoleNames(member.roles).join(', ')}}</td>
-          <td>
+          <td *ngIf="!hideDeleteButton">
             <hc-icon fontSet="fa" class="btn-icon" fontIcon="fa-trash" (click)="removeRolesFromMember(member)"></hc-icon>
+          </td>
+          <td *ngIf="hideDeleteButton">
           </td>
         </tr>
       </tbody>

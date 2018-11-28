@@ -15,7 +15,7 @@ import { FabricAuthGroupService } from '../../../services/fabric-auth-group.serv
 import { FabricAuthEdwAdminService } from '../../../services/fabric-auth-edwadmin.service';
 import { IRole } from '../../../models/role.model';
 import { GrainFlatNode } from '../grain-list/grain-list.component';
-import { query } from '@angular/animations';
+import { CurrentUserService } from '../../../services/current-user.service';
 
 @Component({
   selector: 'app-member-list',
@@ -26,9 +26,9 @@ export class MemberListComponent implements OnInit, OnChanges {
   readonly pageSizes: number[] = [5, 10, 25, 50];
   readonly keyUp = new Subject<Event>();
   readonly maxPageSize = 50;
-
   private _pageNumber = 1;
 
+  hideDeleteButton = true;
   pageSize = 10;
   members: IAuthMemberSearchResult[];
   totalMembers = 10;
@@ -50,7 +50,8 @@ export class MemberListComponent implements OnInit, OnChanges {
     private userService: FabricAuthUserService,
     private groupService: FabricAuthGroupService,
     private router: Router,
-    private modalService: ModalService
+    private modalService: ModalService,
+    private currentUserService: CurrentUserService
   ) {
     this.keyUp.pipe(
       debounceTime(500),
@@ -65,11 +66,24 @@ export class MemberListComponent implements OnInit, OnChanges {
     sessionStorage.removeItem('selectedMember');
   }
 
+  initialize() {
+    console.log('initializing');
+    this.currentUserService.getPermissions().subscribe(p => {
+      const requiredPermission = `${this.grain}/${this.securableItem}.manageauthorization`;
+      if (p.includes(requiredPermission)) {
+        this.hideDeleteButton = false;
+      } else {
+        this.hideDeleteButton = true;
+      }
+    });
+  }
+
   ngOnChanges() {
     if (this.selectedNode && this.selectedNode.parentName && this.selectedNode.name) {
       console.log('Changed securableItem to Grain: ' + this.selectedNode.parentName + ', SecurableItem: ' + this.selectedNode.name);
 
       this.getMembers();
+      this.initialize();
     }
   }
 
