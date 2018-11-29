@@ -171,9 +171,9 @@ describe('CustomGroupComponent', () => {
   describe('save button', () => {
     it('is enabled for an admin user', () => {
       // assert
-      let saveButton: DebugElement = fixture.debugElement.query(By.css('#saveButton'));
+      const saveButton: DebugElement = fixture.debugElement.query(By.css('#saveButton'));
       expect(saveButton.nativeElement.disabled).toBe(true);
-    })
+    });
   });
 
   describe('getGroupNameToDisplay', () => {

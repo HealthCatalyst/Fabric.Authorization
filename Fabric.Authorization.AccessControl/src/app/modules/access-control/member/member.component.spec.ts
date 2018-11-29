@@ -1,4 +1,4 @@
-import { Observable, of } from 'rxjs';
+import { of } from 'rxjs';
 import { async, ComponentFixture, TestBed, inject } from '@angular/core/testing';
 
 import { ToastrModule } from 'ngx-toastr';

@@ -17,6 +17,8 @@ import { PopoverModule, IconModule, ProgressIndicatorsModule, SelectModule, Moda
 import { FabricAuthMemberSearchServiceMock, mockAuthSearchResult } from '../../../services/fabric-auth-member-search.service.mock';
 import { FormsModule } from '@angular/forms';
 import { FabricAuthMemberSearchService } from '../../../services/fabric-auth-member-search.service';
+import { CurrentUserService } from '../../../services/current-user.service';
+import { CurrentUserServiceMock, mockCurrentUserPermissions } from '../../../services/current-user.service.mock';
 
 describe('GrainListComponent', () => {
   let component: GrainListComponent;
@@ -46,8 +48,13 @@ describe('GrainListComponent', () => {
     grainService.isGrainVisible.and.returnValue(true);
   }));
 
-  beforeEach(inject([FabricAuthMemberSearchService], (memberSearchService: FabricAuthMemberSearchServiceMock) => {
+  beforeEach(inject([
+    FabricAuthMemberSearchService,
+    CurrentUserService], (
+      memberSearchService: FabricAuthMemberSearchServiceMock,
+      currentUserServiceMock: CurrentUserServiceMock) => {
     memberSearchService.searchMembers.and.returnValue(of(mockAuthSearchResult));
+    currentUserServiceMock.getPermissions.and.returnValue(of(mockCurrentUserPermissions));
     testGrains = mockGrains;
     testSecurableItems = [
       { id: 'datamarts', name: 'datamarts', grain: 'dos', securableItems: null, clientOwner: '', createdBy: '', modifiedBy: '' }
