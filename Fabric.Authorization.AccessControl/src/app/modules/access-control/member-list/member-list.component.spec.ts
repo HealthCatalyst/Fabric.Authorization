@@ -1,6 +1,5 @@
-import { Observable, of } from 'rxjs';
+import { of } from 'rxjs';
 import { async, ComponentFixture, TestBed, inject } from '@angular/core/testing';
-import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 
 import { MemberListComponent } from './member-list.component';
@@ -9,7 +8,8 @@ import { PopoverModule, IconModule, ProgressIndicatorsModule, SelectModule, Moda
 import { FabricAuthMemberSearchServiceMock, mockAuthSearchResult } from '../../../services/fabric-auth-member-search.service.mock';
 import { FormsModule } from '@angular/forms';
 import { FabricAuthMemberSearchService } from '../../../services/fabric-auth-member-search.service';
-import { IAuthMemberSearchResult } from '../../../models/authMemberSearchResult.model';
+import { CurrentUserService } from '../../../services/current-user.service';
+import { CurrentUserServiceMock, mockCurrentUserPermissions } from '../../../services/current-user.service.mock';
 
 describe('MemberListComponent', () => {
   let component: MemberListComponent;
@@ -34,8 +34,13 @@ describe('MemberListComponent', () => {
     })
   );
 
-  beforeEach(inject([FabricAuthMemberSearchService], (memberSearchService: FabricAuthMemberSearchServiceMock) => {
+  beforeEach(inject([
+    FabricAuthMemberSearchService,
+    CurrentUserService], (
+      memberSearchService: FabricAuthMemberSearchServiceMock,
+      currentUserServiceMock: CurrentUserServiceMock) => {
     memberSearchService.searchMembers.and.returnValue(of(mockAuthSearchResult));
+    currentUserServiceMock.getPermissions.and.returnValue(of(mockCurrentUserPermissions));
   }));
 
   beforeEach(() => {

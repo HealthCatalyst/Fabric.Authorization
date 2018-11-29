@@ -20,7 +20,7 @@ export class CurrentUserService {
       this.lastUpdateTimestamp = currentTimeStamp;
       return this.authUserService.getCurrentUserPermissions().pipe(tap(userPermissionResponse => {
         this.permissions = userPermissionResponse.permissions;
-      }),map(p => p.permissions),);
+      }), map(p => p.permissions));
     }
 
     return of(this.permissions);
