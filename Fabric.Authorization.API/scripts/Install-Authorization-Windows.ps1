@@ -152,23 +152,23 @@ function Add-UserOrGroupToEdwAdmin($userOrGroup, $connString) {
                 DECLARE @roleId INTEGER;
                 
                 SET @userId = -1
-                SELECT @userId = COALESCE([IdentityID], -1) FROM [EDWAdmin].[CatalystAdmin].[IdentityBASE] WHERE [IdentityNM] = @identityName
+                SELECT @userId = COALESCE([IdentityID], -1) FROM [CatalystAdmin].[IdentityBASE] WHERE [IdentityNM] = @identityName
                 BEGIN TRY
                 BEGIN TRANSACTION
                     IF (@userId < 0)
                     BEGIN
-                        INSERT INTO [EDWAdmin].[CatalystAdmin].[IdentityBASE] ([IdentityNM])
+                        INSERT INTO [CatalystAdmin].[IdentityBASE] ([IdentityNM])
                         VALUES (@identityName);
                         SELECT @userId = SCOPE_IDENTITY();
                     END
                 
                     SELECT @roleId = [RoleID]
-                    FROM [EDWAdmin].[CatalystAdmin].[RoleBASE]
+                    FROM [CatalystAdmin].[RoleBASE]
                     WHERE [RoleNM] = @roleName;
                 
-                    IF NOT EXISTS (SELECT * FROM [EDWAdmin].[CatalystAdmin].[IdentityRoleBASE] WHERE [IdentityID] = @userId AND [RoleId] = @roleId)
+                    IF NOT EXISTS (SELECT * FROM [CatalystAdmin].[IdentityRoleBASE] WHERE [IdentityID] = @userId AND [RoleId] = @roleId)
                     BEGIN
-                        INSERT INTO [EDWAdmin].[CatalystAdmin].[IdentityRoleBASE] (IdentityID, RoleID)
+                        INSERT INTO [CatalystAdmin].[IdentityRoleBASE] (IdentityID, RoleID)
                         VALUES(@userId, @roleId);
                     END
                         
