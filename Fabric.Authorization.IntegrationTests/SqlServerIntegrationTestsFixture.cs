@@ -145,18 +145,38 @@ namespace Fabric.Authorization.IntegrationTests
 
         public void DeleteDatabase(string targetDbName, string connectionString)
         {
-            var connection =
-                connectionString.Replace(targetDbName, "master");
-            using (var conn = new SqlConnection(connection))
+            var maxRetries = 3;
+            var retryAttempts = 0;
+            var success = false;
+
+            while (retryAttempts < maxRetries && !success)
             {
-                conn.Open();
-                using (var command = new SqlCommand($"ALTER DATABASE [{targetDbName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE", conn))
+                var connection =
+                    connectionString.Replace(targetDbName, "master");
+
+                try
                 {
-                    command.ExecuteNonQuery();
+                    using (var conn = new SqlConnection(connection))
+                    {
+                        conn.Open();
+                        using (var command =
+                            new SqlCommand($"ALTER DATABASE [{targetDbName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE",
+                                conn))
+                        {
+                            command.ExecuteNonQuery();
+                        }
+
+                        using (var command = new SqlCommand($"DROP DATABASE [{targetDbName}]", conn))
+                        {
+                            command.ExecuteNonQuery();
+                        }
+                    }
+
+                    success = true;
                 }
-                using (var command = new SqlCommand($"DROP DATABASE [{targetDbName}]", conn))
+                catch (Exception)
                 {
-                    command.ExecuteNonQuery();
+                    retryAttempts++;
                 }
             }
         }
