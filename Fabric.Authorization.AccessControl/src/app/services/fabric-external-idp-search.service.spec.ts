@@ -13,14 +13,17 @@ import { mockExternalIdpSearchResult } from './fabric-external-idp-search.servic
 import { Subject } from 'rxjs/Subject';
 import { FabricExternalIdpSearchService } from './fabric-external-idp-search.service';
 import { MockAccessControlConfigService } from './access-control-config.service.mock';
+import { AlertService } from './global/alert.service';
+import { ToastrModule } from 'ngx-toastr';
 
 describe('FabricExternalIdpSearchService', () => {
   let searchTextSubject: Subject<string>;
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
+      imports: [HttpClientTestingModule, ToastrModule.forRoot()],
       providers: [
         FabricExternalIdpSearchService,
+        AlertService,
         {
           provide: HTTP_INTERCEPTORS,
           useClass: FabricHttpErrorHandlerInterceptorService,
