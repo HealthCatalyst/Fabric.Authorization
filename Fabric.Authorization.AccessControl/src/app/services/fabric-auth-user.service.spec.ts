@@ -17,6 +17,8 @@ import { IRole } from '../models/role.model';
 import { IUser } from '../models/user.model';
 import { IGroup } from '../models/group.model';
 import { MockAccessControlConfigService } from './access-control-config.service.mock';
+import { AlertService } from './global/alert.service';
+import { ToastrModule } from 'ngx-toastr';
 
 describe('FabricAuthUserService', () => {
   const idP = 'ad';
@@ -24,9 +26,10 @@ describe('FabricAuthUserService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
+      imports: [HttpClientTestingModule, ToastrModule.forRoot()],
       providers: [
         FabricAuthUserService,
+        AlertService,
         {
           provide: HTTP_INTERCEPTORS,
           useClass: FabricHttpErrorHandlerInterceptorService,

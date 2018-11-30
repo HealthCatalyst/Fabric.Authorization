@@ -9,12 +9,14 @@ import { TestBed, inject } from '@angular/core/testing';
 
 import { FabricAuthGrainService } from './fabric-auth-grain.service';
 import { MockAccessControlConfigService } from './access-control-config.service.mock';
+import { AlertService } from './global/alert.service';
 
 describe('FabricAuthGrainService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       providers: [FabricAuthGrainService,
+        AlertService,
         {
           provide: HTTP_INTERCEPTORS,
           useClass: FabricHttpErrorHandlerInterceptorService,
