@@ -18,6 +18,8 @@ import { IUser } from '../models/user.model';
 import { IRole } from '../models/role.model';
 import { IGroup } from '../models/group.model';
 import { MockAccessControlConfigService } from './access-control-config.service.mock';
+import { AlertService } from './global/alert.service';
+import { ToastrModule } from 'ngx-toastr';
 
 describe('FabricAuthGroupService', () => {
   const groupName = 'DosAdminGroup';
@@ -33,9 +35,10 @@ describe('FabricAuthGroupService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
+      imports: [HttpClientTestingModule, ToastrModule.forRoot()],
       providers: [
         FabricAuthGroupService,
+        AlertService,
         {
           provide: HTTP_INTERCEPTORS,
           useClass: FabricHttpErrorHandlerInterceptorService,

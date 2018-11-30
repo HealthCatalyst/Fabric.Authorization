@@ -13,13 +13,16 @@ import { mockAuthSearchResult } from './fabric-auth-member-search.service.mock';
 import { FabricAuthMemberSearchService } from './fabric-auth-member-search.service';
 import { IAuthMemberSearchRequest } from '../models/authMemberSearchRequest.model';
 import { MockAccessControlConfigService } from './access-control-config.service.mock';
+import { AlertService } from './global/alert.service';
+import { ToastrModule } from 'ngx-toastr';
 
 describe('FabricAuthMemberSearchService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
+      imports: [HttpClientTestingModule, ToastrModule.forRoot()],
       providers: [
         FabricAuthMemberSearchService,
+        AlertService,
         {
           provide: HTTP_INTERCEPTORS,
           useClass: FabricHttpErrorHandlerInterceptorService,

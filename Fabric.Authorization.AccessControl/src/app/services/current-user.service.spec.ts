@@ -10,6 +10,7 @@ import { CurrentUserService } from './current-user.service';
 import { FabricAuthUserService } from './fabric-auth-user.service';
 import { MockAccessControlConfigService } from './access-control-config.service.mock';
 import { FabricHttpErrorHandlerInterceptorService } from './interceptors/fabric-http-error-handler-interceptor.service';
+import { AlertService } from './global/alert.service';
 
 describe('CurrentUserService', () => {
   beforeEach(() => {
@@ -17,6 +18,7 @@ describe('CurrentUserService', () => {
       imports: [HttpClientTestingModule],
       providers: [
         CurrentUserService,
+        AlertService,
         FabricAuthUserService,
         {
           provide: HTTP_INTERCEPTORS,
