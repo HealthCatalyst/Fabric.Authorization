@@ -444,7 +444,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
 
         // TODO: Error handling
         this.savingInProgress = false;
-        this.alertService.showSaveError(error.message);
+        this.alertService.showError(error.message);
       }, () => {
         this.savingInProgress = false;
         this.router.navigate([this.returnRoute]);
