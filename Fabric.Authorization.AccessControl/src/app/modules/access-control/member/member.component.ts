@@ -225,7 +225,6 @@ export class MemberComponent implements OnInit, OnDestroy {
             });
       })
       .catch(err => {
-        this.alertService.showError(err.message);
         return Observable.throw(err.message);
       });
   }
@@ -271,7 +270,6 @@ export class MemberComponent implements OnInit, OnDestroy {
       })
       .catch(err => {
         this.savingInProgress = false;
-        this.alertService.showError(err.message);
         return Observable.throw(err.message);
       });
   }
