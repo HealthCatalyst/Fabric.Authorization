@@ -4,7 +4,6 @@ import {throwError as observableThrowError,  Observable } from 'rxjs';
 import {catchError} from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import {
-  HttpInterceptor,
   HttpRequest,
   HttpHandler,
   HttpEvent,
@@ -13,9 +12,13 @@ import {
 
 
 import { Exception } from '../../models/exception.model';
+import { AlertService } from '../global/alert.service';
 
 @Injectable()
 export class FabricHttpErrorHandlerInterceptorService {
+
+  constructor(private alertService: AlertService) {}
+
   /*
     Pattern below found at https://angular.io/guide/http#error-handling.
   */
@@ -28,6 +31,7 @@ export class FabricHttpErrorHandlerInterceptorService {
         if (response.error instanceof ErrorEvent) {
           // A client-side or network error occurred. Handle it accordingly.
           console.error('An error occurred:', response.error.message);
+          this.showAlert(response, response.error.message);
         } else {
           // The backend returned an unsuccessful response code.
           // The response body may contain clues as to what went wrong,
@@ -36,11 +40,19 @@ export class FabricHttpErrorHandlerInterceptorService {
               response.error
             )}`
           );
+
+          this.showAlert(response, response.statusText);
         }
 
         return observableThrowError(
           new Exception(response.status, response.error.message || JSON.stringify(response.error))
         );
     }));
+  }
+
+  showAlert(response: HttpErrorResponse, errorMessage: string) {
+    if (response.status !== 404 && response.status !== 409) {
+      this.alertService.showError(errorMessage);
+    }
   }
 }
