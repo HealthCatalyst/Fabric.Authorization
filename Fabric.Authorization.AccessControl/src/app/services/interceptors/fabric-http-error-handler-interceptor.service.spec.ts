@@ -1,11 +1,18 @@
 import { TestBed, inject } from '@angular/core/testing';
 
 import { FabricHttpErrorHandlerInterceptorService } from './fabric-http-error-handler-interceptor.service';
+import { AlertService } from '../global/alert.service';
+import { ToastrService, ToastrModule } from 'ngx-toastr';
 
 describe('FabricHttpErrorHandlerInterceptorService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [FabricHttpErrorHandlerInterceptorService]
+      imports: [ToastrModule.forRoot()],
+      providers: [
+        FabricHttpErrorHandlerInterceptorService,
+        AlertService,
+        ToastrService
+      ]
     });
   });
 

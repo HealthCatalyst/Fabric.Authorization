@@ -9,12 +9,14 @@ import { TestBed, inject } from '@angular/core/testing';
 
 import { FabricAuthEdwAdminService } from './fabric-auth-edwadmin.service';
 import { MockAccessControlConfigService } from './access-control-config.service.mock';
+import { AlertService } from './global/alert.service';
 
 describe('FabricAuthEdwadminService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       providers: [FabricAuthEdwAdminService,
+        AlertService,
         {
           provide: HTTP_INTERCEPTORS,
           useClass: FabricHttpErrorHandlerInterceptorService,
