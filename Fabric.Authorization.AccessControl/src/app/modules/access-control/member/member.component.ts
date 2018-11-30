@@ -238,7 +238,6 @@ export class MemberComponent implements OnInit, OnDestroy {
             });
       }),
       catchError(err => {
-        this.alertService.showError(err.message);
         return observableThrowError(err.message);
       }));
   }
@@ -293,15 +292,8 @@ export class MemberComponent implements OnInit, OnDestroy {
       }),
       catchError(err => {
         this.savingInProgress = false;
-<<<<<<< HEAD
-        this.alertService.showSaveError(err.message);
         return observableThrowError(err.message);
       }));
-=======
-        this.alertService.showError(err.message);
-        return Observable.throw(err.message);
-      });
->>>>>>> b7b3df8... show toaster alerts for all HTTP errors except 404 and 409
   }
 
   private bindExistingRoles(principal: IFabricPrincipal): Observable<any> {
