@@ -26,14 +26,15 @@ namespace Fabric.Authorization.Domain.Services
             var groups = (await _groupStore.GetAll()).ToList();
 
             var groupKeys = groups
-                .GroupBy(g => g.Name, StringComparer.OrdinalIgnoreCase)
+                .GroupBy(g => g.GroupIdentifier, new GroupIdentifierComparer())
                 .Where(g => g.Count() > 1)
-                .Select(g => g.Key);
+                .Select(g => g.Key)
+                .ToList();
 
             var groupMigrationResult = new GroupMigrationResult();
             foreach (var key in groupKeys)
             {
-                var duplicateGroups = groups.Where(g => string.Equals(key, g.Name, StringComparison.OrdinalIgnoreCase)).ToList();
+                var duplicateGroups = groups.Where(g => new GroupIdentifierComparer().Equals(g.GroupIdentifier, key)).ToList();
                 var originalGroup = duplicateGroups.First();
                 duplicateGroups.RemoveAt(0);
 
@@ -90,7 +91,7 @@ namespace Fabric.Authorization.Domain.Services
                             _logger.Information($"Migrating User {user} from {duplicateGroup} to group {originalGroup}");
                             try
                             {
-                                await _groupStore.AddUserToGroup(originalGroup, user);
+                                await _groupStore.AddUsersToGroup(originalGroup, new List<User> {user});
                             }
                             catch (Exception e)
                             {

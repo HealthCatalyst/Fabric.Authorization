@@ -390,9 +390,278 @@ namespace Fabric.Authorization.IntegrationTests.Services
         }
 
         [Fact]
-        public void MigrateDuplicateGroups_HasDuplicateIdentifiers_Success()
+        public async Task MigrateDuplicateGroups_HasDuplicateIdentifiers_Success()
         {
-            // TODO: write test for this once merged to master with GroupIdentifier logic
+            var container = _fixture.Bootstrapper.TinyIoCContainer;
+            var dbContext = container.Resolve<IAuthorizationDbContext>();
+            var groupMigratorService = container.Resolve<GroupMigratorService>();
+
+            #region Data Setup
+
+            var client = new Client
+            {
+                ClientId = $"client1-{Guid.NewGuid()}",
+                Name = $"Client 1-{Guid.NewGuid()}"
+            };
+
+            var grain = new Grain
+            {
+                Name = $"dos-{Guid.NewGuid()}"
+            };
+
+            var securableItem = new SecurableItem
+            {
+                Name = $"datamarts-{Guid.NewGuid()}",
+                Grain = grain,
+                ClientOwner = client.ClientId
+            };
+
+            client.TopLevelSecurableItem = securableItem;
+
+            var customGroup1 = new Group
+            {
+                GroupId = Guid.NewGuid(),
+                Name = $"Custom Group 1-{Guid.NewGuid()}",
+                Source = GroupConstants.CustomSource,
+                CreatedBy = "test",
+                CreatedDateTimeUtc = DateTime.UtcNow
+            };
+
+            var customGroup2 = new Group
+            {
+                GroupId = Guid.NewGuid(),
+                Name = $"Custom Group 2-{Guid.NewGuid()}",
+                Source = GroupConstants.CustomSource,
+                CreatedBy = "test",
+                CreatedDateTimeUtc = DateTime.UtcNow
+            };
+
+            var groupGuid = Guid.NewGuid();
+            var group1 = new Group
+            {
+                GroupId = Guid.NewGuid(),
+                Name = $"Group 1-{groupGuid}",
+                IdentityProvider = "Windows",
+                TenantId = "12345",
+                Source = GroupConstants.DirectorySource,
+                CreatedBy = "test",
+                CreatedDateTimeUtc = DateTime.UtcNow
+            };
+
+            var group2 = new Group
+            {
+                GroupId = Guid.NewGuid(),
+                Name = $"groUP 1-{groupGuid}",
+                IdentityProvider = "Windows",
+                TenantId = "12345",
+                Source = GroupConstants.DirectorySource,
+                CreatedBy = "test",
+                CreatedDateTimeUtc = DateTime.UtcNow
+            };
+
+            var group3 = new Group
+            {
+                GroupId = Guid.NewGuid(),
+                Name = $"groUP 1-{groupGuid}",
+                IdentityProvider = "Azure AD",
+                TenantId = "12345",
+                Source = GroupConstants.DirectorySource,
+                CreatedBy = "test",
+                CreatedDateTimeUtc = DateTime.UtcNow
+            };
+
+            var role1 = new Role
+            {
+                RoleId = Guid.NewGuid(),
+                Name = "Role 1",
+                Grain = grain.Name,
+                SecurableItem = securableItem
+            };
+
+            var role2 = new Role
+            {
+                RoleId = Guid.NewGuid(),
+                Name = "Role 2",
+                Grain = grain.Name,
+                SecurableItem = securableItem,
+            };
+
+            var role3 = new Role
+            {
+                RoleId = Guid.NewGuid(),
+                Name = "Role 3",
+                Grain = grain.Name,
+                SecurableItem = securableItem,
+            };
+
+            var role4 = new Role
+            {
+                RoleId = Guid.NewGuid(),
+                Name = "Role 4",
+                Grain = grain.Name,
+                SecurableItem = securableItem,
+            };
+
+            var group1Role1 = new GroupRole
+            {
+                Group = group1,
+                Role = role1
+            };
+
+            var group2Role1 = new GroupRole
+            {
+                Group = group2,
+                Role = role1
+            };
+
+            var group2Role2 = new GroupRole
+            {
+                Group = group2,
+                Role = role2
+            };
+
+            var group2Role3 = new GroupRole
+            {
+                Group = group2,
+                Role = role3,
+                IsDeleted = true
+            };
+
+            var group3Role4 = new GroupRole
+            {
+                Group = group3,
+                Role = role4
+            };
+
+            var user1 = new User
+            {
+                IdentityProvider = "windows",
+                SubjectId = Guid.NewGuid().ToString()
+            };
+
+            var customGroup1User1 = new GroupUser
+            {
+                Group = customGroup1,
+                User = user1
+            };
+
+            var customGroup2User1 = new GroupUser
+            {
+                Group = customGroup2,
+                User = user1
+            };
+
+            var childGroup1 = new ChildGroup
+            {
+                ChildGroupId = group1.GroupId,
+                ParentGroupId = customGroup1.GroupId,
+                CreatedBy = "test",
+                CreatedDateTimeUtc = DateTime.UtcNow
+            };
+
+            var childGroup2 = new ChildGroup
+            {
+                ChildGroupId = group2.GroupId,
+                ParentGroupId = customGroup1.GroupId,
+                CreatedBy = "test",
+                CreatedDateTimeUtc = DateTime.UtcNow
+            };
+
+            var childGroup3 = new ChildGroup
+            {
+                ChildGroupId = group2.GroupId,
+                ParentGroupId = customGroup2.GroupId,
+                CreatedBy = "test",
+                CreatedDateTimeUtc = DateTime.UtcNow
+            };
+
+            dbContext.Clients.Add(client);
+            dbContext.Grains.Add(grain);
+            dbContext.SecurableItems.Add(securableItem);
+
+            dbContext.Roles.AddRange(new List<Role>
+            {
+                role1,
+                role2,
+                role3,
+                role4
+            });
+
+            dbContext.Groups.AddRange(new List<Group>
+            {
+                customGroup1,
+                customGroup2,
+                group1,
+                group2,
+                group3
+            });
+
+            dbContext.GroupRoles.AddRange(new List<GroupRole>
+            {
+                group1Role1,
+                group2Role1,
+                group2Role2,
+                group2Role3,
+                group3Role4
+            });
+
+            dbContext.Users.Add(user1);
+
+            dbContext.GroupUsers.AddRange(new List<GroupUser>
+            {
+                customGroup1User1,
+                customGroup2User1
+            });
+
+            dbContext.ChildGroups.AddRange(new List<ChildGroup>
+            {
+                childGroup1,
+                childGroup2,
+                childGroup3
+            });
+
+            dbContext.SaveChanges();
+
+            #endregion
+
+            var results = await groupMigratorService.MigrateDuplicateGroups();
+            Assert.Equal(1, results.GroupMigrationRecords.Count);
+            Assert.Empty(results.GroupMigrationRecords.SelectMany(r => r.Errors));
+
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
+            {
+                new Claim(Claims.Scope, Scopes.ManageClientsScope),
+                new Claim(Claims.Scope, Scopes.ReadScope),
+                new Claim(Claims.Scope, Scopes.WriteScope),
+                new Claim(Claims.ClientId, client.ClientId),
+                new Claim(Claims.IdentityProvider, "idP1")
+            }, "rolesprincipal"));
+
+            var browser = _fixture.GetBrowser(principal, _storageProvider);
+
+            var getResponse = await browser.Get(HttpUtility.UrlEncode($"/groups/Group 1-{groupGuid}"), with =>
+            {
+                with.HttpRequest();
+                with.Header("Accept", "application/json");
+                with.Query("identityProvider", "Windows");
+                with.Query("tenantId", "12345");
+            });
+
+            var groupRoleApiModel = getResponse.Body.DeserializeJson<GroupRoleApiModel>();
+            var roles = groupRoleApiModel.Roles.ToList();
+            Assert.Equal(2, roles.Count);
+            Assert.Contains(roles, r => r.Name == role1.Name);
+            Assert.Contains(roles, r => r.Name == role2.Name);
+
+            var parents = groupRoleApiModel.Parents.ToList();
+            Assert.Contains(parents, p => p.GroupName == customGroup1.Name);
+            Assert.Contains(parents, p => p.GroupName == customGroup2.Name);
+
+            var groupStore = container.Resolve<IGroupStore>();
+            await groupStore.Delete(customGroup1.ToModel());
+            await groupStore.Delete(customGroup2.ToModel());
+            await groupStore.Delete(group1.ToModel());
+            await groupStore.Delete(group2.ToModel());
         }
     }
 }
