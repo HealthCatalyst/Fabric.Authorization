@@ -148,9 +148,17 @@ namespace Fabric.Authorization.Domain.Models
         public int GetHashCode(GroupIdentifier groupIdentifier)
         {
             var hash = 13;
-            hash = (hash * 7) + groupIdentifier.IdentityProvider.GetHashCode();
-            hash = (hash * 7) + groupIdentifier.TenantId.GetHashCode();
-            hash = (hash * 7) + groupIdentifier.GroupName.GetHashCode();
+            if (!string.IsNullOrWhiteSpace(groupIdentifier.IdentityProvider))
+            {
+                hash = (hash * 7) + groupIdentifier.IdentityProvider.ToLower().GetHashCode();
+            }
+
+            if (!string.IsNullOrWhiteSpace(groupIdentifier.TenantId))
+            {
+                hash = (hash * 7) + groupIdentifier.TenantId.ToLower().GetHashCode();
+            }
+
+            hash = (hash * 7) + groupIdentifier.GroupName.ToLower().GetHashCode();
             return hash;
         }
     }
