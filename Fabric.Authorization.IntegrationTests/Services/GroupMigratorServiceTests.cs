@@ -662,6 +662,7 @@ namespace Fabric.Authorization.IntegrationTests.Services
             await groupStore.Delete(customGroup2.ToModel());
             await groupStore.Delete(group1.ToModel());
             await groupStore.Delete(group2.ToModel());
+            await groupStore.Delete(group3.ToModel());
         }
     }
 }
