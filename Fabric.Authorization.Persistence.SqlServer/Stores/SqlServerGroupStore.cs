@@ -303,6 +303,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         {
             var groupEntity = await AuthorizationDbContext.Groups.SingleOrDefaultAsync(g =>
                 g.Name == group.Name
+                && g.TenantId == group.TenantId
+                && g.IdentityProvider == group.IdentityProvider
                 && !g.IsDeleted);
 
             if (groupEntity == null)
@@ -372,6 +374,8 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         {
             var groupEntity = await AuthorizationDbContext.Groups.SingleOrDefaultAsync(g =>
                 g.Name == group.Name
+                && g.TenantId == group.TenantId
+                && g.IdentityProvider == group.IdentityProvider
                 && !g.IsDeleted);
 
             if (groupEntity == null)
