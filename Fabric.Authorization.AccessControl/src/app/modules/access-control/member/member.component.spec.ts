@@ -31,7 +31,7 @@ import { IFabricPrincipal } from '../../../models/fabricPrincipal.model';
 import { mockRolesResponse, FabricAuthGroupServiceMock, mockGroupResponse } from '../../../services/fabric-auth-group.service.mock';
 import { FabricAuthGroupService } from '../../../services/fabric-auth-group.service';
 
-fdescribe('MemberAddComponent', () => {
+describe('MemberAddComponent', () => {
   let component: MemberComponent;
   let fixture: ComponentFixture<MemberComponent>;
   let edwAdminService: FabricAuthEdwadminServiceMock;
@@ -123,7 +123,7 @@ fdescribe('MemberAddComponent', () => {
       message: 'sync error'
     };
 
-     edwAdminService.syncGroupWithEdwAdmin.and.returnValue(throwError(mockErrorResponse));
+    edwAdminService.syncGroupWithEdwAdmin.and.returnValue(throwError(mockErrorResponse));
     groupService.getGroup.and.returnValue(of(mockGroupResponse));
     groupService.getGroupRoles.and.returnValue(of(mockRolesResponse));
     groupService.addRolesToGroup.and.returnValue(of(mockGroupResponse));
