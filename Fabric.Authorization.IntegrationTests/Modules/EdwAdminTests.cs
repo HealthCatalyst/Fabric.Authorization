@@ -91,6 +91,23 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
+        public async Task SyncPermissions_OnRole_DoesNotSyncNonWindowsAdAsync()
+        {
+            // Arrange Add user to admin role
+            var role = await CreateRoleAsync(_adminRole);
+            var user = await CreateUserAsync("User-" + Guid.NewGuid(), "notwindows");
+            await AddUserToIdentityBASEAsync(_securityContext, user);
+            await AssociateUserToRoleAsync(user, role);
+            var body = JsonConvert.SerializeObject(new[] { new { identityProvider = user.IdentityProvider, subjectId = user.SubjectId } });
+
+            // Act Add user to role
+            var result = await _browser.Post($"/edw/roles", with => with.Body(body));
+
+            // Assert User not an EDWAdmin
+            await AssertEdwAdminRoleOnUserAsync(user, false);
+        }
+
+        [Fact]
         public async Task SyncPermissions_OnGroup_AddRemoveToEdwAdminAsync()
         {
             // Arrange I Add role to group
