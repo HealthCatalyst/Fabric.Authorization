@@ -19,6 +19,8 @@ import { FabricAuthRoleServiceMock } from '../../services/fabric-auth-role.servi
 import { FabricAuthGrainServiceMock } from '../../services/fabric-auth-grain.service.mock';
 import { CurrentUserServiceMock } from '../../services/current-user.service.mock';
 import { CurrentUserService } from '../../services/current-user.service';
+import { AlertService } from '../../services/global/alert.service';
+import { AlertServiceMock } from '../../services/global/alert.service.mock';
 
 @NgModule({
     providers: [
@@ -57,6 +59,10 @@ import { CurrentUserService } from '../../services/current-user.service';
         {
             provide: CurrentUserService,
             useClass: CurrentUserServiceMock
+        },
+        {
+            provide: AlertService,
+            useClass: AlertServiceMock
         }
     ],
     imports: [RouterTestingModule]

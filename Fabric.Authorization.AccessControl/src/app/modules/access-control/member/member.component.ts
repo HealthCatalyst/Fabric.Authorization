@@ -187,8 +187,12 @@ export class MemberComponent implements OnInit, OnDestroy {
     this.router.navigate([this.returnRoute]);
   }
 
-  private saveUser(subjectId: string, selectedRoles: IRole[]): Observable<any> {
-    const user: IUser = { identityProvider: this.configService.identityProvider, subjectId: subjectId };
+  saveUser(subjectId: string, selectedRoles: IRole[]): Observable<any> {
+    const user: IUser = {
+      identityProvider: this.configService.identityProvider,
+      subjectId: subjectId
+    };
+
     return this.userService
       .getUser(
         this.configService.identityProvider,
@@ -204,7 +208,6 @@ export class MemberComponent implements OnInit, OnDestroy {
             .userService
             .createUser(user);
         }
-
         return observableThrowError(err.message);
       }),
       mergeMap((newUser: IUser) => {
@@ -226,11 +229,15 @@ export class MemberComponent implements OnInit, OnDestroy {
               user.identityProvider,
               user.subjectId,
               rolesToDelete
-            )).toPromise()
+            ))
+            .toPromise()
             .then(value => {
               return this.edwAdminService.syncUsersWithEdwAdmin([user])
               .toPromise()
-              .then(o => { this.savingInProgress = false; return value; })
+              .then(o => {
+                this.savingInProgress = false;
+                return value;
+              })
               .catch(err => {
                 this.savingInProgress = false;
                 this.alertService.showSyncWarning(err.message);
@@ -238,11 +245,12 @@ export class MemberComponent implements OnInit, OnDestroy {
             });
       }),
       catchError(err => {
+        this.savingInProgress = false;
         return observableThrowError(err.message);
       }));
   }
 
-  private saveGroup(principal: IFabricPrincipal, selectedRoles: IRole[]): Observable<any> {
+  saveGroup(principal: IFabricPrincipal, selectedRoles: IRole[]): Observable<any> {
     const group: IGroup = {
       groupName: principal.subjectId,
       groupSource: 'directory',
@@ -283,7 +291,10 @@ export class MemberComponent implements OnInit, OnDestroy {
           .then(value => {
             return this.edwAdminService.syncGroupWithEdwAdmin(group.groupName, group.identityProvider, group.tenantId)
             .toPromise()
-            .then(o => { this.savingInProgress = false; return value; })
+            .then(o => {
+              this.savingInProgress = false;
+              return value;
+            })
             .catch(err => {
               this.savingInProgress = false;
               this.alertService.showSyncWarning(err.message);
