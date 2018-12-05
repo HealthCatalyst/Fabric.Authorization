@@ -84,24 +84,21 @@ namespace Fabric.Authorization.API.Modules
 
             try
             {
-                if (groupIdentifier.IdentityProvider.Equals(IdentityConstants.ActiveDirectory, StringComparison.OrdinalIgnoreCase))
+                var group = await _groupService.GetGroup(groupIdentifier);
+                foreach (var groupUser in group.Users)
                 {
-                    var group = await _groupService.GetGroup(groupIdentifier);
-                    foreach (var groupUser in group.Users)
+                    if (groupUser.IdentityProvider.Equals(IdentityConstants.ActiveDirectory, StringComparison.OrdinalIgnoreCase))
                     {
-                        if (groupUser.IdentityProvider.Equals(IdentityConstants.ActiveDirectory, StringComparison.OrdinalIgnoreCase))
+                        try
                         {
-                            try
-                            {
-                                var user = await _userService.GetUser(groupUser.SubjectId, groupUser.IdentityProvider);
-                                await _syncService.RefreshDosAdminRolesAsync(user);
-                            }
-                            catch (NotFoundException<User>)
-                            {
-                                return CreateFailureResponse(
-                                    $"The user: {groupUser.SubjectId} for identity provider: {groupUser.IdentityProvider} was not found.",
-                                    HttpStatusCode.NotFound);
-                            }
+                            var user = await _userService.GetUser(groupUser.SubjectId, groupUser.IdentityProvider);
+                            await _syncService.RefreshDosAdminRolesAsync(user);
+                        }
+                        catch (NotFoundException<User>)
+                        {
+                            return CreateFailureResponse(
+                                $"The user: {groupUser.SubjectId} for identity provider: {groupUser.IdentityProvider} was not found.",
+                                HttpStatusCode.NotFound);
                         }
                     }
                 }
