@@ -11,8 +11,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Catalyst.Fabric.Authorization.Models.Requests;
 using Fabric.Authorization.API.Configuration;
+using Fabric.Authorization.API.Constants;
 
 namespace Fabric.Authorization.API.Modules
 {
@@ -52,14 +52,17 @@ namespace Fabric.Authorization.API.Modules
 
             foreach(var item in roleUserRequest)
             {
-                try
+                if (item.IdentityProvider.Equals(IdentityConstants.ActiveDirectory, StringComparison.OrdinalIgnoreCase))
                 {
-                    User user = await _userService.GetUser(item.SubjectId, item.IdentityProvider);
-                    await _syncService.RefreshDosAdminRolesAsync(user);
-                }
-                catch (NotFoundException<User>)
-                {
-                    resultList.Add($"The user: {item.SubjectId} for identity provider: {item.IdentityProvider} was not found.");
+                    try
+                    {
+                        User user = await _userService.GetUser(item.SubjectId, item.IdentityProvider);
+                        await _syncService.RefreshDosAdminRolesAsync(user);
+                    }
+                    catch (NotFoundException<User>)
+                    {
+                        resultList.Add($"The user: {item.SubjectId} for identity provider: {item.IdentityProvider} was not found.");
+                    }
                 }
             }
 
@@ -81,19 +84,25 @@ namespace Fabric.Authorization.API.Modules
 
             try
             {
-                var group = await _groupService.GetGroup(groupIdentifier);
-                foreach (var groupUser in group.Users)
+                if (groupIdentifier.IdentityProvider.Equals(IdentityConstants.ActiveDirectory, StringComparison.OrdinalIgnoreCase))
                 {
-                    try
+                    var group = await _groupService.GetGroup(groupIdentifier);
+                    foreach (var groupUser in group.Users)
                     {
-                        var user = await _userService.GetUser(groupUser.SubjectId, groupUser.IdentityProvider);
-                        await _syncService.RefreshDosAdminRolesAsync(user);
-                    }
-                    catch (NotFoundException<User>)
-                    {
-                        return CreateFailureResponse(
-                            $"The user: {groupUser.SubjectId} for identity provider: {groupUser.IdentityProvider} was not found.",
-                            HttpStatusCode.NotFound);
+                        if (groupUser.IdentityProvider.Equals(IdentityConstants.ActiveDirectory, StringComparison.OrdinalIgnoreCase))
+                        {
+                            try
+                            {
+                                var user = await _userService.GetUser(groupUser.SubjectId, groupUser.IdentityProvider);
+                                await _syncService.RefreshDosAdminRolesAsync(user);
+                            }
+                            catch (NotFoundException<User>)
+                            {
+                                return CreateFailureResponse(
+                                    $"The user: {groupUser.SubjectId} for identity provider: {groupUser.IdentityProvider} was not found.",
+                                    HttpStatusCode.NotFound);
+                            }
+                        }
                     }
                 }
 
