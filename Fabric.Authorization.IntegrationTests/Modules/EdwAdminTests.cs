@@ -91,19 +91,37 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
-        public async Task SyncPermissions_OnRole_DoesNotSyncNonWindowsAdAsync()
+        public async Task SyncPermissions_OnRole_DoesNotSyncNonWindowsAdUserAsync()
         {
-            // Arrange Add user to admin role
+            // Arrange give user admin role
             var role = await CreateRoleAsync(_adminRole);
             var user = await CreateUserAsync("User-" + Guid.NewGuid(), "notwindows");
             await AddUserToIdentityBASEAsync(_securityContext, user);
             await AssociateUserToRoleAsync(user, role);
             var body = JsonConvert.SerializeObject(new[] { new { identityProvider = user.IdentityProvider, subjectId = user.SubjectId } });
 
-            // Act Add user to role
+            // Act Attempt to sync permissions
             var result = await _browser.Post($"/edw/roles", with => with.Body(body));
 
             // Assert User not an EDWAdmin
+            await AssertEdwAdminRoleOnUserAsync(user, false);
+        }
+
+        [Fact]
+        public async Task SyncPermissions_OnGroup_DoesNotSyncNonWindowsAdUserAsync()
+        {
+            // Arrange Add admin role, and user to admin group
+            var role = await CreateRoleAsync(_adminRole);
+            var group = await CreateGroupAsync("dosadminsgroup" + Guid.NewGuid());
+            await AssociateGroupToRoleAsync(group, role);
+            var user = await CreateUserAsync("User-" + Guid.NewGuid(), "nonwindows");
+            await AddUserToIdentityBASEAsync(_securityContext, user);
+            await AssociateUserToGroupAsync(user, group);
+
+            // Act Attempt to sync permissions
+            var result = await _browser.Post($"/edw/{group.GroupName}/roles", with => with.Body(""));
+
+            // Assert
             await AssertEdwAdminRoleOnUserAsync(user, false);
         }
 
