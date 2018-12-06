@@ -27,15 +27,20 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
 
         public async Task<Group> Add(Group group)
         {
-            var alreadyExists = await Exists(group.GroupIdentifier);
-            if (alreadyExists)
+            var groupNameMatches = AuthorizationDbContext.Groups
+                .Where(g => !g.IsDeleted
+                            && g.Name == group.GroupIdentifier.GroupName).Select(e => e.ToModel()).ToList();
+
+            if (groupNameMatches.Any())
             {
                 if (group.Source == GroupConstants.CustomSource)
                 {
                     throw new AlreadyExistsException<Group>(
                         $"Group {group.Name} already exists. Please use a different GroupName.");
                 }
-                else
+
+                if (groupNameMatches.Any(g =>
+                    new GroupIdentifierComparer().Equals(g.GroupIdentifier, group.GroupIdentifier)))
                 {
                     throw new AlreadyExistsException<Group>(
                         $"Group {group.GroupIdentifier} already exists. Please use a different GroupName, IdentityProvider, or TenantId.");
