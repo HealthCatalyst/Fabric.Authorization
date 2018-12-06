@@ -23,7 +23,7 @@ namespace Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Provide
         private readonly ILogger _logger;
 
         private const string ServiceName = "Fabric.IdentityProviderSearchService";
-        private const string PrincipalsEndpoint = "v1/principals/";
+        private const string PrincipalsEndpoint = "principals/";
 
         public IdPSearchProvider(
             HttpClient httpClient,
