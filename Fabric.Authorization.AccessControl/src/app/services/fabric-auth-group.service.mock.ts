@@ -46,7 +46,7 @@ export const mockGroupResponse: IGroup = {
     users: mockUsersResponse,
     roles: mockRolesResponse,
     displayName: dosAdminGroupDisplayName,
-    description: dosAdminGroupDescription,
+    description: dosAdminGroupDescription
 };
 
 export const mockGroupsResponse: IGroup[] = [
@@ -87,5 +87,9 @@ export class FabricAuthGroupServiceMock {
 
     createGroup: jasmine.Spy = jasmine.createSpy('createGroup');
 
-    getChildGroups: jasmine.Spy = jasmine.createSpy('getChildGroup');
+    getChildGroups: jasmine.Spy = jasmine.createSpy('getChildGroups');
+
+    addChildGroups: jasmine.Spy = jasmine.createSpy('addChildGroups');
+
+    removeChildGroups: jasmine.Spy = jasmine.createSpy('removeChildGroups');
 }

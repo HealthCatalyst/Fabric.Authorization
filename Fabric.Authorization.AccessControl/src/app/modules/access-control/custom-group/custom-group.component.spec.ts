@@ -10,8 +10,16 @@ import { FabricAuthGroupService } from '../../../services/fabric-auth-group.serv
 import { FabricAuthRoleService } from '../../../services/fabric-auth-role.service';
 import { FabricExternalIdpSearchService } from '../../../services/fabric-external-idp-search.service';
 import { FabricAuthRoleServiceMock } from '../../../services/fabric-auth-role.service.mock';
-import { FabricAuthGroupServiceMock, mockUsersResponse, mockGroupsResponse } from '../../../services/fabric-auth-group.service.mock';
-import { mockRolesResponse, FabricAuthUserServiceMock, mockUserPermissionResponse } from '../../../services/fabric-auth-user.service.mock';
+import {
+  FabricAuthGroupServiceMock,
+  mockUsersResponse,
+  mockGroupsResponse,
+  mockGroupResponse } from '../../../services/fabric-auth-group.service.mock';
+import {
+  mockRolesResponse,
+  FabricAuthUserServiceMock,
+  mockUserPermissionResponse,
+  mockUserResponse } from '../../../services/fabric-auth-user.service.mock';
 import {
   ButtonModule,
   IconModule,
@@ -21,7 +29,7 @@ import {
   CheckboxModule,
   ProgressIndicatorsModule
 } from '@healthcatalyst/cashmere';
-import { InputDirective } from '../input.directive'
+import { InputDirective } from '../input.directive';
 import { FabricExternalIdpSearchServiceMock, mockExternalIdpSearchResult } from '../../../services/fabric-external-idp-search.service.mock';
 import { IdPSearchResult } from '../../../models/idpSearchResult.model';
 import { CurrentUserServiceMock, mockCurrentUserPermissions } from '../../../services/current-user.service.mock';
@@ -29,13 +37,22 @@ import { FabricAuthUserService } from '../../../services/fabric-auth-user.servic
 import { CurrentUserService } from '../../../services/current-user.service';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
+import { AlertServiceMock } from '../../../services/global/alert.service.mock';
+import { FabricAuthEdwadminServiceMock } from '../../../services/fabric-auth-edwadmin.service.mock';
+import { IFabricPrincipal } from '../../../models/fabricPrincipal.model';
+import { FabricAuthEdwAdminService } from '../../../services/fabric-auth-edwadmin.service';
+import { AlertService } from '../../../services/global/alert.service';
+import { Router } from '@angular/router';
 
 describe('CustomGroupComponent', () => {
   let component: CustomGroupComponent;
   let fixture: ComponentFixture<CustomGroupComponent>;
   let IdpSearchResultsSubject: Subject<IdPSearchResult>;
   let searchService: FabricExternalIdpSearchServiceMock;
+  let edwAdminService: FabricAuthEdwadminServiceMock;
+  let alertService: AlertServiceMock;
   let groupService: FabricAuthGroupServiceMock;
+  let router: Router;
 
   beforeEach(
     async(() => {
@@ -60,26 +77,52 @@ describe('CustomGroupComponent', () => {
     FabricAuthRoleService,
     FabricExternalIdpSearchService,
     FabricAuthUserService,
-    CurrentUserService],
-    (group: FabricAuthGroupServiceMock,
-      roleService: FabricAuthRoleServiceMock,
-      search: FabricExternalIdpSearchServiceMock,
-      userService: FabricAuthUserServiceMock,
-      currentUserServiceMock: CurrentUserServiceMock) => {
-      group.getGroupUsers.and.returnValue(of(mockUsersResponse));
-      group.getGroupRoles.and.returnValue(of(mockRolesResponse));
-      group.search.and.returnValue(of(mockGroupsResponse));
-      groupService = group;
+    CurrentUserService,
+    FabricAuthEdwAdminService,
+    AlertService,
+    Router],
+    (groupServiceMock: FabricAuthGroupServiceMock,
+      roleServiceMock: FabricAuthRoleServiceMock,
+      searchServiceMock: FabricExternalIdpSearchServiceMock,
+      userServiceMock: FabricAuthUserServiceMock,
+      currentUserServiceMock: CurrentUserServiceMock,
+      edwAdminServiceMock: FabricAuthEdwadminServiceMock,
+      alertServiceMock: AlertServiceMock,
+      routerMock: Router) => {
 
-      roleService.getRolesBySecurableItemAndGrain.and.returnValue(of(mockRolesResponse));
-      searchService = search;
+      roleServiceMock.getRolesBySecurableItemAndGrain.and.returnValue(of(mockRolesResponse));
+      searchService = searchServiceMock;
 
       IdpSearchResultsSubject = new Subject<IdPSearchResult>();
       searchService.search.and.callFake((searchText: Observable<string>, type: string) => {
         return IdpSearchResultsSubject;
       });
 
-      userService.getCurrentUserPermissions.and.returnValue(of(mockUserPermissionResponse));
+      edwAdminService = edwAdminServiceMock;
+      alertService = alertServiceMock;
+      groupService = groupServiceMock;
+
+      router = routerMock;
+
+      userServiceMock.getCurrentUserPermissions.and.returnValue(of(mockUserPermissionResponse));
+      userServiceMock.getUser.and.returnValue(of(mockUserResponse));
+      userServiceMock.getUserRoles.and.returnValue(of(mockRolesResponse));
+      userServiceMock.addRolesToUser.and.returnValue(of(mockUserResponse));
+      userServiceMock.removeRolesFromUser.and.returnValue(of(mockUserResponse));
+
+      groupServiceMock.search.and.returnValue(of(mockGroupsResponse));
+      groupServiceMock.getGroup.and.returnValue(of(mockGroupResponse));
+      groupServiceMock.getGroupRoles.and.returnValue(of(mockRolesResponse));
+      groupServiceMock.getGroupUsers.and.returnValue(of(mockUsersResponse));
+      groupServiceMock.addRolesToGroup.and.returnValue(of(mockGroupResponse));
+      groupServiceMock.removeRolesFromGroup.and.returnValue(of(mockGroupResponse));
+      groupServiceMock.addRolesToGroup.and.returnValue(of(mockGroupResponse));
+      groupServiceMock.addUsersToCustomGroup.and.returnValue(of(mockGroupResponse));
+      groupServiceMock.removeUserFromCustomGroup.and.returnValue(of(mockGroupResponse));
+      groupServiceMock.getChildGroups.and.returnValue(of([]));
+      groupServiceMock.addChildGroups.and.returnValue(of(mockGroupResponse));
+      groupServiceMock.removeChildGroups.and.returnValue(of(mockGroupResponse));
+
       currentUserServiceMock.getPermissions.and.returnValue(of(mockCurrentUserPermissions));
     }));
 
@@ -260,6 +303,66 @@ describe('CustomGroupComponent', () => {
 
       // Assert
       expect(result).toBe(groupName);
+    });
+  });
+
+  describe('syncErrors', () => {
+    it('should show sync alert when sync user error occurs', () => {
+      const mockErrorResponse = {
+        statusCode: 400,
+        message: 'sync error'
+      };
+
+      edwAdminService.syncUsersWithEdwAdmin.and.returnValue(observableThrowError(mockErrorResponse));
+      edwAdminService.syncGroupWithEdwAdmin.and.returnValue(of({statusCode: 200}));
+
+      spyOn(router, 'navigate').and.callFake((route: string) => {
+        expect(alertService.showSyncWarning).toHaveBeenCalledTimes(1);
+        expect(alertService.showError).toHaveBeenCalledTimes(0);
+        return Promise.resolve(true);
+      });
+
+      const principal: IFabricPrincipal = {
+        subjectId: 'HQCATALYST\\first.last',
+        principalType: 'user',
+        selected: true
+      };
+
+      component.editMode = true;
+      component.groupName = mockGroupsResponse[0].groupName;
+      component.displayName = mockGroupsResponse[0].displayName;
+      component.principals = [principal];
+      component.associateUsersAndGroups();
+      component.save();
+    });
+
+    it('should show sync alert when sync group error occurs', () => {
+      const mockErrorResponse = {
+        statusCode: 400,
+        message: 'sync error'
+      };
+
+      edwAdminService.syncUsersWithEdwAdmin.and.returnValue(of({statusCode: 200}));
+      edwAdminService.syncGroupWithEdwAdmin.and.returnValue(observableThrowError(mockErrorResponse));
+
+      spyOn(router, 'navigate').and.callFake((route: string) => {
+        expect(alertService.showSyncWarning).toHaveBeenCalledTimes(1);
+        expect(alertService.showError).toHaveBeenCalledTimes(0);
+        return Promise.resolve(true);
+      });
+
+      const principal: IFabricPrincipal = {
+        subjectId: 'HQCATALYST\\first.last',
+        principalType: 'user',
+        selected: true
+      };
+
+      component.editMode = true;
+      component.groupName = mockGroupsResponse[0].groupName;
+      component.displayName = mockGroupsResponse[0].displayName;
+      component.principals = [principal];
+      component.associateUsersAndGroups();
+      component.save();
     });
   });
 });
