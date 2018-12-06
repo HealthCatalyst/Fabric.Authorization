@@ -53,7 +53,7 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
             var settings = _appConfiguration.IdentityServerConfidentialClientSettings;
             var baseUri = settings.Authority.EnsureTrailingSlash();
             var tokenUriAddress = $"{baseUri}connect/token";
-            var tokenClient = new TokenClient(tokenUriAddress, Constants.Identity.ClientName, settings.ClientSecret);
+            var tokenClient = new TokenClient(tokenUriAddress, Domain.Identity.ClientName, settings.ClientSecret);
             var accessTokenResponse = await tokenClient.RequestClientCredentialsAsync(IdentityScopes.SearchUsersScope).ConfigureAwait(false);
 
             var httpRequestMessage = _httpRequestMessageFactory.CreateWithAccessToken(HttpMethod.Post, new Uri($"{baseUri}api/users"),

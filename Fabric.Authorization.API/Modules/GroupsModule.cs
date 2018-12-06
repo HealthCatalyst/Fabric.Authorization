@@ -8,6 +8,7 @@ using Catalyst.Fabric.Authorization.Models.Requests;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Services;
+using Fabric.Authorization.Domain;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
@@ -206,7 +207,7 @@ namespace Fabric.Authorization.API.Modules
                 incomingGroup.Source = AppConfiguration.DefaultPropertySettings?.GroupSource;
             }
 
-            if (string.IsNullOrWhiteSpace(incomingGroup.IdentityProvider))
+            if (string.IsNullOrWhiteSpace(incomingGroup.IdentityProvider) && !incomingGroup.SourceEquals(GroupConstants.CustomSource))
             {
                 incomingGroup.IdentityProvider = AppConfiguration.DefaultPropertySettings?.IdentityProvider;
             }

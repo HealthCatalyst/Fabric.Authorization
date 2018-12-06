@@ -13,6 +13,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
+using Fabric.Authorization.Domain;
 
 namespace Fabric.Authorization.API.Modules
 {

@@ -9,6 +9,7 @@ using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.RemoteServices.Identity.Providers;
 using Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Providers;
+using Fabric.Authorization.Domain;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using Fabric.Authorization.Persistence.SqlServer.Services;
@@ -78,7 +79,7 @@ namespace Fabric.Authorization.IntegrationTests
                 DefaultPropertySettings = new DefaultPropertySettings
                 {
                     GroupSource = GroupConstants.DirectorySource,
-                    // IdentityProvider = IdentityConstants.ActiveDirectory,
+                    IdentityProvider = IdentityConstants.ActiveDirectory,
                     DualStoreEDWAdminPermissions = true
                 },
                 MigrateDuplicateGroups = false

@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Catalyst.Fabric.Authorization.Models;
 using Fabric.Authorization.API.Constants;
+using Fabric.Authorization.Domain;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Persistence.SqlServer.Configuration;
@@ -79,6 +80,7 @@ namespace Fabric.Authorization.IntegrationTests.Services
                 GroupId = Guid.NewGuid(),
                 Name = $"Group 1-{Guid.NewGuid()}",
                 Source = GroupConstants.DirectorySource,
+                IdentityProvider = IdentityConstants.ActiveDirectory,
                 CreatedBy = "test",
                 CreatedDateTimeUtc = DateTime.UtcNow
             };
@@ -88,6 +90,7 @@ namespace Fabric.Authorization.IntegrationTests.Services
                 GroupId = Guid.NewGuid(),
                 Name = $"Group 2-{Guid.NewGuid()}",
                 Source = GroupConstants.DirectorySource,
+                IdentityProvider = IdentityConstants.ActiveDirectory,
                 CreatedBy = "test",
                 CreatedDateTimeUtc = DateTime.UtcNow
             };
@@ -196,6 +199,7 @@ namespace Fabric.Authorization.IntegrationTests.Services
                 GroupId = Guid.NewGuid(),
                 Name = $"Group 1-{groupGuid}",
                 Source = GroupConstants.DirectorySource,
+                IdentityProvider = IdentityConstants.ActiveDirectory,
                 CreatedBy = "test",
                 CreatedDateTimeUtc = DateTime.UtcNow
             };
@@ -205,6 +209,7 @@ namespace Fabric.Authorization.IntegrationTests.Services
                 GroupId = Guid.NewGuid(),
                 Name = $"groUP 1-{groupGuid}",
                 Source = GroupConstants.DirectorySource,
+                IdentityProvider = IdentityConstants.ActiveDirectory,
                 CreatedBy = "test",
                 CreatedDateTimeUtc = DateTime.UtcNow
             };
@@ -260,7 +265,7 @@ namespace Fabric.Authorization.IntegrationTests.Services
 
             var user1 = new User
             {
-                IdentityProvider = "windows",
+                IdentityProvider = IdentityConstants.ActiveDirectory,
                 SubjectId = Guid.NewGuid().ToString()
             };
 
@@ -441,7 +446,7 @@ namespace Fabric.Authorization.IntegrationTests.Services
             {
                 GroupId = Guid.NewGuid(),
                 Name = $"Group 1-{groupGuid}",
-                IdentityProvider = "Windows",
+                IdentityProvider = IdentityConstants.ActiveDirectory,
                 TenantId = "12345",
                 Source = GroupConstants.DirectorySource,
                 CreatedBy = "test",
@@ -452,7 +457,7 @@ namespace Fabric.Authorization.IntegrationTests.Services
             {
                 GroupId = Guid.NewGuid(),
                 Name = $"groUP 1-{groupGuid}",
-                IdentityProvider = "Windows",
+                IdentityProvider = IdentityConstants.ActiveDirectory,
                 TenantId = "12345",
                 Source = GroupConstants.DirectorySource,
                 CreatedBy = "test",
@@ -463,7 +468,7 @@ namespace Fabric.Authorization.IntegrationTests.Services
             {
                 GroupId = Guid.NewGuid(),
                 Name = $"groUP 1-{groupGuid}",
-                IdentityProvider = "Azure AD",
+                IdentityProvider = IdentityConstants.AzureActiveDirectory,
                 TenantId = "12345",
                 Source = GroupConstants.DirectorySource,
                 CreatedBy = "test",
@@ -535,7 +540,7 @@ namespace Fabric.Authorization.IntegrationTests.Services
 
             var user1 = new User
             {
-                IdentityProvider = "windows",
+                IdentityProvider = IdentityConstants.ActiveDirectory,
                 SubjectId = Guid.NewGuid().ToString()
             };
 
@@ -643,7 +648,7 @@ namespace Fabric.Authorization.IntegrationTests.Services
             {
                 with.HttpRequest();
                 with.Header("Accept", "application/json");
-                with.Query("identityProvider", "Windows");
+                with.Query("identityProvider", IdentityConstants.ActiveDirectory);
                 with.Query("tenantId", "12345");
             });
 
