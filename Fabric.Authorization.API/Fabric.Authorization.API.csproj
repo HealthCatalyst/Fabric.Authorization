@@ -24,6 +24,7 @@
     <None Remove="Models\Responses\**" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Remove="Constants\IdentityConstants.cs" />
     <Compile Remove="DependencyInjection\CouchDbConfigurator.cs" />
     <Compile Remove="Models\ApiModelBase.cs" />
     <Compile Remove="Models\ClientApiModel.cs" />

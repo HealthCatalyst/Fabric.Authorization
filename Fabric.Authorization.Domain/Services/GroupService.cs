@@ -227,13 +227,17 @@ namespace Fabric.Authorization.Domain.Services
                 var invalidMissingGroups =
                     missingChildGroups.Where(g => string.IsNullOrWhiteSpace(g.Name)
                                                   || string.IsNullOrWhiteSpace(g.Source)
+                                                  || string.IsNullOrWhiteSpace(g.IdentityProvider)
+                                                  || !IdentityConstants.ValidIdentityProviders.Contains(g.IdentityProvider, StringComparer.OrdinalIgnoreCase)
                                                   || string.Equals(g.Source, GroupConstants.CustomSource,
                                                       StringComparison.OrdinalIgnoreCase)).ToList();
 
                 if (invalidMissingGroups.Any())
                 {
                     throw new BadRequestException<Group>(
-                        $"The following child groups do not exist in our database and cannot be created due to 1 or more of the following reasons: 1) missing GroupName, 2) missing GroupSource or 3) the GroupSource is incorrectly specified as Custom: {string.Join(", ", invalidMissingGroups.Select(g => g.Name))}");
+                        "The following child groups do not exist in our database and cannot be created due to 1 or more of the following reasons: " +
+                        "1) missing GroupName, 2) missing GroupSource, 3) the GroupSource is incorrectly specified as Custom, or 4) The IdentityProvider field is missing or invalid: " +
+                        $"{string.Join(", ", invalidMissingGroups.Select(g => g.Name))}");
                 }
                 await _groupStore.Add(missingChildGroups);
             }

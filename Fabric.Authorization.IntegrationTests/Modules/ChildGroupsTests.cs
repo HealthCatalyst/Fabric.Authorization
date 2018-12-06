@@ -7,6 +7,7 @@ using Catalyst.Fabric.Authorization.Models;
 using Catalyst.Fabric.Authorization.Models.Requests;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
+using Fabric.Authorization.Domain;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Persistence.SqlServer.Configuration;
