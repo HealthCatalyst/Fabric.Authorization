@@ -17,6 +17,7 @@ import { IGroup } from '../../../models/group.model';
 
 import { CurrentUserService } from '../../../services/current-user.service';
 import { AlertService } from '../../../services/global/alert.service';
+import { IAccessControlConfigService } from '../../../services/access-control-config.service';
 
 @Component({
   selector: 'app-custom-group',
@@ -67,7 +68,9 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     private edwAdminService: FabricAuthEdwAdminService,
     private idpSearchService: FabricExternalIdpSearchService,
     private currentUserService: CurrentUserService,
-    private alertService: AlertService
+    private alertService: AlertService,
+    @Inject('IAccessControlConfigService')
+    private configService: IAccessControlConfigService,
   ) { }
 
   ngOnInit() {
@@ -197,11 +200,13 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
               ? [
                     {
                         subjectId: this.searchTerm,
-                        principalType: this.userType
+                        principalType: this.userType,
+                        identityProvider: this.configService.identityProvider
                     },
                     {
                         subjectId: this.searchTerm,
-                        principalType: this.groupType
+                        principalType: this.groupType,
+                        identityProvider: this.configService.identityProvider
                     }
                 ]
               : result.principals;
