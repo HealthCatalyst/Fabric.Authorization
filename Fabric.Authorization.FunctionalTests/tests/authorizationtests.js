@@ -56,8 +56,7 @@ describe("authorization tests", function () {
 
     var groupNonCustom = {
         "groupName": "FABRIC\\\Health Catalyst Non-Custom",
-        "groupSource": "Active Directory",
-		"identityProvider": "Windows"
+        "groupSource": "Active Directory"
     }
 
     var roleNonCustom = {
@@ -69,12 +68,12 @@ describe("authorization tests", function () {
     // all of the groups below are set with Source="Custom" in the setup-samples.sh script
     var groupHcViewer = {
         "groupName": "FABRIC\\\Health Catalyst Viewer",
-		"groupSource": "custom"
+        "groupSource": "custom"
     }
 
     var groupHcEditor = {
         "groupName": "FABRIC\\\Health Catalyst Editor",
-		"groupSource": "custom"
+        "groupSource": "custom"
     }
 
     var groupHcAdmin = {
@@ -202,7 +201,7 @@ describe("authorization tests", function () {
         });
 
         it("should register group Non-Custom", function () {
-            var registerGroupNonCustomResponse = chakram.post(baseAuthUrl + "/groups?identityProvider=Windows", groupNonCustom, authRequestOptions);
+            var registerGroupNonCustomResponse = chakram.post(baseAuthUrl + "/groups", groupNonCustom, authRequestOptions);
             return expect(registerGroupNonCustomResponse).to.have.status(201);
         });
     });
@@ -316,7 +315,7 @@ describe("authorization tests", function () {
                     return getResponse.body;
                 })
                 .then(function (role) {
-                    return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupNonCustom.groupName) + "/roles?identityProvider=Windows", [role[0]], authRequestOptions);
+                    return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupNonCustom.groupName) + "/roles", [role[0]], authRequestOptions);
                 })
                 .then(function (postResponse) {
                     expect(postResponse).to.have.status(200);
@@ -346,7 +345,7 @@ describe("authorization tests", function () {
         it("should return 400 when associating user with non-custom group", function () {
             authRequestOptions.headers.Authorization = funcTestAuthClientAccessToken;
 
-            return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupNonCustom.groupName) + "/users?identityProvider=Windows", [userBob], authRequestOptions)
+            return chakram.post(baseAuthUrl + "/groups/" + encodeURIComponent(groupNonCustom.groupName) + "/users", [userBob], authRequestOptions)
                 .then(function (postResponse) {
                     expect(postResponse).to.have.status(400);
                 });

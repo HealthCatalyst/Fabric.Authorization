@@ -149,6 +149,28 @@ namespace Fabric.Authorization.Domain.Services
 
             return groupMigrationResult;
         }
+
+        public async Task MigrateWindowsSourceToDirectory()
+        {
+            var groups = (await _groupStore.GetAll()).Where(g => string.Equals(g.Source, "windows", StringComparison.OrdinalIgnoreCase)).ToList();
+
+            foreach (var group in groups)
+            {
+                group.Source = GroupConstants.DirectorySource;
+                await _groupStore.Update(group);
+            }
+        }
+
+        public async Task MigrateIdentityProvider()
+        {
+            var groups = (await _groupStore.GetAll()).Where(g => g.Source == GroupConstants.DirectorySource).ToList();
+
+            foreach (var group in groups)
+            {
+                group.IdentityProvider = IdentityConstants.ActiveDirectory;
+                await _groupStore.Update(group);
+            }
+        }
     }
 
     public class GroupMigrationResult
