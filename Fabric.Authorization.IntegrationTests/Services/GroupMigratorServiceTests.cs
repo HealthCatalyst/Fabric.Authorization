@@ -147,7 +147,7 @@ namespace Fabric.Authorization.IntegrationTests.Services
         }
 
         [Fact]
-        public async Task MigrateDuplicateDirectoryGroups_DuplicateNames_Success()
+        public async Task MigrateDuplicateDirectoryGroups_DuplicateNames_SuccessAsync()
         {
             var container = _fixture.Bootstrapper.TinyIoCContainer;
             var dbContext = container.Resolve<IAuthorizationDbContext>();
@@ -389,13 +389,13 @@ namespace Fabric.Authorization.IntegrationTests.Services
         }
 
         [Fact]
-        public async Task MigrateDuplicateCustomGroups_DuplicateNames_Success()
+        public async Task MigrateDuplicateCustomGroups_DuplicateNames_SuccessAsync()
         {
             
         }
 
         [Fact]
-        public async Task MigrateDuplicateGroups_HasDuplicateIdentifiers_Success()
+        public async Task MigrateDuplicateGroups_HasDuplicateIdentifiers_SuccessAsync()
         {
             var container = _fixture.Bootstrapper.TinyIoCContainer;
             var dbContext = container.Resolve<IAuthorizationDbContext>();
@@ -668,6 +668,104 @@ namespace Fabric.Authorization.IntegrationTests.Services
             await groupStore.Delete(group1.ToModel());
             await groupStore.Delete(group2.ToModel());
             await groupStore.Delete(group3.ToModel());
+        }
+
+        [Fact]
+        public async Task MigrateGroupSource_HasWindowsSource_SuccessAsync()
+        {
+            var container = _fixture.Bootstrapper.TinyIoCContainer;
+            var dbContext = container.Resolve<IAuthorizationDbContext>();
+            var groupMigratorService = container.Resolve<GroupMigratorService>();
+
+            var customGroup1 = new Group
+            {
+                GroupId = Guid.NewGuid(),
+                Name = $"Custom Group 1-{Guid.NewGuid()}",
+                Source = GroupConstants.CustomSource,
+                CreatedBy = "test",
+                CreatedDateTimeUtc = DateTime.UtcNow
+            };
+
+            var customGroup2 = new Group
+            {
+                GroupId = Guid.NewGuid(),
+                Name = $"Custom Group 2-{Guid.NewGuid()}",
+                Source = GroupConstants.CustomSource,
+                CreatedBy = "test",
+                CreatedDateTimeUtc = DateTime.UtcNow
+            };
+
+            var group1 = new Group
+            {
+                GroupId = Guid.NewGuid(),
+                Name = $"Group 1-{Guid.NewGuid()}",
+                Source = "windows",
+                CreatedBy = "test",
+                CreatedDateTimeUtc = DateTime.UtcNow
+            };
+
+            var group2 = new Group
+            {
+                GroupId = Guid.NewGuid(),
+                Name = $"Group 2-{Guid.NewGuid()}",
+                Source = "Windows",
+                CreatedBy = "test",
+                CreatedDateTimeUtc = DateTime.UtcNow
+            };
+
+            dbContext.Groups.AddRange(new List<Group>
+            {
+                customGroup1,
+                customGroup2,
+                group1,
+                group2
+            });
+
+            dbContext.SaveChanges();
+
+            await groupMigratorService.MigrateWindowsSourceToDirectory();
+            await groupMigratorService.MigrateIdentityProvider();
+
+            // group 1
+            var browser = _fixture.GetBrowser(Principal, _storageProvider);
+            var getResponse = await browser.Get(HttpUtility.UrlEncode($"/groups/{group1.Name}"), with =>
+            {
+                with.HttpRequest();
+            });
+
+            var groupRoleApiModel = getResponse.Body.DeserializeJson<GroupRoleApiModel>();
+            Assert.True(groupRoleApiModel.GroupSource == GroupConstants.DirectorySource);
+            Assert.True(groupRoleApiModel.IdentityProvider == IdentityConstants.ActiveDirectory);
+
+            // group 2
+            getResponse = await browser.Get(HttpUtility.UrlEncode($"/groups/{group2.Name}"), with =>
+            {
+                with.HttpRequest();
+            });
+
+            groupRoleApiModel = getResponse.Body.DeserializeJson<GroupRoleApiModel>();
+            Assert.True(groupRoleApiModel.GroupSource == GroupConstants.DirectorySource);
+            Assert.True(groupRoleApiModel.IdentityProvider == IdentityConstants.ActiveDirectory);
+
+            // custom group 1
+            getResponse = await browser.Get(HttpUtility.UrlEncode($"/groups/{customGroup1.Name}"), with =>
+            {
+                with.HttpRequest();
+            });
+
+            groupRoleApiModel = getResponse.Body.DeserializeJson<GroupRoleApiModel>();
+            Assert.True(groupRoleApiModel.GroupSource == GroupConstants.CustomSource);
+            Assert.Null(groupRoleApiModel.IdentityProvider);
+
+            // custom group 2
+            getResponse = await browser.Get(HttpUtility.UrlEncode($"/groups/{customGroup2.Name}"), with =>
+            {
+                with.HttpRequest();
+            });
+
+            groupRoleApiModel = getResponse.Body.DeserializeJson<GroupRoleApiModel>();
+            Assert.True(groupRoleApiModel.GroupSource == GroupConstants.CustomSource);
+            Assert.Null(groupRoleApiModel.IdentityProvider);
         }
     }
 }

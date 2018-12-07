@@ -116,10 +116,20 @@ namespace Fabric.Authorization.API
             dbBootstrapper.Setup();
 
             var appConfig = container.Resolve<IAppConfiguration>();
+            var groupMigratorService = container.Resolve<GroupMigratorService>();
             if (appConfig.MigrateDuplicateGroups)
             {
-                var groupMigratorService = container.Resolve<GroupMigratorService>();
                 var migrationResults = await groupMigratorService.MigrateDuplicateGroups();
+            }
+
+            if (appConfig.MigrateGroupSource)
+            {
+                groupMigratorService.MigrateWindowsSourceToDirectory();
+            }
+
+            if (appConfig.MigrateGroupIdentityProvider)
+            {
+                groupMigratorService.MigrateIdentityProvider();
             }
         }
 
