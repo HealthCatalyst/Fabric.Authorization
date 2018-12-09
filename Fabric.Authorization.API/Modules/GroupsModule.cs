@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Fabric.Authorization.API.Configuration;
 using Catalyst.Fabric.Authorization.Models;
 using Catalyst.Fabric.Authorization.Models.Requests;
-using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain;

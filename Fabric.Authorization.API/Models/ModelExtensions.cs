@@ -65,6 +65,7 @@ namespace Fabric.Authorization.API.Models
         public static User ToUserDomainModel(this UserApiModel user)
         {
             var userDomainModel = new User(user.SubjectId, user.IdentityProvider);
+            userDomainModel.IdentityProviderUserName = user.IdentityProviderUserName;
             return userDomainModel;
         }
 
@@ -74,6 +75,7 @@ namespace Fabric.Authorization.API.Models
             {
                 SubjectId = user.SubjectId,
                 IdentityProvider = user.IdentityProvider,
+                IdentityProviderUserName = user.IdentityProviderUserName,
                 Groups = user.Groups.Select(g => g.Name).ToList(),
                 Roles = user.Roles?.Where(r => !r.IsDeleted).Select(r => r.ToRoleApiModel()).ToList()
             };
