@@ -354,7 +354,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal("Shawn", result1.FirstName);
             Assert.Equal("James", result1.MiddleName);
             Assert.Equal("Brian", result1.LastName);
-            Assert.Equal("Shawn Brian", result1.DisplayName);
+            Assert.Equal("sbrian@onmicrosoft.com", result1.DisplayName);
             Assert.NotNull(result1.LastLoginDateTimeUtc);
             Assert.Equal(lastLoginDate, result1.LastLoginDateTimeUtc.Value.ToUniversalTime());
             Assert.True(2 == result1.Roles.Count(), $"Role count = {result1.Roles.Count()}, roles = ${string.Join(",", result1.Roles)}");
@@ -365,7 +365,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal("Robert", result2.FirstName);
             Assert.Equal("Brian", result2.MiddleName);
             Assert.Equal("Smith", result2.LastName);
-            Assert.Equal("Robert Smith", result2.DisplayName);
+            Assert.Equal("rsmith@onmicrosoft.com", result2.DisplayName);
             Assert.NotNull(result2.LastLoginDateTimeUtc);
             Assert.Equal(lastLoginDate, result2.LastLoginDateTimeUtc.Value.ToUniversalTime());
             Assert.Single(result2.Roles);
@@ -627,7 +627,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                     new
                     {
                         SubjectId = AtlasUserName,
-                        IdentityProvider
+                        IdentityProvider,
+                        IdentityProviderUserPrincipalName = "rsmith@onmicrosoft.com"
                     }
                 });
             });
@@ -665,7 +666,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
                 with.JsonBody(new
                 {
                     SubjectId = AtlasUserNoGroupName,
-                    IdentityProvider
+                    IdentityProvider,
+                    IdentityProviderUserPrincipalName = "sbrian@onmicrosoft.com"
                 });
             });
 

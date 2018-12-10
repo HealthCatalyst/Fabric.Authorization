@@ -7,6 +7,7 @@ export interface IFabricPrincipal {
   identityProvider?: string;
   tenantId?: string;
   externalIdentifier?: string;
+  identityProviderUserPrincipalName?: string;
 
   // Custom Property
   selected?: boolean;

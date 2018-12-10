@@ -4,6 +4,6 @@
     {
         string SubjectId { get; set; }
         string IdentityProvider { get; set; }
-        string IdentityProviderUserName { get; set; }
+        string IdentityProviderUserPrincipalName { get; set; }
     }
 }

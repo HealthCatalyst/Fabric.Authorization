@@ -343,7 +343,8 @@ namespace Fabric.Authorization.UnitTests.Search
                     new User("atlas_user", "Windows")
                     {
                         SubjectId = "atlas_user",
-                        IdentityProvider = "Windows"
+                        IdentityProvider = "Windows",
+                        IdentityProviderUserPrincipalName = "rsmith@onmicrosoft.com"
                     }
                 }
             };
@@ -454,7 +455,7 @@ namespace Fabric.Authorization.UnitTests.Search
             Assert.Equal("Robert", result1.FirstName);
             Assert.Equal("Brian", result1.MiddleName);
             Assert.Equal("Smith", result1.LastName);
-            Assert.Equal("Robert Smith", result1.DisplayName);
+            Assert.Equal("rsmith@onmicrosoft.com", result1.DisplayName);
             Assert.Equal(lastLoginDate, result1.LastLoginDateTimeUtc.Value.ToUniversalTime());
             Assert.Empty(result1.Roles);
 

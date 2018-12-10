@@ -71,7 +71,8 @@ export class FabricAuthGroupService extends FabricBaseService {
       users.map(function (u) {
         return {
           identityProvider: u.identityProvider,
-          subjectId: u.subjectId
+          subjectId: u.subjectId,
+          identityProviderUserPrincipalName: u.identityProviderUserPrincipalName
         };
       })
     ).pipe(tap((user) => {
