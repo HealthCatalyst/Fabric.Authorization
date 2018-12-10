@@ -321,7 +321,8 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           subjectId: principal.subjectId,
           identityProvider: principal.identityProvider,
           selected: false,
-          type: this.userType
+          type: this.userType,
+          identityProviderUserPrincipalName: principal.identityProviderUserPrincipalName
         };
         return newUser;
       });
@@ -364,7 +365,8 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           middleName: '',
           lastName: '',
           principalType: this.userType,
-          selected: false
+          selected: false,
+          identityProviderUserPrincipalName: user.identityProviderUserPrincipalName
         };
         return newPrincipal;
       });

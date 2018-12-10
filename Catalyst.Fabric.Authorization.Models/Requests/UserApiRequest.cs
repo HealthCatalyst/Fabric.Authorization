@@ -9,5 +9,6 @@
     // TODO: add other user-related fields we may need in a User request (e.g., Name)
     public class UserApiRequest : UserIdentifierApiRequest
     {
+        public string IdentityProviderUserPrincipalName { get; set; }
     }
 }

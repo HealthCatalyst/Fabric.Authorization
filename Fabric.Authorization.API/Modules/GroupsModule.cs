@@ -418,14 +418,14 @@ namespace Fabric.Authorization.API.Modules
                 GroupIdentifier groupIdentifier = CreateGroupIdentifier(SetIdentityProvider(identityProvider), tenantId, parameters.groupName.ToString());
                 var group = await _groupService.GetGroup(groupIdentifier);
                 await CheckWriteAccess(group);
-                var userApiRequests = this.Bind<List<UserIdentifierApiRequest>>();
+                var userApiRequests = this.Bind<List<UserApiRequest>>();
                 var validationResult = await ValidateGroupUserRequests(userApiRequests);
                 if (validationResult != null)
                 {
                     return validationResult;
                 }
                 
-                group = await _groupService.AddUsersToGroup(groupIdentifier, userApiRequests.Select(u => new User(u.SubjectId, u.IdentityProvider)).ToList());
+                group = await _groupService.AddUsersToGroup(groupIdentifier, userApiRequests.Select(u => u.ToUserDomainModel()).ToList());
                 return CreateSuccessfulPostResponse(group.Name, group.ToGroupUserApiModel(), HttpStatusCode.OK);
             }
             catch (NotFoundException<Group> ex)

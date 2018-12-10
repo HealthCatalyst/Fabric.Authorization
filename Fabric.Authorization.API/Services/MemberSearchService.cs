@@ -80,7 +80,7 @@ namespace Fabric.Authorization.API.Services
                 userList.Add(new MemberSearchResponse
                 {
                     SubjectId = user.SubjectId,
-                    DisplayName = user.SubjectId,
+                    DisplayName = string.IsNullOrWhiteSpace(user.IdentityProviderUserPrincipalName) ? user.SubjectId : user.IdentityProviderUserPrincipalName,
                     IdentityProvider = user.IdentityProvider,
                     Roles = user.Roles.Intersect(roleEntities).Select(r => r.ToRoleApiModel()).ToList(),
                     EntityType = MemberSearchResponseEntityType.User.ToString()
@@ -100,11 +100,6 @@ namespace Fabric.Authorization.API.Services
                     {
                         continue;
                     }
-
-                    userSearchResponse.DisplayName =
-                        string.IsNullOrWhiteSpace(user.FirstName) && string.IsNullOrWhiteSpace(user.LastName)
-                            ? user.SubjectId
-                            : $"{user.FirstName} {user.LastName}";
 
                     userSearchResponse.FirstName = user.FirstName;
                     userSearchResponse.MiddleName = user.MiddleName;

@@ -172,7 +172,8 @@ namespace Fabric.Authorization.Domain.Services
                     }
                     catch (NotFoundException<User>)
                     {
-                        await _userStore.Add(new User(user.SubjectId, user.IdentityProvider));
+                        await _userStore.Add(new User(user.SubjectId, user.IdentityProvider)
+                            {IdentityProviderUserPrincipalName = user.IdentityProviderUserPrincipalName});
                     }
                 }
                 else

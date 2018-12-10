@@ -175,7 +175,7 @@ export class MemberComponent implements OnInit, OnDestroy {
 
     const saveObservable: Observable<any> =
         this.selectedPrincipal.principalType === 'user'
-            ? this.saveUser(this.selectedPrincipal.subjectId, selectedRoles)
+            ? this.saveUser(this.selectedPrincipal, selectedRoles)
             : this.saveGroup(this.selectedPrincipal, selectedRoles);
 
     return saveObservable.subscribe(null, null, () => {
@@ -187,16 +187,17 @@ export class MemberComponent implements OnInit, OnDestroy {
     this.router.navigate([this.returnRoute]);
   }
 
-  saveUser(subjectId: string, selectedRoles: IRole[]): Observable<any> {
+  saveUser(principal: IFabricPrincipal, selectedRoles: IRole[]): Observable<any> {
     const user: IUser = {
       identityProvider: this.configService.identityProvider,
-      subjectId: subjectId
+      subjectId: principal.subjectId,
+      identityProviderUserPrincipalName: principal.identityProviderUserPrincipalName
     };
 
     return this.userService
       .getUser(
         this.configService.identityProvider,
-        subjectId
+        principal.subjectId
       ).pipe(
       mergeMap((userResult: IUser) => {
         return of(userResult);

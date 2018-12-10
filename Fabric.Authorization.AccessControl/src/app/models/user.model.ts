@@ -8,6 +8,7 @@ export interface IUser {
   name?: string;
   identityProvider?: string;
   subjectId: string;
+  identityProviderUserPrincipalName?: string;
 
   // custom property
   selected?: boolean;
