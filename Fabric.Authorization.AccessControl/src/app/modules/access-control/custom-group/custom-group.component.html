@@ -34,9 +34,9 @@
                     <li *ngFor="let principal of principals">
                         <hc-checkbox [id]="principal.subjectId + principal.principalType" [(ngModel)]="principal.selected">
                         </hc-checkbox>
-                        <span *ngIf="principal.principalType == user" [innerText]="principal.identityProviderUserPrincipalName">
+                        <span *ngIf="principal.principalType == 'user'" [innerText]="principal.identityProviderUserPrincipalName">
                         </span>
-                        <span *ngIf="principal.principalType == group" [innerText]="principal.subjectId">
+                        <span *ngIf="principal.principalType == 'group'" [innerText]="principal.subjectId">
                         </span>
                         <span [innerText]="'(' + principal.principalType + ')'">
                         </span>
@@ -62,7 +62,7 @@
                     <li *ngFor="let user of associatedUsers">
                         <hc-checkbox [id]="user.subjectId + user.type" [(ngModel)]="user.selected">
                         </hc-checkbox>
-                        <span [innerText]="user.displayName"></span>
+                        <span [innerText]="user.identityProviderUserPrincipalName"></span>
                         <span>(user)</span>
                     </li>
                     <li *ngFor="let group of associatedGroups">
