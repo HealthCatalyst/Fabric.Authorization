@@ -563,4 +563,14 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
 
     return customGroup.groupName;
   }
+
+  getUserNameToDisplay(user: IUser): string {
+    if (user.identityProviderUserPrincipalName !== ''
+        && user.identityProviderUserPrincipalName !== null
+        && user.identityProviderUserPrincipalName !== undefined) {
+      return user.identityProviderUserPrincipalName;
+    }
+
+    return user.subjectId;
+  }
 }

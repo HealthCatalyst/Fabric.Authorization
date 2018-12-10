@@ -62,7 +62,7 @@
                     <li *ngFor="let user of associatedUsers">
                         <hc-checkbox [id]="user.subjectId + user.type" [(ngModel)]="user.selected">
                         </hc-checkbox>
-                        <span [innerText]="user.identityProviderUserPrincipalName"></span>
+                        <span [innerText]="getUserNameToDisplay(user)"></span>
                         <span>(user)</span>
                     </li>
                     <li *ngFor="let group of associatedGroups">
