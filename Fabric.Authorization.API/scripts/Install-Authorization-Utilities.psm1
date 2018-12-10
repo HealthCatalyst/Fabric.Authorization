@@ -927,7 +927,7 @@ function Add-AuthorizationClientRegistration
         ClientName = "Fabric Authorization Client";
         RequireConsent = $false; 
         AllowedGrantTypes = @("client_credentials"); 
-        AllowedScopes = @("fabric/identity.read", "fabric/identity.searchusers");
+        AllowedScopes = @("fabric/identity.read", "fabric/identity.searchusers", "fabric/idprovider.searchusers");
     }
     $jsonBody = ConvertTo-Json $body
 
