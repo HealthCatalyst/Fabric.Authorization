@@ -111,7 +111,7 @@ describe('MemberAddComponent', () => {
     };
 
     component.selectPrincipal(principal);
-    component.saveUser(principal.subjectId, mockRolesResponse).subscribe(() => {
+    component.saveUser(principal, mockRolesResponse).subscribe(() => {
       expect(alertService.showSyncWarning).toHaveBeenCalledTimes(1);
       expect(alertService.showError).toHaveBeenCalledTimes(0);
     });
