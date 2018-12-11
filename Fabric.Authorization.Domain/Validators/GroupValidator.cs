@@ -3,7 +3,6 @@ using System.Linq;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
 using FluentValidation;
-using FluentValidation.Validators;
 
 namespace Fabric.Authorization.Domain.Validators
 {
@@ -27,13 +26,14 @@ namespace Fabric.Authorization.Domain.Validators
                 .WithState(g => ValidationEnums.ValidationState.MissingRequiredField);
 
             RuleFor(group => group)
-                .Must(g => g.SourceEquals(GroupConstants.CustomSource) && string.IsNullOrWhiteSpace(g.IdentityProvider))
+                .Must(g => string.IsNullOrWhiteSpace(g.IdentityProvider))
+                .When(g => g.SourceEquals(GroupConstants.CustomSource))
                 .WithMessage("Custom groups are not allowed to have an IdentityProvider.");
 
             RuleFor(group => group)
-                .Must(g => g.SourceEquals(GroupConstants.DirectorySource)
-                           && !string.IsNullOrWhiteSpace(g.IdentityProvider)
+                .Must(g => !string.IsNullOrWhiteSpace(g.IdentityProvider)
                            && IdentityConstants.ValidIdentityProviders.Contains(g.IdentityProvider, StringComparer.OrdinalIgnoreCase))
+                .When(g => g.SourceEquals(GroupConstants.DirectorySource))
                 .WithMessage($"Please specify a valid IdentityProvider. Valid identity providers include the following: {string.Join(", ", IdentityConstants.ValidIdentityProviders)}");
         }
     }
