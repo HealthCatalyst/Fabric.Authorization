@@ -189,14 +189,14 @@ export class MemberComponent implements OnInit, OnDestroy {
 
   saveUser(principal: IFabricPrincipal, selectedRoles: IRole[]): Observable<any> {
     const user: IUser = {
-      identityProvider: this.configService.identityProvider,
+      identityProvider: principal.identityProvider,
       subjectId: principal.subjectId,
       identityProviderUserPrincipalName: principal.identityProviderUserPrincipalName
     };
 
     return this.userService
       .getUser(
-        this.configService.identityProvider,
+        principal.identityProvider,
         principal.subjectId
       ).pipe(
       mergeMap((userResult: IUser) => {
@@ -314,7 +314,7 @@ export class MemberComponent implements OnInit, OnDestroy {
     }
     const roleObservable: Observable<any> =
         principal.principalType === 'user'
-            ? this.userService.getUserRoles(this.configService.identityProvider, principal.subjectId)
+            ? this.userService.getUserRoles(principal.identityProvider, principal.subjectId)
             : this.groupService.getGroupRoles(
               principal.subjectId,
               this.grain,
