@@ -76,12 +76,7 @@ namespace Fabric.Authorization.IntegrationTests
                         "fabric/authorization.manageclients"
                     }
                 },
-                DefaultPropertySettings = new DefaultPropertySettings
-                {
-                    GroupSource = GroupConstants.DirectorySource,
-                    IdentityProvider = IdentityConstants.ActiveDirectory,
-                    DualStoreEDWAdminPermissions = true
-                },
+                DefaultPropertySettings = DefaultPropertySettings,
                 MigrateDuplicateGroups = false
             };
             var hostingEnvironment = new Mock<IHostingEnvironment>();
