@@ -430,11 +430,42 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
         }
 
+        [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
+        public async Task AddGroup_BadIdentityProvider_BadRequestAsync()
+        {
+            var postResponse = await Browser.Post("/groups", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    GroupName = Guid.NewGuid(),
+                    GroupSource = GroupConstants.CustomSource,
+                    IdentityProvider = IdentityConstants.ActiveDirectory
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
+
+            postResponse = await Browser.Post("/groups", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    GroupName = Guid.NewGuid(),
+                    GroupSource = GroupConstants.DirectorySource,
+                    IdentityProvider = "InvalidIdentityProvider"
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
+        }
+
         [Theory]
         [IntegrationTestsFixture.DisplayTestMethodName]
         [InlineData("Source1", "", "")]
         [InlineData("Source2", null, null)]
-        public async Task AddGroup_NullOrEmptySourceAndIdentityProvider_SuccessAsync(string groupName, string groupSource, string groupIdentityProvider)
+        public async Task AddGroup_DefaultSourceAndIdentityProvider_SuccessAsync(string groupName, string groupSource, string groupIdentityProvider)
         {
             groupName = groupName + Guid.NewGuid();
             var postResponse = await Browser.Post("/groups", with =>
@@ -457,7 +488,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             var groupRoleApiModel = getResponse.Body.DeserializeJson<GroupRoleApiModel>();
             Assert.Equal(_defaultPropertySettings.GroupSource, groupRoleApiModel.GroupSource);
-            //Assert.Equal(_defaultPropertySettings.IdentityProvider, groupRoleApiModel.IdentityProvider);
+            Assert.Equal(_defaultPropertySettings.IdentityProvider, groupRoleApiModel.IdentityProvider);
         }
 
         [Theory]

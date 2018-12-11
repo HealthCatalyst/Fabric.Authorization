@@ -26,34 +26,15 @@ namespace Fabric.Authorization.Domain.Validators
                 .WithMessage("Please specify a Source for this Group.")
                 .WithState(g => ValidationEnums.ValidationState.MissingRequiredField);
 
-            RuleFor(group => group).Custom(ValidateIdentityProvider);
-        }
+            RuleFor(group => group)
+                .Must(g => g.SourceEquals(GroupConstants.CustomSource) && string.IsNullOrWhiteSpace(g.IdentityProvider))
+                .WithMessage("Custom groups are not allowed to have an IdentityProvider.");
 
-        private static void ValidateIdentityProvider(Group group, CustomContext context)
-        {
-            if (group.SourceEquals(GroupConstants.CustomSource))
-            {
-                if (!string.IsNullOrWhiteSpace(group.IdentityProvider))
-                {
-                    context.AddFailure("Custom groups are not allowed to have an IdentityProvider.");
-                }
-
-                return;
-            }
-
-            if (group.SourceEquals(GroupConstants.DirectorySource))
-            {
-                if (string.IsNullOrWhiteSpace(group.IdentityProvider))
-                {
-                    context.AddFailure("Please specify an IdentityProvider for this Group.");
-                }
-
-                if (!IdentityConstants.ValidIdentityProviders.Contains(group.IdentityProvider,
-                    StringComparer.OrdinalIgnoreCase))
-                {
-                    context.AddFailure($"Please specify a valid IdentityProvider. Valid identity providers include the following: {string.Join(", ", IdentityConstants.ValidIdentityProviders)}");
-                }
-            }
+            RuleFor(group => group)
+                .Must(g => g.SourceEquals(GroupConstants.DirectorySource)
+                           && !string.IsNullOrWhiteSpace(g.IdentityProvider)
+                           && IdentityConstants.ValidIdentityProviders.Contains(g.IdentityProvider, StringComparer.OrdinalIgnoreCase))
+                .WithMessage($"Please specify a valid IdentityProvider. Valid identity providers include the following: {string.Join(", ", IdentityConstants.ValidIdentityProviders)}");
         }
     }
 }
