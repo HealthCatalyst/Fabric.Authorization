@@ -201,7 +201,8 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
                     {
                         subjectId: this.searchTerm,
                         principalType: this.userType,
-                        identityProvider: this.configService.identityProvider
+                        identityProvider: this.configService.identityProvider,
+                        identityProviderUserPrincipalName: this.searchTerm
                     },
                     {
                         subjectId: this.searchTerm,
