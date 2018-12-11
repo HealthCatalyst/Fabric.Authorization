@@ -11,13 +11,13 @@ import { IRole } from '../../../models/role.model';
 import { FabricExternalIdpSearchService } from '../../../services/fabric-external-idp-search.service';
 import { FabricAuthRoleService } from '../../../services/fabric-auth-role.service';
 import { FabricAuthUserService } from '../../../services/fabric-auth-user.service';
-import { IAccessControlConfigService } from '../../../services/access-control-config.service';
 import { FabricAuthGroupService } from '../../../services/fabric-auth-group.service';
 import { FabricAuthEdwAdminService } from '../../../services/fabric-auth-edwadmin.service';
 import { IUser } from '../../../models/user.model';
 import { IGroup } from '../../../models/group.model';
 import { CurrentUserService } from '../../../services/current-user.service';
 import { AlertService } from '../../../services/global/alert.service';
+import { IAccessControlConfigService } from '../../../services/access-control-config.service';
 
 @Component({
   selector: 'app-member',
@@ -49,12 +49,13 @@ export class MemberComponent implements OnInit, OnDestroy {
     private roleService: FabricAuthRoleService,
     private userService: FabricAuthUserService,
     private edwAdminService: FabricAuthEdwAdminService,
-    @Inject('IAccessControlConfigService')private configService: IAccessControlConfigService,
     private groupService: FabricAuthGroupService,
     private router: Router,
     private route: ActivatedRoute,
     private currentUserService: CurrentUserService,
-    private alertService: AlertService
+    private alertService: AlertService,
+    @Inject('IAccessControlConfigService')
+    private configService: IAccessControlConfigService
   ) {
   }
 
@@ -64,7 +65,7 @@ export class MemberComponent implements OnInit, OnDestroy {
 
     this.route.queryParams
       .subscribe(params => {
-        this.identityProvider = params.identityProvider;
+        this.identityProvider = params.identityProvider || this.configService.identityProvider;
         this.tenantId = params.tenantId;
       });
 
@@ -150,7 +151,8 @@ export class MemberComponent implements OnInit, OnDestroy {
                         subjectId: this.searchText,
                         principalType: 'user',
                         identityProvider: this.identityProvider,
-                        tenantId: this.tenantId
+                        tenantId: this.tenantId,
+                        identityProviderUserPrincipalName: this.searchText
                     }
                 ]
               : result.principals;
