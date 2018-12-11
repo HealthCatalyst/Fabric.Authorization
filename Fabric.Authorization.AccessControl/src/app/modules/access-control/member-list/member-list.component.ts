@@ -190,6 +190,10 @@ export class MemberListComponent implements OnInit, OnChanges {
       queryParams['tenantId'] = member.tenantId;
     }
 
+    if (member.displayName) {
+      queryParams['displayName'] = member.displayName;
+    }
+
     if (member.entityType !== 'CustomGroup') {
       this.router.navigate([
         '/access-control/member',
