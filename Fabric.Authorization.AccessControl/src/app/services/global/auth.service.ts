@@ -142,7 +142,7 @@ export class AuthService implements IAuthService {
         map((res: Response) => {
           return res.json();
         }),
-        catchError(error => this.handleError(error)),)
+        catchError(error => this.handleError(error)))
         .toPromise<T>();
     });
   }
