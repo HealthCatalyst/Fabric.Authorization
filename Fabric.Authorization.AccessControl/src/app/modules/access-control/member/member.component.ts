@@ -38,6 +38,7 @@ export class MemberComponent implements OnInit, OnDestroy {
   public editMode = true;
   public identityProvider = '';
   public tenantId = '';
+  public displayName = '';
 
   private grain: string;
   private securableItem: string;
@@ -67,6 +68,7 @@ export class MemberComponent implements OnInit, OnDestroy {
       .subscribe(params => {
         this.identityProvider = params.identityProvider || this.configService.identityProvider;
         this.tenantId = params.tenantId;
+        this.displayName = params.displayName;
       });
 
     this.editMode = !!subjectId;
@@ -87,7 +89,7 @@ export class MemberComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.searchText = subjectId;
+    this.searchText = this.displayName || subjectId;
     if (subjectId && principalType) {
         this.selectedPrincipal = {
             subjectId,
@@ -167,7 +169,7 @@ export class MemberComponent implements OnInit, OnDestroy {
   selectPrincipal(principal: IFabricPrincipal): Subscription {
     this.principals = [];
     this.selectedPrincipal = principal;
-    this.searchText = principal.subjectId;
+    this.searchText = principal.identityProviderUserPrincipalName;
     return this.bindExistingRoles(principal).subscribe();
   }
 
