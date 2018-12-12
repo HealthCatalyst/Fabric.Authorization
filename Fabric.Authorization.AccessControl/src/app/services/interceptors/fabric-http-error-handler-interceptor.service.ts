@@ -41,7 +41,7 @@ export class FabricHttpErrorHandlerInterceptorService {
             )}`
           );
 
-          this.showAlert(response, response.statusText);
+          this.showAlert(response, response.error.message || response.statusText);
         }
 
         return observableThrowError(
