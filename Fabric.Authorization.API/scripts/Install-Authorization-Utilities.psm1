@@ -972,7 +972,6 @@ function Add-AccessControlClientRegistration
 
 function Get-AdminAccount{
     param(
-        [Parameter(Mandatory=$true)]
         [string] $adminAccount,
         [Parameter(Mandatory=$true)]
         [string] $currentUserDomain,
