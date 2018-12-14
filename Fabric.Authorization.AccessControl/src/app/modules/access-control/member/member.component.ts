@@ -169,7 +169,7 @@ export class MemberComponent implements OnInit, OnDestroy {
   selectPrincipal(principal: IFabricPrincipal): Subscription {
     this.principals = [];
     this.selectedPrincipal = principal;
-    this.searchText = principal.identityProviderUserPrincipalName;
+    this.searchText = principal.identityProviderUserPrincipalName || principal.subjectId;
     return this.bindExistingRoles(principal).subscribe();
   }
 
