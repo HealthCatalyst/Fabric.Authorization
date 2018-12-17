@@ -1,3 +1,7 @@
+#Requires -RunAsAdministrator
+#Requires -Version 5.1
+#Requires -Modules PowerShellGet, PackageManagement
+
 param(
     [PSCredential] $credential,
     [ValidateScript({
