@@ -831,7 +831,7 @@ function Get-IdentityServiceUrl
     )
     $defaultIdentityUrl = Get-DefaultIdentityServiceUrl -identityServiceUrl $identityServiceUrl
     if(!$quiet){
-        $userEnteredIdentityServiceUrl = Read-Host "Press Enter to accept the default DiscoveryService URL [$defaultIdentityUrl] or enter a new URL"
+        $userEnteredIdentityServiceUrl = Read-Host "Press Enter to accept the default IdentityService URL [$defaultIdentityUrl] or enter a new URL"
         if(![string]::IsNullOrEmpty($userEnteredIdentityServiceUrl)){   
             $defaultIdentityUrl = $userEnteredIdentityServiceUrl
         }
