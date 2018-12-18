@@ -1485,24 +1485,27 @@ Describe 'Test-Add-AccountToEDWAdmin tests' -Tag 'Unit' {
                 -and $parameters.identityName -eq $testUser} 
         }
         
-        It 'Should work if accountName is group' {
+        It 'Should not add to EDW Admin if accountName is group' {
             # Arrange
-            $testUser = "test.user"
-            $samUser = "user"
-            $domain = "domain"
+            $testGroup = "DOMAIN\My Group"
+            $samUser = "My Group"
+            $domain = "DOMAIN"
             $connString = "connString"
-            Mock Get-SamAccountFromAccountName -ParameterFilter {$accountName -eq $testUser}  { $samUser }
+            Mock Get-SamAccountFromAccountName -ParameterFilter {$accountName -eq $testGroup}  { $samUser }
             Mock Test-IsUser -ParameterFilter {$samAccountName -eq $samUser} { return $false }
             Mock Test-IsGroup -ParameterFilter {$samAccountName -eq $samUser} { return $true }
             Mock Invoke-Sql {}
+            Mock Write-DosMessage {}
             
             # Act 
-            Add-AccountToEDWAdmin -accountName $testUser -domain $domain -connString $connString
+            Add-AccountToEDWAdmin -accountName $testGroup -domain $domain -connString $connString
 
             # Assert
-            Assert-MockCalled Invoke-Sql -Times 1 -ParameterFilter {$connectionString -eq $connString `
+            Assert-MockCalled Invoke-Sql -Times 0 -ParameterFilter {$connectionString -eq $connString `
                 -and $parameters.roleName -eq "EDW Admin" `
-                -and $parameters.identityName -eq $testUser} 
+                -and $parameters.identityName -eq $testGroup} 
+            Assert-MockCalled -CommandName Write-DosMessage -Times 1 -ParameterFilter {$Level -eq "Information" `
+                -and $Message -eq "$samUser is a group and will not be added as a legacy EDW Admin."}
         }
     }
 }
