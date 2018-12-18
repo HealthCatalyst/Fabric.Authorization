@@ -85,7 +85,8 @@ function Get-Group{
     )
     $encodedName = [System.Web.HttpUtility]::UrlEncode($name)
     $url = "$authorizationServiceUrl/groups/$encodedName"
-    return Invoke-Get -url $url -accessToken $accessToken
+    $formattedUrl = Get-DosCleanUri -url $url
+    return Invoke-Get -url $formattedUrl -accessToken $accessToken
 }
 
 function Get-Role 
