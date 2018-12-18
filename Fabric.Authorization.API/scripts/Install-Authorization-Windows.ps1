@@ -316,9 +316,12 @@ function Add-AccountToDosAdminGroup($accountName, $domain, $authorizationService
 
 function Add-AccountToEDWAdmin($accountName, $domain, $connString) {
 	$samAccountName = Get-SamAccountFromAccountName -accountName $accountName
-	if ((Test-IsUser -samAccountName $samAccountName -domain $domain) -or (Test-IsGroup -samAccountName $samAccountName -domain $domain)) {
+	if (Test-IsUser -samAccountName $samAccountName -domain $domain) {
         Add-UserOrGroupToEdwAdmin -userOrGroup $accountName -connString $connString
-	}
+    }
+    elseif (Test-IsGroup -samAccountName $samAccountName -domain $domain){
+        Write-Host "$samAccountName is a group and will not be added as a legacy EDW Admin."
+    }
     else {
         Write-Error "$samAccountName is not a valid principal in the $domain domain. Please enter a valid account. Halting installation."
         throw
