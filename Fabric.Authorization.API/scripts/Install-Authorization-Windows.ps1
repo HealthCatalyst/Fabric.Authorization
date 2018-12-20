@@ -890,7 +890,7 @@ if (![string]::IsNullOrEmpty($userEnteredAuthorizationDbName)) {
 $authorizationDbConnStr = "Server=$($sqlServerAddress);Database=$($authorizationDbName);Trusted_Connection=True;MultipleActiveResultSets=True;"
 
 Invoke-Sql $authorizationDbConnStr "SELECT TOP 1 ClientId FROM Clients" | Out-Null
-Write-Success "Identity DB Connection string: $authorizationDbConnStr verified"
+Write-Success "Authorization DB Connection string: $authorizationDbConnStr verified"
 Write-Host ""
 
 if (!($noDiscoveryService)) {
