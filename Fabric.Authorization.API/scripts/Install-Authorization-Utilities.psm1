@@ -24,9 +24,10 @@ $dosAdminRole = "dosadmin"
 $dataMartAdminRole = "DataMartAdmin"
 $fabricInstallerClientId = "fabric-installer"
 $dosAdminGroupName = "DosAdmins"
+$ErrorActionPreference = "Stop"
 
 function Get-FullyQualifiedMachineName() {
-	return "https://$env:computername.$((Get-WmiObject Win32_ComputerSystem).Domain.tolower())"
+    return "https://$env:computername.$((Get-WmiObject Win32_ComputerSystem).Domain.tolower())"
 }
 
 function Get-Headers 
@@ -162,11 +163,11 @@ function Add-User
         subjectId        = "$name"
         identityProvider = "Windows"
     }
-    try{
+    try {
         $user = Invoke-Post $url $body $accessToken
         return $user
     }
-    catch{
+    catch {
         $exception = $_.Exception
             if (Assert-WebExceptionType -exception $exception -typeCode 409) {
                 $user = $body
@@ -208,7 +209,13 @@ function Add-UserToGroup
     $groupId = $group.Id
     $identityProvider = $user.identityProvider
     $subjectId = $user.subjectId
-    Invoke-Sql $connString $query @{groupId = $groupId; identityProvider = $identityProvider; subjectId = $subjectId; clientId = $clientId} | Out-Null
+    try {
+        Invoke-Sql $connString $query @{groupId = $groupId; identityProvider = $identityProvider; subjectId = $subjectId; clientId = $clientId} | Out-Null
+    }
+    catch {
+        Write-Error $_.Exception -ErrorAction Continue
+        throw $_.Exception
+    }
 }
 
 function Add-ChildGroupToParentGroup
@@ -235,7 +242,13 @@ function Add-ChildGroupToParentGroup
 
     $parentGroupId = $parentGroup.Id
     $childGroupId = $childGroup.Id
-    Invoke-Sql $connString $query @{parentGroupId = $parentGroupId; childGroupId = $childGroupId; clientId = $clientId} | Out-Null
+    try {
+        Invoke-Sql $connString $query @{parentGroupId = $parentGroupId; childGroupId = $childGroupId; clientId = $clientId} | Out-Null
+    }
+    catch {
+        Write-Error $_.Exception -ErrorAction Continue
+        throw $_.Exception
+    }
 }
 
 function Add-RoleToGroup
@@ -257,11 +270,17 @@ function Add-RoleToGroup
 
     $roleId = $role.Id
     $groupId = $group.Id
-    Invoke-Sql $connString $query @{groupId = $groupId; roleId = $roleId; ; clientId = $clientId} | Out-Null
+    try {
+        Invoke-Sql $connString $query @{groupId = $groupId; roleId = $roleId; ; clientId = $clientId} | Out-Null
+    }
+    catch {
+        Write-Error $_.Exception -ErrorAction Continue
+        throw $_.Exception
+    }
 }
 
 function Add-UserOrGroupToEdwAdmin($userOrGroup, $connString) {
-	$query   = "DECLARE @userId INTEGER;
+    $query   = "DECLARE @userId INTEGER;
                 DECLARE @roleId INTEGER;
                 
                 SET @userId = -1
@@ -292,7 +311,13 @@ function Add-UserOrGroupToEdwAdmin($userOrGroup, $connString) {
                     THROW; 
                 END CATCH"
                 
-    Invoke-Sql -connectionString $connString -sql $query -parameters @{roleName = "EDW Admin"; identityName = $userOrGroup} | Out-Null
+    try {
+        Invoke-Sql -connectionString $connString -sql $query -parameters @{roleName = "EDW Admin"; identityName = $userOrGroup} | Out-Null
+    }
+    catch {
+        Write-Error $_.Exception -ErrorAction Continue
+        throw $_.Exception
+    }
 }
 
 function Get-PrincipalContext
@@ -377,7 +402,7 @@ function Get-SamAccountFromAccountName
     $samAccountName = $accountNameParts[1]
     return $samAccountName
 }
- 	
+    
 function Add-ListOfUsersToDosAdminGroup($edwAdminUsers, $connString, $authorizationServiceUrl, $accessToken) {	   
     # Get the group once, should be same for every user.
     $group = Get-Group -name $dosAdminGroupName -authorizationServiceUrl $authorizationServiceUrl -accessToken $accessToken
@@ -411,8 +436,8 @@ function Add-ListOfUsersToDosAdminGroup($edwAdminUsers, $connString, $authorizat
 }
 
 function Add-AccountToEDWAdmin($accountName, $domain, $connString) {
-	$samAccountName = Get-SamAccountFromAccountName -accountName $accountName
-	if (Test-IsUser -samAccountName $samAccountName -domain $domain) {
+    $samAccountName = Get-SamAccountFromAccountName -accountName $accountName
+    if (Test-IsUser -samAccountName $samAccountName -domain $domain) {
         Add-UserOrGroupToEdwAdmin -userOrGroup $accountName -connString $connString
     } 
     elseif (Test-IsGroup -samAccountName $samAccountName -domain $domain){
@@ -462,10 +487,11 @@ function Add-DosAdminRoleUsersToDosAdminGroup
               WHERE r.[Name] = @roleName
               AND s.[Name] = @securableName
               AND ru.IsDeleted = 0;"
-    try{
+    try {
         Write-DosMessage -Level "Information" -Message "Migrating $dosAdminRole role users to Dos Admin group..."
         Invoke-Sql -connectionString $connectionString -sql $query -parameters @{dosAdminGroupId=$groupId;clientId=$clientId;roleName=$roleName;securableName=$securableName} | Out-Null
-    }catch{
+    }
+    catch {
         Write-DosMessage -Level "Error" -Message $_.Exception
         throw $_.Exception
     }
@@ -495,9 +521,10 @@ function Remove-UsersFromDosAdminRole
             AND ru.IsDeleted = 0;"
     
     Write-DosMessage -Level "Information" -Message "Removing users from $dosAdminRole role..."
-    try{
+    try {
         Invoke-Sql $connectionString $sql @{clientId=$clientId;roleName=$roleName;securableName=$securableName} | Out-Null
-    }catch{
+    }
+    catch {
         Write-DosMessage -Level "Error" -Message $_.Exception
         throw $_.Exception
     }
@@ -529,10 +556,11 @@ function Add-DosAdminGroupRolesToDosAdminChildGroups
               AND g.Source != 'custom'
               AND r.IsDeleted = 0;"
 
-    try{
+    try {
         Write-DosMessage -Level "Information" -Message "Migrating $dosAdminRole role groups to Dos Admin group..."
         Invoke-Sql $connectionString $query @{dosAdminGroupId = $groupId;clientId=$clientId;roleName=$roleName;securableName=$securableName} | Out-Null
-    }catch{
+    }
+    catch {
         Write-DosMessage -Level "Error" -Message $_.Exception
         throw
     }
@@ -564,9 +592,10 @@ function Remove-GroupsFromDosAdminRole
             AND gr.IsDeleted = 0;"
 
     Write-DosMessage -Level "Information" -Message "Removing groups from $dosAdminRole role..."
-    try{
+    try {
         Invoke-Sql $connectionString $sql @{clientId=$clientId;roleName=$roleName;securableName=$securableName} | Out-Null
-    }catch{
+    }
+    catch {
         Write-DosMessage -Level "Error" -Message $_.Exception
         throw $_.Exception
     }
@@ -594,10 +623,11 @@ function Add-DosAdminRoleToDosAdminGroup
               WHERE r.[Name] = @roleName
               AND s.[Name] = @securableName
               AND r.IsDeleted = 0;"
-    try{
+    try {
         Write-DosMessage -Level "Information" -Message "Associating $dosAdminRole role to Dos Admin group..."
         Invoke-Sql $connectionString $query @{dosAdminGroupId = $groupId;clientId=$clientId;roleName=$roleName;securableName=$securableName} | Out-Null
-    }catch{
+    }
+    catch {
         Write-DosMessage -Level "Error" -Message $_.Exception
         throw
     }
@@ -629,9 +659,10 @@ function Update-DosAdminRoleToDataMartAdmin
             AND r.IsDeleted = 0;"
 
     Write-DosMessage -Level "Information" -Message "Renaming $dosAdminRole role to $dataMartAdminRole..."
-    try{
+    try {
         Invoke-Sql $connectionString $sql @{clientId=$clientId;oldRoleName=$oldRoleName;newRoleName=$newRoleName;securableName=$securableName} | Out-Null
-    }catch{
+    }
+    catch {
         Write-DosMessage -Level "Error" -Message $_.Exception
         throw
     }
@@ -660,9 +691,10 @@ function Remove-DosAdminRole
             AND r.IsDeleted = 0;"
 
     Write-DosMessage -Level "Information" -Message "Deleting $dosAdminRole role..."
-    try{
+    try {
         Invoke-Sql $connectionString $sql @{clientId=$clientId;roleName=$roleName;securableName=$securableName} | Out-Null
-    }catch{
+    }
+    catch {
         Write-DosMessage -Level "Error" -Message $_.Exception
         throw
     }
@@ -676,7 +708,7 @@ function Test-FabricRegistrationStepAlreadyComplete()
         [Parameter(Mandatory=$true)]
         [string] $accessToken
     )
-    try{
+    try {
         $dataMartAdminRole = Get-Role -name $dataMartAdminRole -grain $dosGrain -securableItem $dataMartsSecurable -authorizationServiceUrl $authUrl -accessToken $accessToken
         $dosAdminRole = Get-Role -name $dosAdminRole -grain $dosGrain -securableItem $dataMartsSecurable -authorizationServiceUrl $authUrl -accessToken $accessToken
         if($null -ne $dataMartAdminRole -and $null -ne $dosAdminRole){
@@ -720,8 +752,8 @@ function Get-EdwAdminUsersAndGroups
         $connection.Close()        	
     
     }	
-    catch [System.Data.SqlClient.SqlException] {	
-        Write-DosMessage -Level "Error" -Message "An error ocurred while executing the command. Please ensure the connection string is correct and the metadata database has been setup. Connection String: $($connectionString). Error $($_.Exception.Message)"  -ErrorAction Stop	
+    catch [System.Data.SqlClient.SqlException] {
+        Write-DosMessage -Level "Fatal" -Message "An error ocurred while executing the command. Please ensure the connection string is correct and the metadata database has been setup. Connection String: $($connectionString). Error $($_.Exception.Message)"
     }    	
     
     return $usersAndGroups;	
@@ -765,18 +797,20 @@ function Install-UrlRewriteIfNeeded
     )
     if(!(Test-Prerequisite "*IIS URL Rewrite Module 2" $version))
     {    
-        try{
+        try {
             Write-DosMessage -Level "Information" -Message "IIS URL Rewrite Module 2 version $version not installed...installing version $version"        
             Invoke-WebRequest -Uri $downloadUrl -OutFile $env:Temp\rewrite_amd64_en-US.msi
             Start-Process msiexec.exe -Wait -ArgumentList "/i $($env:Temp)\rewrite_amd64_en-US.msi /qn"
             Write-DosMessage -Level "Information" -Message "IIS URL Rewrite Module 2 installed successfully."
-        }catch{
+        }
+        catch {
             Write-DosMessage -Level "Error" -Message "Could not install IIS URL Rewrite Module 2. Please install the IIS URL Rewrite Module 2 before proceeding: $downloadUrl"
             throw
         }
-        try{
+        try {
             Remove-Item $env:Temp\rewrite_amd64_en-US.msi
-        }catch{
+        }
+        catch {
             $e = $_.Exception
             Write-DosMessage -Level "Warning" -Message "Unable to remove IIS Rewrite msi installer." 
             Write-DosMessage -Level "Warning" -Message  $e.Message
@@ -807,8 +841,15 @@ function Get-AuthorizationDatabaseConnectionString
     }
     $authorizationDbConnStr = "Server=$($sqlServerAddress);Database=$($authorizationDbName);Trusted_Connection=True;MultipleActiveResultSets=True;"
 
-    Invoke-Sql $authorizationDbConnStr "SELECT TOP 1 ClientId FROM Clients" | Out-Null
-    Write-DosMessage -Level "Information" -Message "Authorization DB Connection string: $authorizationDbConnStr verified"
+    try {
+        Invoke-Sql $authorizationDbConnStr "SELECT TOP 1 ClientId FROM Clients" | Out-Null
+        Write-DosMessage -Level "Information" -Message "Authorization DB Connection string: $authorizationDbConnStr verified"
+    }
+    catch {
+        Write-Error $_.Exception -ErrorAction Stop
+        throw $_.Exception
+    }
+    
     if($authorizationDbName){ Add-InstallationSetting "authorization" "authorizationDbName" "$authorizationDbName" $installConfigPath | Out-Null }
     return @{DbName = $authorizationDbName; DbConnectionString = $authorizationDbConnStr}
 }
@@ -941,13 +982,13 @@ function Add-AccessControlClientRegistration
     )
     $body = @{
         clientId = "fabric-access-control";
-		clientName = "Fabric Authorization Access Control Client";
-		requireConsent = "false";
-		allowedScopes = "openid", "profile", "fabric.profile", "fabric/authorization.read", "fabric/authorization.write", "fabric/authorization.internal", "fabric/idprovider.searchusers", "fabric/authorization.dos.write";
-		allowOfflineAccess = $false;
-		allowAccessTokensViaBrowser = $true;
-		enableLocalLogin = $false;
-		accessTokenLifetime = 1200;
+        clientName = "Fabric Authorization Access Control Client";
+        requireConsent = "false";
+        allowedScopes = "openid", "profile", "fabric.profile", "fabric/authorization.read", "fabric/authorization.write", "fabric/authorization.internal", "fabric/idprovider.searchusers", "fabric/authorization.dos.write";
+        allowOfflineAccess = $false;
+        allowAccessTokensViaBrowser = $true;
+        enableLocalLogin = $false;
+        accessTokenLifetime = 1200;
     }
     
     $corsOrigin = Get-FullyQualifiedMachineName
@@ -1073,7 +1114,7 @@ function Set-AuthorizationEnvironmentVariables
     }
 
     if ($discoveryServiceUrl) {
-		$environmentVariables.Add("DiscoveryServiceSettings__UseDiscovery", "true")
+        $environmentVariables.Add("DiscoveryServiceSettings__UseDiscovery", "true")
         $environmentVariables.Add("DiscoveryServiceSettings__Endpoint", $discoveryServiceUrl)
     }
 
