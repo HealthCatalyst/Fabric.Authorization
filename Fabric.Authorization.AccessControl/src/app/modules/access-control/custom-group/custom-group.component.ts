@@ -42,6 +42,8 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   public groupNameSubject = new Subject<string>();
   public groupNameInvalid = false;
   public groupNameError: string;
+  public associatedNameInvalid = false;
+  public associatedNameError: string;
   public searchingGroup = false;
 
   public searchTerm = '';
@@ -420,6 +422,23 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
 
     const groupObservable = this.editMode ? of(newGroup) : this.groupService.createGroup(newGroup);
 
+    // associated users and groups should not have the same name as custom group
+    // throw an error before a custom group is saved so we do not create an orphaned custom group
+    // if a custom group is not created yet.
+    const invalidChildGroups = this.associatedGroups
+    .filter(invalidChildGroup => invalidChildGroup.groupName === this.groupName);
+    const invalidChildUsers = this.associatedUsers
+    .filter(invalidChildUser => invalidChildUser.name === this.groupName);
+
+    if (invalidChildGroups.length > 0 || invalidChildUsers.length > 0)
+    {
+      this.associatedNameInvalid = true;
+      this.associatedNameError = `The associated user or group name, ${this.groupName}, should not be the same as the custom group.`;
+
+      this.savingInProgress = false;
+      throw new Error(`The associated user or group name, ${this.groupName}, should not be the same as the custom group.`);
+    }
+
     return groupObservable.pipe(
       mergeMap((group) => {
         const groupRolesObservable = this.groupService
@@ -447,7 +466,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
               .filter(existingChildGroup =>
                 !this.associatedGroups.some(childGroup => childGroup.groupName === existingChildGroup.groupName));
 
-            // get roles to add/remove
+                // get roles to add/remove
             const rolesToAdd = selectedRoles.filter(userRole => !existingRoles.some(selectedRole => userRole.id === selectedRole.id));
             const rolesToRemove = existingRoles.filter(userRole => !selectedRoles.some(selectedRole => userRole.id === selectedRole.id));
 
@@ -543,6 +562,8 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     this.editMode = true;
     this.groupNameInvalid = false;
     this.groupNameError = '';
+    this.associatedNameInvalid = false;
+    this.associatedNameError = '';
     this.customGroups = [];
     return observableZip(this.getGroupRolesBySecurableItemAndGrain(), this.getGroupUsers(), this.getChildGroups()).pipe(
         tap((result: [IRole[], IUser[], IGroup[]]) => {
