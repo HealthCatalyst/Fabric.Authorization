@@ -22,9 +22,8 @@
     </h3>
         <div class="top">
             <div class="input-combo">
-                <input hc-input class="hc-input" [(ngModel)]="searchTerm" [highlight]="associatedNameInvalid" (keyup)="searchTermSubject.next($event.target.value)" placeholder="search for users or groups">
+                <input hc-input class="hc-input" [(ngModel)]="searchTerm" (keyup)="searchTermSubject.next($event.target.value)" placeholder="search for users or groups">
                 <i [class]="searching ? 'btn-icon fa fa-spinner fa-pulse fa-fw' : 'btn-icon fa fa-search'"></i>
-                <div class="form-errors" *ngIf="associatedNameInvalid" [innerText]="associatedNameError"></div>
                 </div>
             </div>
             <div class="associated-users">
@@ -102,6 +101,7 @@
         </tbody>
     </table>
 
+    <div class="form-errors" *ngIf="associatedNameInvalid" [innerText]="associatedNameError"></div>
     <div class="buttons">
         <button hc-button id="saveButton" color="primary" (click)="save()" [disabled]="this.initializing || this.savingInProgress || this.missingManageAuthorizationPermission" [title]="disabledSaveReason">Save</button>
         <a hc-button (click)="cancel()" color="secondary">Cancel</a>
