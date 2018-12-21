@@ -8,23 +8,13 @@ Import-Module -Name $fabricInstallUtilities -Force
 
 # Import Dos Install Utilities
 $minVersion = [System.Version]::new(1, 0, 164 , 0)
-$dosInstallUtilities = Get-Childitem -Path ./**/DosInstallUtilities.psm1 -Recurse
-if ($dosInstallUtilities.length -eq 0) {
-    $installed = Get-Module -Name DosInstallUtilities
-    if ($null -eq $installed) {
-        $installed = Get-InstalledModule -Name DosInstallUtilities
-    }
-
-    if (($null -eq $installed) -or ($installed.Version.CompareTo($minVersion) -lt 0)) {
-        Write-Host "Installing DosInstallUtilities from Powershell Gallery"
-        Install-Module DosInstallUtilities -Scope CurrentUser -MinimumVersion 1.0.164.0 -Force
-        Import-Module DosInstallUtilities -Force
-    }
+try {
+    Get-InstalledModule -Name DosInstallUtilities -MinimumVersion $minVersion -ErrorAction Stop
+} catch {
+    Write-Host "Installing DosInstallUtilities from Powershell Gallery"
+    Install-Module DosInstallUtilities -Scope CurrentUser -MinimumVersion $minVersion -Force
 }
-else {
-    Write-Host "Installing DosInstallUtilities at $($dosInstallUtilities.FullName)"
-    Import-Module -Name $dosInstallUtilities.FullName
-}
+Import-Module -Name DosInstallUtilities -Force
 
 Add-Type -AssemblyName System.Web
 
