@@ -44,7 +44,7 @@ if(!(Test-IsRunAsAdministrator))
     throw
 }
 
-$ErrorActionPreference = "Continue"
+$ErrorActionPreference = "Stop"
 
 Write-DosMessage -Level "Information" -Message "Using install.config: $installConfigPath"
 $installSettingsScope = "authorization"
