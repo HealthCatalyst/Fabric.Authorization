@@ -24,7 +24,6 @@ $dosAdminRole = "dosadmin"
 $dataMartAdminRole = "DataMartAdmin"
 $fabricInstallerClientId = "fabric-installer"
 $dosAdminGroupName = "DosAdmins"
-$ErrorActionPreference = "Stop"
 
 function Get-FullyQualifiedMachineName() {
     return "https://$env:computername.$((Get-WmiObject Win32_ComputerSystem).Domain.tolower())"
@@ -213,8 +212,7 @@ function Add-UserToGroup
         Invoke-Sql $connString $query @{groupId = $groupId; identityProvider = $identityProvider; subjectId = $subjectId; clientId = $clientId} | Out-Null
     }
     catch {
-        Write-Error $_.Exception -ErrorAction Continue
-        throw $_.Exception
+        Write-DosMessage -Level "Fatal" -Message "An error occurred while executing the command. Connection String: $($connString). Error $($_.Exception)"
     }
 }
 
@@ -246,8 +244,7 @@ function Add-ChildGroupToParentGroup
         Invoke-Sql $connString $query @{parentGroupId = $parentGroupId; childGroupId = $childGroupId; clientId = $clientId} | Out-Null
     }
     catch {
-        Write-Error $_.Exception -ErrorAction Continue
-        throw $_.Exception
+        Write-DosMessage -Level "Fatal" -Message "An error occurred while executing the command. Connection String: $($connString). Error $($_.Exception)"
     }
 }
 
@@ -274,8 +271,7 @@ function Add-RoleToGroup
         Invoke-Sql $connString $query @{groupId = $groupId; roleId = $roleId; ; clientId = $clientId} | Out-Null
     }
     catch {
-        Write-Error $_.Exception -ErrorAction Continue
-        throw $_.Exception
+        Write-DosMessage -Level "Fatal" -Message "An error occurred while executing the command. Connection String: $($connString). Error $($_.Exception)"
     }
 }
 
@@ -315,8 +311,7 @@ function Add-UserOrGroupToEdwAdmin($userOrGroup, $connString) {
         Invoke-Sql -connectionString $connString -sql $query -parameters @{roleName = "EDW Admin"; identityName = $userOrGroup} | Out-Null
     }
     catch {
-        Write-Error $_.Exception -ErrorAction Continue
-        throw $_.Exception
+        Write-DosMessage -Level "Fatal" -Message "An error occurred while executing the command. Connection String: $($connString). Error $($_.Exception)"
     }
 }
 
@@ -492,8 +487,7 @@ function Add-DosAdminRoleUsersToDosAdminGroup
         Invoke-Sql -connectionString $connectionString -sql $query -parameters @{dosAdminGroupId=$groupId;clientId=$clientId;roleName=$roleName;securableName=$securableName} | Out-Null
     }
     catch {
-        Write-DosMessage -Level "Error" -Message $_.Exception
-        throw $_.Exception
+        Write-DosMessage -Level "Fatal" -Message "An error occurred while executing the command. Connection String: $($connectionString). Error $($_.Exception)"
     }
 }
 
@@ -525,8 +519,7 @@ function Remove-UsersFromDosAdminRole
         Invoke-Sql $connectionString $sql @{clientId=$clientId;roleName=$roleName;securableName=$securableName} | Out-Null
     }
     catch {
-        Write-DosMessage -Level "Error" -Message $_.Exception
-        throw $_.Exception
+        Write-DosMessage -Level "Fatal" -Message "An error occurred while executing the command. Connection String: $($connectionString). Error $($_.Exception)"
     }
 }
 
@@ -561,8 +554,7 @@ function Add-DosAdminGroupRolesToDosAdminChildGroups
         Invoke-Sql $connectionString $query @{dosAdminGroupId = $groupId;clientId=$clientId;roleName=$roleName;securableName=$securableName} | Out-Null
     }
     catch {
-        Write-DosMessage -Level "Error" -Message $_.Exception
-        throw
+        Write-DosMessage -Level "Fatal" -Message "An error occurred while executing the command. Connection String: $($connectionString). Error $($_.Exception)"
     }
 }
 
@@ -596,8 +588,7 @@ function Remove-GroupsFromDosAdminRole
         Invoke-Sql $connectionString $sql @{clientId=$clientId;roleName=$roleName;securableName=$securableName} | Out-Null
     }
     catch {
-        Write-DosMessage -Level "Error" -Message $_.Exception
-        throw $_.Exception
+        Write-DosMessage -Level "Fatal" -Message "An error occurred while executing the command. Connection String: $($connectionString). Error $($_.Exception)"
     }
 }
 
@@ -628,8 +619,7 @@ function Add-DosAdminRoleToDosAdminGroup
         Invoke-Sql $connectionString $query @{dosAdminGroupId = $groupId;clientId=$clientId;roleName=$roleName;securableName=$securableName} | Out-Null
     }
     catch {
-        Write-DosMessage -Level "Error" -Message $_.Exception
-        throw
+        Write-DosMessage -Level "Fatal" -Message "An error occurred while executing the command. Connection String: $($connectionString). Error $($_.Exception)"
     }
 }
 
@@ -663,8 +653,7 @@ function Update-DosAdminRoleToDataMartAdmin
         Invoke-Sql $connectionString $sql @{clientId=$clientId;oldRoleName=$oldRoleName;newRoleName=$newRoleName;securableName=$securableName} | Out-Null
     }
     catch {
-        Write-DosMessage -Level "Error" -Message $_.Exception
-        throw
+        Write-DosMessage -Level "Fatal" -Message "An error occurred while executing the command. Connection String: $($connectionString). Error $($_.Exception)"
     }
 }
 
@@ -695,8 +684,7 @@ function Remove-DosAdminRole
         Invoke-Sql $connectionString $sql @{clientId=$clientId;roleName=$roleName;securableName=$securableName} | Out-Null
     }
     catch {
-        Write-DosMessage -Level "Error" -Message $_.Exception
-        throw
+        Write-DosMessage -Level "Fatal" -Message "An error occurred while executing the command. Connection String: $($connectionString). Error $($_.Exception)"
     }
 }
 
@@ -846,8 +834,7 @@ function Get-AuthorizationDatabaseConnectionString
         Write-DosMessage -Level "Information" -Message "Authorization DB Connection string: $authorizationDbConnStr verified"
     }
     catch {
-        Write-Error $_.Exception -ErrorAction Stop
-        throw $_.Exception
+        Write-DosMessage -Level "Fatal" -Message "An error occurred while executing the command. Connection String: $($authorizationDbConnStr). Error $($_.Exception.Message)"
     }
     
     if($authorizationDbName){ Add-InstallationSetting "authorization" "authorizationDbName" "$authorizationDbName" $installConfigPath | Out-Null }
@@ -1278,6 +1265,16 @@ function Assert-WebExceptionType
     }
 }
 
+function Set-LoggingConfiguration{
+    param(
+        [Parameter(Mandatory=$true)]
+        [Hashtable] $commonConfig
+    )
+    if(!([string]::IsNullOrEmpty($commonConfig.minimumLoggingLevel)) -and !([string]::IsNullOrEmpty($commonConfig.logFilePath))){
+        Set-DosMessageConfiguration -LoggingMode Both -MinimumLoggingLevel $commonConfig.minimumLoggingLevel -LogFilePath $commonConfig.logFilePath
+    }
+}
+
 Export-ModuleMember Install-UrlRewriteIfNeeded
 Export-ModuleMember Get-AuthorizationDatabaseConnectionString
 Export-ModuleMember Get-IdentityServiceUrl
@@ -1295,3 +1292,4 @@ Export-ModuleMember Add-AccountToEDWAdmin
 Export-ModuleMember Invoke-MonitorShallow
 Export-ModuleMember Add-EdwAdminUsersToDosAdminGroup
 Export-ModuleMember Add-AuthorizationRegistration
+Export-ModuleMember Set-LoggingConfiguration
