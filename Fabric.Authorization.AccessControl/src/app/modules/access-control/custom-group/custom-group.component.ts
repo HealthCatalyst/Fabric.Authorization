@@ -466,7 +466,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
               .filter(existingChildGroup =>
                 !this.associatedGroups.some(childGroup => childGroup.groupName === existingChildGroup.groupName));
 
-                // get roles to add/remove
+            // get roles to add/remove
             const rolesToAdd = selectedRoles.filter(userRole => !existingRoles.some(selectedRole => userRole.id === selectedRole.id));
             const rolesToRemove = existingRoles.filter(userRole => !selectedRoles.some(selectedRole => userRole.id === selectedRole.id));
 
