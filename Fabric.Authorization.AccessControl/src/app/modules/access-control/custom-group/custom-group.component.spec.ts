@@ -201,7 +201,6 @@ describe('CustomGroupComponent', () => {
       component.groupName = mockGroupsResponse[0].groupName;
       component.displayName = mockGroupsResponse[0].displayName;
       
-
       // act
       component.save();
 
