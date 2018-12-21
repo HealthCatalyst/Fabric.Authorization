@@ -44,9 +44,16 @@ if(!(Test-IsRunAsAdministrator))
     throw
 }
 
+$ErrorActionPreference = "Continue"
+
 Write-DosMessage -Level "Information" -Message "Using install.config: $installConfigPath"
 $installSettingsScope = "authorization"
 $installSettings = Get-InstallationSettings $installSettingsScope -installConfigPath $installConfigPath
+
+$commonSettingsScope = "common"
+$commonInstallSettings = Get-InstallationSettings $commonSettingsScope -installConfigPath $installConfigPath
+Set-LoggingConfiguration -commonConfig $commonInstallSettings
+
 $currentDirectory = $PSScriptRoot
 $zipPackage = Get-FullyQualifiedInstallationZipFile -zipPackage $installSettings.zipPackage -workingDirectory $currentDirectory
 Install-DotNetCoreIfNeeded -version "1.1.30503.82" -downloadUrl "https://go.microsoft.com/fwlink/?linkid=848766"
