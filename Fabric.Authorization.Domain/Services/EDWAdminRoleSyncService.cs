@@ -39,7 +39,7 @@
                 return;
             }
 
-            if (await this.IsUserASuperAdmin(user))
+            if (IsUserASuperAdmin(user))
             {
                 _edwStore.AddIdentitiesToRole(new[] { user.SubjectId }, EDWConstants.EDWAdmin);
             }
@@ -62,37 +62,16 @@
             }
         }
 
-        private async Task<bool> IsUserASuperAdmin(User user)
+        /// <summary>
+        /// Check to see if the user is in the DosAdmin group.
+        /// </summary>
+        /// <param name="user">The user to be checked</param>
+        /// <returns>true or false</returns>
+        private static bool IsUserASuperAdmin(User user)
         {
-            if (user.IsDeleted)
-            {
-                return false;
-            }
-
-            if (user.Roles.Any(r => RoleManagerConstants.AdminRoleNames.Contains(r.Name.ToLower()) && !r.IsDeleted))
-            {
-                return true;
-            }
-
-            // next, get all the groups for a user
-            // if a group is a special Super Admin Group then return true
-            // if not, then look on each group to see if there is a "super admin role"
-            // finally, look on each group's children groups to see if there is a "super admin role"
-            foreach (var customGroup in user.Groups.Where(group => !group.IsDeleted))
-            {
-                if (customGroup.Roles.Any(r => RoleManagerConstants.AdminRoleNames.Contains(r.Name.ToLower()) && !r.IsDeleted))
-                {
-                    return true;
-                }
-
-                if (customGroup.Parents.Where(group => !group.IsDeleted).SelectMany(parent => parent.Roles)
-                    .Any(role => RoleManagerConstants.AdminRoleNames.Contains(role.Name.ToLower()) && !role.IsDeleted))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return !user.IsDeleted 
+                   && user.Groups.Any(group => !group.IsDeleted
+                                               && group.NameEquals(RoleManagerConstants.DosAdminGroupName));
         }
     }
 }
