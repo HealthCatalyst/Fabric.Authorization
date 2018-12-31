@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Fabric.Authorization.Domain.Models;
-using Fabric.Authorization.Domain.Services;
-using Fabric.Authorization.Domain.Stores;
-using Moq;
-using Xunit;
-
-namespace Fabric.Authorization.UnitTests.EDWAdminSyncService
+﻿namespace Fabric.Authorization.UnitTests.EDWAdminSyncService
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
+    using Fabric.Authorization.Domain.Models;
+    using Fabric.Authorization.Domain.Services;
+    using Fabric.Authorization.Domain.Stores;
+    using Moq;
+    using Xunit;
+
     public class EDWAdminRoleSyncServiceTests
     {
         [Theory, MemberData(nameof(SingleUsers))]
@@ -86,54 +86,50 @@ namespace Fabric.Authorization.UnitTests.EDWAdminSyncService
             // Assert
             Assert.Null(result);
         }
-
-        public static Group DeletedGroup => new Group()
+        
+        public static Group DosAdminsGroup => new Group()
         {
-            Name = "DeletedGroup",
-            IsDeleted = true,
-            Roles = new Role[] { new Role { Name = "datamartadmin" } }
+            Name = "DosAdmins",
+            Roles = new Role[] { DataMartAdminRole }
         };
 
-        public static Group DatamartAdmin => new Group()
+        public static Group DosAdminsDeletedGroup => new Group()
+        {
+            Name = "DosAdmins",
+            IsDeleted = true,
+            Roles = new Role[] { DataMartAdminRole }
+        };
+
+        public static Group DatamartAdminGroup => new Group()
         {
             Name = "AdminGroup",
-            Roles = new Role[] { new Role { Name = "datamartadmin" } },
+            Roles = new Role[] { DataMartAdminRole },
         };
 
         public static Group JobAdminGroup => new Group()
         {
             Name = "AdminGroup",
-            Roles = new Role[] { new Role { Name = "jobadmin" } },
+            Roles = new Role[] { JobAdminRole },
 
         };
 
         public static Group ParentGroup => new Group()
         {
             Name = "ParentGroup",
-            Roles = new Role[] { new Role { Name = "noadmin" } },
+            Roles = new Role[] { NoAdminRole },
             Children = new List<Group>()
             {
-                DatamartAdmin
+                DatamartAdminGroup
             }
         };
 
         public static Group NoAdminGroupWithAdminParent => new Group()
         {
             Name = "ParentInheirtence",
-            Roles = new Role[] { new Role { Name = "noadmin" } },
+            Roles = new Role[] { NoAdminRole },
             Parents = new List<Group>()
             {
-                ParentInheirtence
-            }
-        };
-
-        public static Group ParentInheirtence => new Group()
-        {
-            Name = "ParentInheirtence",
-            Roles = new Role[] { new Role { Name = "datamartadmin" } },
-            Children = new List<Group>()
-            {
-
+                DosAdminsGroup
             }
         };
 
@@ -143,17 +139,21 @@ namespace Fabric.Authorization.UnitTests.EDWAdminSyncService
 
         public static Role DataMartAdminRole => new Role() { Name = "datamartadmin" };
 
-        public static IEnumerable<object[]> SingleUsers => new[] {
-            new object[] // if user is not an admin, it should not be changed
+        /// <summary>
+        /// Declares the member data for the single user tests
+        /// </summary>
+        public static IEnumerable<object[]> SingleUsers => new[]
+        {
+            new object[] // if user is not in DosAdmins group, it should be removed from EdwAdmin
             {
                 new User("testSubjectId1", "windows")
                 {
-                    Roles = new Role[] { new Role{ Name = "notadmin" } }
+                    Roles = new Role[] { NoAdminRole }
                 },
                 0,
                 1
             },
-            new object[] // if user is dos admin, it should be removed from edwadmin
+            new object[] // if user is dos admin, it should be removed from EdwAdmin
             {
                 new User("testSubjectId2", "windows")
                 {
@@ -162,29 +162,38 @@ namespace Fabric.Authorization.UnitTests.EDWAdminSyncService
                 0,
                 1
             },
-            new object[] // if user is datamart admin, it should be added to edwadmin
+            new object[] // if user is DatamartAdmin but not in DosAdmins, it should be removed from EdwAdmin
             {
                 new User("testSubjectId3", "windows")
                 {
-                    Roles = new Role[] { new Role{ Name = "datamartadmin" } }
+                    Roles = new Role[] { DataMartAdminRole }
                 },
-                1,
-                0
+                0,
+                1
             },
-            new object[]  // if user is job admin, it should be added to edwadmin
+            new object[]  // if user is job admin but not in DosAdmins, it should be removed from EdwAdmin
             {
                 new User("testSubjectId4", "windows")
                 {
-                    Roles = new Role[] { new Role{ Name = "jobadmin" } }
+                    Roles = new Role[] { JobAdminRole }
+                },
+                0,
+                1
+            },
+            new object[]  // if user is in DosAdmins, then it should be added to EdwAdmin
+            {
+                new User("testSubjectId5", "windows")
+                {
+                    Groups = new Group[] { DosAdminsGroup }
                 },
                 1,
                 0
             },
-            new object[]  // if user is deleted, it should be removed from edwadmin
+            new object[]  // if user is deleted, it should be removed from EdwAdmin
             {
-                new User("testSubjectId5", "windows")
+                new User("testSubjectId6", "windows")
                 {
-                    Roles = new Role[] { new Role{ Name = "jobadmin" } },
+                    Groups = new Group[] { DosAdminsGroup },
                     IsDeleted = true
                 },
                 0,
@@ -241,8 +250,8 @@ namespace Fabric.Authorization.UnitTests.EDWAdminSyncService
                 {
                     Roles = new Role[] { NoAdminRole, JobAdminRole }
                 },
-                1,
-                0
+                0,
+                1
             },
             new object[]
             {
@@ -250,8 +259,8 @@ namespace Fabric.Authorization.UnitTests.EDWAdminSyncService
                 {
                     Roles = new Role[] { NoAdminRole, DataMartAdminRole }
                 },
-                1,
-                0
+                0,
+                1
             },
             new object[]
             {
@@ -259,8 +268,8 @@ namespace Fabric.Authorization.UnitTests.EDWAdminSyncService
                 {
                     Roles = new Role[] { JobAdminRole, DataMartAdminRole }
                 },
-                1,
-                0
+                0,
+                1
             },
             new object[]
             {
@@ -290,8 +299,8 @@ namespace Fabric.Authorization.UnitTests.EDWAdminSyncService
                         DataMartAdminRole
                     }
                 },
-                1,
-                0
+                0,
+                1
             },
             new object[]
             {
@@ -299,8 +308,8 @@ namespace Fabric.Authorization.UnitTests.EDWAdminSyncService
                 {
                     Groups = new Group[] { new Group { Roles = new Role[] { NoAdminRole, JobAdminRole } } }
                 },
-                1,
-                0
+                0,
+                1
             },
             new object[]
             {
@@ -308,23 +317,34 @@ namespace Fabric.Authorization.UnitTests.EDWAdminSyncService
                 {
                     Groups = new Group[] { new Group { Roles = new Role[] { NoAdminRole, DataMartAdminRole } } }
                 },
-                1,
-                0
-            }            
+                0,
+                1
+            },
+            new object[]
+            {
+                new User("dosAdminsGroupDeleted", "fabric-authorization")
+                {
+                    Groups = new Group[] { DosAdminsDeletedGroup }
+                },
+                0,
+                1
+            }, 
         };
 
         public static IEnumerable<object[]> MultipleUsers => new[]
         {
-            new object[] // if one user has admin and one doesnt, then should be a remove and add
+            new object[] // if one user is in DosAdmins and one isn't, then should be a remove and add
             {
                 new List<User>() {
                     new User("testSubjectId6", "windows")
                     {
-                        Roles = new Role[] { new Role { Name = "notadmin" } }
+                        Roles = new Role[] { NoAdminRole },
+                        Groups = new Group[] { DatamartAdminGroup }
                     },
                     new User("testSubjectId7", "windows")
                     {
-                        Roles = new Role[] { new Role { Name = "datamartadmin" } }
+                        Roles = new Role[] { DataMartAdminRole },
+                        Groups = new Group[] { DosAdminsGroup }
                     }
                 },
                 1,
@@ -335,34 +355,34 @@ namespace Fabric.Authorization.UnitTests.EDWAdminSyncService
                 new List<User>() {
                     new User("testSubjectId8", "windows")
                     {
-                        Roles = new Role[] { new Role { Name = "notadmin" } },
-                        Groups = new List<Group>() { DeletedGroup }
+                        Roles = new Role[] { NoAdminRole },
+                        Groups = new List<Group>() { DosAdminsDeletedGroup }
                     },
                     new User("testSubjectId9", "windows")
                     {
-                        Roles = new Role[] { new Role { Name = "notadmin" } },
-                        Groups = new List<Group>() { DeletedGroup }
+                        Roles = new Role[] { NoAdminRole },
+                        Groups = new List<Group>() { DosAdminsDeletedGroup }
                     }
                 },
                 0,
                 2
             },
-            new object[] // If a group is deleted, then remove all non admins
+            new object[] // If DosAdmins group is deleted, then remove all users (including admins)
             {
                 new List<User>() {
                     new User("testSubjectId10", "windows")
                     { // gets removed from the group
-                        Roles = new Role[] { new Role { Name = "notadmin" } },
-                        Groups = new List<Group>() { DeletedGroup }
+                        Roles = new Role[] { NoAdminRole },
+                        Groups = new List<Group>() { DosAdminsDeletedGroup }
                     },
                     new User("testSubjectId11", "windows")
                     { // stays in the group
-                        Roles = new Role[] { new Role { Name = "jobadmin" } },
-                        Groups = new List<Group>() { DeletedGroup }
+                        Roles = new Role[] { JobAdminRole },
+                        Groups = new List<Group>() { DosAdminsDeletedGroup }
                     }
                 },
-                1,
-                1
+                0,
+                2
             },
             new object[] // If a child group has admin role, then the parent roles should not change
             {
@@ -381,7 +401,7 @@ namespace Fabric.Authorization.UnitTests.EDWAdminSyncService
                 0,
                 2
             },
-            new object[] // If a group has admin role, then add edwadmin
+            new object[] // If non-DosAdmins group has admin role, then do not add edwadmin
             {
                 new List<User>() {
                     new User("testSubjectId12", "windows")
@@ -395,10 +415,11 @@ namespace Fabric.Authorization.UnitTests.EDWAdminSyncService
                         Groups = new List<Group>() { JobAdminGroup }
                     }
                 },
-                2,
-                0
+                0,
+                2
             },
-            new object[] // if child group has no admin, but the parent does, then the users of the child get admin
+            new object[] // if users are in a child group of DosAdmins but not in DosAdmins,
+                         // then they should be removed from EdwAdmin
             {
                 new List<User>() {
                     new User("testSubjectId18", "windows")
@@ -412,8 +433,8 @@ namespace Fabric.Authorization.UnitTests.EDWAdminSyncService
                         Groups = new List<Group>() { NoAdminGroupWithAdminParent }
                     }
                 },
-                2,
-                0
+                0,
+                2
             }
         };
     }
