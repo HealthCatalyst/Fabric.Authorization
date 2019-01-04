@@ -56,7 +56,7 @@ describe("authorization tests", function () {
 
     var groupNonCustom = {
         "groupName": "FABRIC\\\Health Catalyst Non-Custom",
-        "groupSource": "Active Directory"
+        "groupSource": "Directory"
     }
 
     var roleNonCustom = {
