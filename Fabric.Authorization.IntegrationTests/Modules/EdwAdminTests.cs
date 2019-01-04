@@ -401,7 +401,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var result = getResponse.Body.AsString();
             if (getResponse.StatusCode == HttpStatusCode.OK && result != "[]")
             {
-                return JsonConvert.DeserializeObject<GroupRoleApiModel[]>(result).FirstOrDefault();
+                return JsonConvert.DeserializeObject<GroupRoleApiModel>(result);
             }
             else if (result == "[]" || getResponse.StatusCode == HttpStatusCode.NotFound)
             {
