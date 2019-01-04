@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Catalyst.Fabric.Authorization.Models;
 using Fabric.Authorization.API.Constants;
+using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using IdentityModel;
 using Nancy;
@@ -19,10 +20,10 @@ namespace Fabric.Authorization.IntegrationTests.Modules
     public class UserTests : IClassFixture<IntegrationTestsFixture>
     {
         private static readonly string Group1 = Guid.Parse("A9CA0300-1006-40B1-ABF1-E0C3B396F95F").ToString();
-        private static readonly string Source1 = "Source1";
+        private static readonly string Source1 = GroupConstants.CustomSource;
 
         private static readonly string Group2 = Guid.Parse("ad2cea96-c020-4014-9cf6-029147454adc").ToString();
-        private static readonly string Source2 = "Source2";
+        private static readonly string Source2 = GroupConstants.CustomSource;
 
         private static readonly string IdentityProvider = "idP1";
 
