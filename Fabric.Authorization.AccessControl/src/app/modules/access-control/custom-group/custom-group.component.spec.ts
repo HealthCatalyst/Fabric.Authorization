@@ -229,8 +229,8 @@ describe('CustomGroupComponent', () => {
 
     it('returns error if associated user name is the same as the custom group', () => {
       // arrange
-      component.groupName = mockUsersResponse[0].name;
-      component.displayName = mockUsersResponse[0].name;
+      component.groupName = mockUsersResponse[0].identityProviderUserPrincipalName;
+      component.displayName = mockUsersResponse[0].identityProviderUserPrincipalName;
       component.associatedUsers.push(mockUsersResponse[0]);
 
       // act
@@ -241,7 +241,7 @@ describe('CustomGroupComponent', () => {
         // assert
         expect(component.associatedNameInvalid).toBe(true);
         expect(component.associatedNameError).toBeTruthy();
-        expect(component.associatedNameError).toMatch(`The associated user or group name, ${mockUsersResponse[0].name}, should not be the same as the custom group.`);
+        expect(component.associatedNameError).toMatch(`The associated user or group name, ${mockUsersResponse[0].identityProviderUserPrincipalName}, should not be the same as the custom group.`);
       }
 
 
