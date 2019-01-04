@@ -17,6 +17,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
     public class EdwAdminTests : IClassFixture<IntegrationTestsFixture>
     {
         private readonly string _adminRole = "jobadmin";
+        private readonly string _dosAdminsGroup = "DosAdmins";
         private readonly string _edwAdminRole = "EDW Admin";
         private readonly string _clientId = "fabric-installer";
         private readonly string _grain = "dos";
@@ -77,7 +78,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             // Assert I Add user to role
             Assert.Equal(HttpStatusCode.NoContent, result.StatusCode);
-            await AssertEdwAdminRoleOnUserAsync(user, true);
+            await AssertEdwAdminRoleOnUserAsync(user, false);
 
             // Arrange II Remove user from role
             await RemoveUserFromRoleAsync(user, role);
@@ -126,6 +127,22 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
+        public async Task SyncPermissions_OnDosAdminsGroup_DoesNotSyncNonWindowsAdUserAsync()
+        {
+            // Arrange Add DosAdmins group, and user to DosAdmins group
+            var group = await CreateGroupAsync(_dosAdminsGroup);
+            var user = await CreateUserAsync("User-" + Guid.NewGuid(), "nonwindows");
+            await AddUserToIdentityBASEAsync(_securityContext, user);
+            await AssociateUserToGroupAsync(user, group);
+
+            // Act Attempt to sync permissions
+            var result = await _browser.Post($"/edw/{group.GroupName}/roles", with => with.Body(""));
+
+            // Assert
+            await AssertEdwAdminRoleOnUserAsync(user, false);
+        }
+
+        [Fact]
         public async Task SyncPermissions_OnGroup_AddRemoveToEdwAdminAsync()
         {
             // Arrange I Add role to group
@@ -141,7 +158,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             // Assert I add role to group
             Assert.Equal(HttpStatusCode.NoContent, result.StatusCode);
-            await AssertEdwAdminRoleOnUserAsync(user, true);
+            await AssertEdwAdminRoleOnUserAsync(user, false);
 
             // Arrange II remove role from group
             await RemoveRoleFromGroupAsync(group, role);
@@ -170,7 +187,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             // Assert I add role to group
             Assert.Equal(HttpStatusCode.NoContent, result.StatusCode);
-            await AssertEdwAdminRoleOnUserAsync(user, true);
+            await AssertEdwAdminRoleOnUserAsync(user, false);
 
             // Arrange II remove role from group
             await RemoveUserFromGroupAsync(group, user);
@@ -201,7 +218,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             // Assert I add role to group
             Assert.Equal(HttpStatusCode.NoContent, result.StatusCode);
-            await AssertEdwAdminRoleOnUserAsync(user, true);
+            await AssertEdwAdminRoleOnUserAsync(user, false);
 
             // Arrange II remove role from group
             await RemoveUserFromGroupAsync(group, user);
@@ -212,7 +229,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
             // Assert II Remove role from group
             Assert.Equal(HttpStatusCode.NoContent, result2.StatusCode);
-            await AssertEdwAdminRoleOnUserAsync(user, true);
+            await AssertEdwAdminRoleOnUserAsync(user, false);
         }
 
         private Task AddUserToIdentityBASEAsync(ISecurityContext securityContext, UserApiModel user)
