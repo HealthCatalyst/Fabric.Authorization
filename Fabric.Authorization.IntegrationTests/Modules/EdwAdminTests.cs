@@ -202,6 +202,34 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
+        public async Task SyncPermissions_OnDosAdminsGroup_RemoveAddUserFromGroupAsync()
+        {
+            // Arrange I Add role to group
+            var group = await CreateGroupAsync(_dosAdminsGroup);
+            var user = await CreateUserAsync("User-" + Guid.NewGuid(), _identityProvider);
+            await AddUserToIdentityBASEAsync(_securityContext, user);
+            await AssociateUserToGroupAsync(user, group);
+
+            // Act I add role to group
+            var result = await _browser.Post($"/edw/{group.GroupName}/roles", with => with.Body(""));
+
+            // Assert I add role to group
+            Assert.Equal(HttpStatusCode.NoContent, result.StatusCode);
+            await AssertEdwAdminRoleOnUserAsync(user, true);
+
+            // Arrange II remove role from group
+            await RemoveUserFromGroupAsync(group, user);
+            var body = JsonConvert.SerializeObject(new[] { new { identityProvider = user.IdentityProvider, subjectId = user.SubjectId } });
+
+            // Act II remove role from group
+            var result2 = await _browser.Post($"/edw/roles", with => with.Body(body));
+
+            // Assert II Remove role from group
+            Assert.Equal(HttpStatusCode.NoContent, result2.StatusCode);
+            await AssertEdwAdminRoleOnUserAsync(user, false);
+        }
+
+        [Fact]
         public async Task SyncPermissions_OnGroup_UserStillHasRoleAsync()
         {
             // Arrange I Add role to group
