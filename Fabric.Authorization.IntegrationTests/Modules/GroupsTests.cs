@@ -89,9 +89,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Theory]
         [IntegrationTestsFixture.DisplayTestMethodName]
-        [InlineData("AddGroup_SingleGroup_SuccessAsync1", "Source1", "DisplayName1", "Description1", "Windows")]
-        [InlineData("AddGroup_SingleGroup_SuccessAsync2", "Source2", "DisplayName2", "Description2", "Windows")]
-        [InlineData("6BC32347-36A1-44CF-AA0E-6C1038AA1DF3", "Source3", "DisplayName3", "Description3", "Windows")]
+        [InlineData("AddGroup_SingleGroup_SuccessAsync1", "Directory", "DisplayName1", "Description1", "Windows")]
+        [InlineData("AddGroup_SingleGroup_SuccessAsync2", "Directory", "DisplayName2", "Description2", "Windows")]
+        [InlineData("6BC32347-36A1-44CF-AA0E-6C1038AA1DF3", "Directory", "DisplayName3", "Description3", "Windows")]
         public async Task AddGroup_SingleGroup_SuccessAsync(string groupName, string groupSource, string displayName, string description, string identityProvider)
         {
             var postResponse = await Browser.Post("/groups", with =>
@@ -217,7 +217,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Theory]
         [IntegrationTestsFixture.DisplayTestMethodName]
-        [InlineData("PatchGroup_ValidRequest_SuccessAsync", "Source1", "Group Display Name 1", "Group Description 1")]
+        [InlineData("PatchGroup_ValidRequest_SuccessAsync", "Custom", "Group Display Name 1", "Group Description 1")]
         public async Task PatchGroup_ValidRequest_SuccessAsync(string groupName, string groupSource, string displayName, string description)
         {
             var postResponse = await Browser.Post("/groups", with =>
@@ -396,8 +396,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Theory]
         [IntegrationTestsFixture.DisplayTestMethodName]
-        [InlineData("", "Source1")]
-        [InlineData(null, "Source2")]
+        [InlineData("", "Custom")]
+        [InlineData(null, "Custom")]
         public async Task AddGroup_NullOrEmptyName_BadRequestAsync(string groupName, string groupSource)
         {
             var postResponse = await Browser.Post("/groups", with =>
@@ -553,9 +553,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Theory, IntegrationTestsFixture.DisplayTestMethodName,
-         InlineData("BatchUpdateGroup1", "BatchUpdateSource1", "Windows", null),
-         InlineData("BatchUpdateGroup2", "BatchUpdateSource2", "Windows", ""),
-         InlineData("BatchUpdateGroup2", "BatchUpdateSource2", "AzureActiveDirectory", "Tenant1")]
+         InlineData("BatchUpdateGroup1", "Directory", "Windows", null),
+         InlineData("BatchUpdateGroup2", "Directory", "Windows", ""),
+         InlineData("BatchUpdateGroup2", "Directory", "AzureActiveDirectory", "Tenant1")]
         public async Task UpdateGroup_Batch_SuccessAsync(string groupName, string groupSource, string identityProvider, string tenantId)
         {
             groupName = groupName + Guid.NewGuid();
@@ -668,10 +668,10 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Theory]
         [IntegrationTestsFixture.DisplayTestMethodName]
-        [InlineData("GroupToBeDeleted", "Source1", null, null)]
-        [InlineData("GroupToBeDeleted2", "Source2", "", "")]
-        [InlineData("GroupToBeDeleted3", "Source3", "Windows", "")]
-        [InlineData("GroupToBeDeleted4", "Source4", "AzureActiveDirectory", "Tenant1")]
+        [InlineData("GroupToBeDeleted", "Custom", null, null)]
+        [InlineData("GroupToBeDeleted2", "Custom", "", "")]
+        [InlineData("GroupToBeDeleted3", "Directory", "Windows", "")]
+        [InlineData("GroupToBeDeleted4", "Directory", "AzureActiveDirectory", "Tenant1")]
         public async Task DeleteGroup_SingleGroup_SuccessAsync(string groupName, string groupSource, string identityProvider, string tenantId)
         {
             await Browser.Post("/groups", with =>
@@ -1209,8 +1209,8 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             string group1Name = "Group1Name" + Guid.NewGuid();
             const string user1SubjectId = "User1SubjectId";
 
-            await SetupGroupAsync(group1Name, "Active Directory", null, null);
-            var response = await SetupGroupUserMappingAsync(group1Name, user1SubjectId, "idP1");
+            await SetupGroupAsync(group1Name, GroupConstants.DirectorySource, IdentityConstants.ActiveDirectory, null);
+            var response = await SetupGroupUserMappingAsync(group1Name, user1SubjectId, IdentityConstants.ActiveDirectory);
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }

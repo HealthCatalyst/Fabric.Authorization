@@ -26,6 +26,10 @@ namespace Fabric.Authorization.Domain.Validators
                 .WithState(g => ValidationEnums.ValidationState.MissingRequiredField);
 
             RuleFor(group => group)
+                .Must(g => GroupConstants.ValidGroupSources.Contains(g.Source, StringComparer.OrdinalIgnoreCase))
+                .WithMessage($"Please specify a valid GroupSource. Valid group sources include the following: {string.Join(", ", GroupConstants.ValidGroupSources)}");
+
+            RuleFor(group => group)
                 .Must(g => string.IsNullOrWhiteSpace(g.IdentityProvider))
                 .When(g => g.SourceEquals(GroupConstants.CustomSource))
                 .WithMessage("Custom groups are not allowed to have an IdentityProvider.");
