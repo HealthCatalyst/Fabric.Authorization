@@ -10,6 +10,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Xunit;
 using System.Linq;
+using Fabric.Authorization.Persistence.SqlServer.EntityModels;
 using Fabric.Authorization.Persistence.SqlServer.Stores.EDW;
 
 namespace Fabric.Authorization.IntegrationTests.Modules
@@ -396,18 +397,32 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         private async Task<GroupRoleApiModel> CreateGroupAsync(string name)
         {
-            var groupResponse = await _browser.Post("/groups", with =>
+            var getResponse = await _browser.Get($"/groups/{name}");
+            var result = getResponse.Body.AsString();
+            if (getResponse.StatusCode == HttpStatusCode.OK && result != "[]")
             {
-                with.HttpRequest();
-                with.JsonBody(new
+                return JsonConvert.DeserializeObject<GroupRoleApiModel[]>(result).FirstOrDefault();
+            }
+            else if (result == "[]" || getResponse.StatusCode == HttpStatusCode.NotFound)
+            {
+                var groupResponse = await _browser.Post("/groups", with =>
                 {
-                    GroupName = name,
-                    GroupSource = "Custom"
+                    with.HttpRequest();
+                    with.JsonBody(new
+                    {
+                        GroupName = name,
+                        GroupSource = "Custom"
+                    });
                 });
-            });
-            Assert.Equal(HttpStatusCode.Created, groupResponse.StatusCode);
-            var group = JsonConvert.DeserializeObject<GroupRoleApiModel>(groupResponse.Body.AsString());
-            return group;
+                Assert.Equal(HttpStatusCode.Created, groupResponse.StatusCode);
+                var group = JsonConvert.DeserializeObject<GroupRoleApiModel>(groupResponse.Body.AsString());
+                return group;
+            }
+            else
+            {
+
+                throw new NotImplementedException("Could not create group.");
+            }
         }
 
         private async Task AssociateGroupToRoleAsync(GroupRoleApiModel group, RoleApiModel role)
