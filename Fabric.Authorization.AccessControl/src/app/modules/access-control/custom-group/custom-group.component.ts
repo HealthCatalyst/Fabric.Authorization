@@ -428,7 +428,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     const invalidChildGroups = this.associatedGroups
     .filter(invalidChildGroup => invalidChildGroup.groupName === this.groupName);
     const invalidChildUsers = this.associatedUsers
-    .filter(invalidChildUser => invalidChildUser.name === this.groupName);
+    .filter(invalidChildUser => invalidChildUser.identityProviderUserPrincipalName === this.groupName);
 
     if (invalidChildGroups.length > 0 || invalidChildUsers.length > 0)
     {
