@@ -518,6 +518,24 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Theory]
         [IntegrationTestsFixture.DisplayTestMethodName]
+        [InlineData("Name1")]
+        public async Task AddGroup_InvalidSource_BadRequestAsync(string groupName)
+        {
+            var postResponse = await Browser.Post("/groups", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    GroupName = groupName,
+                    GroupSource = "InvalidSource"
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
+        }
+
+        [Theory]
+        [IntegrationTestsFixture.DisplayTestMethodName]
         [InlineData("RepeatedGroup1", "Custom", null, null)]
         [InlineData("RepeatedGroup2", "Custom", "", "")]
         [InlineData("RepeatedGroup3", "Directory", "Windows", "")]
