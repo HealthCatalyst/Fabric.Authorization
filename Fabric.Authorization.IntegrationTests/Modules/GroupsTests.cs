@@ -44,30 +44,30 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             {
                 fixture.ConnectionStrings = connectionStrings;
             }
-            Browser = fixture.GetBrowser(Principal, storageProvider, null, CreateMockIdPProvider("My Azure AD Group"));
+            Browser = fixture.GetBrowser(Principal, storageProvider, null, CreateMockIdPProvider(new List<IdPGroup>
+            {
+                new IdPGroup
+                {
+                    GroupName = "My Azure AD Group",
+                    PrincipalType = "Group",
+                    ExternalIdentifier = "123456",
+                    TenantId = "TenantId"
+                }
+            }));
             _defaultPropertySettings = fixture.DefaultPropertySettings;
             fixture.CreateClient(Browser, "rolesprincipal");
             _fixture = fixture;
             _storageProvider = storageProvider;
         }
 
-        private IIdPSearchProvider CreateMockIdPProvider(string groupName)
+        private IIdPSearchProvider CreateMockIdPProvider(List<IdPGroup> results)
         {
             var mockIdpSearchProvider = new Mock<IIdPSearchProvider>();
             mockIdpSearchProvider.Setup(m => m.GetGroupAsync(It.IsAny<IdPGroupRequest>()))
                 .ReturnsAsync(() => new FabricIdPGroupResponse()
                 {
                     HttpStatusCode = System.Net.HttpStatusCode.OK,
-                    Results = new List<IdPGroup>
-                    {
-                        new IdPGroup
-                        {
-                            GroupName = groupName,
-                            PrincipalType = "Group",
-                            ExternalIdentifier = "123456",
-                            TenantId = "TenantId"
-                        }
-                    }
+                    Results = results
                 });
 
             return mockIdpSearchProvider.Object;
@@ -127,7 +127,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
 
         [Fact]
         [IntegrationTestsFixture.DisplayTestMethodName]
-        public async Task AddGroup_AzureActiveDirectory_SuccessAsync()
+        public async Task AddGroup_AzureActiveDirectoryMatchFound_SuccessAsync()
         {
             var groupName = Guid.NewGuid().ToString();
             var postResponse = await Browser.Post("/groups", with =>
@@ -213,6 +213,30 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             var userPermissions = userPermissionsApiModel.Permissions.ToList();
             Assert.Single(userPermissions);
             Assert.Contains(permission.ToString(), userPermissions);
+        }
+
+        [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
+        public async Task AddGroup_AzureActiveDirectoryNoResults_BadRequestAsync()
+        {
+            var groupName = Guid.NewGuid().ToString();
+            var browser = _fixture.GetBrowser(Principal, _storageProvider, null, CreateMockIdPProvider(new List<IdPGroup>()));
+
+            var postResponse = await browser.Post("/groups", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    GroupName = groupName,
+                    GroupSource = GroupConstants.DirectorySource,
+                    DisplayName = "My Azure AD Group",
+                    Description = "My Azure AD Group",
+                    IdentityProvider = IdentityConstants.AzureActiveDirectory,
+                    TenantId = "AzureTenant"
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
         }
 
         [Theory]

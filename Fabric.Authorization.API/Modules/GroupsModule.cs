@@ -225,7 +225,7 @@ namespace Fabric.Authorization.API.Modules
                     if (idPSearchResponse.HttpStatusCode != System.Net.HttpStatusCode.OK)
                     {
                         return CreateFailureResponse(
-                            $"Group name {incomingGroup.Name} from {incomingGroup.IdentityProvider} tenant {incomingGroup.TenantId} was not found in the external identity provider directory.",
+                            $"Group {incomingGroup.Name} from {incomingGroup.IdentityProvider} tenant {incomingGroup.TenantId} was not found in the external identity provider directory.",
                             HttpStatusCode.BadRequest);
                     }
 
@@ -233,6 +233,12 @@ namespace Fabric.Authorization.API.Modules
                     if (results.Count > 1)
                     {
                         return CreateFailureResponse("There are multiple groups that match the request. Please refine your search to include IdentityProvider and/or TenantId.", HttpStatusCode.BadRequest);
+                    }
+
+                    if (results.Count == 0)
+                    {
+                        return CreateFailureResponse($"Group {incomingGroup.Name} from {incomingGroup.IdentityProvider} tenant {incomingGroup.TenantId} does not exist in the external identity provider.",
+                            HttpStatusCode.BadRequest);
                     }
 
                     incomingGroup.ExternalIdentifier = idPSearchResponse.Results.First().ExternalIdentifier;
