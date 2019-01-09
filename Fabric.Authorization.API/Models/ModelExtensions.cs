@@ -97,7 +97,7 @@ namespace Fabric.Authorization.API.Models
                 Id = group.Id,
                 GroupName = group.Name,
                 IdentityProvider = group.IdentityProvider,
-                DisplayName = group.DisplayName,
+                DisplayName = string.IsNullOrWhiteSpace(group.DisplayName) ? group.Name : group.DisplayName,
                 Description = group.Description,
                 Roles = group.Roles?.Where(r => !r.IsDeleted).Select(r => r.ToRoleApiModel()),
                 GroupSource = group.Source,
@@ -115,7 +115,7 @@ namespace Fabric.Authorization.API.Models
             {
                 Id = group.Id,
                 GroupName = group.Name,
-                DisplayName = group.DisplayName,
+                DisplayName = string.IsNullOrWhiteSpace(group.DisplayName) ? group.Name : group.DisplayName,
                 Description = group.Description,
                 Users = group.Users?.Where(u => !u.IsDeleted).Select(r => r.ToUserApiModel()),
                 GroupSource = group.Source
