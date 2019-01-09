@@ -163,7 +163,7 @@ namespace Fabric.Authorization.Domain.Services
 
         public async Task MigrateIdentityProvider()
         {
-            var groups = (await _groupStore.GetAll()).Where(g => g.Source == GroupConstants.DirectorySource && g.IdentityProvider == null).ToList();
+            var groups = (await _groupStore.GetAll()).Where(g => string.Equals(g.Source, GroupConstants.DirectorySource, StringComparison.OrdinalIgnoreCase) && g.IdentityProvider == null).ToList();
 
             foreach (var group in groups)
             {
