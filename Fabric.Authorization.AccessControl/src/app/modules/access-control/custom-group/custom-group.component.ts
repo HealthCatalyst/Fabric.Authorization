@@ -515,9 +515,19 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
       takeUntil(this.ngUnsubscribe))
       .subscribe(null, (error) => {
         if (error.statusCode === 409) {
-          this.groupNameInvalid = true;
-          this.groupNameError = `Could not create group named "${this.groupName}". ` +
-          `A group with the same name exists as a Custom group or a Directory group`;
+          if (error.message.startsWith("The associated user or group name should not be the same as an existing custom group:"))
+          {
+            // the custom group still gets saved, but without the duplicate named user or group, 
+            // because this code is in the groupsObservable.
+            this.associatedNameInvalid = true;
+            this.associatedNameError = error.message;
+          }
+          else
+          {
+            this.groupNameInvalid = true;
+            this.groupNameError = `Could not create group named "${this.groupName}". ` +
+            `A group with the same name exists as a Custom group or a Directory group`;
+          }
         }
 
         // TODO: Error handling

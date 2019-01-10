@@ -151,6 +151,15 @@ namespace Fabric.Authorization.Domain.Services
         public async Task<Group> AddUsersToGroup(GroupIdentifier groupIdentifier, IList<User> usersToAdd)
         {
             var group = await _groupStore.Get(groupIdentifier);
+            
+            var customGroupChildUserWithSameName = (await _groupStore.Get(
+                                usersToAdd.Select(u => new GroupIdentifier { GroupName = u.IdentityProviderUserPrincipalName }), true)).ToList();
+
+            if (customGroupChildUserWithSameName.Any())
+            {
+                throw new AlreadyExistsException<Group>(
+                    $"The associated user or group name should not be the same as an existing custom group: {string.Join(", ", customGroupChildUserWithSameName.Select(g => g.Name))}");
+            }
 
             // only add users to a custom group
             if (!string.Equals(group.Source, GroupConstants.CustomSource, StringComparison.OrdinalIgnoreCase))
@@ -214,6 +223,15 @@ namespace Fabric.Authorization.Domain.Services
 
             // first make sure all the child groups are created
             var childGroupList = childGroups.ToList();
+
+            var customGroupChildGroupWithSameName = (await _groupStore.Get(
+                                childGroupList.Select(g => new GroupIdentifier { GroupName = g.GroupIdentifier.GroupName }), true)).ToList();
+
+            if (customGroupChildGroupWithSameName.Any())
+            {
+                throw new AlreadyExistsException<Group>(
+                   $"The associated user or group name should not be the same as an existing custom group: {string.Join(", ", customGroupChildGroupWithSameName.Select(g => g.Name))}");
+            }
 
             try
             {
