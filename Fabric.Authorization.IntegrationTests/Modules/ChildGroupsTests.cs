@@ -316,6 +316,10 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             });
 
             Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
+            var error = postResponse.Body.DeserializeJson<Error>();
+            Assert.Equal($"The following child groups do not exist in our database and cannot be created due to 1 or more of the following reasons: " +
+                        "1) missing GroupName, 2) missing GroupSource, 3) the GroupSource is incorrectly specified as Custom, or 4) The IdentityProvider field is missing or invalid: " +
+                        $"{string.Join(", ", childGroup1.GroupName)}", error.Message);
         }
 
         [Fact]
@@ -343,6 +347,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             });
 
             Assert.Equal(HttpStatusCode.Conflict, postResponse.StatusCode);
+            var error = postResponse.Body.DeserializeJson<Error>();
+            Assert.Equal($"The associated user or group name should not be the same as an existing custom group: " +
+                        $"{string.Join(", ", testGroup1.GroupName)}", error.Message);
         }
 
         public static IEnumerable<object[]> GetPrincipals()

@@ -450,6 +450,10 @@ namespace Fabric.Authorization.API.Modules
             {
                 return CreateFailureResponse(ex, HttpStatusCode.BadRequest);
             }
+            catch (AlreadyExistsException<Group> ex)
+            {
+                return CreateFailureResponse(ex.Message, HttpStatusCode.Conflict);
+            }
         }
 
         private async Task<dynamic> DeleteUserFromGroup()
