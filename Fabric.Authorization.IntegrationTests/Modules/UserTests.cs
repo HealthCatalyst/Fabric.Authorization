@@ -116,6 +116,45 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         }
 
         [Fact]
+        public async Task AddUserToGroup_ExistingCustomGroupName_ReturnsConflictAsync()
+        {
+            var groupName = "bob.smith" + Guid.NewGuid();
+            var subjectId = @"domain\test.user" + Guid.NewGuid();
+            var idP = "Windows";
+
+            var post = await _browser.Post("/groups", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new
+                {
+                    GroupName = groupName,
+                    GroupSource = "Custom"
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Created, post.StatusCode);
+
+            // add user to group
+            var postConflict = await _browser.Post($"/groups/{groupName}/users", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new[]
+                {
+                    new
+                    {
+                        SubjectId = subjectId,
+                        IdentityProviderUserPrincipalName = groupName,
+                        IdentityProvider = idP
+                    }
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Conflict, postConflict.StatusCode);
+            var error = postConflict.Body.DeserializeJson<Error>();
+            Assert.Equal($"The associated user or group name should not be the same as an existing custom group: {groupName}", error.Message);
+        }
+
+        [Fact]
         public async Task AddRolesToUser_ReturnsOkAsync()
         {
             var identityProvider = "windows";

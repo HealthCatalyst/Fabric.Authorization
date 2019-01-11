@@ -264,6 +264,7 @@ namespace Fabric.Authorization.Domain.Services
             var childGroupIdentifierList = childGroupList.Select(g => g.GroupIdentifier).ToList();
 
             // do not allow custom groups to be children
+            // can't find where this code is hit, since the catch above looks for g.Source equal to CustomSource
             childGroups = (await _groupStore.Get(childGroupIdentifierList, false)).ToList();
             var customGroups = childGroups.Where(g => g.Source == GroupConstants.CustomSource).ToList();
             if (customGroups.Any())
