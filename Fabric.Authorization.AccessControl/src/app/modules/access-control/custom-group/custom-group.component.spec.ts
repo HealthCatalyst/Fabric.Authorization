@@ -52,7 +52,6 @@ describe('CustomGroupComponent', () => {
   let edwAdminService: FabricAuthEdwadminServiceMock;
   let alertService: AlertServiceMock;
   let groupService: FabricAuthGroupServiceMock;
-  let userService: FabricAuthUserServiceMock;
   let router: Router;
 
   beforeEach(
@@ -102,7 +101,6 @@ describe('CustomGroupComponent', () => {
       edwAdminService = edwAdminServiceMock;
       alertService = alertServiceMock;
       groupService = groupServiceMock;
-      userService = userServiceMock;
 
       router = routerMock;
 
