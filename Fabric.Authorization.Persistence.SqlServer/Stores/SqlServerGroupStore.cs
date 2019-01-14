@@ -36,7 +36,7 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
                 if (group.SourceEquals(GroupConstants.CustomSource))
                 {
                     throw new AlreadyExistsException<Group>(
-                        $"Group {group.Name} already exists. Please use a different GroupName.");
+                        $"Could not create group name {group.Name}. A group with the same name exists as a Custom group or a Directory group.");
                 }
 
                 if (groupNameMatches.Any(g =>

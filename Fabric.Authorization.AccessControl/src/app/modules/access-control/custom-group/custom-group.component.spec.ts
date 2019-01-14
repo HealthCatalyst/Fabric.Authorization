@@ -194,7 +194,8 @@ describe('CustomGroupComponent', () => {
     it('returns descriptive error when groupname conflict', () => {
       // arrange
       const mockErrorResponse = {
-          statusCode: 409
+          statusCode: 409,
+          message: `Could not create group name "${mockGroupsResponse[0].groupName}". A group with the same name exists as a Custom group or a Directory group.`
       };
       groupService.getChildGroups.and.returnValue(observableThrowError(mockErrorResponse));
       component.editMode = true;
@@ -207,10 +208,10 @@ describe('CustomGroupComponent', () => {
       // assert
       expect(component.groupNameInvalid).toBe(true);
       expect(component.groupNameError).toBeTruthy();
-      expect(component.groupNameError).toMatch(`Could not create group named "${mockGroupsResponse[0].groupName}"\.*`);
+      expect(component.groupNameError).toMatch(`Could not create group name "${mockGroupsResponse[0].groupName}". A group with the same name exists as a Custom group or a Directory group.`);
     });
 
-    it('returns error if associated group name is the same as the custom group', () => {
+    it('returns error if associated group name is the same as new custom group', () => {
       component.groupName = mockGroupsResponse[0].groupName;
       component.displayName = mockGroupsResponse[0].groupName;
       component.associatedGroups.push(mockGroupsResponse[0]);
@@ -221,13 +222,13 @@ describe('CustomGroupComponent', () => {
       }
       catch{
         // assert
-        expect(component.associatedNameInvalid).toBe(true);
+        expect(component.groupNameInvalid).toBe(true);
         expect(component.associatedNameError).toBeTruthy();
         expect(component.associatedNameError).toMatch(`The associated user or group name, ${mockGroupsResponse[0].groupName}, should not be the same as the custom group.`);
       }
     });
 
-    it('returns error if associated user name is the same as the custom group', () => {
+    it('returns error if associated user name is the same as new custom group', () => {
       // arrange
       component.groupName = mockUsersResponse[0].identityProviderUserPrincipalName;
       component.displayName = mockUsersResponse[0].identityProviderUserPrincipalName;
@@ -239,13 +240,54 @@ describe('CustomGroupComponent', () => {
         }
         catch{
         // assert
-        expect(component.associatedNameInvalid).toBe(true);
+        expect(component.groupNameInvalid).toBe(true);
         expect(component.associatedNameError).toBeTruthy();
         expect(component.associatedNameError).toMatch(`The associated user or group name, ${mockUsersResponse[0].identityProviderUserPrincipalName}, should not be the same as the custom group.`);
       }
 
 
     });
+
+    it('returns error if associated group name is the same as existing custom group', () => {
+      // arrange
+      const mockErrorResponse = {
+        statusCode: 409,
+        message: `The associated user or group name should not be the same as an existing custom group: ${mockGroupsResponse[0].groupName}`
+      };
+      groupService.getChildGroups.and.returnValue(observableThrowError(mockErrorResponse));
+      component.editMode = true;
+      component.groupName = mockGroupsResponse[0].groupName;
+      component.displayName = mockGroupsResponse[0].displayName;
+
+      // act
+      component.save();
+
+      // assert
+      expect(component.groupNameInvalid).toBe(true);
+      expect(component.associatedNameError).toBeTruthy();
+      expect(component.associatedNameError).toMatch(`The associated user or group name should not be the same as an existing custom group: ${mockGroupsResponse[0].groupName}`);
+    });
+
+    it('returns error if associated user name is the same as existing custom group', () => {
+      // arrange
+      const mockErrorResponse = {
+        statusCode: 409,
+        message: `The associated user or group name should not be the same as an existing custom group: ${mockUsersResponse[0].identityProviderUserPrincipalName}`
+      };
+      groupService.getChildGroups.and.returnValue(observableThrowError(mockErrorResponse));
+      component.editMode = true;
+      component.groupName = mockUsersResponse[0].name;
+      component.displayName = mockUsersResponse[0].name;
+
+      // act
+      component.save();
+
+      // assert
+      expect(component.groupNameInvalid).toBe(true);
+      expect(component.associatedNameError).toBeTruthy();
+      expect(component.associatedNameError).toMatch(`The associated user or group name should not be the same as an existing custom group: ${mockUsersResponse[0].identityProviderUserPrincipalName}`);
+    });
+
   });
 
   describe('save button', () => {

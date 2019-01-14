@@ -297,20 +297,59 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         public async Task AddChildGroup_CustomChildGroup_BadRequestAsync()
         {
             var parentGroup = await SetupGroupAsync(Guid.NewGuid().ToString(), GroupConstants.CustomSource, "Custom Parent Group", "Custom Parent Group");
-            var childGroup1 = await SetupGroupAsync(Guid.NewGuid().ToString(), GroupConstants.CustomSource, "Child Group 1", "Child Group 1");
-            var childGroup2 = await SetupGroupAsync(Guid.NewGuid().ToString(), GroupConstants.DirectorySource, "Child Group 2", "Child Group 2");
+            // invalid for a child group to be a custom group
+            var childGroup1 = new GroupPostApiRequest
+            {
+                GroupName = Guid.NewGuid().ToString(),
+                GroupSource = GroupConstants.CustomSource,
+                Description = "Child Group 1",
+                IdentityProvider = "Windows"
+            };
 
             var postResponse = await _browser.Post($"/groups/{parentGroup.GroupName}/groups", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(new[]
                 {
-                    new { childGroup1.GroupName },
-                    new { childGroup2.GroupName }
+                    new { childGroup1.GroupName, childGroup1.GroupSource, childGroup1.Description, childGroup1.IdentityProvider }
                 });
             });
 
             Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
+            var error = postResponse.Body.DeserializeJson<Error>();
+            Assert.Equal($"The following child groups do not exist in our database and cannot be created due to 1 or more of the following reasons: " +
+                        "1) missing GroupName, 2) missing GroupSource, 3) the GroupSource is incorrectly specified as Custom, or 4) The IdentityProvider field is missing or invalid: " +
+                        $"{string.Join(", ", childGroup1.GroupName)}", error.Message);
+        }
+
+        [Fact]
+        [IntegrationTestsFixture.DisplayTestMethodName]
+        public async Task AddChildGroup_CustomChildGroup_ConflictAsync()
+        {
+            var parentGroup = await SetupGroupAsync(Guid.NewGuid().ToString(), GroupConstants.CustomSource, "Custom Parent Group", "Custom Parent Group");
+            // create custom group, then post new directory group (child group) with same groupName as custom group
+            var groupName = Guid.NewGuid().ToString();
+            var testGroup1 = await SetupGroupAsync(groupName, GroupConstants.CustomSource, "Test Group 1", "Test Group 1");
+            var testGroup2 = new GroupRoleApiModel
+            {
+                GroupName = groupName,
+                GroupSource = GroupConstants.DirectorySource,
+                DisplayName = "Test Group 2",
+                Description = "Test Group 2"
+            };
+            var postResponse = await _browser.Post($"/groups/{parentGroup.GroupName}/groups", with =>
+            {
+                with.HttpRequest();
+                with.JsonBody(new[]
+                {
+                    new { testGroup2.GroupName, testGroup2.GroupSource, testGroup2.Description, testGroup2.IdentityProvider }
+                });
+            });
+
+            Assert.Equal(HttpStatusCode.Conflict, postResponse.StatusCode);
+            var error = postResponse.Body.DeserializeJson<Error>();
+            Assert.Equal($"The associated user or group name should not be the same as an existing custom group: " +
+                        $"{string.Join(", ", testGroup1.GroupName)}", error.Message);
         }
 
         public static IEnumerable<object[]> GetPrincipals()

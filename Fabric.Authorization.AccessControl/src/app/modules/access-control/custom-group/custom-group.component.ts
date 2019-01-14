@@ -42,7 +42,6 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   public groupNameSubject = new Subject<string>();
   public groupNameInvalid = false;
   public groupNameError: string;
-  public associatedNameInvalid = false;
   public associatedNameError: string;
   public searchingGroup = false;
 
@@ -432,7 +431,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
 
     if (invalidChildGroups.length > 0 || invalidChildUsers.length > 0)
     {
-      this.associatedNameInvalid = true;
+      this.groupNameInvalid = true;
       this.associatedNameError = `The associated user or group name, ${this.groupName}, should not be the same as the custom group.`;
 
       this.savingInProgress = false;
@@ -515,9 +514,11 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
       takeUntil(this.ngUnsubscribe))
       .subscribe(null, (error) => {
         if (error.statusCode === 409) {
-          this.groupNameInvalid = true;
-          this.groupNameError = `Could not create group named "${this.groupName}". ` +
-          `A group with the same name exists as a Custom group or a Directory group`;
+            // the custom group still gets saved, but without the duplicate named user or group, 
+            // because this code is in the groupsObservable.
+            this.groupNameInvalid = true;
+            this.associatedNameError = error.message;
+            this.groupNameError = error.message;
         }
 
         // TODO: Error handling
@@ -562,7 +563,6 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     this.editMode = true;
     this.groupNameInvalid = false;
     this.groupNameError = '';
-    this.associatedNameInvalid = false;
     this.associatedNameError = '';
     this.customGroups = [];
     return observableZip(this.getGroupRolesBySecurableItemAndGrain(), this.getGroupUsers(), this.getChildGroups()).pipe(
