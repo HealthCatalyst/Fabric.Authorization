@@ -421,23 +421,6 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
 
     const groupObservable = this.editMode ? of(newGroup) : this.groupService.createGroup(newGroup);
 
-    // associated users and groups should not have the same name as custom group
-    // throw an error before a custom group is saved so we do not create an orphaned custom group
-    // if a custom group is not created yet.
-    const invalidChildGroups = this.associatedGroups
-    .filter(invalidChildGroup => invalidChildGroup.groupName === this.groupName);
-    const invalidChildUsers = this.associatedUsers
-    .filter(invalidChildUser => invalidChildUser.identityProviderUserPrincipalName === this.groupName);
-
-    if (invalidChildGroups.length > 0 || invalidChildUsers.length > 0)
-    {
-      this.groupNameInvalid = true;
-      this.associatedNameError = `The associated user or group name, ${this.groupName}, should not be the same as the custom group.`;
-
-      this.savingInProgress = false;
-      throw new Error(`The associated user or group name, ${this.groupName}, should not be the same as the custom group.`);
-    }
-
     return groupObservable.pipe(
       mergeMap((group) => {
         const groupRolesObservable = this.groupService

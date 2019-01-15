@@ -211,43 +211,6 @@ describe('CustomGroupComponent', () => {
       expect(component.groupNameError).toMatch(`Could not create group name "${mockGroupsResponse[0].groupName}". A group with the same name exists as a Custom group or a Directory group.`);
     });
 
-    it('returns error if associated group name is the same as new custom group', () => {
-      component.groupName = mockGroupsResponse[0].groupName;
-      component.displayName = mockGroupsResponse[0].groupName;
-      component.associatedGroups.push(mockGroupsResponse[0]);
-      
-      // act
-      try{
-      component.save();
-      }
-      catch{
-        // assert
-        expect(component.groupNameInvalid).toBe(true);
-        expect(component.associatedNameError).toBeTruthy();
-        expect(component.associatedNameError).toMatch(`The associated user or group name, ${mockGroupsResponse[0].groupName}, should not be the same as the custom group.`);
-      }
-    });
-
-    it('returns error if associated user name is the same as new custom group', () => {
-      // arrange
-      component.groupName = mockUsersResponse[0].identityProviderUserPrincipalName;
-      component.displayName = mockUsersResponse[0].identityProviderUserPrincipalName;
-      component.associatedUsers.push(mockUsersResponse[0]);
-
-      // act
-      try{
-        component.save();
-        }
-        catch{
-        // assert
-        expect(component.groupNameInvalid).toBe(true);
-        expect(component.associatedNameError).toBeTruthy();
-        expect(component.associatedNameError).toMatch(`The associated user or group name, ${mockUsersResponse[0].identityProviderUserPrincipalName}, should not be the same as the custom group.`);
-      }
-
-
-    });
-
     it('returns error if associated group name is the same as existing custom group', () => {
       // arrange
       const mockErrorResponse = {
