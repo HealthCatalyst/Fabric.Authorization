@@ -535,6 +535,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     if (!name) {
       this.groupNameError = 'Group name is required';
       this.groupNameInvalid = true;
+      this.associatedNameError = 'Group name is required'
       return false;
     }
     return true;
