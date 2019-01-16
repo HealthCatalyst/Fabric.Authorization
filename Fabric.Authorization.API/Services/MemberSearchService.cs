@@ -75,7 +75,7 @@ namespace Fabric.Authorization.API.Services
             }));
 
             // get users directly mapped to client roles
-            var users = roleEntities.SelectMany(r => r.Users).Distinct(new UserComparer());
+            var users = roleEntities.SelectMany(r => r.Users).Where(u => !u.IsDeleted).Distinct(new UserComparer());
             var userList = new List<MemberSearchResponse>();
 
             foreach (var user in users)
