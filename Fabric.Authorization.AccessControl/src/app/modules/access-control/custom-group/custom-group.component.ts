@@ -134,14 +134,13 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
         ).pipe(
         switchMap((roles: IRole[]) => {
           this.roles = roles;
-
           return this.currentUserService.getPermissions();
         }),
         tap(p => {
           this.roles.forEach(r => {
             const requiredPermission = `${r.grain}/${r.securableItem}.manageauthorization`;
 
-            if (!p.includes(requiredPermission)) {
+            if (!p.includes(requiredPermission) && !this.missingPermissions.includes(requiredPermission)) {
               this.missingPermissions.push(requiredPermission);
             }
           });
@@ -497,7 +496,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
       takeUntil(this.ngUnsubscribe))
       .subscribe(null, (error) => {
         if (error.statusCode === 409) {
-            // the custom group still gets saved, but without the duplicate named user or group, 
+            // the custom group still gets saved, but without the duplicate named user or group,
             // because this code is in the groupsObservable.
             this.groupNameInvalid = true;
             this.associatedNameError = error.message;
@@ -535,7 +534,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     if (!name) {
       this.groupNameError = 'Group name is required';
       this.groupNameInvalid = true;
-      this.associatedNameError = 'Group name is required'
+      this.associatedNameError = 'Group name is required';
       return false;
     }
     return true;
