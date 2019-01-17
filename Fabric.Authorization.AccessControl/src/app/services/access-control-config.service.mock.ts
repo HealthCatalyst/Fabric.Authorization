@@ -8,8 +8,8 @@ export class MockAccessControlConfigService implements IAccessControlConfigServi
     identityProvider: string;
     grain: string;
     securableItem: string;
-    fabricAuthApiUrl = '';
-    fabricExternalIdpSearchApiUrl = '';
+    fabricAuthApiUrl = 'auth';
+    fabricExternalIdpSearchApiUrl = 'idpss';
     dataChanged = new Subject<IDataChangedEventArgs>();
     errorRaised: Subject<Exception>;
 }
