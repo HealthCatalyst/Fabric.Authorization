@@ -114,7 +114,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
         tap(p => {
           this.groupRoles.forEach(r => {
             const requiredPermission = `${r.grain}/${r.securableItem}.manageauthorization`;
-            if (!p.includes(requiredPermission)) {
+            if (!p.includes(requiredPermission) && !this.missingPermissions.includes(requiredPermission)) {
               this.missingPermissions.push(requiredPermission);
             }
           });
@@ -244,7 +244,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
 
   configureSaveButton() {
     const currentManageAuthPermission = `${this.grain}/${this.securableItem}.manageauthorization`;
-    if (this.roles.length === 0 && !this.missingPermissions.some(p => p === currentManageAuthPermission)) {
+    if (this.roles.length === 0 && !this.missingPermissions.includes(currentManageAuthPermission)) {
       this.missingPermissions.push(currentManageAuthPermission);
     }
 
