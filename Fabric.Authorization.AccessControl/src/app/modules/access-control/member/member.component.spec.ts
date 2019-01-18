@@ -23,7 +23,7 @@ import { ServicesMockModule } from '../services.mock.module';
 import { FabricAuthRoleServiceMock } from '../../../services/fabric-auth-role.service.mock';
 import { FabricAuthRoleService } from '../../../services/fabric-auth-role.service';
 import { FabricExternalIdpSearchService } from '../../../services/fabric-external-idp-search.service';
-import { CurrentUserServiceMock, mockCurrentUserPermissions } from '../../../services/current-user.service.mock';
+import { CurrentUserServiceMock, mockCurrentUserPermissions, mockAdminUserPermissions } from '../../../services/current-user.service.mock';
 import { FabricAuthUserService } from '../../../services/fabric-auth-user.service';
 import { CurrentUserService } from '../../../services/current-user.service';
 import { FabricAuthUserServiceMock, mockUserPermissionResponse, mockUserResponse } from '../../../services/fabric-auth-user.service.mock';
@@ -35,6 +35,7 @@ import { IFabricPrincipal } from '../../../models/fabricPrincipal.model';
 import { mockRolesResponse, FabricAuthGroupServiceMock, mockGroupResponse } from '../../../services/fabric-auth-group.service.mock';
 import { FabricAuthGroupService } from '../../../services/fabric-auth-group.service';
 import { By } from '@angular/platform-browser';
+import { ActivatedRoute, convertToParamMap } from '@angular/router';
 
 describe('MemberComponent', () => {
   let component: MemberComponent;
@@ -44,6 +45,7 @@ describe('MemberComponent', () => {
   let userService: FabricAuthUserServiceMock;
   let groupService: FabricAuthGroupServiceMock;
   let idpSearchService: FabricExternalIdpSearchServiceMock;
+  let currentUserService: CurrentUserServiceMock;
 
   beforeEach(
     async(() => {
@@ -59,6 +61,19 @@ describe('MemberComponent', () => {
           CheckboxModule,
           ProgressIndicatorsModule,
           ToastrModule.forRoot()],
+          providers: [
+            {
+              provide: ActivatedRoute, useValue: {
+                snapshot: {
+                  paramMap: convertToParamMap({
+                    grain: 'dos',
+                    securableItem: 'datamarts'
+                  })
+                },
+                queryParams: of({})
+              }
+            }
+          ]
       }).compileComponents();
     })
   );
@@ -80,12 +95,13 @@ describe('MemberComponent', () => {
       alertServiceMock: AlertServiceMock) => {
         idpSearch.search.and.returnValue(of(mockExternalIdpSearchResult));
         userServiceMock.getCurrentUserPermissions.and.returnValue(of(mockUserPermissionResponse));
-        currentUserServiceMock.getPermissions.and.returnValue(of(mockCurrentUserPermissions));
+        currentUserServiceMock.getPermissions.and.returnValue(of(mockAdminUserPermissions));
         roleService.getRolesBySecurableItemAndGrain.and.returnValue(of(mockRolesResponse));
 
         edwAdminService = edwAdminServiceMock;
         alertService = alertServiceMock;
         userService = userServiceMock;
+        currentUserService = currentUserServiceMock;
         groupService = groupServiceMock;
         idpSearchService = idpSearch;
   }));
@@ -191,6 +207,26 @@ describe('MemberComponent', () => {
         // assert
         const expected = mockExternalIdpGroupSearchResult.principals[0].subjectId;
         expect(component.selectedPrincipal.subjectId).toEqual(expected);
+      });
+    });
+
+    describe('save button', () => {
+
+      it('should not be disabled', () => {
+        // assert
+        expect(component.disabledSaveReason).toEqual('');
+      });
+
+      it('should display necessary permissions', () => {
+        // arrange/act - create component with no permissions on current user
+        currentUserService.getPermissions.and.returnValue(of(mockCurrentUserPermissions));
+        fixture = TestBed.createComponent(MemberComponent);
+        component = fixture.componentInstance;
+        fixture.detectChanges();
+
+        // assert
+        expect(component.disabledSaveReason).toEqual('You are missing the following required permissions to edit: '
+          + 'dos/datamarts.manageauthorization');
       });
     });
   });
