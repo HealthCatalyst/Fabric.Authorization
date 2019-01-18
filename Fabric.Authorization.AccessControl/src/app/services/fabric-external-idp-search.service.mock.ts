@@ -1,7 +1,7 @@
 import { IdPSearchResult } from '../models/idpSearchResult.model';
 
 export const mockExternalIdpSearchResult: IdPSearchResult = {
-    resultCount: 2,
+    resultCount: 3,
     principals: [
       {
         subjectId: 'sub123',
@@ -24,7 +24,7 @@ export const mockExternalIdpSearchResult: IdPSearchResult = {
         identityProviderUserPrincipalName: 'sub456'
       },
       {
-        subjectId: 'azuresub123',
+        subjectId: 'azuresub123@url.com',
         firstName: 'azure_first_1',
         middleName: '',
         lastName: 'azure_last_2',
@@ -36,6 +36,24 @@ export const mockExternalIdpSearchResult: IdPSearchResult = {
       }
     ]
   };
+
+export const mockExternalIdpGroupSearchResult: IdPSearchResult = {
+  resultCount: 2,
+  principals: [
+    {
+      subjectId: 'domain\\ad group',
+      principalType: 'group',
+      tenantId: null,
+      identityProvider: 'Windows'
+    },
+    {
+      subjectId: 'aad group',
+      principalType: 'group',
+      tenantId: 'tenant',
+      identityProvider: 'Azure'
+    }
+  ]
+};
 
 export class FabricExternalIdpSearchServiceMock {
     search: jasmine.Spy = jasmine.createSpy('search');
