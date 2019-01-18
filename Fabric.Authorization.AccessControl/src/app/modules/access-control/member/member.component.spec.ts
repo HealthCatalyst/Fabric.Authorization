@@ -14,9 +14,13 @@ import {
   ProgressIndicatorsModule
 } from '@healthcatalyst/cashmere';
 import { FormsModule } from '@angular/forms';
-import { FabricExternalIdpSearchServiceMock, mockExternalIdpSearchResult } from '../../../services/fabric-external-idp-search.service.mock';
+import {
+    FabricExternalIdpSearchServiceMock,
+    mockExternalIdpSearchResult,
+    mockExternalIdpGroupSearchResult
+  } from '../../../services/fabric-external-idp-search.service.mock';
 import { ServicesMockModule } from '../services.mock.module';
-import { FabricAuthRoleServiceMock, mockRoles } from '../../../services/fabric-auth-role.service.mock';
+import { FabricAuthRoleServiceMock } from '../../../services/fabric-auth-role.service.mock';
 import { FabricAuthRoleService } from '../../../services/fabric-auth-role.service';
 import { FabricExternalIdpSearchService } from '../../../services/fabric-external-idp-search.service';
 import { CurrentUserServiceMock, mockCurrentUserPermissions } from '../../../services/current-user.service.mock';
@@ -30,14 +34,16 @@ import { AlertService } from '../../../services/global/alert.service';
 import { IFabricPrincipal } from '../../../models/fabricPrincipal.model';
 import { mockRolesResponse, FabricAuthGroupServiceMock, mockGroupResponse } from '../../../services/fabric-auth-group.service.mock';
 import { FabricAuthGroupService } from '../../../services/fabric-auth-group.service';
+import { By } from '@angular/platform-browser';
 
-describe('MemberAddComponent', () => {
+describe('MemberComponent', () => {
   let component: MemberComponent;
   let fixture: ComponentFixture<MemberComponent>;
   let edwAdminService: FabricAuthEdwadminServiceMock;
   let alertService: AlertServiceMock;
   let userService: FabricAuthUserServiceMock;
   let groupService: FabricAuthGroupServiceMock;
+  let idpSearchService: FabricExternalIdpSearchServiceMock;
 
   beforeEach(
     async(() => {
@@ -81,6 +87,7 @@ describe('MemberAddComponent', () => {
         alertService = alertServiceMock;
         userService = userServiceMock;
         groupService = groupServiceMock;
+        idpSearchService = idpSearch;
   }));
 
   beforeEach(() => {
@@ -93,51 +100,98 @@ describe('MemberAddComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should show sync alert when sync user error occurs', () => {
-    const mockErrorResponse = {
-      statusCode: 400,
-      message: 'sync error'
-    };
+  describe('sync errors', () => {
+    it('should show sync alert when sync user error occurs', () => {
+      const mockErrorResponse = {
+        statusCode: 400,
+        message: 'sync error'
+      };
 
-    edwAdminService.syncUsersWithEdwAdmin.and.returnValue(throwError(mockErrorResponse));
-    userService.getUser.and.returnValue(of(mockUserResponse));
-    userService.getUserRoles.and.returnValue(of(mockRolesResponse));
-    userService.addRolesToUser.and.returnValue(of(mockUserResponse));
-    userService.removeRolesFromUser.and.returnValue(of(mockUserResponse));
+      edwAdminService.syncUsersWithEdwAdmin.and.returnValue(throwError(mockErrorResponse));
+      userService.getUser.and.returnValue(of(mockUserResponse));
+      userService.getUserRoles.and.returnValue(of(mockRolesResponse));
+      userService.addRolesToUser.and.returnValue(of(mockUserResponse));
+      userService.removeRolesFromUser.and.returnValue(of(mockUserResponse));
 
-    const principal: IFabricPrincipal = {
-      subjectId: 'HQCATALYST\\first.last',
-      principalType: 'user'
-    };
+      const principal: IFabricPrincipal = {
+        subjectId: 'HQCATALYST\\first.last',
+        principalType: 'user'
+      };
 
-    component.selectPrincipal(principal);
-    component.saveUser(principal, mockRolesResponse).subscribe(() => {
-      expect(alertService.showSyncWarning).toHaveBeenCalledTimes(1);
-      expect(alertService.showError).toHaveBeenCalledTimes(0);
+      component.selectPrincipal(principal);
+      component.saveUser(principal, mockRolesResponse).subscribe(() => {
+        expect(alertService.showSyncWarning).toHaveBeenCalledTimes(1);
+        expect(alertService.showError).toHaveBeenCalledTimes(0);
+      });
+    });
+
+    it('should show sync alert when sync group error occurs', () => {
+      const mockErrorResponse = {
+        statusCode: 400,
+        message: 'sync error'
+      };
+
+      edwAdminService.syncGroupWithEdwAdmin.and.returnValue(throwError(mockErrorResponse));
+      groupService.getGroup.and.returnValue(of(mockGroupResponse));
+      groupService.getGroupRoles.and.returnValue(of(mockRolesResponse));
+      groupService.addRolesToGroup.and.returnValue(of(mockGroupResponse));
+      groupService.removeRolesFromGroup.and.returnValue(of(mockGroupResponse));
+
+      const principal: IFabricPrincipal = {
+        subjectId: 'HQCATALYST\\product.development',
+        principalType: 'group'
+      };
+
+      component.selectPrincipal(principal);
+      component.saveGroup(principal, mockRolesResponse).subscribe(() => {
+        expect(alertService.showSyncWarning).toHaveBeenCalledTimes(1);
+        expect(alertService.showError).toHaveBeenCalledTimes(0);
+      });
     });
   });
 
-  it('should show sync alert when sync group error occurs', () => {
-    const mockErrorResponse = {
-      statusCode: 400,
-      message: 'sync error'
-    };
+  describe('member selection', () => {
+    describe('users', () => {
+      it('associate a user when selected', () => {
+        // arrange
+        userService.getUserRoles.and.returnValue(of(mockRolesResponse));
+        fixture.detectChanges();
+        const idpssPrincipals = fixture.debugElement.queryAll(By.css('li'));
 
-    edwAdminService.syncGroupWithEdwAdmin.and.returnValue(throwError(mockErrorResponse));
-    groupService.getGroup.and.returnValue(of(mockGroupResponse));
-    groupService.getGroupRoles.and.returnValue(of(mockRolesResponse));
-    groupService.addRolesToGroup.and.returnValue(of(mockGroupResponse));
-    groupService.removeRolesFromGroup.and.returnValue(of(mockGroupResponse));
+        // act - select first user
+        expect(idpssPrincipals.length).toEqual(mockExternalIdpSearchResult.principals.length);
+        const checkBox = idpssPrincipals[0].query(By.css('hc-checkbox'));
+        checkBox.triggerEventHandler('click', {});
 
-    const principal: IFabricPrincipal = {
-      subjectId: 'HQCATALYST\\product.development',
-      principalType: 'group'
-    };
+        // assert
+        const expected = mockExternalIdpSearchResult.principals[0].identityProviderUserPrincipalName;
+        expect(component.selectedPrincipal.identityProviderUserPrincipalName).toEqual(expected);
+      });
+    });
 
-    component.selectPrincipal(principal);
-    component.saveGroup(principal, mockRolesResponse).subscribe(() => {
-      expect(alertService.showSyncWarning).toHaveBeenCalledTimes(1);
-      expect(alertService.showError).toHaveBeenCalledTimes(0);
+    describe('ad groups', () => {
+      it('should associate a group when selected', () => {
+        // arrange
+        idpSearchService.search.and.returnValue(of(mockExternalIdpGroupSearchResult));
+        groupService.getGroupRoles.and.returnValue(of(mockRolesResponse));
+
+        // recreate component with group results search
+        fixture = TestBed.createComponent(MemberComponent);
+        component = fixture.componentInstance;
+        fixture.detectChanges();
+
+        const idpssPrincipals = fixture.debugElement.queryAll(By.css('li'));
+
+        // act - select first group
+        expect(idpssPrincipals.length).toEqual(mockExternalIdpGroupSearchResult.principals.length);
+        const checkBox = idpssPrincipals[0].query(By.css('hc-checkbox'));
+        checkBox.triggerEventHandler('click', {});
+        fixture.detectChanges();
+
+        // assert
+        const expected = mockExternalIdpGroupSearchResult.principals[0].subjectId;
+        expect(component.selectedPrincipal.subjectId).toEqual(expected);
+      });
     });
   });
 });
