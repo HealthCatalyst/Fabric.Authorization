@@ -1,12 +1,12 @@
 import { map, mergeMap } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
 import { OData } from './odata';
 
-export interface IService {
+interface IService {
     name: string;
     version?: number;
     url?: string;
@@ -21,7 +21,7 @@ interface IDiscoveryService {
 
 @Injectable()
 export class ServicesService {
-    public services: IService[] = [
+    private services: IService[] = [
         {
             name: 'IdentityService',
             requireAuthToken: false
@@ -84,7 +84,7 @@ export class ServicesService {
     }
 
     public needsAuthToken(url: string) {
-        const targetService: IService = this.services.find(s => url.includes(s.name)) ? this.services.find(s => url.includes(s.name)) : this.services.find(s => url.startsWith(s.url));
+        const targetService: IService = this.services.find(s => url.startsWith(s.url));
         return targetService ? targetService.requireAuthToken : false;
     }
 }
