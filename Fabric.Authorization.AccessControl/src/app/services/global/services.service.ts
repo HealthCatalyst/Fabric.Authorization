@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
 import { ConfigService } from './config.service';
 import { OData } from './odata';
 
-interface IService {
+export interface IService {
     name: string;
     version?: number;
     url?: string;
@@ -21,7 +21,7 @@ interface IDiscoveryService {
 
 @Injectable()
 export class ServicesService {
-    private services: IService[] = [
+    public services: IService[] = [
         {
             name: 'IdentityService',
             requireAuthToken: false
@@ -84,7 +84,7 @@ export class ServicesService {
     }
 
     public needsAuthToken(url: string) {
-        const targetService: IService = this.services.find(s => url.startsWith(s.url));
+        const targetService: IService = this.services.find(s => url.includes(s.name)) ? this.services.find(s => url.includes(s.name)) : this.services.find(s => url.startsWith(s.url));
         return targetService ? targetService.requireAuthToken : false;
     }
 }
