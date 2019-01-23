@@ -231,4 +231,112 @@ describe('ServicesService', () => {
       var result = service.needsAuthToken(strUrl);
       expect(result).toBeFalsy();
   }));
+
+  it('matches correct service requireAuthToken, when Authorization service out of order, and upper case',
+    inject(
+      [ServicesService], (service: ServicesService) => {
+        var strUrl = "https://testdomain.local/Authorization/v1";
+        let listOfServices: IService[] = [
+          {
+            name: 'IdentityService',
+            version: 1.1,
+            url: 'https://testdomain.local/Identity',
+            requireAuthToken: false
+          },
+          {
+            name: 'IdentityProviderSearchService',
+            version: 1.2,
+            url: 'https://testdomain.local/IdentityProviderSearchService/v1',
+            requireAuthToken: true
+          },
+          {
+            name: 'AccessControl',
+            version: 1.4,
+            url: 'https://testdomain.local/Authorization',
+            requireAuthToken: false
+          },
+          {
+              name: 'AuthorizationService',
+              version: 1.3,
+              url: 'https://testdomain.local/Authorization/v1',
+              requireAuthToken: true
+          }
+      ];
+
+        service.services = listOfServices;
+        var result = service.needsAuthToken(strUrl);
+        expect(result).toBeTruthy();
+  }));
+
+  it('matches correct service requireAuthToken, when Authorization service out of order, and lower case',
+  inject(
+    [ServicesService], (service: ServicesService) => {
+      var strUrl = "https://testdomain.local/authorization/v1";
+      let listOfServices: IService[] = [
+        {
+          name: 'identityservice',
+          version: 1.1,
+          url: 'https://testdomain.local/identity',
+          requireAuthToken: false
+        },
+        {
+          name: 'identityprovidersearchservice',
+          version: 1.2,
+          url: 'https://testdomain.local/identityprovidersearchservice/v1',
+          requireAuthToken: true
+        },
+        {
+          name: 'AccessControl',
+          version: 1.4,
+          url: 'https://testdomain.local/authorization',
+          requireAuthToken: false
+        },
+        {
+            name: 'AuthorizationService',
+            version: 1.3,
+            url: 'https://testdomain.local/authorization/v1',
+            requireAuthToken: true
+        }
+    ];
+
+      service.services = listOfServices;
+      var result = service.needsAuthToken(strUrl);
+      expect(result).toBeTruthy();
+  }));
+
+  it('matches correct service requireAuthToken, when Authorization service out of order, and mixed case',
+  inject(
+    [ServicesService], (service: ServicesService) => {
+      var strUrl = "https://testdomain.local/IdentityProviderSearchService/v1";
+      let listOfServices: IService[] = [
+        {
+          name: 'identityservice',
+          version: 1.1,
+          url: 'https://testdomain.local/identity',
+          requireAuthToken: false
+        },
+        {
+          name: 'identityprovidersearchservice',
+          version: 1.2,
+          url: 'https://testdomain.local/identityprovidersearchservice/v1',
+          requireAuthToken: true
+        },
+        {
+          name: 'AccessControl',
+          version: 1.4,
+          url: 'https://testdomain.local/authorization',
+          requireAuthToken: false
+        },
+        {
+            name: 'AuthorizationService',
+            version: 1.3,
+            url: 'https://testdomain.local/authorization/v1',
+            requireAuthToken: true
+        }
+    ];
+
+      service.services = listOfServices;
+      var result = service.needsAuthToken(strUrl);
+      expect(result).toBeTruthy();
+  }));
 });
