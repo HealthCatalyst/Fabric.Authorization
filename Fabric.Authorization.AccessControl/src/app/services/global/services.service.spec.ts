@@ -16,7 +16,7 @@ describe('ServicesService', () => {
     expect(service).toBeTruthy();
   }));
 
-  it('matches correct service requireAuthToken, when Idpss service out of order, and upper case',
+  it('matches correct service requireAuthToken, when Idpss service out of order, and camel case',
     inject(
       [ServicesService], (service: ServicesService) => {
         var strUrl = "https://testdomain.local/IdentityProviderSearchService/v1";
@@ -124,7 +124,7 @@ describe('ServicesService', () => {
       expect(result).toBeTruthy();
   }));
 
-  it('matches correct service requireAuthToken, when identity service not listed first, and upper case',
+  it('matches correct service requireAuthToken, when identity service not listed first, and camel case',
   inject(
     [ServicesService], (service: ServicesService) => {
       var strUrl = "https://testdomain.local/Identity";
@@ -232,7 +232,7 @@ describe('ServicesService', () => {
       expect(result).toBeFalsy();
   }));
 
-  it('matches correct service requireAuthToken, when Authorization service out of order, and upper case',
+  it('matches correct service requireAuthToken, when Authorization service out of order, and camel case',
     inject(
       [ServicesService], (service: ServicesService) => {
         var strUrl = "https://testdomain.local/Authorization/v1";
@@ -307,7 +307,7 @@ describe('ServicesService', () => {
   it('matches correct service requireAuthToken, when Authorization service out of order, and mixed case',
   inject(
     [ServicesService], (service: ServicesService) => {
-      var strUrl = "https://testdomain.local/IdentityProviderSearchService/v1";
+      var strUrl = "https://testdomain.local/Authorization/v1";
       let listOfServices: IService[] = [
         {
           name: 'identityservice',
@@ -338,5 +338,77 @@ describe('ServicesService', () => {
       service.services = listOfServices;
       var result = service.needsAuthToken(strUrl);
       expect(result).toBeTruthy();
+  }));
+
+  it('matches correct service requireAuthToken, when Access Control service not listed first, missing v1, and camel case',
+  inject(
+    [ServicesService], (service: ServicesService) => {
+      var strUrl = "https://testdomain.local/Authorization";
+      let listOfServices: IService[] = [
+        {
+          name: 'IdentityService',
+          version: 1.1,
+          url: 'https://testdomain.local/Identity',
+          requireAuthToken: false
+        },
+        {
+          name: 'IdentityProviderSearchService',
+          version: 1.2,
+          url: 'https://testdomain.local/IdentityProviderSearchService/v1',
+          requireAuthToken: true
+        },
+        {
+          name: 'AuthorizationService',
+          version: 1.3,
+          url: 'https://testdomain.local/Authorization/v1',
+          requireAuthToken: true
+        },
+        {
+          name: 'AccessControl',
+          version: 1.4,
+          url: 'https://testdomain.local/Authorization',
+          requireAuthToken: false
+        },
+    ];
+
+      service.services = listOfServices;
+      var result = service.needsAuthToken(strUrl);
+      expect(result).toBeFalsy();
+  }));
+
+  it('matches correct service requireAuthToken, when Access Control service not listed first, missing v1 w/added string, and camel case',
+  inject(
+    [ServicesService], (service: ServicesService) => {
+      var strUrl = "https://testdomain.local/Authorization/SomeStuff";
+      let listOfServices: IService[] = [
+        {
+          name: 'IdentityService',
+          version: 1.1,
+          url: 'https://testdomain.local/Identity',
+          requireAuthToken: false
+        },
+        {
+          name: 'IdentityProviderSearchService',
+          version: 1.2,
+          url: 'https://testdomain.local/IdentityProviderSearchService/v1',
+          requireAuthToken: true
+        },
+        {
+          name: 'AuthorizationService',
+          version: 1.3,
+          url: 'https://testdomain.local/Authorization/v1',
+          requireAuthToken: true
+        },
+        {
+          name: 'AccessControl',
+          version: 1.4,
+          url: 'https://testdomain.local/Authorization',
+          requireAuthToken: false
+        },
+    ];
+
+      service.services = listOfServices;
+      var result = service.needsAuthToken(strUrl);
+      expect(result).toBeFalsy();
   }));
 });
