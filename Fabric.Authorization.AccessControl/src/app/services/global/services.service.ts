@@ -84,7 +84,8 @@ export class ServicesService {
     }
 
     public needsAuthToken(url: string) {
-        const targetService: IService = this.services.find(s => url.includes(s.name)) ? this.services.find(s => url.includes(s.name)) : this.services.find(s => url.startsWith(s.url));
+        const urlLowerCase = url.toLowerCase();
+        const targetService: IService = this.services.find(s => urlLowerCase.includes(s.name.toLowerCase())) ? this.services.find(s => urlLowerCase.includes(s.name.toLowerCase())) : this.services.find(s => urlLowerCase.startsWith(s.url.toLowerCase()));
         return targetService ? targetService.requireAuthToken : false;
     }
 }
