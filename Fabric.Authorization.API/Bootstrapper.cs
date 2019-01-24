@@ -124,12 +124,12 @@ namespace Fabric.Authorization.API
 
             if (appConfig.MigrateGroupSource)
             {
-                groupMigratorService.MigrateWindowsSourceToDirectory();
+                await groupMigratorService.MigrateWindowsSourceToDirectory();
             }
 
             if (appConfig.MigrateGroupIdentityProvider)
             {
-                groupMigratorService.MigrateIdentityProvider();
+                await groupMigratorService.MigrateIdentityProvider();
             }
         }
 
