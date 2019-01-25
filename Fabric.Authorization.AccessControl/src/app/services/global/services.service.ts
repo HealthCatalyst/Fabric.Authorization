@@ -85,7 +85,25 @@ export class ServicesService {
 
     public needsAuthToken(url: string) {
         const urlLowerCase = url.toLowerCase();
-        const targetService: IService = this.services.find(s => urlLowerCase.includes(s.name.toLowerCase()) && s.requireAuthToken) ? this.services.find(s => urlLowerCase.includes(s.name.toLowerCase()) && s.requireAuthToken) : this.services.find(s => urlLowerCase.startsWith(s.url.toLowerCase()) && s.requireAuthToken);
+        const targetService: IService = this.services.find(s => urlLowerCase.includes(s.name.toLowerCase())) ? this.services.find(s => urlLowerCase.includes(s.name.toLowerCase())) : this.findUrlBestMatch(this.services, url);
         return targetService ? targetService.requireAuthToken : false;
+    }
+
+    public findUrlBestMatch(services: IService[], url: string)
+    {
+       var serviceUrlMatch = "";
+       services.forEach(element => {
+        var result = url.toLowerCase().includes(element.url.toLowerCase());
+        if (result)
+        {
+          if (element.url.length > serviceUrlMatch.length)
+          {
+            serviceUrlMatch = element.url.toLowerCase();
+          }
+        }
+       });
+       var matchedService = services.find(s => s.url.toLowerCase() === serviceUrlMatch);
+       const serviceItem: IService = matchedService;
+       return serviceItem;
     }
 }
