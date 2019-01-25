@@ -103,7 +103,7 @@ export class ServicesService {
         }
        });
        var matchedService = services.find(s => s.url.toLowerCase() === serviceUrlMatch);
-       const serviceList: IService = matchedService;
-       return serviceList;
+       const serviceItem: IService = matchedService;
+       return serviceItem;
     }
 }
