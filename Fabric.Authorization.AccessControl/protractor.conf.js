@@ -24,6 +24,7 @@ exports.config = {
     'browserName': 'chrome'
   },
   directConnect: true,
+  baseUrl: 'https:///mvidalweb2016.hqcatalyst.local/Authorization',
   framework: 'jasmine',
   jasmineNodeOpts: {
     showColors: true,
