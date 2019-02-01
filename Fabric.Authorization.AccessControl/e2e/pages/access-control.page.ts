@@ -7,7 +7,7 @@ export class AccessControlPage {
         tellNgZoneItHasNoPendingMacroTasks();
     }
 
-    searchForAndSelectUser(searchString: string, principalType: string) {
+    searchForAndSelectPrincipal(searchString: string, principalType: string) {
         // click add group/user
         const until = protractor.ExpectedConditions;
         const addButton = element(by.buttonText('Add'));

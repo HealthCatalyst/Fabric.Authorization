@@ -3,7 +3,6 @@
 
 const { SpecReporter } = require('jasmine-spec-reporter');
 
-
 let credentials;
 credentials = require('./e2e/account.config.json');
 
