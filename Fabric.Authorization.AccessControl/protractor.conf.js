@@ -16,8 +16,10 @@ exports.config = {
       password: credentials.adminWindowsPassword
     }
   },
+  suites: {
+    admin: './e2e/admin-tests/*.spec.ts'
+  },
   specs: [
-    './e2e/**/*.e2e-spec.ts',
     './e2e/**/*.spec.ts'
   ],
   capabilities: {
