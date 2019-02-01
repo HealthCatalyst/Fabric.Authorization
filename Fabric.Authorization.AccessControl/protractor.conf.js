@@ -18,7 +18,8 @@ exports.config = {
     }
   },
   specs: [
-    './e2e/todo-spec.ts'
+    './e2e/**/*.e2e-spec.ts',
+    './e2e/**/*.spec.ts'
   ],
   capabilities: {
     'browserName': 'chrome'
@@ -54,6 +55,6 @@ exports.config = {
         return browser.driver.get('https://mvidalweb2016.hqcatalyst.local/Authorization');
       })
       .then(() => console.log('Fully logged in'))
-      .then(() => browser.driver.sleep(2000));  //// not sure if needed
+      .then(() => browser.driver.sleep(2000));  // wait for login process
   }
 };
