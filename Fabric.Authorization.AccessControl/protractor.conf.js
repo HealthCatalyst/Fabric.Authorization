@@ -14,7 +14,8 @@ exports.config = {
     login: {
       username: credentials.adminWindowsUserName,
       password: credentials.adminWindowsPassword
-    }
+    },
+    serverRoot: 'localhost',
   },
   suites: {
     admin: './e2e/admin-tests/*.spec.ts'
@@ -26,7 +27,7 @@ exports.config = {
     'browserName': 'chrome'
   },
   directConnect: true,
-  baseUrl: 'https:///mvidalweb2016.hqcatalyst.local/Authorization',
+  baseUrl: 'http://localhost/Authorization',
   framework: 'jasmine',
   jasmineNodeOpts: {
     showColors: true,
@@ -42,18 +43,19 @@ exports.config = {
 
     const username = encodeURIComponent(browser.params.login.username);
     const password = encodeURIComponent(browser.params.login.password);
-    const discoveryUrl = `https://${username}:${password}@mvidalweb2016.hqcatalyst.local/DiscoveryService/v1`
+    const root = browser.params.serverRoot;
+    const discoveryUrl = `https://${username}:${password}@${root}/DiscoveryService/v1`
 
     console.log('Logging into Discovery');
 
     return browser.driver.get(discoveryUrl)
       .then(() => {
         console.log('Logging into Identity');
-        return browser.driver.get('https://mvidalweb2016.hqcatalyst.local/identity/account/ExternalLogin?provider=Negotiate');
+        return browser.driver.get(`https://${root}/identity/account/ExternalLogin?provider=Negotiate`);
       })
       .then(() => {
         console.log('Logging into Access Control');
-        return browser.driver.get('https://mvidalweb2016.hqcatalyst.local/Authorization');
+        return browser.driver.get(browser.baseUrl);
       })
       .then(() => console.log('Fully logged in'))
       .then(() => browser.driver.sleep(2000));  // wait for login process
