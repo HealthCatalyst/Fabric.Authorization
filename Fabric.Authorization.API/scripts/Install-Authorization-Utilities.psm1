@@ -6,24 +6,6 @@ if (!(Test-Path $fabricInstallUtilities -PathType Leaf)) {
 }
 Import-Module -Name $fabricInstallUtilities -Force
 
-# Import AzureAD
-$minVersion = [System.Version]::new(2, 0, 2 , 4)
-$azureAD = Get-Childitem -Path ./**/AzureAD.psm1 -Recurse
-if ($azureAD.length -eq 0) {
-    # Do not show error when AzureAD is not installed, will install instead
-    $installed = Get-InstalledModule -Name AzureAD -ErrorAction "silentlycontinue"
-
-    if (($null -eq $installed) -or ($installed.Version.CompareTo($minVersion) -lt 0)) {
-        Write-Host "Installing AzureAD from Powershell Gallery"
-        Install-Module AzureAD -Scope CurrentUser -MinimumVersion $minVersion -Force
-        Import-Module AzureAD -Force
-    }
-}
-else {
-    Write-Host "Installing AzureAD at $($azureAD.FullName)"
-    Import-Module -Name $azureAD.FullName
-}
-
 # Import Dos Install Utilities
 $minVersion = [System.Version]::new(1, 0, 234, 0)
 try {
@@ -1208,80 +1190,6 @@ function Add-AccountToDosAdminGroup
     }
 }
 
-function Get-NonMigratedActiveDirectoryGroups {
-    param(
-        [Parameter(Mandatory=$true)]
-        [string] $connectionString
-    )
-
-    $connection = New-Object System.Data.SqlClient.SqlConnection($connectionString)	
-    $sql = "SELECT GroupId, Name, IdentityProvider, ExternalIdentifier, TenantId
-              FROM Groups
-              WHERE IsDeleted = 0
-              AND IdentityProvider = 'Windows'
-              AND Source = 'Directory'
-              AND GroupId = 'cfae18a7-4f92-4ab4-9133-da430611e5c7';"
-    $command = New-Object System.Data.SqlClient.SqlCommand($sql, $connection)
-    
-    Write-DosMessage -Level "Information" -Message "Retrieving groups for migration..."
-
-    $groups = @();
-    try {	
-        $connection.Open()
-        $adapter = New-Object System.Data.sqlclient.sqlDataAdapter $command
-        $groups = New-Object System.Data.DataTable
-        $adapter.Fill($groups) | Out-Null
-        $connection.Close()
-    }
-    catch [System.Data.SqlClient.SqlException] {
-        Write-DosMessage -Level "Fatal" -Message "An error occurred while executing the command to retrieve non-migrated AD groups. Connection String: $($connectionString). Error $($_.Exception)"
-    }    	
-    
-    return $groups;
-}
-
-function Move-ActiveDirectoryGroupsToAzureAD {
-     param(
-        [Parameter(Mandatory=$true)]
-        [string] $connString
-    )
-
-    Write-DosMessage -Level "Information" -Message "Migrating AD groups to Azure AD ($connString)..."
-
-    # retrieve all groups from Auth DB    
-    try {
-        $results = Get-NonMigratedActiveDirectoryGroups -connectionString $connString
-        foreach ($group in $results) {
-            # query AD for SID
-            # query Azure AD to get tenant ID and external ID
-            # if SID from AD matches onprem ID from Azure AD, do update
-
-            $tenantId = "tenant ID"
-            $externalIdentifier = "external ID"
-
-            $sql = "UPDATE g 
-                SET g.IdentityProvider = 'AzureActiveDirectory',
-                    g.TenantId = @tenantId,
-                    g.ExternalIdentifier = @externalIdentifier,
-                    g.ModifiedBy = 'fabric-installer',
-                    g.ModifiedDateTimeUtc = GETUTCDATE()
-                FROM Groups g
-                WHERE g.[GroupId] = @groupId;"
-    
-            Write-DosMessage -Level "Information" -Message "Migrating group $($group.Name) to Azure AD..."
-            try {
-                Invoke-Sql $connString $sql @{groupId=$group.GroupId;tenantId=$tenantId;externalIdentifier=$externalIdentifier} | Out-Null
-            }
-            catch {
-                Write-DosMessage -Level "Fatal" -Message "An error occurred while migrating AD groups to Azure AD. Connection String: $($connectionString). Error $($_.Exception)"
-            }
-        }
-    }
-    catch {
-        Write-DosMessage -Level "Fatal" -Message "An error occurred while executing the command to retrieve non-migrated AD groups. Connection String: $($connString). Error $($_.Exception)"
-    }
-}
-
 function Invoke-MonitorShallow{
     param(
         [Parameter(Mandatory=$true)]
@@ -1381,7 +1289,6 @@ Export-ModuleMember Get-AdminAccount
 Export-ModuleMember Set-AuthorizationEnvironmentVariables
 Export-ModuleMember Move-DosAdminRoleToDosAdminGroup
 Export-ModuleMember Add-AccountToDosAdminGroup
-Export-ModuleMember Move-ActiveDirectoryGroupsToAzureAD
 Export-ModuleMember Add-AccountToEDWAdmin
 Export-ModuleMember Invoke-MonitorShallow
 Export-ModuleMember Add-EdwAdminUsersToDosAdminGroup
