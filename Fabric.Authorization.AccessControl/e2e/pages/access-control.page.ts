@@ -1,11 +1,10 @@
 import { browser, protractor, element, by } from 'protractor';
+import { tellNgZoneItHasNoPendingMacroTasks } from '../hacks';
 
 export class AccessControlPage {
-    getMainPage() {
-        browser.waitForAngularEnabled(false)
-            .then(() => browser.get(browser.baseUrl));
-
-        browser.driver.sleep(2000);
+    async getMainPage() {
+        browser.get(browser.baseUrl);
+        tellNgZoneItHasNoPendingMacroTasks();
     }
 
     searchForAndSelectUser(searchString: string, principalType: string) {
