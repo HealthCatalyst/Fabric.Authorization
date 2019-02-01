@@ -1,5 +1,5 @@
 import { protractor, element, browser, by } from 'protractor';
-import { AccessControlPage } from './pages/access-control.page';
+import { AccessControlPage } from './../pages/access-control.page';
 
 describe('adding a principal ad group/user', () => {
   let page: AccessControlPage;
