@@ -404,8 +404,14 @@ function Add-AuthUsers
     $sqlDate = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     foreach($user in $userTable)
     {
-      $command.CommandText = "INSERT INTO [dbo].[Users] ([SubjectId], [ParentUserId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [IsDeleted])
-                              VALUES(@subjectId, @parentId, @identityProvider, @createdBy, @createdDateTime, @isDeleted);"
+      $command.CommandText = "IF NOT EXISTS 
+                              (SELECT 1 FROM [dbo].[Users] u
+                               WHERE SubjectId = u.SubjectId 
+                               AND IdentityProvider = 'AzureActiveDirectory')
+                              BEGIN
+                              INSERT INTO [dbo].[Users] ([SubjectId], [ParentUserId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [IsDeleted])
+                              VALUES(@subjectId, @parentId, @identityProvider, @createdBy, @createdDateTime, @isDeleted)
+                              END;"
       $command.Parameters["@subjectId"].Value = $user.objectId
       $command.Parameters.Add("@parentId", [System.Data.SqlDbType]::Int)
       $command.Parameters["@parentId"].Value = $user.Id
@@ -419,8 +425,14 @@ function Add-AuthUsers
 
       if(![string]::IsNullOrEmpty($user.GroupId))
       {
-        $command.CommandText = "INSERT INTO [dbo].[GroupUsers] ([SubjectId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [GroupId], [IsDeleted])
-                                VALUES(@subjectId, @identityProvider, @createdBy, @createdDateTime, @groupId, @isDeleted);"
+        $command.CommandText = "IF NOT EXISTS 
+                                (SELECT 1 FROM [dbo].[GroupUsers] g
+                                 WHERE SubjectId = g.SubjectId
+                                 AND IdentityProvider = 'AzureActiveDirectory')
+                                BEGIN
+                                INSERT INTO [dbo].[GroupUsers] ([SubjectId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [GroupId], [IsDeleted])
+                                VALUES(@subjectId, @identityProvider, @createdBy, @createdDateTime, @groupId, @isDeleted)
+                                END;"
         $command.Parameters["@subjectId"].Value = $user.objectId
         $command.Parameters["@identityProvider"].Value = "AzureActiveDirectory"
         $command.Parameters["@createdBy"].Value = "Migrate-ADUsers-AzureAD"
@@ -438,8 +450,14 @@ function Add-AuthUsers
       }
       if(![string]::IsNullOrEmpty($user.RoleID))
       {
-        $command.CommandText = "INSERT INTO [dbo].[RoleUsers] ([SubjectId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [RoleId], [IsDeleted])
-                                VALUES(@subjectId, @identityProvider, @createdBy, @createdDateTime, @roleId, @isDeleted);"
+        $command.CommandText = "IF NOT EXISTS 
+                                (SELECT 1 FROM [dbo].[RoleUsers] r
+                                 WHERE SubjectId = r.SubjectId 
+                                 AND IdentityProvider = 'AzureActiveDirectory')
+                                BEGIN
+                                INSERT INTO [dbo].[RoleUsers] ([SubjectId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [RoleId], [IsDeleted])
+                                VALUES(@subjectId, @identityProvider, @createdBy, @createdDateTime, @roleId, @isDeleted)
+                                END;"
         $command.Parameters["@subjectId"].Value = $user.objectId
         $command.Parameters["@identityProvider"].Value = "AzureActiveDirectory"
         $command.Parameters["@createdBy"].Value = "Migrate-ADUsers-AzureAD"
@@ -457,8 +475,14 @@ function Add-AuthUsers
       }
       if(![string]::IsNullOrEmpty($user.PermissionID))
       {
-        $command.CommandText = "INSERT INTO [dbo].[UserPermissions] ([SubjectId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [PermissionId], [PermissionAction], [IsDeleted])
-                                VALUES(@subjectId, @identityProvider, @createdBy, @createdDateTime, @permissionId, @permissionAction, @isDeleted);"
+        $command.CommandText = "IF NOT EXISTS 
+                                (SELECT 1 FROM [dbo].[UsersPermissions] p
+                                 WHERE SubjectId = p.SubjectId
+                                 AND IdentityProvider = 'AzureActiveDirectory')
+                                BEGIN
+                                INSERT INTO [dbo].[UserPermissions] ([SubjectId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [PermissionId], [PermissionAction], [IsDeleted])
+                                VALUES(@subjectId, @identityProvider, @createdBy, @createdDateTime, @permissionId, @permissionAction, @isDeleted)
+                                END;"
         $command.Parameters["@subjectId"].Value = $user.objectId
         $command.Parameters["@identityProvider"].Value = "AzureActiveDirectory"
         $command.Parameters["@createdBy"].Value = "Migrate-ADUsers-AzureAD"
