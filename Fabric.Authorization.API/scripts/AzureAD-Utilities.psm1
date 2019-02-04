@@ -58,7 +58,7 @@ function Get-AzureADTenants {
         -setting $parentSetting
 
     if($null -eq $tenants -or $tenants.Count -eq 0){
-        Write-DosMessage -Level "Error" -Message  "No tenants to register were found in the install.config"
+        Write-DosMessage -Level "Error" -Message  "No tenants were found in the install.config"
         throw
     }
 
