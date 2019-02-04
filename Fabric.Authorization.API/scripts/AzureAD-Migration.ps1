@@ -1,5 +1,26 @@
-Import-Module -Name .\Move-ADObjectsToAzureAD-Utilities.psm1 -Force
+#Requires -RunAsAdministrator
+#Requires -Version 5.1
+#Requires -Modules PowerShellGet, PackageManagement
 
+param(
+    [PSCredential] $credential,
+    [ValidateScript({
+        if (!(Test-Path $_)) {
+            throw "Path $_ does not exist. Please enter valid path to the install.config."
+        }
+        if (!(Test-Path $_ -PathType Leaf)) {
+            throw "Path $_ is not a file. Please enter a valid path to the install.config."
+        }
+        return $true
+    })] 
+    [string] $installConfigPath = "$PSScriptRoot\install.config",
+    [switch] $quiet
+)
+
+Import-Module -Name .\AzureAD-Utilities.psm1 -Force
+
+$authorizationDatabase = Get-AuthorizationDatabaseConnectionString -authorizationDbName $installSettings.authorizationDbName -sqlServerAddress $sqlServerAddress -installConfigPath $installConfigPath -quiet $quiet
+Move-ActiveDirectoryGroupsToAzureAD -connString "$($authorizationDatabase.DbConnectionString)"
 
 function Get-NonMigratedActiveDirectoryGroups {
     param(
@@ -32,21 +53,37 @@ function Get-NonMigratedActiveDirectoryGroups {
     return $groups;
 }
 
-function Get-AzureADGroupByName {
-	param(
-		[Parameter(Mandatory=$true)]
-		[string] 
-		[string] $groupName
-	)
+function Get-AzureADGroupBySID {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $tenantId,
+        [Parameter(Mandatory=$true)]
+        [string] $groupSID
+    )
 
-	Write-DosMessage -Level "Information" -Message "Retrieving group $($groupName) from Azure AD..."
+    $azureADGroups = @()
+    try {
+        # connect to Azure AD
+        Connect-AzureADTenant -tenantId $tenantId
 
-	# connect to Azure AD
+        Write-DosMessage -Level "Information" -Message "Retrieving group $($groupName) from Azure AD..."
+        $azureADGroups = Get-AzureADGroup -Filter "onPremisesSecurityIdentifier eq '$($groupSID)'"
 
-	$azureADGroups = Get-AzureADGroup -SearchString $groupName
+        # disconnect from Azure AD
+        Disconnect-AzureAD
+    }
+    catch {
+        Write-DosMessage -Level "Fatal" -Message "Error while attempting to retrieve Azure AD group $($groupSID): $($_.Exception)"
+    }
 
-	# disconnect from Azure AD
-	Disconnect-AzureAD
+    if ($null -ne $azureADGroups.Count -eq 1) {
+        return $azureADGroups[0]
+    }
+    else {
+        $errorMsg = "Multiple matches found for group SID $($groupSID)."
+        Write-DosMessage -Level "Error" -Message $errorMsg
+        throw $errorMsg
+    }
 }
 
 function Move-ActiveDirectoryGroupsToAzureAD {
@@ -57,20 +94,26 @@ function Move-ActiveDirectoryGroupsToAzureAD {
 
     Write-DosMessage -Level "Information" -Message "Migrating AD groups to Azure AD..."
 
+    $allowedTenantIds = Get-Tenants -installConfigPath $installConfigPath
+
     # retrieve all groups from Auth DB    
     try {
         $results = Get-NonMigratedActiveDirectoryGroups -connectionString $connString
-        foreach ($group in $results) {
-            # query AD for SID
-            # query Azure AD to get tenant ID and external ID
+    }
+    catch {
+        Write-DosMessage -Level "Fatal" -Message "An error occurred while executing the command to retrieve non-migrated AD groups. Connection String: $($connString). Error $($_.Exception)"
+    }
+    foreach ($group in $results) {
+        # TODO: query AD for SID
+        $groupSID = ""
 
+        foreach ($tenantId in $allowedTenantIds) {
+            # query Azure AD to get external ID
+            $azureADGroup = Get-AzureADGroupBySID -tenantId $tenantId -groupSID $groupSID
 
-            # if SID from AD matches onprem ID from Azure AD, do update
-
-            $tenantId = "tenant ID"
-            $externalIdentifier = "external ID"
-
-            $sql = "UPDATE g 
+            # if group exists, then it's a match so migrate
+            if ($null -ne $azureADGroup) {
+                $sql = "UPDATE g 
                 SET g.IdentityProvider = 'AzureActiveDirectory',
                     g.TenantId = @tenantId,
                     g.ExternalIdentifier = @externalIdentifier,
@@ -79,16 +122,16 @@ function Move-ActiveDirectoryGroupsToAzureAD {
                 FROM Groups g
                 WHERE g.[GroupId] = @groupId;"
     
-            Write-DosMessage -Level "Information" -Message "Migrating group $($group.Name) to Azure AD..."
-            try {
-                Invoke-Sql $connString $sql @{groupId=$group.GroupId;tenantId=$tenantId;externalIdentifier=$externalIdentifier} | Out-Null
-            }
-            catch {
-                Write-DosMessage -Level "Fatal" -Message "An error occurred while migrating AD groups to Azure AD. Connection String: $($connectionString). Error $($_.Exception)"
+                Write-DosMessage -Level "Information" -Message "Migrating group $($group.Name) to Azure AD..."
+                try {
+                    Invoke-Sql $connString $sql @{groupId=$group.GroupId;tenantId=$tenantId;externalIdentifier=$($azureADGroup.ObjectId)} | Out-Null
+                }
+                catch {
+                    Write-DosMessage -Level "Fatal" -Message "An error occurred while migrating AD groups to Azure AD. Connection String: $($connectionString). Error $($_.Exception)"
+                }
+
+                breakgi
             }
         }
-    }
-    catch {
-        Write-DosMessage -Level "Fatal" -Message "An error occurred while executing the command to retrieve non-migrated AD groups. Connection String: $($connString). Error $($_.Exception)"
     }
 }
