@@ -41,10 +41,13 @@ exports.config = {
     jasmine.getEnv().addReporter(new SpecReporter({ spec: { displayStacktrace: true } }));
     browser.driver.manage().window().maximize();
 
-    const username = encodeURIComponent(browser.params.login.username);
-    const password = encodeURIComponent(browser.params.login.password);
-    const root = browser.params.serverRoot;
-    const discoveryUrl = `https://${username}:${password}@${root}/DiscoveryService/v1`
+    // take environment variables over config values
+    const username = process.env.E2E_USERNAME || browser.params.login.username;
+    const password =  process.env.E2E_PASSWORD || browser.params.login.password;
+    const root = process.env.E2E_SERVERROOT || browser.params.serverRoot;
+    browser.baseUrl = process.env.E2E_BASEURL || browser.baseUrl;
+
+    const discoveryUrl = `https://${encodeURIComponent(username)}:${encodeURIComponent(password)}@${root}/DiscoveryService/v1`
 
     console.log('Logging into Discovery');
 
