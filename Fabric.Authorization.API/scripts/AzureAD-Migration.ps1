@@ -77,8 +77,13 @@ function Get-AzureADGroupBySID {
         Write-DosMessage -Level "Fatal" -Message "Error while attempting to retrieve Azure AD group $($groupSID): $($_.Exception)"
     }
 
-    if ($null -ne $azureADGroups.Count -eq 1) {
+    if ($azureADGroups.Count -eq 1) {
         return $azureADGroups[0]
+    }
+    else if ($azureADGroups.Count -eq 0) {
+        $errorMsg = "No match found for SID $($groupSID) in Azure AD."
+        Write-DosMessage -Level "Error" -Message $errorMsg
+        throw $errorMsg
     }
     else {
         $errorMsg = "Multiple matches found for group SID $($groupSID)."
