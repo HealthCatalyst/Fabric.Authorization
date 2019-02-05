@@ -2,7 +2,7 @@ import { protractor, element, browser, by } from 'protractor';
 import { MemberListPage } from '../pages/member-list.page';
 import { MemberPage } from './../pages/member.page';
 
-describe('member-list page', () => {
+describe('member page', () => {
   let mainPage: MemberListPage;
 
   beforeEach(() => {
