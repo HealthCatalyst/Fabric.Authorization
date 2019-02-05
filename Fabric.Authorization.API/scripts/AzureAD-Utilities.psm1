@@ -24,6 +24,14 @@ else {
     Import-Module -Name $azureAD.FullName
 }
 
+# Import Dos Install Utilities
+$minVersion = [System.Version]::new(1, 0, 234, 0)
+try {
+    Get-InstalledModule -Name DosInstallUtilities -MinimumVersion $minVersion -ErrorAction Stop
+} catch {
+    Write-Host "Installing DosInstallUtilities from Powershell Gallery"
+    Install-Module DosInstallUtilities -Scope CurrentUser -MinimumVersion $minVersion -Force
+}
 Import-Module -Name DosInstallUtilities -Force
 
 Add-Type -AssemblyName System.Web

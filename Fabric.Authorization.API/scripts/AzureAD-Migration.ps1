@@ -18,6 +18,7 @@ param(
 )
 
 Import-Module -Name .\AzureAD-Utilities.psm1 -Force
+Import-Module ActiveDirectory
 
 $authorizationDatabase = Get-AuthorizationDatabaseConnectionString -authorizationDbName $installSettings.authorizationDbName -sqlServerAddress $sqlServerAddress -installConfigPath $installConfigPath -quiet $quiet
 Move-ActiveDirectoryGroupsToAzureAD -connString "$($authorizationDatabase.DbConnectionString)"
@@ -104,12 +105,20 @@ function Move-ActiveDirectoryGroupsToAzureAD {
         Write-DosMessage -Level "Fatal" -Message "An error occurred while executing the command to retrieve non-migrated AD groups. Connection String: $($connString). Error $($_.Exception)"
     }
     foreach ($group in $results) {
-        # TODO: query AD for SID
-        $groupSID = ""
+        # query AD for SID
+        $adGroupSID = ""
+        try {
+            $adGroup = Get-ADGroup -Identity "$($group.Name)"
+            $adGroupSID = $adGroup.SID.Value
+        }
+        catch {
+            Write-DosMessage -Level "Fatal" -Message "An error occurred while retrieving AD Group $($group.Name) from Active Directory. Error $($_.Exception)"
+            continue
+        }
 
         foreach ($tenantId in $allowedTenantIds) {
             # query Azure AD to get external ID
-            $azureADGroup = Get-AzureADGroupBySID -tenantId $tenantId -groupSID $groupSID
+            $azureADGroup = Get-AzureADGroupBySID -tenantId $tenantId -groupSID $adGroupSID
 
             # if group exists, then it's a match so migrate
             if ($null -ne $azureADGroup) {
@@ -130,7 +139,7 @@ function Move-ActiveDirectoryGroupsToAzureAD {
                     Write-DosMessage -Level "Fatal" -Message "An error occurred while migrating AD groups to Azure AD. Connection String: $($connectionString). Error $($_.Exception)"
                 }
 
-                breakgi
+                break
             }
         }
     }
