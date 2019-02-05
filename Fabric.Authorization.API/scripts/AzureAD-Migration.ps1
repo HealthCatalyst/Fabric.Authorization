@@ -104,6 +104,11 @@ function Move-ActiveDirectoryGroupsToAzureAD {
     catch {
         Write-DosMessage -Level "Fatal" -Message "An error occurred while executing the command to retrieve non-migrated AD groups. Connection String: $($connString). Error $($_.Exception)"
     }
+
+    if ($results.Count -eq 0) {
+        Write-DosMessage -Level "Information" -Message "No groups found to migrate."
+    }
+
     foreach ($group in $results) {
         # query AD for SID
         $adGroupSID = ""
