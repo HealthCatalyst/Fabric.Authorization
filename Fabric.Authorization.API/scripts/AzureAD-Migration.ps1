@@ -18,10 +18,19 @@ param(
 )
 
 Import-Module -Name .\AzureAD-Utilities.psm1 -Force
+Import-Module -Name .\Install-Authorization-Utilities.psm1 -Force
 Import-Module ActiveDirectory
 
-$authorizationDatabase = Get-AuthorizationDatabaseConnectionString -authorizationDbName $installSettings.authorizationDbName -sqlServerAddress $sqlServerAddress -installConfigPath $installConfigPath -quiet $quiet
-Move-ActiveDirectoryGroupsToAzureAD -connString "$($authorizationDatabase.DbConnectionString)"
+$identityInstallSettings = Get-InstallationSettings "identity" -installConfigPath $installConfigPath
+
+if ($identityInstallSettings.useAzureAD) {
+    $authInstallSettings = Get-InstallationSettings "authorization" -installConfigPath $installConfigPath
+    $authorizationDatabase = Get-AuthorizationDatabaseConnectionString -authorizationDbName $authInstallSettings.authorizationDbName -sqlServerAddress $sqlServerAddress -installConfigPath $installConfigPath -quiet $quiet
+    Move-ActiveDirectoryGroupsToAzureAD -connString "$($authorizationDatabase.DbConnectionString)"
+}
+else {
+    Write-DosMessage -Level "Information" "The useAzureAD configuration setting in install.config is disabled. This must be enabled to run the migration script."
+}
 
 function Get-NonMigratedActiveDirectoryGroups {
     param(
@@ -100,7 +109,7 @@ function Move-ActiveDirectoryGroupsToAzureAD {
 
     Write-DosMessage -Level "Information" -Message "Migrating AD groups to Azure AD..."
 
-    $allowedTenantIds = Get-Tenants -installConfigPath $installConfigPath
+    $allowedTenantIds = Get-AzureADTenants -installConfigPath $installConfigPath
 
     # retrieve all groups from Auth DB    
     try {
@@ -128,7 +137,12 @@ function Move-ActiveDirectoryGroupsToAzureAD {
 
         foreach ($tenantId in $allowedTenantIds) {
             # query Azure AD to get external ID
-            $azureADGroup = Get-AzureADGroupBySID -tenantId $tenantId -groupSID $adGroupSID
+            try {
+                $azureADGroup = Get-AzureADGroupBySID -tenantId $tenantId -groupSID $adGroupSID
+            }
+            catch {
+                continue
+            }
 
             # if group exists, then it's a match so migrate
             if ($null -ne $azureADGroup) {
