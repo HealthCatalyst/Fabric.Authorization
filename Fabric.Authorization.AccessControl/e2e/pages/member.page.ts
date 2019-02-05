@@ -19,6 +19,22 @@ export class MemberPage {
         saveButton.click();
     }
 
+    getRoleRow(roleToSelect: string) {
+        return this.getRolesTable().element(by.css('tbody')).all(by.css('tr')).filter((elem) => {
+            return elem.getText().then((text) => {
+                return text.includes(roleToSelect);
+            });
+        }).first();
+    }
+
+    getIdpssPrincipalResult(principalType: string) {
+        return element(by.className('member-list')).all(by.css('li')).filter((elem) => {
+            return elem.getText().then((text) => {
+                return text.includes(`(${principalType})`); // select user list element
+            });
+        }).first();
+    }
+
     searchForAndSelectPrincipal(searchString: string, principalType: string) {
         const until = protractor.ExpectedConditions;
         const saveButton = this.getSaveButton();
@@ -28,11 +44,7 @@ export class MemberPage {
         this.searchPrincipal(searchString);
 
         // select result
-        const principalListElement = element(by.className('member-list')).all(by.css('li')).filter((elem) => {
-            return elem.getText().then((text) => {
-                return text.includes(`(${principalType})`); // select user list element
-            });
-        }).first();
+        const principalListElement = this.getIdpssPrincipalResult(principalType);
         browser.wait(until.visibilityOf(principalListElement), 3000, 'IdPSS search results were not found');
 
         // overlay contains the actual clickable checkbox
@@ -41,20 +53,12 @@ export class MemberPage {
     }
 
     selectRoleAndSave(roleToSelect: string) {
-        // add role(s)
-        const until = protractor.ExpectedConditions;
-        const rolesTable = this.getRolesTable();
-
-        const tableRow = rolesTable.element(by.css('tbody')).all(by.css('tr')).filter((elem) => {
-            return elem.getText().then((text) => {
-                return text.includes(roleToSelect);
-            });
-        }).first();
-        const firstRoleCheckBox = tableRow.element(by.className('hc-checkbox-overlay'));
+        const roleRow = this.getRoleRow(roleToSelect);
+        const firstRoleCheckBox = roleRow.element(by.className('hc-checkbox-overlay'));
         firstRoleCheckBox.click();
 
         this.save();
-        this.waitUntilMainPageLoaded();
+        this.waitUntilMainPageLoaded(); // necessary so test does not end before saving roles
     }
 
     private waitUntilMainPageLoaded() {
