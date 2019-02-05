@@ -60,7 +60,13 @@ exports.config = {
         console.log('Logging into Access Control');
         return browser.driver.get(browser.baseUrl);
       })
-      .then(() => console.log('Fully logged in'))
-      .then(() => browser.driver.sleep(2000));  // wait for login process
+      .then(() => {
+        return browser.driver.wait(() => {
+          return browser.driver.getCurrentUrl().then((url) => {
+            return /access-control/.test(url);
+          })
+        }, 11000, 'Failed to login');
+      })
+      .then(() => console.log('Fully logged in'));
   }
 };
