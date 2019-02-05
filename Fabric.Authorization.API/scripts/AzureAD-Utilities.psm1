@@ -1,3 +1,13 @@
+# Import Dos Install Utilities
+$minVersion = [System.Version]::new(1, 0, 234, 0)
+try {
+    Get-InstalledModule -Name DosInstallUtilities -MinimumVersion $minVersion -ErrorAction Stop
+} catch {
+    Write-Host "Installing DosInstallUtilities from Powershell Gallery"
+    Install-Module DosInstallUtilities -Scope CurrentUser -MinimumVersion $minVersion -Force
+}
+Import-Module -Name DosInstallUtilities -Force
+
 # Import Fabric Install Utilities
 $fabricInstallUtilities = ".\Fabric-Install-Utilities.psm1"
 if (!(Test-Path $fabricInstallUtilities -PathType Leaf)) {
@@ -23,16 +33,6 @@ else {
     Write-Host "Installing AzureAD at $($azureAD.FullName)"
     Import-Module -Name $azureAD.FullName
 }
-
-# Import Dos Install Utilities
-$minVersion = [System.Version]::new(1, 0, 234, 0)
-try {
-    Get-InstalledModule -Name DosInstallUtilities -MinimumVersion $minVersion -ErrorAction Stop
-} catch {
-    Write-Host "Installing DosInstallUtilities from Powershell Gallery"
-    Install-Module DosInstallUtilities -Scope CurrentUser -MinimumVersion $minVersion -Force
-}
-Import-Module -Name DosInstallUtilities -Force
 
 Add-Type -AssemblyName System.Web
 
@@ -64,11 +64,6 @@ function Get-AzureADTenants {
     $tenants += Get-SettingsFromInstallConfig -installConfigPath $installConfigPath `
         -scope $scope `
         -setting $parentSetting
-
-    if($null -eq $tenants -or $tenants.Count -eq 0){
-        Write-DosMessage -Level "Error" -Message  "No tenants were found in the install.config"
-        throw
-    }
 
     return $tenants
 }
