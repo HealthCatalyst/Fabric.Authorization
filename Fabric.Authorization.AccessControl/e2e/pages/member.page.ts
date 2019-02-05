@@ -8,6 +8,7 @@ export class MemberPage {
     getSaveButton() { return element(by.buttonText('Save')); }
     getSearchBox() { return element(by.className('hc-input')); }
     getRolesTable() { return element(by.className('hc-table')); }
+    getCheckedCheckBoxLocator() { return by.className('hc-checkbox-checked'); }
 
     searchPrincipal(searchString: string) {
         this.getSearchBox().sendKeys(searchString);
