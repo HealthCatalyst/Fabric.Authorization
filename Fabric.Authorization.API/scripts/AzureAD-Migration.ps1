@@ -21,16 +21,13 @@ Import-Module -Name .\AzureAD-Utilities.psm1 -Force
 Import-Module -Name .\Install-Authorization-Utilities.psm1 -Force
 Import-Module ActiveDirectory
 
-$identityInstallSettings = Get-InstallationSettings "identity" -installConfigPath $installConfigPath
-
-if ($identityInstallSettings.useAzureAD) {
-    $authInstallSettings = Get-InstallationSettings "authorization" -installConfigPath $installConfigPath
-    $authorizationDatabase = Get-AuthorizationDatabaseConnectionString -authorizationDbName $authInstallSettings.authorizationDbName -sqlServerAddress $sqlServerAddress -installConfigPath $installConfigPath -quiet $quiet
-    Move-ActiveDirectoryGroupsToAzureAD -connString "$($authorizationDatabase.DbConnectionString)"
+# Import Fabric Install Utilities
+$fabricInstallUtilities = ".\Fabric-Install-Utilities.psm1"
+if (!(Test-Path $fabricInstallUtilities -PathType Leaf)) {
+    Write-DosMessage -Level "Warning" -Message "Could not find fabric install utilities. Manually downloading and installing"
+    Invoke-WebRequest -Uri https://raw.githubusercontent.com/HealthCatalyst/InstallScripts/master/common/Fabric-Install-Utilities.psm1 -Headers @{"Cache-Control" = "no-cache"} -OutFile $fabricInstallUtilities
 }
-else {
-    Write-DosMessage -Level "Information" "The useAzureAD configuration setting in install.config is disabled. This must be enabled to run the migration script."
-}
+Import-Module -Name $fabricInstallUtilities -Force
 
 function Get-NonMigratedActiveDirectoryGroups {
     param(
@@ -60,6 +57,7 @@ function Get-NonMigratedActiveDirectoryGroups {
         Write-DosMessage -Level "Fatal" -Message "An error occurred while executing the command to retrieve non-migrated AD groups. Connection String: $($connectionString). Error $($_.Exception)"
     }    	
     
+    Write-DosMessage -Level Information -Message "$($groups.Rows.Count) groups found for migration"
     return $groups;
 }
 
@@ -89,7 +87,7 @@ function Get-AzureADGroupBySID {
     if ($azureADGroups.Count -eq 1) {
         return $azureADGroups[0]
     }
-    else if ($azureADGroups.Count -eq 0) {
+    elseif ($azureADGroups.Count -eq 0) {
         $errorMsg = "No match found for SID $($groupSID) in Azure AD."
         Write-DosMessage -Level "Error" -Message $errorMsg
         throw $errorMsg
@@ -110,6 +108,10 @@ function Move-ActiveDirectoryGroupsToAzureAD {
     Write-DosMessage -Level "Information" -Message "Migrating AD groups to Azure AD..."
 
     $allowedTenantIds = Get-AzureADTenants -installConfigPath $installConfigPath
+    if($null -eq $allowedTenantIds -or $allowedTenantIds.Count -eq 0) {
+        Write-DosMessage -Level "Error" -Message  "No tenants were found in the install.config"
+        throw
+    }
 
     # retrieve all groups from Auth DB    
     try {
@@ -127,7 +129,15 @@ function Move-ActiveDirectoryGroupsToAzureAD {
         # query AD for SID
         $adGroupSID = ""
         try {
-            $adGroup = Get-ADGroup -Identity "$($group.Name)"
+            $authGroupNameParts = $group.Name.Split('\')
+            $adGroupName = ""
+            if ($authGroupNameParts.Count -eq 1) {
+                $adGroupName = $authGroupNameParts[0]
+            }
+            else {
+                $adGroupName = $authGroupNameParts[1]
+            }
+            $adGroup = Get-ADGroup -Identity $adGroupName
             $adGroupSID = $adGroup.SID.Value
         }
         catch {
@@ -167,4 +177,16 @@ function Move-ActiveDirectoryGroupsToAzureAD {
             }
         }
     }
+}
+
+$identityInstallSettings = Get-InstallationSettings "identity" -installConfigPath $installConfigPath
+$useAzureAD = $identityInstallSettings.useAzureAD
+if ($null -eq $useAzureAD -or $true -eq $useAzureAD) {
+    $authInstallSettings = Get-InstallationSettings "authorization" -installConfigPath $installConfigPath
+    $sqlServerAddress = Get-SqlServerAddress -sqlServerAddress $authInstallSettings.sqlServerAddress -installConfigPath $installConfigPath -quiet $quiet
+    $authorizationDatabase = Get-AuthorizationDatabaseConnectionString -authorizationDbName $authInstallSettings.authorizationDbName -sqlServerAddress $sqlServerAddress -installConfigPath $installConfigPath -quiet $quiet
+    Move-ActiveDirectoryGroupsToAzureAD -connString $authorizationDatabase.DbConnectionString
+}
+else {
+    Write-DosMessage -Level "Information" "The useAzureAD configuration setting in install.config 'identity' section is disabled. This must be enabled to run the migration script."
 }
