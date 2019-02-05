@@ -1,22 +1,24 @@
 import { protractor, element, browser, by } from 'protractor';
-import { AccessControlPage } from './../pages/access-control.page';
+import { MemberListPage } from '../pages/member-list.page';
+import { MemberPage } from './../pages/member.page';
 
 describe('adding a principal ad group/user', () => {
-  let page: AccessControlPage;
+  let mainPage: MemberListPage;
 
   beforeEach(() => {
-    page = new AccessControlPage();
+    mainPage = new MemberListPage();
   });
 
   it('should search and add a user with roles, and then remove the roles', () => {
-    page.getMainPage();
+    mainPage.getMemberListPage();
 
-    page.searchForAndSelectPrincipal('functional test user', 'user');
-
-    page.selectFirstRoleAndSave();
+    const memberPage = mainPage.navigateToMemberPage();
+    memberPage.searchForAndSelectPrincipal('functional test user', 'user');
+    memberPage.selectRoleAndSave(memberPage.DataMartAdmin);
 
     // re-search existing user (with role added)
-    page.searchForAndSelectPrincipal('functional test user', 'user');
+    mainPage.navigateToMemberPage();
+    memberPage.searchForAndSelectPrincipal('functional test user', 'user');
 
     // verify user has roles from above
     const until = protractor.ExpectedConditions;
@@ -25,18 +27,20 @@ describe('adding a principal ad group/user', () => {
     browser.wait(until.visibilityOf(checkBoxContainer), 3000, 'Selected role was not found on re-search');  // fails test if not found
 
     // remove role (reset) user
-    page.selectFirstRoleAndSave();
+    memberPage.selectRoleAndSave(memberPage.DataMartAdmin);
   });
 
   it('should search and add an ad group with roles, and then remove the roles', () => {
-    page.getMainPage();
+    mainPage.getMemberListPage();
 
-    page.searchForAndSelectPrincipal('functional test group', 'group');
-
-    page.selectFirstRoleAndSave();
+    const memberPage = mainPage.navigateToMemberPage();
+    memberPage.searchForAndSelectPrincipal('functional test group', 'group');
+    memberPage.selectRoleAndSave(memberPage.PublicEntityReader);
 
     // re-search existing user (with role added)
-    page.searchForAndSelectPrincipal('functional test group', 'group');
+    mainPage.navigateToMemberPage();
+    memberPage.searchForAndSelectPrincipal('functional test group', 'group');
+
 
     // verify user has roles from above
     const until = protractor.ExpectedConditions;
@@ -45,6 +49,6 @@ describe('adding a principal ad group/user', () => {
     browser.wait(until.visibilityOf(checkBoxContainer), 3000, 'Selected role was not found on re-search');  // fails test if not found
 
     // remove role (reset) user
-    page.selectFirstRoleAndSave();
+    memberPage.selectRoleAndSave(memberPage.PublicEntityReader);
   });
 });
