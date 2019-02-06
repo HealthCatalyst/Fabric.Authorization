@@ -7,7 +7,7 @@ if (!(Test-Path $fabricInstallUtilities -PathType Leaf)) {
 Import-Module -Name $fabricInstallUtilities -Force
 
 # Import Dos Install Utilities
-$minVersion = [System.Version]::new(1, 0, 210, 0)
+$minVersion = [System.Version]::new(1, 0, 234, 0)
 try {
     Get-InstalledModule -Name DosInstallUtilities -MinimumVersion $minVersion -ErrorAction Stop
 } catch {
