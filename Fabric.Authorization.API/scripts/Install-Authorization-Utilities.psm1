@@ -14,7 +14,7 @@ try {
     Write-Host "Installing DosInstallUtilities from Powershell Gallery"
     Install-Module DosInstallUtilities -Scope CurrentUser -MinimumVersion $minVersion -Force
 }
-Import-Module -Name DosInstallUtilities -Force
+Import-Module -Name DosInstallUtilities -MinimumVersion $minVersion -Force
 
 Add-Type -AssemblyName System.Web
 
