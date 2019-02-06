@@ -2,7 +2,7 @@
 #Requires -Version 5.1
 #Requires -Modules PowerShellGet, PackageManagement
 
-param(
+[CmdletBinding()] param(
     [PSCredential] $credential,
     [ValidateScript({
         if (!(Test-Path $_)) {
@@ -19,6 +19,7 @@ param(
 
 Import-Module -Name .\AzureAD-Utilities.psm1 -Force
 Import-Module -Name .\Install-Authorization-Utilities.psm1 -Force
+Import-Module -Name .\Install-Identity-Utilities.psm1 -Force
 Import-Module ActiveDirectory
 
 # Import Fabric Install Utilities
@@ -28,6 +29,8 @@ if (!(Test-Path $fabricInstallUtilities -PathType Leaf)) {
     Invoke-WebRequest -Uri https://raw.githubusercontent.com/HealthCatalyst/InstallScripts/master/common/Fabric-Install-Utilities.psm1 -Headers @{"Cache-Control" = "no-cache"} -OutFile $fabricInstallUtilities
 }
 Import-Module -Name $fabricInstallUtilities -Force
+
+$credentials = @{}
 
 function Get-NonMigratedActiveDirectoryGroups {
     param(
@@ -72,7 +75,12 @@ function Get-AzureADGroupBySID {
     $azureADGroups = @()
     try {
         # connect to Azure AD
-        Connect-AzureADTenant -tenantId $tenantId
+        if ($null -ne $credentials[$tenantId]) {
+            Connect-AzureADTenant -tenantId $tenantId -credential $credentials[$tenantId]
+        } else {
+            $credential = Connect-AzureADTenant -tenantId $tenantId
+            $credentials.Add($tenantId, $credential)
+        }
 
         Write-DosMessage -Level "Information" -Message "Retrieving group $($groupSID) from Azure AD Tenant $($tenantId)..."
         $azureADGroups = Get-AzureADGroup -Filter "onPremisesSecurityIdentifier eq '$($groupSID)'"
@@ -80,8 +88,15 @@ function Get-AzureADGroupBySID {
         # disconnect from Azure AD
         Disconnect-AzureAD
     }
+    catch [Microsoft.Open.AzureAD16.Client.ApiException] {
+        $errorMsg = "There was an error within the Azure AD API: $($_.Exception)"
+        Write-DosMessage -Level Fatal -Message $errorMsg
+        throw
+    }
     catch {
-        Write-DosMessage -Level "Fatal" -Message "Error while attempting to retrieve Azure AD group $($groupSID): $($_.Exception)"
+        $errorMsg = "There was an unexpected error error while retrieving the Azure AD group: $($_.Exception)"
+        Write-DosMessage -Level Fatal -Message $errorMsg
+        throw
     }
 
     if ($azureADGroups.Count -eq 1) {
@@ -89,12 +104,12 @@ function Get-AzureADGroupBySID {
     }
     elseif ($azureADGroups.Count -eq 0) {
         $errorMsg = "No match found for SID $($groupSID) in Azure AD."
-        Write-DosMessage -Level "Error" -Message $errorMsg
+        Write-DosMessage -Level Information -Message $errorMsg
         throw $errorMsg
     }
     else {
         $errorMsg = "Multiple matches found for group SID $($groupSID)."
-        Write-DosMessage -Level "Error" -Message $errorMsg
+        Write-DosMessage -Level Fatal -Message $errorMsg
         throw $errorMsg
     }
 }
@@ -105,11 +120,19 @@ function Move-ActiveDirectoryGroupsToAzureAD {
         [string] $connString
     )
 
-    Write-DosMessage -Level "Information" -Message "Migrating AD groups to Azure AD..."
+    Write-DosMessage -Level Information -Message "Migrating AD groups to Azure AD..."
 
-    $allowedTenantIds = Get-AzureADTenants -installConfigPath $installConfigPath
+    $allowedTenantIds = @()
+
+    try {
+        $allowedTenantIds = Get-AzureADTenants -installConfigPath $installConfigPath
+    }
+    catch {
+        Write-DosMessage -Level Fatal -Message "Error retrieving Azure AD Tenants. Check to ensure the installConfigPath ($($installConfigPath)) is correct."
+        throw
+    }
     if($null -eq $allowedTenantIds -or $allowedTenantIds.Count -eq 0) {
-        Write-DosMessage -Level "Error" -Message  "No tenants were found in the install.config"
+        Write-DosMessage -Level Fatal -Message  "No tenants were found in the install.config"
         throw
     }
 
@@ -118,15 +141,15 @@ function Move-ActiveDirectoryGroupsToAzureAD {
         $results = Get-NonMigratedActiveDirectoryGroups -connectionString $connString
     }
     catch {
-        Write-DosMessage -Level "Fatal" -Message "An error occurred while executing the command to retrieve non-migrated AD groups. Connection String: $($connString). Error $($_.Exception)"
+        Write-DosMessage -Level Fatal -Message "An error occurred while executing the command to retrieve non-migrated AD groups. Connection String: $($connString). Error $($_.Exception)"
     }
 
     if ($results.Count -eq 0) {
-        Write-DosMessage -Level "Information" -Message "No groups found to migrate."
+        Write-DosMessage -Level Information -Message "No groups found to migrate."
     }
 
     foreach ($group in $results) {
-        # query AD for SID
+        # query AD for SID (example SID: S-1-5-21-406681558-3692380417-1824333429-2607)
         $adGroupSID = ""
         try {
             $authGroupNameParts = $group.Name.Split('\')
