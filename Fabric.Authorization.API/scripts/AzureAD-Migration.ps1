@@ -57,7 +57,7 @@ function Get-NonMigratedActiveDirectoryGroups {
         Write-DosMessage -Level "Fatal" -Message "An error occurred while executing the command to retrieve non-migrated AD groups. Connection String: $($connectionString). Error $($_.Exception)"
     }    	
     
-    Write-DosMessage -Level Information -Message "$($groups.Rows.Count) groups found for migration"
+    Write-DosMessage -Level Information -Message "$($groups.Rows.Count) group(s) found for migration"
     return $groups;
 }
 
@@ -74,7 +74,7 @@ function Get-AzureADGroupBySID {
         # connect to Azure AD
         Connect-AzureADTenant -tenantId $tenantId
 
-        Write-DosMessage -Level "Information" -Message "Retrieving group $($groupName) from Azure AD..."
+        Write-DosMessage -Level "Information" -Message "Retrieving group $($groupSID) from Azure AD Tenant $($tenantId)..."
         $azureADGroups = Get-AzureADGroup -Filter "onPremisesSecurityIdentifier eq '$($groupSID)'"
 
         # disconnect from Azure AD
@@ -165,7 +165,7 @@ function Move-ActiveDirectoryGroupsToAzureAD {
                 FROM Groups g
                 WHERE g.[GroupId] = @groupId;"
     
-                Write-DosMessage -Level "Information" -Message "Migrating group $($group.Name) to Azure AD..."
+                Write-DosMessage -Level "Information" -Message "Migrating group $($group.Name) to Azure AD Tenant $tenantId..."
                 try {
                     Invoke-Sql $connString $sql @{groupId=$group.GroupId;tenantId=$tenantId;externalIdentifier=$($azureADGroup.ObjectId)} | Out-Null
                 }
