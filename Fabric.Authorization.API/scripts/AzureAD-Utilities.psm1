@@ -24,7 +24,7 @@ if ($azureAD.length -eq 0) {
     $installed = Get-InstalledModule -Name AzureAD -ErrorAction "silentlycontinue"
 
     if (($null -eq $installed) -or ($installed.Version.CompareTo($minVersion) -lt 0)) {
-        Write-Host "Installing AzureAD from Powershell Gallery"
+        Write-Host "Instgalling AzureAD from Powershell Gallery"
         Install-Module AzureAD -Scope CurrentUser -MinimumVersion $minVersion -Force
         Import-Module AzureAD -Force
     }
@@ -46,16 +46,18 @@ function Connect-AzureADTenant {
 
     try {
         Connect-AzureAD -Credential $credential -TenantId $tenantId | Out-Null
+        return $credential
     }
     catch {
-        Write-DosMessage -Level "Error" -Message  "Could not sign into tenant '$tenantId' with user '$($credential.UserName)'"
+        $errorMsg = "Could not sign into tenant '$tenantId' with user '$($credential.UserName)'"
+        Write-DosMessage -Level "Error" -Message $errorMsg
         throw
     }
 }
 
 function Get-AzureADTenants {
     param(
-		[Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$true)]
         [string] $installConfigPath
     )
     $tenants = @()
