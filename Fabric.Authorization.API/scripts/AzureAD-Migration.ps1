@@ -104,9 +104,11 @@ function Get-AzureADGroupBySID {
                     Write-DosMessage -Level Information -Message "403 error when retrieving Azure AD group."
                     # reset cached credentials for this tenantId
                     $credentials.Remove($tenantId)
+                    Write-DosMessage -Level "Information" -Message "Removed cached credentials for Azure AD Tenant $($tenantId)..."
                     $authenticationFailed = $true
                 }
                 else {
+                    Write-DosMessage -Level Information -Message "Unexpected error when retrieving Azure AD group. $($_.Exception)"
                     throw
                 }
             }
