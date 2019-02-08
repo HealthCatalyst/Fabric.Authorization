@@ -18,6 +18,8 @@ The config file `protractor.conf.js` is located under the AccessControl root fol
 
 # Running Functional Tests
 To run all tests defined in the spec portion of the config file:
+>`npm run e2e`
+
 >`protractor protractor.conf.js`
 
 To run a specific suite of tests:
