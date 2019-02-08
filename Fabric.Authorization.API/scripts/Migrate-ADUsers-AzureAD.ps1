@@ -1,6 +1,6 @@
 ﻿#Requires -RunAsAdministrator
 #Requires -Version 5.1
-#Requires -Modules PowerShellGet, PackageManagement
+#Requires -Modules PowerShellGet, PackageManagement, ActiveDirectory
 
 param(
     [ValidateScript({
@@ -16,7 +16,7 @@ param(
     [switch] $quiet
 )
 # Import AD
-# Install-Module ActiveDirectory
+Import-Module ActiveDirectory
 
 # Import AzureAD
 $minVersion = [System.Version]::new(2, 0, 2 , 4)
@@ -56,14 +56,6 @@ if (!(Test-Path $fabricInstallUtilities -PathType Leaf)) {
 }
 Import-Module -Name $fabricInstallUtilities -Force
 
-# Do I need this duplicate code as the #Require above
-# Do I need to check powershell version depending on if #Require is only necessary
-#if(!(Test-IsRunAsAdministrator))
-#{
-#    Write-DosMessage -Level "Error" -Message "You must run this script as an administrator. Halting configuration."
-#    throw
-#}
-
 Write-DosMessage -Level "Information" -Message "Using install.config: $installConfigPath"
 $installSettingsScope = "authorization"
 $installSettings = Get-InstallationSettings $installSettingsScope -installConfigPath $installConfigPath
@@ -74,32 +66,20 @@ Set-LoggingConfiguration -commonConfig $commonInstallSettings
 
 $tenants = Get-Tenants -installConfigPath $installConfigPath
 
-#$selectedCerts = Get-Certificates -primarySigningCertificateThumbprint $installSettings.encryptionCertificateThumbprint -encryptionCertificateThumbprint $installSettings.encryptionCertificateThumbprint -installConfigPath $installConfigPath -scope $installSettingsScope -quiet $quiet
-#$iisUser = Get-IISAppPoolUser -credential $credential -appName $installSettings.appName -storedIisUser $installSettings.iisUser -installConfigPath $installConfigPath -scope $installSettingsScope
-
-# Adding permission to private key for file system access given to app pool user, should have been done in Authorization install
-# Add-PermissionToPrivateKey $iisUser.UserName $selectedCerts.EncryptionCertificate read
-
 $sqlServerAddress = Get-SqlServerAddress -sqlServerAddress $installSettings.sqlServerAddress -installConfigPath $installConfigPath -quiet $quiet
 
 $authorizationDatabase = Get-AuthorizationDatabaseConnectionString -authorizationDbName $installSettings.authorizationDbName -sqlServerAddress $sqlServerAddress -installConfigPath $installConfigPath -quiet $quiet
 
-# Connect to the authorization database and get all the users and store them in a hash table
+# Connect to the authorization database and get all the users and store them in a data table
 # Method to get authorization database users
 $authUserTable = Get-AuthUsers -connectionString $authorizationDatabase.DbConnectionString
 
-# Connect to AD to get ObjectId/ms-dsConsistenceyGuid for each user in authorization
+# Connect to AD to get ObjectId/ms-DS-ConsistenceyGuid for each user in authorization
 $currentUserDomain = Get-CurrentUserDomain -quiet $quiet
 
 $ADUserTable = Get-ADUsers -userTable $authUserTable -domain $currentUserDomain
 
 $AADUserTable = Get-AzureADUsers -userTable $ADUserTable -tenants $tenants
 
-# Add azureAD user objectId to the AuthorizationDB Users table
-# Method to add authorization database users
+# Add azureAD user to the AuthorizationDB Users table
 $authUserTable = Add-AuthUsers -connectionString $authorizationDatabase.DbConnectionString -userTable $AADUserTable
-
-# Database security for app pool user, should have been done in Authorization install
-# Add-DatabaseSecurity $iisUser.UserName $installSettings.authorizationDatabaseRole $authorizationDatabase.DbConnectionString
-
-#$accessToken = Get-AccessToken -authUrl $identityServiceUrl -clientId "fabric-installer" -scope "fabric/identity.manageresources" -secret $installSettings.fabricInstallerSecret

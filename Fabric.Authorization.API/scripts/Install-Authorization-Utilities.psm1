@@ -407,7 +407,7 @@ function Add-AuthUsers
       $command.CommandText = "IF NOT EXISTS 
                               (SELECT 1 FROM [dbo].[Users] u
                                WHERE SubjectId = u.SubjectId 
-                               AND IdentityProvider = 'AzureActiveDirectory')
+                               AND IdentityProvider = 'OpenIDConnect:CatalystAzureAD')
                               BEGIN
                               INSERT INTO [dbo].[Users] ([SubjectId], [ParentUserId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [IsDeleted])
                               VALUES(@subjectId, @parentId, @identityProvider, @createdBy, @createdDateTime, @isDeleted)
@@ -415,7 +415,7 @@ function Add-AuthUsers
       $command.Parameters["@subjectId"].Value = $user.objectId
       $command.Parameters.Add("@parentId", [System.Data.SqlDbType]::Int)
       $command.Parameters["@parentId"].Value = $user.Id
-      $command.Parameters["@identityProvider"].Value = "AzureActiveDirectory"
+      $command.Parameters["@identityProvider"].Value = "OpenIDConnect:CatalystAzureAD"
       $command.Parameters["@createdBy"].Value = "Migrate-ADUsers-AzureAD"
       $command.Parameters["@createdDateTime"].Value = $sqlDate
       $command.Parameters["@isDeleted"].Value = 0
@@ -428,13 +428,13 @@ function Add-AuthUsers
         $command.CommandText = "IF NOT EXISTS 
                                 (SELECT 1 FROM [dbo].[GroupUsers] g
                                  WHERE SubjectId = g.SubjectId
-                                 AND IdentityProvider = 'AzureActiveDirectory')
+                                 AND IdentityProvider = 'OpenIDConnect:CatalystAzureAD')
                                 BEGIN
                                 INSERT INTO [dbo].[GroupUsers] ([SubjectId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [GroupId], [IsDeleted])
                                 VALUES(@subjectId, @identityProvider, @createdBy, @createdDateTime, @groupId, @isDeleted)
                                 END;"
         $command.Parameters["@subjectId"].Value = $user.objectId
-        $command.Parameters["@identityProvider"].Value = "AzureActiveDirectory"
+        $command.Parameters["@identityProvider"].Value = "OpenIDConnect:CatalystAzureAD"
         $command.Parameters["@createdBy"].Value = "Migrate-ADUsers-AzureAD"
         $command.Parameters["@createdDateTime"].Value = $sqlDate
         $command.Parameters.Add("@groupId", [System.Data.SqlDbType]::UniqueIdentifier)
@@ -453,13 +453,13 @@ function Add-AuthUsers
         $command.CommandText = "IF NOT EXISTS 
                                 (SELECT 1 FROM [dbo].[RoleUsers] r
                                  WHERE SubjectId = r.SubjectId 
-                                 AND IdentityProvider = 'AzureActiveDirectory')
+                                 AND IdentityProvider = 'OpenIDConnect:CatalystAzureAD')
                                 BEGIN
                                 INSERT INTO [dbo].[RoleUsers] ([SubjectId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [RoleId], [IsDeleted])
                                 VALUES(@subjectId, @identityProvider, @createdBy, @createdDateTime, @roleId, @isDeleted)
                                 END;"
         $command.Parameters["@subjectId"].Value = $user.objectId
-        $command.Parameters["@identityProvider"].Value = "AzureActiveDirectory"
+        $command.Parameters["@identityProvider"].Value = "OpenIDConnect:CatalystAzureAD"
         $command.Parameters["@createdBy"].Value = "Migrate-ADUsers-AzureAD"
         $command.Parameters["@createdDateTime"].Value = $sqlDate
         $command.Parameters.Add("@roleId", [System.Data.SqlDbType]::UniqueIdentifier)
@@ -478,13 +478,13 @@ function Add-AuthUsers
         $command.CommandText = "IF NOT EXISTS 
                                 (SELECT 1 FROM [dbo].[UsersPermissions] p
                                  WHERE SubjectId = p.SubjectId
-                                 AND IdentityProvider = 'AzureActiveDirectory')
+                                 AND IdentityProvider = 'OpenIDConnect:CatalystAzureAD')
                                 BEGIN
                                 INSERT INTO [dbo].[UserPermissions] ([SubjectId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [PermissionId], [PermissionAction], [IsDeleted])
                                 VALUES(@subjectId, @identityProvider, @createdBy, @createdDateTime, @permissionId, @permissionAction, @isDeleted)
                                 END;"
         $command.Parameters["@subjectId"].Value = $user.objectId
-        $command.Parameters["@identityProvider"].Value = "AzureActiveDirectory"
+        $command.Parameters["@identityProvider"].Value = "OpenIDConnect:CatalystAzureAD"
         $command.Parameters["@createdBy"].Value = "Migrate-ADUsers-AzureAD"
         $command.Parameters["@createdDateTime"].Value = $sqlDate
         $command.Parameters.Add("@permissionId", [System.Data.SqlDbType]::UniqueIdentifier)
@@ -522,17 +522,19 @@ function Get-ADUsers
 	   # find the userprincipal in AD from the AuthorizationDB IdentityProviderUserPrincipalName
 	   $pc = Get-PrincipalContext -domain $domain
 	   $samAccountName = Get-SamAccountFromAccountName -accountName $user.IdentityProviderUserPrincipalName
-	   $foundUser = Get-UserPrincipal -pc $pc -samAccountName $samAccountName
 
-       # get more details (properties) on the userprincipal
-       [System.DirectoryServices.DirectoryEntry] $entry = $foundUser.GetUnderlyingObject()
+       # get all properties of the user with $samAccountName
+       $entry = Get-ADUser $samAccountName -Properties *
 
        # returns a System.Byte[], needs to be converted to a base 64 string to compare with AzureAD ImmutableId         
-       $userMap = $entry.Properties["objectGUID"]
+       # the system.Guid(, ) with the comma is interpreted by powershell as passing a literal
+	   # array, instead of a list of arguments. Issue with ms-DS-ConsistencyGuid only working with
+	   # the comma.
+       $userMap = $entry.ObjectGUID
        if (![string]::IsNullOrEmpty($userMap))
        {
          # put the user objectGUID into base 64 string format to compare against the AzureAD ImmutableId 
-         $userMapGuid = [System.Convert]::ToBase64String((new-Object system.Guid($userMap)).ToByteArray())
+         $userMapGuid = [System.Convert]::ToBase64String((new-Object system.Guid(, $userMap)).ToByteArray())
          if (![string]::IsNullOrEmpty($userMapGuid)) 
          {
            $user.sourceAnchor = $userMapGuid
@@ -545,11 +547,12 @@ function Get-ADUsers
        }
        else
        {        
-         $userMap = $entry.Properties["ms-DS-ConsistencyGuid"]
+         #$userMap = $entry.Properties["ms-DS-ConsistencyGuid"]
+         $userMap = $entry."ms-Ds-ConsistencyGuid" 
          if (![string]::IsNullOrEmpty($userMap))
          {
            # put the user ms-DS-ConsistenceyGuid into base 64 string format to compare against the AzureAD ImmutableId 
-           $userMapGuid = [System.Convert]::ToBase64String((new-Object system.Guid($userMap)).ToByteArray())
+           $userMapGuid = [System.Convert]::ToBase64String((new-Object system.Guid(, $userMap)).ToByteArray())
            if (![string]::IsNullOrEmpty($userMapGuid)) 
            {
              $user.sourceAnchor = $userMapGuid
@@ -628,7 +631,6 @@ function Get-AzureADUsers
         foreach($user in $userTable)
 	    {
           [string] $userPrincipal = $user.IdentityProviderUserPrincipalName.ToString()
-          $user.sourceAnchor = "Df4hzLYwNE2YKrHONkMUKQ=="
           $foundUserMatchId = Get-AzureADUser | Where-Object {$_.ImmutableId -eq $user.sourceAnchor} | Select-Object ObjectId
           if ($null -ne $foundUserMatchId) 
           {
