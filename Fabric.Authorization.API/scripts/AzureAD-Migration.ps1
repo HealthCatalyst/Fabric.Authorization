@@ -74,12 +74,15 @@ function Get-AzureADGroupBySID {
 
     $azureADGroups = @()
     # connect to Azure AD
-    if ($null -ne $credentials[$tenantId]) {
+    if ($credentials.ContainsKey($tenantId)) {
         Write-DosMessage -Level Information "Using cached credentials to connect to tenant $($tenantId)"
-        Connect-AzureADTenant -tenantId $tenantId -credential $credentials[$tenantId]
+        Connect-AzureADTenant -tenantId $tenantId -credential $credentials[$tenantId] | Out-Null
+        $azureADGroups = Get-AzureADGroup -Filter "onPremisesSecurityIdentifier eq '$($groupSID)'"
     } else {
         Write-DosMessage -Level Information "Credentials not cached - prompting user for credentials to connect to tenant $($tenantId)"
         $authenticationFailed = $true
+        $maxRetryAttempts = 3
+
         do {
             try {
                 $credential = Connect-AzureADTenant -tenantId $tenantId
@@ -108,8 +111,7 @@ function Get-AzureADGroupBySID {
                     $authenticationFailed = $true
                 }
                 else {
-                    Write-DosMessage -Level Information -Message "Unexpected error when retrieving Azure AD group. $($_.Exception)"
-                    throw
+                    Write-DosMessage -Level Fatal -Message "Unexpected error when retrieving Azure AD group. $($_.Exception)"
                 }
             }
             catch {
@@ -117,7 +119,11 @@ function Get-AzureADGroupBySID {
                 Write-DosMessage -Level Error -Message $errorMsg
                 throw $errorMsg
             }
-        } while ($authenticationFailed -eq $true)
+            $maxRetryAttempts--
+            if ($maxRetryAttempts -eq 0) {
+                Write-DosMessage -Level Information -Message "You have reached 3 login attempts. Exiting login prompts."
+            }
+        } while ($authenticationFailed -eq $true -and $maxRetryAttempts -gt 0)
     }
 
     # disconnect from Azure AD
@@ -135,14 +141,14 @@ function Get-AzureADGroupBySID {
     }
     elseif ($azureADGroups.Count -eq 0) {
         $errorMsg = "No match found for SID $($groupSID) in Azure AD Tenant $($tenantId)."
-        Write-DosMessage -Level Information -Message $errorMsg
-        throw $errorMsg
+        Write-DosMessage -Level Error -Message $errorMsg
     }
     else {
         $errorMsg = "Multiple matches found for group SID $($groupSID)."
         Write-DosMessage -Level Error -Message $errorMsg
-        throw $errorMsg
     }
+
+    return $null
 }
 
 function Move-ActiveDirectoryGroupsToAzureAD {
@@ -160,11 +166,9 @@ function Move-ActiveDirectoryGroupsToAzureAD {
     }
     catch {
         Write-DosMessage -Level Fatal -Message "Error retrieving Azure AD Tenants. Check to ensure the installConfigPath ($($installConfigPath)) is correct."
-        throw
     }
     if ($null -eq $allowedTenantIds -or $allowedTenantIds.Count -eq 0) {
         Write-DosMessage -Level Fatal -Message  "No tenants were found in the install.config"
-        throw
     }
 
     # retrieve all groups from Auth DB    
@@ -173,7 +177,6 @@ function Move-ActiveDirectoryGroupsToAzureAD {
     }
     catch {
         Write-DosMessage -Level Fatal -Message "An error occurred while retrieving non-migrated AD groups. Connection String: $($connString). Error $($_.Exception)"
-        throw
     }
 
     if ($results.Count -eq 0) {
@@ -181,6 +184,7 @@ function Move-ActiveDirectoryGroupsToAzureAD {
     }
 
     foreach ($group in $results) {
+        Write-DosMessage -Level Information -Message "----------------------------------------"
         # query AD for SID (example SID: S-1-5-21-406681558-3692380417-1824333429-2607)
         $adGroupSID = ""
         try {
@@ -194,6 +198,7 @@ function Move-ActiveDirectoryGroupsToAzureAD {
             }
             $adGroup = Get-ADGroup -Identity $adGroupName
             $adGroupSID = $adGroup.SID.Value
+            Write-DosMessage -Level Information -Message "Found group $($adGroupName) with SID $($adGroupSID) in Active Directory"
         }
         catch [Microsoft.ActiveDirectory.Management.ADIdentityNotFoundException] {
             Write-DosMessage -Level Error -Message "Group $($group.Name) could not be found in Active Directory. Unable to migrate."
@@ -205,17 +210,25 @@ function Move-ActiveDirectoryGroupsToAzureAD {
         }
 
         foreach ($tenantId in $allowedTenantIds) {
-            # query Azure AD to get external ID
             try {
+                # query Azure AD to get external ID
                 $azureADGroup = Get-AzureADGroupBySID -tenantId $tenantId -groupSID $adGroupSID
+                if ($null -ne $azureADGroup) {
+                    Write-DosMessage -Level Information -Message "Found group $($azureADGroup.DisplayName) with ObjectId $($azureADGroup.ObjectId) in Azure AD Tenant $($tenantId)"
+                }
+                else {
+                    Write-DosMessage -Level Information -Message "Did not find group SID $($adGroupSID) in Azure AD Tenant $($tenantId)"
+                    continue
+                }
             }
             catch {
-                Write-DosMessage -Level Debug -Message "Error occurred while processing group $($group.Name) for tenant ($tenantId)"
+                Write-DosMessage -Level Information -Message "Error occurred while processing group $($group.Name) for tenant ($tenantId). $($_.Exception)"
                 continue
             }
 
             # if group exists, then it's a match so migrate
             if ($null -ne $azureADGroup) {
+                $externalIdentifier = $azureADGroup.ObjectId
                 $sql = "UPDATE g 
                 SET g.IdentityProvider = 'AzureActiveDirectory',
                     g.TenantId = @tenantId,
@@ -227,7 +240,7 @@ function Move-ActiveDirectoryGroupsToAzureAD {
     
                 Write-DosMessage -Level "Information" -Message "Migrating group $($group.Name) to Azure AD Tenant $tenantId..."
                 try {
-                    Invoke-Sql $connString $sql @{groupId=$group.GroupId;tenantId=$tenantId;externalIdentifier=$($azureADGroup.ObjectId)} | Out-Null
+                    Invoke-Sql $connString $sql @{groupId=$group.GroupId;tenantId=$tenantId;externalIdentifier=$externalIdentifier} | Out-Null
                 }
                 catch {
                     Write-DosMessage -Level Error -Message "An error occurred while migrating AD groups to Azure AD. Connection String: $($connectionString). Error $($_.Exception)"
