@@ -22,7 +22,10 @@ namespace Fabric.Authorization.Domain.Models
         public string IdentityProvider { get; set; }
 
         public string Name { get; set; }
+
         public string IdentityProviderUserPrincipalName { get; set; }
+
+        public int ParentUserId { get; set; }
 
         public ICollection<Permission> DeniedPermissions { get; set; }
 

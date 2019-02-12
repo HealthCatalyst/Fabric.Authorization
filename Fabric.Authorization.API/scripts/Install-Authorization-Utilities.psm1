@@ -1294,3 +1294,5 @@ Export-ModuleMember Invoke-MonitorShallow
 Export-ModuleMember Add-EdwAdminUsersToDosAdminGroup
 Export-ModuleMember Add-AuthorizationRegistration
 Export-ModuleMember Set-LoggingConfiguration
+Export-ModuleMember Get-PrincipalContext
+Export-ModuleMember Get-SamAccountFromAccountName 
