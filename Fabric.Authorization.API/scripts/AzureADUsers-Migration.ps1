@@ -119,7 +119,8 @@ function Add-AuthUsers
     $totalUserPermissionsAdded = 0
 
 	try{
-    $connection.Open()  
+        $connection.Open()  
+
 		foreach($user in $userTable)
 		{
           $resultUsers = 0
@@ -129,7 +130,6 @@ function Add-AuthUsers
 
 		  if (![string]::IsNullOrEmpty($user.objectId))
 		  {
-
 			  $command.CommandText = "IF NOT EXISTS 
 									  (SELECT 1 FROM [dbo].[Users] u
 									   WHERE SubjectId = @subjectId 
@@ -152,7 +152,6 @@ function Add-AuthUsers
               {              
                 $totalUsersAdded += $resultUsers
 			  }
-
 			  $command.Parameters.RemoveAt("@parentId")
 
 			  if(![string]::IsNullOrEmpty($user.GroupId))
@@ -185,9 +184,10 @@ function Add-AuthUsers
 			      $command.Parameters.RemoveAt("@groupId")
 				  $groupCount = 0
 			    }
-			    if(![string]::IsNullOrEmpty($user.RoleID))
-			    {
-				$command.CommandText = "IF NOT EXISTS 
+			  }
+			  if(![string]::IsNullOrEmpty($user.RoleID))
+			  {
+			    $command.CommandText = "IF NOT EXISTS 
 										(SELECT 1 FROM [dbo].[RoleUsers] r
 										 WHERE SubjectId = @subjectId
 										 AND IdentityProvider = 'AzureActiveDirectory')
@@ -215,8 +215,9 @@ function Add-AuthUsers
 				  $command.Parameters.RemoveAt("@roleId")
 				  $roleCount = 0
 			    }
-			    if(![string]::IsNullOrEmpty($user.PermissionID))
-			    {
+			  }
+			  if(![string]::IsNullOrEmpty($user.PermissionID))
+			  {
 				$command.CommandText = "IF NOT EXISTS 
 										(SELECT 1 FROM [dbo].[UserPermissions] p
 										 WHERE SubjectId = @subjectId
@@ -243,11 +244,12 @@ function Add-AuthUsers
 			    }
 			    if($permissionCount -eq 1)
 			    {
-				$command.Parameters.RemoveAt("@permissionId")
-				$command.Parameters.RemoveAt("@permissionAction")
-				$permissionCount = 0
+				  $command.Parameters.RemoveAt("@permissionId")
+				  $command.Parameters.RemoveAt("@permissionAction")
+				  $permissionCount = 0
 			    }
-		    }
+			  }
+		  }
 		}
 		$connection.Close() 
         if ($totalUsersAdded -lt 1){$totalUsersAdded = 0} 
