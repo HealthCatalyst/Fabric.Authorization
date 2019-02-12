@@ -128,7 +128,7 @@ function Add-AuthUsers
 			  $command.CommandText = "IF NOT EXISTS 
 									  (SELECT 1 FROM [dbo].[Users] u
 									   WHERE SubjectId = @subjectId 
-									   AND IdentityProvider = 'OpenIDConnect:CatalystAzureAD')
+									   AND IdentityProvider = 'AzureActiveDirectory')
 									  BEGIN
                              		  INSERT INTO [dbo].[Users] ([SubjectId], [ParentUserId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [IsDeleted])
 									  VALUES(@subjectId, @parentId, @identityProvider, @createdBy, @createdDateTime, @isDeleted)
@@ -136,7 +136,7 @@ function Add-AuthUsers
 			  $command.Parameters["@subjectId"].Value = $user.objectId
 			  $command.Parameters.Add("@parentId", [System.Data.SqlDbType]::Int)
 			  $command.Parameters["@parentId"].Value = $user.Id
-			  $command.Parameters["@identityProvider"].Value = "OpenIDConnect:CatalystAzureAD"
+			  $command.Parameters["@identityProvider"].Value = "AzureActiveDirectory"
 			  $command.Parameters["@createdBy"].Value = "AzureADUsers-Migration"
 			  $command.Parameters["@createdDateTime"].Value = $sqlDate
 			  $command.Parameters["@isDeleted"].Value = 0
@@ -149,13 +149,13 @@ function Add-AuthUsers
 				$command.CommandText = "IF NOT EXISTS 
 										(SELECT 1 FROM [dbo].[GroupUsers] g
 										 WHERE SubjectId = @subjectId
-										 AND IdentityProvider = 'OpenIDConnect:CatalystAzureAD')
+										 AND IdentityProvider = 'AzureActiveDirectory')
 										BEGIN
 										INSERT INTO [dbo].[GroupUsers] ([SubjectId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [GroupId], [IsDeleted])
 										VALUES(@subjectId, @identityProvider, @createdBy, @createdDateTime, @groupId, @isDeleted)
 										END;"
 				$command.Parameters["@subjectId"].Value = $user.objectId
-				$command.Parameters["@identityProvider"].Value = "OpenIDConnect:CatalystAzureAD"
+				$command.Parameters["@identityProvider"].Value = "AzureActiveDirectory"
 				$command.Parameters["@createdBy"].Value = "AzureADUsers-Migration"
 				$command.Parameters["@createdDateTime"].Value = $sqlDate
 				$command.Parameters.Add("@groupId", [System.Data.SqlDbType]::UniqueIdentifier)
@@ -174,13 +174,13 @@ function Add-AuthUsers
 				$command.CommandText = "IF NOT EXISTS 
 										(SELECT 1 FROM [dbo].[RoleUsers] r
 										 WHERE SubjectId = @subjectId
-										 AND IdentityProvider = 'OpenIDConnect:CatalystAzureAD')
+										 AND IdentityProvider = 'AzureActiveDirectory')
 										BEGIN
 										INSERT INTO [dbo].[RoleUsers] ([SubjectId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [RoleId], [IsDeleted])
 										VALUES(@subjectId, @identityProvider, @createdBy, @createdDateTime, @roleId, @isDeleted)
 										END;"
 				$command.Parameters["@subjectId"].Value = $user.objectId
-				$command.Parameters["@identityProvider"].Value = "OpenIDConnect:CatalystAzureAD"
+				$command.Parameters["@identityProvider"].Value = "AzureActiveDirectory"
 				$command.Parameters["@createdBy"].Value = "AzureADUsers-Migration"
 				$command.Parameters["@createdDateTime"].Value = $sqlDate
 				$command.Parameters.Add("@roleId", [System.Data.SqlDbType]::UniqueIdentifier)
@@ -199,13 +199,13 @@ function Add-AuthUsers
 				$command.CommandText = "IF NOT EXISTS 
 										(SELECT 1 FROM [dbo].[UserPermissions] p
 										 WHERE SubjectId = @subjectId
-										 AND IdentityProvider = 'OpenIDConnect:CatalystAzureAD')
+										 AND IdentityProvider = 'AzureActiveDirectory')
 										BEGIN
 										INSERT INTO [dbo].[UserPermissions] ([SubjectId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [PermissionId], [PermissionAction], [IsDeleted])
 										VALUES(@subjectId, @identityProvider, @createdBy, @createdDateTime, @permissionId, @permissionAction, @isDeleted)
 										END;"
 				$command.Parameters["@subjectId"].Value = $user.objectId
-				$command.Parameters["@identityProvider"].Value = "OpenIDConnect:CatalystAzureAD"
+				$command.Parameters["@identityProvider"].Value = "AzureActiveDirectory"
 				$command.Parameters["@createdBy"].Value = "AzureADUsers-Migration"
 				$command.Parameters["@createdDateTime"].Value = $sqlDate
 				$command.Parameters.Add("@permissionId", [System.Data.SqlDbType]::UniqueIdentifier)
