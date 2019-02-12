@@ -65,7 +65,7 @@ function Get-AuthUsers
         [string] $connectionString
     )
     $connection = New-Object System.Data.SqlClient.SqlConnection($connectionString)	
-    $sql = "SELECT u.Id, u.SubjectId, u.IdentityProvider, u.IdentityProviderUserPrincipalName, g.GroupId, r.RoleId, p.PermissionId, p.PermissionAction, CAST('' AS NVARCHAR(100)) AS 'sourceAnchor', CAST('' AS NVARCHAR(100)) AS 'objectId'
+    $sql = "SELECT u.Id, u.SubjectId, u.IdentityProvider, g.GroupId, r.RoleId, p.PermissionId, p.PermissionAction, CAST('' AS NVARCHAR(100)) AS 'sourceAnchor', CAST('' AS NVARCHAR(100)) AS 'objectId'
             FROM [dbo].[Users] u	
             LEFT OUTER JOIN [dbo].[GroupUsers] g	
                 ON u.SubjectId = g.SubjectId AND u.IdentityProvider = g.IdentityProvider
@@ -74,8 +74,7 @@ function Get-AuthUsers
             LEFT OUTER JOIN [dbo].[UserPermissions] p	
                 ON u.SubjectId = p.SubjectId AND u.IdentityProvider = p.IdentityProvider
             WHERE u.IsDeleted = 0
-				AND u.IdentityProvider = 'Windows'
-				AND u.IdentityProviderUserPrincipalName IS NOT NULL";	
+				AND u.IdentityProvider = 'Windows';";	
     $command = New-Object System.Data.SqlClient.SqlCommand($sql, $connection)	
 
     try {	
@@ -88,7 +87,7 @@ function Get-AuthUsers
         $connection.Close()        	
     }	
     catch [System.Data.SqlClient.SqlException] {
-        Write-DosMessage -Level "Fatal" -Message "An error ocurred while executing the command. Please ensure the connection string is correct and the authorization database has been setup. Connection String: $($connectionString). Error $($_.Exception.Message)"
+        Write-DosMessage -Level "Fatal" -Message "An error ocurred while executing the command. Please ensure the connection string is correct and the authorization database has been setup. Connection String: $($connectionString). Error $($_.Exception)"
     }    	
     
     return $userTable;	
@@ -113,113 +112,132 @@ function Add-AuthUsers
     $groupCount = 0
     $roleCount = 0
     $permissionCount = 0
+	$sqlDate = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+	$totalUsersAdded = 0
+	$totalGroupUsersAdded = 0
+    $totalRoleUsersAdded = 0
+    $totalUserPermissionsAdded = 0
+
+	try{
     $connection.Open()  
-    $sqlDate = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    foreach($user in $userTable)
-    {
-      if (![string]::IsNullOrEmpty($user.objectId))
-      {
+		foreach($user in $userTable)
+		{
+		  if (![string]::IsNullOrEmpty($user.objectId))
+		  {
 
-          $command.CommandText = "IF NOT EXISTS 
-                                  (SELECT 1 FROM [dbo].[Users] u
-                                   WHERE SubjectId = @subjectId 
-                                   AND IdentityProvider = 'OpenIDConnect:CatalystAzureAD')
-                                  BEGIN
-                                  INSERT INTO [dbo].[Users] ([SubjectId], [ParentUserId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [IsDeleted])
-                                  VALUES(@subjectId, @parentId, @identityProvider, @createdBy, @createdDateTime, @isDeleted)
-                                  END;"
-          $command.Parameters["@subjectId"].Value = $user.objectId
-          $command.Parameters.Add("@parentId", [System.Data.SqlDbType]::Int)
-          $command.Parameters["@parentId"].Value = $user.Id
-          $command.Parameters["@identityProvider"].Value = "OpenIDConnect:CatalystAzureAD"
-          $command.Parameters["@createdBy"].Value = "AzureADUsers-Migration"
-          $command.Parameters["@createdDateTime"].Value = $sqlDate
-          $command.Parameters["@isDeleted"].Value = 0
-          $command.ExecuteNonQuery()
+			  $command.CommandText = "IF NOT EXISTS 
+									  (SELECT 1 FROM [dbo].[Users] u
+									   WHERE SubjectId = @subjectId 
+									   AND IdentityProvider = 'OpenIDConnect:CatalystAzureAD')
+									  BEGIN
+                             		  INSERT INTO [dbo].[Users] ([SubjectId], [ParentUserId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [IsDeleted])
+									  VALUES(@subjectId, @parentId, @identityProvider, @createdBy, @createdDateTime, @isDeleted)
+                         			  END;"
+			  $command.Parameters["@subjectId"].Value = $user.objectId
+			  $command.Parameters.Add("@parentId", [System.Data.SqlDbType]::Int)
+			  $command.Parameters["@parentId"].Value = $user.Id
+			  $command.Parameters["@identityProvider"].Value = "OpenIDConnect:CatalystAzureAD"
+			  $command.Parameters["@createdBy"].Value = "AzureADUsers-Migration"
+			  $command.Parameters["@createdDateTime"].Value = $sqlDate
+			  $command.Parameters["@isDeleted"].Value = 0
+			  $totalUsersAdded += $command.ExecuteNonQuery()
+			  
+			  $command.Parameters.RemoveAt("@parentId")
 
-          $command.Parameters.RemoveAt("@parentId")
-
-          if(![string]::IsNullOrEmpty($user.GroupId))
-          {
-            $command.CommandText = "IF NOT EXISTS 
-                                    (SELECT 1 FROM [dbo].[GroupUsers] g
-                                     WHERE SubjectId = @subjectId
-                                     AND IdentityProvider = 'OpenIDConnect:CatalystAzureAD')
-                                    BEGIN
-                                    INSERT INTO [dbo].[GroupUsers] ([SubjectId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [GroupId], [IsDeleted])
-                                    VALUES(@subjectId, @identityProvider, @createdBy, @createdDateTime, @groupId, @isDeleted)
-                                    END;"
-            $command.Parameters["@subjectId"].Value = $user.objectId
-            $command.Parameters["@identityProvider"].Value = "OpenIDConnect:CatalystAzureAD"
-            $command.Parameters["@createdBy"].Value = "AzureADUsers-Migration"
-            $command.Parameters["@createdDateTime"].Value = $sqlDate
-            $command.Parameters.Add("@groupId", [System.Data.SqlDbType]::UniqueIdentifier)
-            $command.Parameters["@groupId"].Value = $user.GroupId
-            $command.Parameters["@isDeleted"].Value = 0
-            $groupCount++
-            $command.ExecuteNonQuery()
-          }
-          if($groupCount -eq 1)
-          {
-            $command.Parameters.RemoveAt("@groupId")
-            $groupCount = 0
-          }
-          if(![string]::IsNullOrEmpty($user.RoleID))
-          {
-            $command.CommandText = "IF NOT EXISTS 
-                                    (SELECT 1 FROM [dbo].[RoleUsers] r
-                                     WHERE SubjectId = @subjectId
-                                     AND IdentityProvider = 'OpenIDConnect:CatalystAzureAD')
-                                    BEGIN
-                                    INSERT INTO [dbo].[RoleUsers] ([SubjectId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [RoleId], [IsDeleted])
-                                    VALUES(@subjectId, @identityProvider, @createdBy, @createdDateTime, @roleId, @isDeleted)
-                                    END;"
-            $command.Parameters["@subjectId"].Value = $user.objectId
-            $command.Parameters["@identityProvider"].Value = "OpenIDConnect:CatalystAzureAD"
-            $command.Parameters["@createdBy"].Value = "AzureADUsers-Migration"
-            $command.Parameters["@createdDateTime"].Value = $sqlDate
-            $command.Parameters.Add("@roleId", [System.Data.SqlDbType]::UniqueIdentifier)
-            $command.Parameters["@roleId"].Value = $user.RoleId
-            $command.Parameters["@isDeleted"].Value = 0
-            $roleCount++
-            $command.ExecuteNonQuery()
-          }
-          if($roleCount -eq 1)
-          {
-            $command.Parameters.RemoveAt("@roleId")
-            $roleCount = 0
-          }
-          if(![string]::IsNullOrEmpty($user.PermissionID))
-          {
-            $command.CommandText = "IF NOT EXISTS 
-                                    (SELECT 1 FROM [dbo].[UsersPermissions] p
-                                     WHERE SubjectId = @subjectId
-                                     AND IdentityProvider = 'OpenIDConnect:CatalystAzureAD')
-                                    BEGIN
-                                    INSERT INTO [dbo].[UserPermissions] ([SubjectId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [PermissionId], [PermissionAction], [IsDeleted])
-                                    VALUES(@subjectId, @identityProvider, @createdBy, @createdDateTime, @permissionId, @permissionAction, @isDeleted)
-                                    END;"
-            $command.Parameters["@subjectId"].Value = $user.objectId
-            $command.Parameters["@identityProvider"].Value = "OpenIDConnect:CatalystAzureAD"
-            $command.Parameters["@createdBy"].Value = "AzureADUsers-Migration"
-            $command.Parameters["@createdDateTime"].Value = $sqlDate
-            $command.Parameters.Add("@permissionId", [System.Data.SqlDbType]::UniqueIdentifier)
-            $command.Parameters.Add("@permissionAction", [System.Data.SqlDbType]::Int)
-            $command.Parameters["@permissionId"].Value = $user.PermissionId
-            $command.Parameters["@permissionAction"].Value = $user.PermissionAction
-            $command.Parameters["@isDeleted"].Value = 0
-            $permissionCount++
-            $command.ExecuteNonQuery()
-          }
-          if($permissionCount -eq 1)
-          {
-            $command.Parameters.RemoveAt("@permissionId")
-            $command.Parameters.RemoveAt("@permissionAction")
-            $permissionCount = 0
-          }
-       }
-    }
-    $connection.Close()        	
+			  if(![string]::IsNullOrEmpty($user.GroupId))
+			  {
+				$command.CommandText = "IF NOT EXISTS 
+										(SELECT 1 FROM [dbo].[GroupUsers] g
+										 WHERE SubjectId = @subjectId
+										 AND IdentityProvider = 'OpenIDConnect:CatalystAzureAD')
+										BEGIN
+										INSERT INTO [dbo].[GroupUsers] ([SubjectId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [GroupId], [IsDeleted])
+										VALUES(@subjectId, @identityProvider, @createdBy, @createdDateTime, @groupId, @isDeleted)
+										END;"
+				$command.Parameters["@subjectId"].Value = $user.objectId
+				$command.Parameters["@identityProvider"].Value = "OpenIDConnect:CatalystAzureAD"
+				$command.Parameters["@createdBy"].Value = "AzureADUsers-Migration"
+				$command.Parameters["@createdDateTime"].Value = $sqlDate
+				$command.Parameters.Add("@groupId", [System.Data.SqlDbType]::UniqueIdentifier)
+				$command.Parameters["@groupId"].Value = $user.GroupId
+				$command.Parameters["@isDeleted"].Value = 0
+				$groupCount++
+				$totalGroupUsersAdded += $command.ExecuteNonQuery()
+	    	  }
+			  if($groupCount -eq 1)
+			  {
+				$command.Parameters.RemoveAt("@groupId")
+				$groupCount = 0
+			  }
+			  if(![string]::IsNullOrEmpty($user.RoleID))
+			  {
+				$command.CommandText = "IF NOT EXISTS 
+										(SELECT 1 FROM [dbo].[RoleUsers] r
+										 WHERE SubjectId = @subjectId
+										 AND IdentityProvider = 'OpenIDConnect:CatalystAzureAD')
+										BEGIN
+										INSERT INTO [dbo].[RoleUsers] ([SubjectId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [RoleId], [IsDeleted])
+										VALUES(@subjectId, @identityProvider, @createdBy, @createdDateTime, @roleId, @isDeleted)
+										END;"
+				$command.Parameters["@subjectId"].Value = $user.objectId
+				$command.Parameters["@identityProvider"].Value = "OpenIDConnect:CatalystAzureAD"
+				$command.Parameters["@createdBy"].Value = "AzureADUsers-Migration"
+				$command.Parameters["@createdDateTime"].Value = $sqlDate
+				$command.Parameters.Add("@roleId", [System.Data.SqlDbType]::UniqueIdentifier)
+				$command.Parameters["@roleId"].Value = $user.RoleId
+				$command.Parameters["@isDeleted"].Value = 0
+				$roleCount++
+				$totalRoleUsersAdded += $command.ExecuteNonQuery()
+			  }
+			  if($roleCount -eq 1)
+			  {
+				$command.Parameters.RemoveAt("@roleId")
+				$roleCount = 0
+			  }
+			  if(![string]::IsNullOrEmpty($user.PermissionID))
+			  {
+				$command.CommandText = "IF NOT EXISTS 
+										(SELECT 1 FROM [dbo].[UserPermissions] p
+										 WHERE SubjectId = @subjectId
+										 AND IdentityProvider = 'OpenIDConnect:CatalystAzureAD')
+										BEGIN
+										INSERT INTO [dbo].[UserPermissions] ([SubjectId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [PermissionId], [PermissionAction], [IsDeleted])
+										VALUES(@subjectId, @identityProvider, @createdBy, @createdDateTime, @permissionId, @permissionAction, @isDeleted)
+										END;"
+				$command.Parameters["@subjectId"].Value = $user.objectId
+				$command.Parameters["@identityProvider"].Value = "OpenIDConnect:CatalystAzureAD"
+				$command.Parameters["@createdBy"].Value = "AzureADUsers-Migration"
+				$command.Parameters["@createdDateTime"].Value = $sqlDate
+				$command.Parameters.Add("@permissionId", [System.Data.SqlDbType]::UniqueIdentifier)
+				$command.Parameters.Add("@permissionAction", [System.Data.SqlDbType]::Int)
+				$command.Parameters["@permissionId"].Value = $user.PermissionId
+				$command.Parameters["@permissionAction"].Value = $user.PermissionAction
+				$command.Parameters["@isDeleted"].Value = 0
+				$permissionCount++
+				$totalUserPermissionsAdded += $command.ExecuteNonQuery()
+			  }
+			  if($permissionCount -eq 1)
+			  {
+				$command.Parameters.RemoveAt("@permissionId")
+				$command.Parameters.RemoveAt("@permissionAction")
+				$permissionCount = 0
+			  }
+		   }
+		}
+		$connection.Close() 
+        if ($totalUsersAdded -lt 1){$totalUsersAdded = 0} 
+        if ($totalGroupUsersAdded -lt 1){$totalGroupUsersAdded = 0} 
+        if ($totalRoleUsersAdded -lt 1){$totalRoleUsersAdded = 0} 
+        if ($totalUserPermissionsAdded -lt 1){$totalUserPermissionsAdded = 0} 
+        $userTableCount = $userTable.Count
+		Write-DosMessage -Level Information "$totalUsersAdded Azure AD user(s) added out of $userTableCount AD user(s) from the Users table, in the Authorization database"
+		Write-DosMessage -Level Information "$totalGroupUsersAdded group user(s) added"
+		Write-DosMessage -Level Information "$totalRoleUsersAdded role user(s) added"
+		Write-DosMessage -Level Information "$totalUserPermissionsAdded user permission(s) added"
+	}
+	catch [System.Data.SqlClient.SqlException] {
+        Write-DosMessage -Level "Fatal" -Message "An error ocurred while executing the command. Please ensure the connection string is correct and the authorization database has been setup. Connection String: $($connectionString). Error $($_.Exception)"
+    } 
 }
 
 function Get-ADUsers
@@ -235,10 +253,10 @@ function Get-ADUsers
 
     foreach($user in $userTable)
 	{
-       [string] $userPrincipal = $user.IdentityProviderUserPrincipalName.ToString()
-	   # find the userprincipal in AD from the AuthorizationDB IdentityProviderUserPrincipalName
+       [string] $subjectId = $user.SubjectId.ToString()
+	   # find the samAccountName in AD from the AuthorizationDB SubjectId
 	   $pc = Get-PrincipalContext -domain $domain
-	   $samAccountName = Get-SamAccountFromAccountName -accountName $user.IdentityProviderUserPrincipalName
+	   $samAccountName = Get-SamAccountFromAccountName -accountName $subjectId
 
        # get all properties of the user with $samAccountName
        $entry = Get-ADUser $samAccountName -Properties *
@@ -259,7 +277,7 @@ function Get-ADUsers
          else
          {
            # cannot convert the sourceAnchor to base 64 string
-           Write-DosMessage -Level "Error" -Message "Not able to convert user '$userPrincipal' objectGUID property to base 64 string"
+           Write-DosMessage -Level "Error" -Message "Not able to convert user '$subjectId' objectGUID property to base 64 string"
          }
        }
        else
@@ -277,13 +295,13 @@ function Get-ADUsers
            else
            {
              # cannot convert the sourceAnchor to base 64 string
-             Write-DosMessage -Level "Error" -Message "Not able to convert user '$userPrincipal' ms-DS-ConsistencyGuid property to base 64 string"
+             Write-DosMessage -Level "Error" -Message "Not able to convert user '$subjectId' ms-DS-ConsistencyGuid property to base 64 string"
            }
          }
          else
          {
            # cannot find the sourceAnchor to map AD and AzureAD Users
-           Write-DosMessage -Level "Error" -Message "Not able to map user '$userPrincipal', in AD to AzureAD"
+           Write-DosMessage -Level "Error" -Message "Not able to map user '$subjectId', in AD to AzureAD"
          }
        }
     }
@@ -342,7 +360,7 @@ function Get-AzureADUsers
         # get user ImmutableId from AzureAD using AD user ObjectGUID converted to base 64 string
         foreach($user in $userTable)
 	    {
-          [string] $userPrincipal = $user.IdentityProviderUserPrincipalName.ToString()
+          [string] $userPrincipal = $user.SubjectId.ToString()
           $foundUserMatchId = Get-AzureADUser | Where-Object {$_.ImmutableId -eq $user.sourceAnchor} | Select-Object ObjectId
           if ($null -ne $foundUserMatchId) 
           {
