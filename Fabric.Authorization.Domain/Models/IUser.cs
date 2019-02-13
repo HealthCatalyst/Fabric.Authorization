@@ -5,6 +5,6 @@
         string SubjectId { get; set; }
         string IdentityProvider { get; set; }
         string IdentityProviderUserPrincipalName { get; set; }
-        int ParentUserId { get; set; }
+        int? ParentUserId { get; set; }
     }
 }
