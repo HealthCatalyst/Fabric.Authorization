@@ -217,7 +217,6 @@ function Move-ActiveDirectoryGroupsToAzureAD {
                     Write-DosMessage -Level Information -Message "Found group $($azureADGroup.DisplayName) with ObjectId $($azureADGroup.ObjectId) in Azure AD Tenant $($tenantId)"
                 }
                 else {
-                    Write-DosMessage -Level Information -Message "Did not find group SID $($adGroupSID) in Azure AD Tenant $($tenantId)"
                     continue
                 }
             }
