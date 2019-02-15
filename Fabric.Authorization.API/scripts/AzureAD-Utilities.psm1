@@ -24,13 +24,13 @@ if ($azureAD.length -eq 0) {
     $installed = Get-InstalledModule -Name AzureAD -ErrorAction "silentlycontinue"
 
     if (($null -eq $installed) -or ($installed.Version.CompareTo($minVersion) -lt 0)) {
-        Write-DosMessage "Installing AzureAD from Powershell Gallery"
+        Write-DosMessage -Level Information -Message "Installing AzureAD from Powershell Gallery"
         Install-Module AzureAD -Scope CurrentUser -MinimumVersion $minVersion -Force
         Import-Module AzureAD -Force
     }
 }
 else {
-    Write-DosMessage "Installing AzureAD at $($azureAD.FullName)"
+    Write-DosMessage -Level Information -Message "Installing AzureAD at $($azureAD.FullName)"
     Import-Module -Name $azureAD.FullName
 }
 
