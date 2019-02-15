@@ -226,27 +226,25 @@ function Move-ActiveDirectoryGroupsToAzureAD {
             }
 
             # if group exists, then it's a match so migrate
-            if ($null -ne $azureADGroup) {
-                $externalIdentifier = $azureADGroup.ObjectId
-                $sql = "UPDATE g 
-                SET g.IdentityProvider = 'AzureActiveDirectory',
-                    g.TenantId = @tenantId,
-                    g.ExternalIdentifier = @externalIdentifier,
-                    g.ModifiedBy = 'fabric-installer',
-                    g.ModifiedDateTimeUtc = GETUTCDATE()
-                FROM Groups g
-                WHERE g.[GroupId] = @groupId;"
+            $externalIdentifier = $azureADGroup.ObjectId
+            $sql = "UPDATE g 
+            SET g.IdentityProvider = 'AzureActiveDirectory',
+                g.TenantId = @tenantId,
+                g.ExternalIdentifier = @externalIdentifier,
+                g.ModifiedBy = 'fabric-installer',
+                g.ModifiedDateTimeUtc = GETUTCDATE()
+            FROM Groups g
+            WHERE g.[GroupId] = @groupId;"
     
-                Write-DosMessage -Level "Information" -Message "Migrating group $($group.Name) to Azure AD Tenant $tenantId..."
-                try {
-                    Invoke-Sql $connString $sql @{groupId=$group.GroupId;tenantId=$tenantId;externalIdentifier=$externalIdentifier} | Out-Null
-                }
-                catch {
-                    Write-DosMessage -Level Error -Message "An error occurred while migrating AD groups to Azure AD. Connection String: $($connectionString). Error $($_.Exception)"
-                }
-
-                break
+            Write-DosMessage -Level "Information" -Message "Migrating group $($group.Name) to Azure AD Tenant $tenantId..."
+            try {
+                Invoke-Sql $connString $sql @{groupId=$group.GroupId;tenantId=$tenantId;externalIdentifier=$externalIdentifier} | Out-Null
             }
+            catch {
+                Write-DosMessage -Level Error -Message "An error occurred while migrating AD groups to Azure AD. Connection String: $($connectionString). Error $($_.Exception)"
+            }
+
+            break
         }
     }
 }
