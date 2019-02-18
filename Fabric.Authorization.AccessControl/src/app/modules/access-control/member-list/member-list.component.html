@@ -51,10 +51,8 @@
           <th>
             <span>Type</span>
           </th>
-          <th [class.sortKey]="sortKey === 'role'" [class.sortOption]="sortKey !== 'role'" (click)="changeSort('role')">
+          <th>
             <span>Roles</span>
-            <hc-icon *ngIf="sortKey === 'role'" fontSet="fa" icon-sm [fontIcon]="sortDirection === 'asc' ? 'fa-sort-amount-asc' : 'fa-sort-amount-desc'"></hc-icon>
-            <hc-icon *ngIf="sortKey !== 'role'" fontSet="fa" icon-sm [fontIcon]="'fa-exchange'"></hc-icon>
           </th>
           <th>
             <!-- Delete button column -->
