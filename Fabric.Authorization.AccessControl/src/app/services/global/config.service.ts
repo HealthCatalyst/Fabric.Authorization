@@ -17,4 +17,8 @@ export class ConfigService {
   public getIdentityServiceRoot(): Observable<string> {
     return of(getWindow().identityServiceRoot);
   }
+
+  public getAccessControlServiceRoot(): Observable<string> {
+    return of(getWindow().accessControlServiceRoot);
+  }
 }
