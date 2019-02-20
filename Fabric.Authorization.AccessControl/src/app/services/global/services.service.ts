@@ -1,7 +1,7 @@
 import { map, mergeMap } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 
 import { ConfigService } from './config.service';
 import { OData } from './odata';
@@ -37,13 +37,24 @@ export class ServicesService {
         {
             name: 'AccessControl',
             requireAuthToken: false
+        },
+        {
+            name: 'DiscoveryService',
+            requireAuthToken: true
         }
     ];
 
     constructor(private http: HttpClient, private configService: ConfigService) {}
 
     public initialize(): Observable<string> {
-        return this.configService.getDiscoveryServiceRoot().pipe(
+        var observable: Observable<string> = null;
+        if(this.configService.getIdentityServiceRoot()) {
+            observable = of(this.discoveryServiceEndpoint)
+        } else {
+            observable = this.configService.getDiscoveryServiceRoot()
+        }
+
+        return observable.pipe(
             mergeMap(discoveryServiceRoot => {
                 const url: string =
                     `${discoveryServiceRoot}/Services?$filter=` +
@@ -56,15 +67,30 @@ export class ServicesService {
                     const targetService: IDiscoveryService = response.value.find(
                         s => s.ServiceName === service.name && (!service.version || s.Version === service.version)
                     );
-                    if (targetService === undefined) {
-                        throw new Error(`The ${service.name} was not found in discovery service. Please ensure it is set up correctly.`);
-                    }
-                    service.url = targetService.ServiceUrl;
-                }
 
-                return this.services.find(s => s.name === 'IdentityService').url;
+                    if (service.name === 'DiscoveryService') {
+                        service.url = this.discoveryServiceEndpoint;
+                    } else if (targetService === undefined) {
+                        throw new Error(`The ${service.name} was not found in discovery service. Please ensure it is set up correctly.`);
+                    } else {
+                        service.url = targetService.ServiceUrl;
+                    }
+                    
+                    return this.services.find(s => s.name === 'IdentityService').url;
+                }
             })
         );
+    }
+
+    private baseDiscoveryServiceUrl : string;
+    get discoveryServiceEndpoint(): string {
+        if(this.baseDiscoveryServiceUrl === undefined) {
+            const identityRootUrl: string = this.configService.getIdentityServiceRoot();
+            const url: string = `${identityRootUrl}/.well-known/openid-configuration`;
+            this.baseDiscoveryServiceUrl = this.http.get(url).discovery_uri;
+        }
+
+        return this.baseDiscoveryServiceUrl;
     }
 
     get identityServiceEndpoint(): string {
@@ -80,6 +106,11 @@ export class ServicesService {
     }
 
     get accessControlEndpoint(): string {
+        const url = this.configService.getAccessControlServiceRoot();
+        if(url) {
+            return url
+        }
+
         return this.services.find(s => s.name === 'AccessControl').url;
     }
 
