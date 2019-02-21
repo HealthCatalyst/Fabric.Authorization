@@ -13,4 +13,8 @@ export class ConfigService {
   public getDiscoveryServiceRoot(): Observable<string> {
     return of(getWindow().discoveryServiceRoot);
   }
+
+  public getIdentityServiceRoot(): string {
+    return getWindow().identityServiceRoot;
+  }
 }
