@@ -1,4 +1,4 @@
-import { map, mergeMap } from 'rxjs/operators';
+import { map, mergeMap, switchMap } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
@@ -47,14 +47,7 @@ export class ServicesService {
     constructor(private http: HttpClient, private configService: ConfigService) {}
 
     public initialize(): Observable<string> {
-        var observable: Observable<string> = null;
-        if(this.configService.getIdentityServiceRoot()) {
-            observable = of(this.discoveryServiceEndpoint)
-        } else {
-            observable = this.configService.getDiscoveryServiceRoot()
-        }
-
-        return observable.pipe(
+        return this.discoveryServiceEndpoint.pipe(
             mergeMap(discoveryServiceRoot => {
                 const url: string =
                     `${discoveryServiceRoot}/Services?$filter=` +
@@ -69,7 +62,7 @@ export class ServicesService {
                     );
 
                     if (service.name === 'DiscoveryService') {
-                        service.url = this.discoveryServiceEndpoint;
+                        service.url = null;
                     } else if (targetService === undefined) {
                         throw new Error(`The ${service.name} was not found in discovery service. Please ensure it is set up correctly.`);
                     } else {
@@ -83,14 +76,32 @@ export class ServicesService {
     }
 
     private baseDiscoveryServiceUrl : string;
-    get discoveryServiceEndpoint(): string {
+    get discoveryServiceEndpoint(): Observable<string> {
         if(this.baseDiscoveryServiceUrl === undefined) {
-            const identityRootUrl: string = this.configService.getIdentityServiceRoot();
-            const url: string = `${identityRootUrl}/.well-known/openid-configuration`;
-            this.baseDiscoveryServiceUrl = this.http.get(url).discovery_uri;
+            const identityDiscoveryUrlObservable: Observable<string> = this.configService.getIdentityServiceRoot()
+                .pipe( map((url) => `${url}/.well-known/openid-configuration`) )
+                .pipe( switchMap((url) => this.http.get(url)) )
+                .pipe( switchMap((response:any) => {
+                    this.baseDiscoveryServiceUrl = response.discovery_uri; 
+                    return response.discovery_uri; 
+                }));
+
+            // if discovery service url is pushed to the website by the window.location, then use that
+            // if we get identity service url instead, then visit this website, grab the discovery_uri from 
+            // identity instead.
+            return this.configService.getDiscoveryServiceRoot()
+                       .pipe( switchMap( url => { 
+                           if(url === '') { 
+                               return identityDiscoveryUrlObservable; 
+                            } 
+                            
+                            return of(url);
+                        }));
+
+            return 
         }
 
-        return this.baseDiscoveryServiceUrl;
+        return of(this.baseDiscoveryServiceUrl);
     }
 
     get identityServiceEndpoint(): string {
@@ -105,13 +116,14 @@ export class ServicesService {
         return this.services.find(s => s.name === 'IdentityProviderSearchService').url;
     }
 
-    get accessControlEndpoint(): string {
-        const url = this.configService.getAccessControlServiceRoot();
-        if(url) {
-            return url
+    get accessControlEndpoint(): Observable<string> {
+        const accessControlUrl = this.services.find(s => s.name === 'AccessControl').url;
+        if(accessControlUrl == undefined || accessControlUrl == '')
+        {
+            return this.configService.getAccessControlServiceRoot();
         }
 
-        return this.services.find(s => s.name === 'AccessControl').url;
+        return of(accessControlUrl);
     }
 
     public needsAuthToken(url: string) {
