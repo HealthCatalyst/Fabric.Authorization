@@ -2,9 +2,11 @@
 {
     public class DiscoveryServiceSettings
     {
-        public string AccessControlToken { get; set; }
-        public bool UseDiscovery { get; set; }
-        public string Endpoint { get; set; }
+        public string DiscoveryServiceToken { get; set; }
         public string IdentityServiceToken { get; set; }
+        public string AccessControlUIToken { get; set; }
+        public bool UseDiscovery { get; set; }
+        public bool UseOAuth2Authentication { get; set; }
+        public string Endpoint { get; set; }
     }
 }
