@@ -38,10 +38,14 @@ namespace Fabric.Authorization.API.Infrastructure.Middleware
                 _indexContent = File.ReadAllText(fullPath);
 
                 var discoveryServiceSettings = _appConfiguration.DiscoveryServiceSettings;
+                var identityServerSettings = _appConfiguration.IdentityServerConfidentialClientSettings;
 
                 // swaps in the discovery service root
                 _indexContent =
                     _indexContent.Replace(discoveryServiceSettings.AccessControlToken, discoveryServiceSettings.Endpoint);
+
+                _indexContent = _indexContent.Replace(discoveryServiceSettings.IdentityServiceToken,
+                    identityServerSettings.Authority);
 
                 // swaps in the access control root
                 _indexContent = _indexContent.Replace(AccessControl.ClientRootToken,
