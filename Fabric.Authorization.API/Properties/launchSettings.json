@@ -2,6 +2,10 @@
   "iisSettings": {
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
+    "iis": {
+      "applicationUrl": "http://localhost/AuthorizationDev",
+      "sslPort": 0
+    },
     "iisExpress": {
       "applicationUrl": "http://localhost:2871/",
       "sslPort": 0
@@ -17,6 +21,14 @@
     },
     "Fabric.Authorization.API": {
       "commandName": "Project"
+    },
+    "IIS": {
+      "commandName": "IIS",
+      "launchBrowser": true,
+      "launchUrl": "http://localhost/AuthorizationDev",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
     }
   }
 }
