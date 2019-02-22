@@ -251,6 +251,11 @@ export class FabricAuthGroupService extends FabricBaseService {
     identityProvider?: string,
     tenantId?: string
   ): Observable<IGroup> {
+
+    if (!childGroups || childGroups.length === 0) {
+      return of(undefined);
+    }
+
     const url = this.replaceGroupNameSegment(FabricAuthGroupService.childGroupsApiUrl, groupName);
 
     return this.httpClient.request<IGroup>(
