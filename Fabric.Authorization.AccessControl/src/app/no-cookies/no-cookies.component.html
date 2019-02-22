@@ -1,0 +1,41 @@
+<hc-navbar appIcon="./assets/AccessControlLogo.svg" brandIcon="./assets/TriFlame.svg" user="" homeUri="access-control"  [fixedTop]="false">
+  <hc-navbar-icon>
+      <hc-icon fontSet="fa" fontIcon="fa-question-circle-o" [hcPopover]="options" popperPlacement="bottom"></hc-icon>
+  </hc-navbar-icon>
+</hc-navbar>
+
+<hc-popover-content #options>
+  <ul class="list-options">
+      <li>
+          <a href="https://www.healthcatalyst.com/" target="_blank">Health Catalyst</a>
+      </li>
+      <li>
+          <a href="https://community.healthcatalyst.com/" target="_blank">Health Catalyst Community</a>
+      </li>
+  </ul>
+</hc-popover-content>
+
+<div class="error-container">
+    <div class="error-tile">
+      <div class="content-column">
+          <div class="error-img"></div>
+      </div>
+      <div class="content-column">
+          <div class="error-header-string">Error</div>
+          <div class="error-message-light">
+              Your browser is currently set to block cookies. You need to allow cookies
+              to use this service.
+          </div>
+          <div><br/></div>
+          <div class="error-message-light">
+              Cookies are small text files stored on your computer that tell us when you're
+              signed in. To learn how to allow cookies, check the online help in your
+              web browser.
+          </div>
+      </div>
+      <hr>
+      <div class="logged-out-footer">
+        <div class="error-button" (click)="reload()">Refresh</div>
+      </div>
+    </div>
+  </div>
