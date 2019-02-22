@@ -14,7 +14,7 @@ export class ConfigService {
     return of(getWindow().discoveryServiceRoot);
   }
 
-  public getIdentityServiceRoot(): string {
-    return getWindow().identityServiceRoot;
+  public getIdentityServiceRoot(): Observable<string> {
+    return of(getWindow().identityServiceRoot);
   }
 }
