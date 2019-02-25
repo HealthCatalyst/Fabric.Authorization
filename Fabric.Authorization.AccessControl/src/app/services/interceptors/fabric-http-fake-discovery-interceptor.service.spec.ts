@@ -1,11 +1,15 @@
 import { TestBed, inject } from '@angular/core/testing';
 
 import { FabricHttpFakeDiscoveryInterceptorService } from './fabric-http-fake-discovery-interceptor.service';
+import { ConfigService } from '../global/config.service';
 
 describe('FabricHttpFakeDiscoveryInterceptorService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [FabricHttpFakeDiscoveryInterceptorService]
+      providers: [
+        FabricHttpFakeDiscoveryInterceptorService,
+        ConfigService
+      ]
     });
   });
 
