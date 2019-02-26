@@ -538,4 +538,4 @@ $authADDataSet = Get-ADUsers -authDataSet $authDataSet -domain $currentUserDomai
 $authAADDataSet = Get-AzureADUsers -authDataSet $authADDataSet -tenants $tenants
 
 # Add azureAD user to the AuthorizationDB Users table
-$authUserTable = Add-AuthUsers -connectionString $authorizationDatabase.DbConnectionString -authDataSet $authAADDataSet
+Add-AuthUsers -connectionString $authorizationDatabase.DbConnectionString -authDataSet $authAADDataSet
