@@ -65,32 +65,93 @@ function Get-AuthUsers
         [string] $connectionString
     )
     $connection = New-Object System.Data.SqlClient.SqlConnection($connectionString)	
-    $sql = "SELECT u.Id, u.SubjectId, u.IdentityProvider, g.GroupId, r.RoleId, p.PermissionId, p.PermissionAction, CAST('' AS NVARCHAR(100)) AS 'sourceAnchor', CAST('' AS NVARCHAR(100)) AS 'objectId'
-            FROM [dbo].[Users] u	
-            LEFT OUTER JOIN [dbo].[GroupUsers] g	
-                ON u.SubjectId = g.SubjectId AND u.IdentityProvider = g.IdentityProvider
-		    LEFT OUTER JOIN [dbo].[RoleUsers] r
-                ON u.SubjectId = r.SubjectId AND u.IdentityProvider = r.IdentityProvider
-            LEFT OUTER JOIN [dbo].[UserPermissions] p	
-                ON u.SubjectId = p.SubjectId AND u.IdentityProvider = p.IdentityProvider
-            WHERE u.IsDeleted = 0
-				AND u.IdentityProvider = 'Windows';";	
+    $sql = "WITH Users AS
+			(
+				SELECT u.Id, u.SubjectId, u.IdentityProvider, CAST('' AS NVARCHAR(100)) AS 'sourceAnchor', CAST('' AS NVARCHAR(100)) AS 'objectId'
+				FROM [dbo].[Users] u	
+				WHERE u.IsDeleted = 0  
+				AND u.IdentityProvider = 'Windows'
+				GROUP BY u.Id, u.SubjectId, u.IdentityProvider
+			)
+			SELECT * FROM Users;
+
+			WITH Groups AS
+			(
+				SELECT u.Id, u.SubjectId, u.IdentityProvider, g.GroupId
+				FROM [dbo].[Users] u	
+				LEFT OUTER JOIN [dbo].[GroupUsers] g	
+					ON u.SubjectId = g.SubjectId AND u.IdentityProvider = g.IdentityProvider AND g.IsDeleted = 0
+				WHERE u.IsDeleted = 0  
+				AND u.IdentityProvider = 'Windows'
+				GROUP BY u.Id, u.SubjectId, u.IdentityProvider, g.GroupId
+			)
+			SELECT * FROM Groups;
+
+			WITH Roles AS
+			(
+				SELECT u.Id, u.SubjectId, u.IdentityProvider, r.RoleId
+				FROM [dbo].[Users] u	
+				LEFT OUTER JOIN [dbo].[RoleUsers] r
+					ON u.SubjectId = r.SubjectId AND u.IdentityProvider = r.IdentityProvider AND r.IsDeleted = 0
+				WHERE u.IsDeleted = 0  
+				AND u.IdentityProvider = 'Windows'
+				GROUP BY u.Id, u.SubjectId, u.IdentityProvider, r.RoleId
+			)
+			SELECT * FROM Roles;
+
+			WITH UserPermissions AS
+			(
+				SELECT u.Id, u.SubjectId, u.IdentityProvider, p.PermissionId, p.PermissionAction
+				FROM [dbo].[Users] u	
+				LEFT OUTER JOIN [dbo].[UserPermissions] p	
+					ON u.SubjectId = p.SubjectId AND u.IdentityProvider = p.IdentityProvider AND p.IsDeleted = 0
+				WHERE u.IsDeleted = 0  
+				AND u.IdentityProvider = 'Windows'
+				GROUP BY u.Id, u.SubjectId, u.IdentityProvider, p.PermissionId, p.PermissionAction
+			)
+			SELECT * FROM UserPermissions;";	
     $command = New-Object System.Data.SqlClient.SqlCommand($sql, $connection)	
 
     try {	
-        $connection.Open()    	
-        $result = $command.ExecuteReader()	
-        $userTable = New-Object System.Data.DataTable # Create a DataTable
-        $userTable.Load($result) # Load the results from the DataReader into the DataTable
-        $userTable.Columns['sourceAnchor'].ReadOnly = $false
-        $userTable.Columns['objectId'].ReadOnly = $false
+          $connection.Open()    	
+          $result = $command.ExecuteReader()
+
+          # Create new Data Set
+          $DataSet = New-Object System.Data.DataSet
+                    
+          # Load the users result set
+          $userTable = New-Object System.Data.DataTable # Create a DataTable
+          $userTable.Load($result) # Load the results from the DataReader into the DataTable
+          $userTable.Columns['sourceAnchor'].ReadOnly = $false
+          $userTable.Columns['objectId'].ReadOnly = $false
+
+          $DataSet.Tables.Add($userTable)
+             
+          # Load the groups result set
+          $groupTable = New-Object System.Data.DataTable # Create a DataTable
+          $groupTable.Load($result) # Load the results from the DataReader into the DataTable
+
+          $DataSet.Tables.Add($groupTable)
+      
+          # Load the roles result set
+          $roleTable = New-Object System.Data.DataTable # Create a DataTable
+          $roleTable.Load($result) # Load the results from the DataReader into the DataTable
+
+          $DataSet.Tables.Add($roleTable)
+     
+          # Load the permissions result set
+          $permissionTable = New-Object System.Data.DataTable # Create a DataTable
+          $permissionTable.Load($result) # Load the results from the DataReader into the DataTable
+
+          $DataSet.Tables.Add($permissionTable)
+      
         $connection.Close()        	
     }	
     catch [System.Data.SqlClient.SqlException] {
         Write-DosMessage -Level "Fatal" -Message "An error ocurred while executing the command. Please ensure the connection string is correct and the authorization database has been setup. Connection String: $($connectionString). Error $($_.Exception)"
     }    	
     
-    return $userTable;	
+    return $DataSet;	
 }
 
 function Add-AuthUsers
@@ -99,7 +160,7 @@ function Add-AuthUsers
         [Parameter(Mandatory=$true)]
         [string] $connectionString,
         [Parameter(Mandatory=$true)]
-        [System.Object[]] $userTable
+        [System.Data.DataSet] $authDataSet
     )
     $connection = New-Object System.Data.SqlClient.SqlConnection($connectionString)	
   	$command = New-Object System.Data.SqlClient.SqlCommand
@@ -121,6 +182,11 @@ function Add-AuthUsers
 	try{
         $connection.Open()  
 
+        $transaction = $connection.BeginTransaction("MergeAADUsers")
+
+        $command.Transaction = $transaction;
+        
+        $userTable = $authDataSet.Tables[0]
 		foreach($user in $userTable)
 		{
           $resultUsers = 0
@@ -154,109 +220,125 @@ function Add-AuthUsers
 			  }
 			  $command.Parameters.RemoveAt("@parentId")
 
-			  if(![string]::IsNullOrEmpty($user.GroupId))
-			  {
-				$command.CommandText = "IF NOT EXISTS 
-										(SELECT 1 FROM [dbo].[GroupUsers] g
-										 WHERE SubjectId = @subjectId
-										 AND IdentityProvider = 'AzureActiveDirectory')
-										BEGIN
-										INSERT INTO [dbo].[GroupUsers] ([SubjectId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [GroupId], [IsDeleted])
-										VALUES(@subjectId, @identityProvider, @createdBy, @createdDateTime, @groupId, @isDeleted)
-										END;"
-				$command.Parameters["@subjectId"].Value = $user.objectId
-				$command.Parameters["@identityProvider"].Value = "AzureActiveDirectory"
-				$command.Parameters["@createdBy"].Value = "AzureADUsers-Migration"
-				$command.Parameters["@createdDateTime"].Value = $sqlDate
-				$command.Parameters.Add("@groupId", [System.Data.SqlDbType]::UniqueIdentifier)
-				$command.Parameters["@groupId"].Value = $user.GroupId
-				$command.Parameters["@isDeleted"].Value = 0
-				$groupCount++
+            $groupTable = $authDataSet.Tables[1]
+		    foreach ($group in $groupTable)
+		    {
+			    if(![string]::IsNullOrEmpty($group.GroupId) -and $user.Id -eq $group.Id)
+			    {
+			    $command.CommandText = "IF NOT EXISTS 
+									    (SELECT 1 FROM [dbo].[GroupUsers] g
+										    WHERE SubjectId = @subjectId
+                                            AND GroupId = @groupId
+										    AND IdentityProvider = 'AzureActiveDirectory')
+									    BEGIN
+									    INSERT INTO [dbo].[GroupUsers] ([SubjectId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [GroupId], [IsDeleted])
+									    VALUES(@subjectId, @identityProvider, @createdBy, @createdDateTime, @groupId, @isDeleted)
+									    END;"
+			    $command.Parameters["@subjectId"].Value = $user.objectId
+			    $command.Parameters["@identityProvider"].Value = "AzureActiveDirectory"
+			    $command.Parameters["@createdBy"].Value = "AzureADUsers-Migration"
+			    $command.Parameters["@createdDateTime"].Value = $sqlDate
+			    $command.Parameters.Add("@groupId", [System.Data.SqlDbType]::UniqueIdentifier)
+			    $command.Parameters["@groupId"].Value = $group.GroupId
+			    $command.Parameters["@isDeleted"].Value = 0
+			    $groupCount++
 
                 $resultGroupUsers = $command.ExecuteNonQuery()
                 if($resultGroupUsers -gt 0)
                 {   
-			      $totalGroupUsersAdded += $resultGroupUsers
+			        $totalGroupUsersAdded += $resultGroupUsers
 	    	    }
 
 			    if($groupCount -eq 1)
 			    {
-			      $command.Parameters.RemoveAt("@groupId")
-				  $groupCount = 0
+			        $command.Parameters.RemoveAt("@groupId")
+				    $groupCount = 0
 			    }
-			  }
-			  if(![string]::IsNullOrEmpty($user.RoleID))
-			  {
+		      }
+		    }
+            $roleTable = $authDataSet.Tables[2]
+		    foreach ($role in $roleTable)
+		    {
+			    if(![string]::IsNullOrEmpty($role.RoleID) -and $user.Id -eq $role.Id)
+			    {
 			    $command.CommandText = "IF NOT EXISTS 
-										(SELECT 1 FROM [dbo].[RoleUsers] r
-										 WHERE SubjectId = @subjectId
-										 AND IdentityProvider = 'AzureActiveDirectory')
-										BEGIN
-										INSERT INTO [dbo].[RoleUsers] ([SubjectId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [RoleId], [IsDeleted])
-										VALUES(@subjectId, @identityProvider, @createdBy, @createdDateTime, @roleId, @isDeleted)
-										END;"
-				$command.Parameters["@subjectId"].Value = $user.objectId
-				$command.Parameters["@identityProvider"].Value = "AzureActiveDirectory"
-				$command.Parameters["@createdBy"].Value = "AzureADUsers-Migration"
-				$command.Parameters["@createdDateTime"].Value = $sqlDate
-				$command.Parameters.Add("@roleId", [System.Data.SqlDbType]::UniqueIdentifier)
-				$command.Parameters["@roleId"].Value = $user.RoleId
-				$command.Parameters["@isDeleted"].Value = 0
-				$roleCount++
+									    (SELECT 1 FROM [dbo].[RoleUsers] r
+										    WHERE SubjectId = @subjectId
+                                            AND RoleId = @roleId
+										    AND IdentityProvider = 'AzureActiveDirectory')
+									    BEGIN
+									    INSERT INTO [dbo].[RoleUsers] ([SubjectId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [RoleId], [IsDeleted])
+									    VALUES(@subjectId, @identityProvider, @createdBy, @createdDateTime, @roleId, @isDeleted)
+									    END;"
+			    $command.Parameters["@subjectId"].Value = $user.objectId
+			    $command.Parameters["@identityProvider"].Value = "AzureActiveDirectory"
+			    $command.Parameters["@createdBy"].Value = "AzureADUsers-Migration"
+			    $command.Parameters["@createdDateTime"].Value = $sqlDate
+			    $command.Parameters.Add("@roleId", [System.Data.SqlDbType]::UniqueIdentifier)
+			    $command.Parameters["@roleId"].Value = $role.RoleId
+			    $command.Parameters["@isDeleted"].Value = 0
+			    $roleCount++
 
                 $resultRoleUsers = $command.ExecuteNonQuery()
                 if($resultRoleUsers -gt 0)
                 {   
-				$totalRoleUsersAdded += $resultRoleUsers
+			    $totalRoleUsersAdded += $resultRoleUsers
                 }
 
 			    if($roleCount -eq 1)
 			    {
-				  $command.Parameters.RemoveAt("@roleId")
-				  $roleCount = 0
+				    $command.Parameters.RemoveAt("@roleId")
+				    $roleCount = 0
 			    }
-			  }
-			  if(![string]::IsNullOrEmpty($user.PermissionID))
-			  {
-				$command.CommandText = "IF NOT EXISTS 
-										(SELECT 1 FROM [dbo].[UserPermissions] p
-										 WHERE SubjectId = @subjectId
-										 AND IdentityProvider = 'AzureActiveDirectory')
-										BEGIN
-										INSERT INTO [dbo].[UserPermissions] ([SubjectId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [PermissionId], [PermissionAction], [IsDeleted])
-										VALUES(@subjectId, @identityProvider, @createdBy, @createdDateTime, @permissionId, @permissionAction, @isDeleted)
-										END;"
-				$command.Parameters["@subjectId"].Value = $user.objectId
-				$command.Parameters["@identityProvider"].Value = "AzureActiveDirectory"
-				$command.Parameters["@createdBy"].Value = "AzureADUsers-Migration"
-				$command.Parameters["@createdDateTime"].Value = $sqlDate
-				$command.Parameters.Add("@permissionId", [System.Data.SqlDbType]::UniqueIdentifier)
-				$command.Parameters.Add("@permissionAction", [System.Data.SqlDbType]::Int)
-				$command.Parameters["@permissionId"].Value = $user.PermissionId
-				$command.Parameters["@permissionAction"].Value = $user.PermissionAction
-				$command.Parameters["@isDeleted"].Value = 0
-				$permissionCount++
+		      }
+		    }
+            $permissionTable = $authDataSet.Tables[3]
+		    foreach ($permission in $permissionTable)
+		    {
+			    if(![string]::IsNullOrEmpty($permission.PermissionID) -and $user.Id -eq $permission.Id)
+			    {
+			    $command.CommandText = "IF NOT EXISTS 
+									    (SELECT 1 FROM [dbo].[UserPermissions] p
+										    WHERE SubjectId = @subjectId
+                                            AND PermissionId = @permissionId
+										    AND IdentityProvider = 'AzureActiveDirectory')
+									    BEGIN
+									    INSERT INTO [dbo].[UserPermissions] ([SubjectId], [IdentityProvider], [CreatedBy], [CreatedDateTimeUtc], [PermissionId], [PermissionAction], [IsDeleted])
+									    VALUES(@subjectId, @identityProvider, @createdBy, @createdDateTime, @permissionId, @permissionAction, @isDeleted)
+									    END;"
+			    $command.Parameters["@subjectId"].Value = $user.objectId
+			    $command.Parameters["@identityProvider"].Value = "AzureActiveDirectory"
+			    $command.Parameters["@createdBy"].Value = "AzureADUsers-Migration"
+			    $command.Parameters["@createdDateTime"].Value = $sqlDate
+			    $command.Parameters.Add("@permissionId", [System.Data.SqlDbType]::UniqueIdentifier)
+			    $command.Parameters.Add("@permissionAction", [System.Data.SqlDbType]::Int)
+			    $command.Parameters["@permissionId"].Value = $permission.PermissionId
+			    $command.Parameters["@permissionAction"].Value = $permission.PermissionAction
+			    $command.Parameters["@isDeleted"].Value = 0
+			    $permissionCount++
 
                 $resultUserPermissions = $command.ExecuteNonQuery()
                 if($resultUserPermissions -gt 0)
                 {  
-				  $totalUserPermissionsAdded += $resultUserPermissions
+				    $totalUserPermissionsAdded += $resultUserPermissions
 			    }
 			    if($permissionCount -eq 1)
 			    {
-				  $command.Parameters.RemoveAt("@permissionId")
-				  $command.Parameters.RemoveAt("@permissionAction")
-				  $permissionCount = 0
+				    $command.Parameters.RemoveAt("@permissionId")
+				    $command.Parameters.RemoveAt("@permissionAction")
+				    $permissionCount = 0
 			    }
-			  }
-		  }
-		}
+		      }
+		    }
+          }
+        }
+        $transaction.Commit()
 		$connection.Close() 
         if ($totalUsersAdded -lt 1){$totalUsersAdded = 0} 
         if ($totalGroupUsersAdded -lt 1){$totalGroupUsersAdded = 0} 
         if ($totalRoleUsersAdded -lt 1){$totalRoleUsersAdded = 0} 
         if ($totalUserPermissionsAdded -lt 1){$totalUserPermissionsAdded = 0} 
-        $userTableCount = $userTable.Count
+        $userTableCount = $userTable.Rows.Count
 		Write-DosMessage -Level Information "$totalUsersAdded Azure AD user(s) added out of $userTableCount AD user(s) from the Users table, in the Authorization database"
 		Write-DosMessage -Level Information "$totalGroupUsersAdded group user(s) added"
 		Write-DosMessage -Level Information "$totalRoleUsersAdded role user(s) added"
@@ -264,6 +346,18 @@ function Add-AuthUsers
 	}
 	catch [System.Data.SqlClient.SqlException] {
         Write-DosMessage -Level "Fatal" -Message "An error ocurred while executing the command. Please ensure the connection string is correct and the authorization database has been setup. Connection String: $($connectionString). Error $($_.Exception)"
+        try
+        {
+          $transaction.Rollback()
+        }
+        catch
+        {
+          # This catch block will handle any errors that may have occurred
+          # on the server that would cause the rollback to fail, such as
+          # a closed connection.
+          Console.WriteLine("Rollback Exception Type: {0}", $Error[0].Exception.GetType());
+          Console.WriteLine("  Message: {0}", $Error[0].Exception.Message());
+        }
     } 
 }
 
@@ -271,13 +365,13 @@ function Get-ADUsers
 {
     param(
         [Parameter(Mandatory=$true)]
-        [System.Object[]] $userTable,
+        [System.Data.DataSet] $authDataSet,
         [Parameter(Mandatory=$true)]
         [string] $domain
     )
 
     # Add sourceAnchor to existing auth table (userTable) passed in
-
+    $userTable = $authDataSet.Tables[0]
     foreach($user in $userTable)
 	{
        # cleanup variables 
@@ -340,14 +434,14 @@ function Get-ADUsers
          }
        }
     }
-    return $userTable
+    return $authDataSet
 }
 
 function Get-AzureADUsers
 {
     param(
         [Parameter(Mandatory=$true)]
-        [System.Object[]] $userTable,
+        [System.Data.DataSet] $authDataSet,
         [Parameter(Mandatory=$true)]
         [string[]] $tenants
     )
@@ -393,6 +487,7 @@ function Get-AzureADUsers
             } while ($authenticationFailed -eq $true -and $maxRetryAttempts -gt 0)
 
         # get user ImmutableId from AzureAD using AD user ObjectGUID converted to base 64 string
+        $userTable = $authDataSet.Tables[0]
         foreach($user in $userTable)
 	    {
 		  $userPrincipal = $null
@@ -414,7 +509,7 @@ function Get-AzureADUsers
       }
     }
   }
-    return $userTable
+    return $authDataSet
 }
 
 Write-DosMessage -Level "Information" -Message "Using install.config: $installConfigPath"
@@ -433,14 +528,14 @@ $authorizationDatabase = Get-AuthorizationDatabaseConnectionString -authorizatio
 
 # Connect to the authorization database and get all the users and store them in a data table
 # Method to get authorization database users
-$authUserTable = Get-AuthUsers -connectionString $authorizationDatabase.DbConnectionString
+$authDataSet = Get-AuthUsers -connectionString $authorizationDatabase.DbConnectionString
 
 # Connect to AD to get ObjectId/ms-DS-ConsistenceyGuid for each user in authorization
 $currentUserDomain = Get-CurrentUserDomain -quiet $quiet
 
-$ADUserTable = Get-ADUsers -userTable $authUserTable -domain $currentUserDomain
+$authADDataSet = Get-ADUsers -authDataSet $authDataSet -domain $currentUserDomain
 
-$AADUserTable = Get-AzureADUsers -userTable $ADUserTable -tenants $tenants
+$authAADDataSet = Get-AzureADUsers -authDataSet $authADDataSet -tenants $tenants
 
 # Add azureAD user to the AuthorizationDB Users table
-$authUserTable = Add-AuthUsers -connectionString $authorizationDatabase.DbConnectionString -userTable $AADUserTable
+$authUserTable = Add-AuthUsers -connectionString $authorizationDatabase.DbConnectionString -authDataSet $authAADDataSet
