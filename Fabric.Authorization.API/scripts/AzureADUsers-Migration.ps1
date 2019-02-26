@@ -538,4 +538,5 @@ $authADDataSet = Get-ADUsers -authDataSet $authDataSet -domain $currentUserDomai
 $authAADDataSet = Get-AzureADUsers -authDataSet $authADDataSet -tenants $tenants
 
 # Add azureAD user to the AuthorizationDB Users table
-Add-AuthUsers -connectionString $authorizationDatabase.DbConnectionString -authDataSet $authAADDataSet
+# Assigning to a variable keeps the xml information from getting output in powershell
+$authAADRecords = Add-AuthUsers -connectionString $authorizationDatabase.DbConnectionString -authDataSet $authAADDataSet
