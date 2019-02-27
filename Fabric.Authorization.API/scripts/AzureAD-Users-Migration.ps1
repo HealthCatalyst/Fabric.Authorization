@@ -208,7 +208,7 @@ function Add-AuthUsers
 			  $command.Parameters.Add("@parentId", [System.Data.SqlDbType]::Int)
 			  $command.Parameters["@parentId"].Value = $user.Id
 			  $command.Parameters["@identityProvider"].Value = "AzureActiveDirectory"
-			  $command.Parameters["@createdBy"].Value = "AzureADUsers-Migration"
+			  $command.Parameters["@createdBy"].Value = "AzureAD-Users-Migration"
 			  $command.Parameters["@createdDateTime"].Value = $sqlDate
 			  $command.Parameters["@isDeleted"].Value = 0
               # if you run the script twice or more and some users have already been added
@@ -236,7 +236,7 @@ function Add-AuthUsers
 									    END;"
 			    $command.Parameters["@subjectId"].Value = $user.objectId
 			    $command.Parameters["@identityProvider"].Value = "AzureActiveDirectory"
-			    $command.Parameters["@createdBy"].Value = "AzureADUsers-Migration"
+			    $command.Parameters["@createdBy"].Value = "AzureAD-Users-Migration"
 			    $command.Parameters["@createdDateTime"].Value = $sqlDate
 			    $command.Parameters.Add("@groupId", [System.Data.SqlDbType]::UniqueIdentifier)
 			    $command.Parameters["@groupId"].Value = $group.GroupId
@@ -272,7 +272,7 @@ function Add-AuthUsers
 									    END;"
 			    $command.Parameters["@subjectId"].Value = $user.objectId
 			    $command.Parameters["@identityProvider"].Value = "AzureActiveDirectory"
-			    $command.Parameters["@createdBy"].Value = "AzureADUsers-Migration"
+			    $command.Parameters["@createdBy"].Value = "AzureAD-Users-Migration"
 			    $command.Parameters["@createdDateTime"].Value = $sqlDate
 			    $command.Parameters.Add("@roleId", [System.Data.SqlDbType]::UniqueIdentifier)
 			    $command.Parameters["@roleId"].Value = $role.RoleId
@@ -308,7 +308,7 @@ function Add-AuthUsers
 									    END;"
 			    $command.Parameters["@subjectId"].Value = $user.objectId
 			    $command.Parameters["@identityProvider"].Value = "AzureActiveDirectory"
-			    $command.Parameters["@createdBy"].Value = "AzureADUsers-Migration"
+			    $command.Parameters["@createdBy"].Value = "AzureAD-Users-Migration"
 			    $command.Parameters["@createdDateTime"].Value = $sqlDate
 			    $command.Parameters.Add("@permissionId", [System.Data.SqlDbType]::UniqueIdentifier)
 			    $command.Parameters.Add("@permissionAction", [System.Data.SqlDbType]::Int)

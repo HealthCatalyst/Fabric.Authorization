@@ -231,7 +231,7 @@ function Move-ActiveDirectoryGroupsToAzureAD {
             SET g.IdentityProvider = 'AzureActiveDirectory',
                 g.TenantId = @tenantId,
                 g.ExternalIdentifier = @externalIdentifier,
-                g.ModifiedBy = 'fabric-installer',
+                g.ModifiedBy = 'AzureAD-Groups-Migration',
                 g.ModifiedDateTimeUtc = GETUTCDATE()
             FROM Groups g
             WHERE g.[GroupId] = @groupId;"
