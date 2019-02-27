@@ -415,7 +415,7 @@ function Get-ADUsers
          $userMap = $entry."ms-Ds-ConsistencyGuid" 
          if (![string]::IsNullOrEmpty($userMap))
          {
-           # put the user ms-DS-ConsistenceyGuid into base 64 string format to compare against the AzureAD ImmutableId 
+           # put the user ms-DS-ConsistencyGuid into base 64 string format to compare against the AzureAD ImmutableId 
            $userMapGuid = [System.Convert]::ToBase64String((new-Object system.Guid(, $userMap)).ToByteArray())
            if (![string]::IsNullOrEmpty($userMapGuid)) 
            {
@@ -530,7 +530,7 @@ $authorizationDatabase = Get-AuthorizationDatabaseConnectionString -authorizatio
 # Method to get authorization database users
 $authDataSet = Get-AuthUsers -connectionString $authorizationDatabase.DbConnectionString
 
-# Connect to AD to get ObjectId/ms-DS-ConsistenceyGuid for each user in authorization
+# Connect to AD to get ObjectId/ms-DS-ConsistencyGuid for each user in authorization
 $currentUserDomain = Get-CurrentUserDomain -quiet $quiet
 
 $authADDataSet = Get-ADUsers -authDataSet $authDataSet -domain $currentUserDomain
