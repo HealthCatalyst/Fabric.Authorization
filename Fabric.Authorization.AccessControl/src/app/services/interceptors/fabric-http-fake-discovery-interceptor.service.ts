@@ -21,6 +21,10 @@ export class FabricHttpFakeDiscoveryInterceptorService implements HttpIntercepto
   ): Observable<HttpEvent<any>> {
     if(req.url.includes('DiscoveryService/v1/Services?$filter=ServiceName')){
         this.configService.getIdentityServiceRoot().subscribe(url => {
+          if(url === '') { // this can happen if windows auth is on
+            url = "http://localhost/identity"
+          }
+
           this.responseBody = {
             "@odata.context":"http://localhost/DiscoveryService/v1/$metadata#Services(ServiceUrl,Version,ServiceName)","value":[
               {
