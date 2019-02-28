@@ -1,7 +1,7 @@
 
-import {throwError as observableThrowError,  Observable } from 'rxjs';
+import { throwError as observableThrowError, Observable, forkJoin, from } from 'rxjs';
 
-import {catchError, map,  tap } from 'rxjs/operators';
+import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { Response } from '@angular/http';
 import { HttpClient } from '@angular/common/http';
@@ -35,51 +35,54 @@ export class AuthService implements IAuthService {
   }
 
   initialize(): Promise<any> {
-    return this.servicesService.initialize().pipe(tap(url => {
-      this.authority = url;
-      const clientSettings: any = {
-        authority: this.authority,
-        client_id: this.clientId,
-        redirect_uri: `${this.servicesService.accessControlEndpoint}/client/oidc-callback.html`,
-        post_logout_redirect_uri: `${this.servicesService.accessControlEndpoint}/client/logged-out`,
-        response_type: 'id_token token',
-        scope: [
-          'openid',
-          'profile',
-          'fabric.profile',
-          'fabric/authorization.read',
-          'fabric/authorization.write',
-          'fabric/idprovider.searchusers',
-          'fabric/authorization.dos.write',
-          'fabric/authorization.internal'
-        ].join(' '),
-        silent_redirect_uri: `${this.servicesService.accessControlEndpoint}/client/silent.html`,
-        automaticSilentRenew: true,
-        filterProtocolClaims: true,
-        loadUserInfo: true
-      };
+    // Need the initializer to load all the values first
+    // This makes sure we get the correct accessControl endpoint
+    return this.servicesService.getIdentityAndAccessControlUrl().pipe(
+      tap(urlList => {
+        this.authority = urlList[0];
+        const clientSettings: any = {
+          authority: this.authority,
+          client_id: this.clientId,
+          redirect_uri: `${urlList[1]}/client/oidc-callback.html`,
+          post_logout_redirect_uri: `${urlList[1]}/client/logged-out`,
+          response_type: 'id_token token',
+          scope: [
+            'openid',
+            'profile',
+            'fabric.profile',
+            'fabric/authorization.read',
+            'fabric/authorization.write',
+            'fabric/idprovider.searchusers',
+            'fabric/authorization.dos.write',
+            'fabric/authorization.internal'
+          ].join(' '),
+          silent_redirect_uri: `${urlList[1]}/client/silent.html`,
+          automaticSilentRenew: true,
+          filterProtocolClaims: true,
+          loadUserInfo: true
+        };
 
-      this.userManager = new UserManager(clientSettings);
+        this.userManager = new UserManager(clientSettings);
 
-      this.userManager.events.addAccessTokenExpiring(function() {
-        console.log('access token expiring');
-      });
+        this.userManager.events.addAccessTokenExpiring(function () {
+          console.log('access token expiring');
+        });
 
-      this.userManager.events.addSilentRenewError(function(e) {
-        console.log('silent renew error: ' + e.message);
-      });
+        this.userManager.events.addSilentRenewError(function (e) {
+          console.log('silent renew error: ' + e.message);
+        });
 
-      this.userManager.events.addAccessTokenExpired(() => {
-        console.log('access token expired');
-        // when access token expires logout the user
-        this.logout();
-      });
+        this.userManager.events.addAccessTokenExpired(() => {
+          console.log('access token expired');
+          // when access token expires logout the user
+          this.logout();
+        });
 
-      this.userManager.events.addUserSignedOut(() => {
-        console.log('user logged out at the Idp, logging out');
-        this.logout();
-      });
-    })).toPromise().then(() => console.log('finished initialize'));
+        this.userManager.events.addUserSignedOut(() => {
+          console.log('user logged out at the Idp, logging out');
+          this.logout();
+        });
+      })).toPromise().then(() => console.log('finished initialize'));
   }
 
   login() {
@@ -111,7 +114,7 @@ export class AuthService implements IAuthService {
   }
 
   isUserAuthenticated(): Promise<boolean> {
-    return this.userManager.getUser().then(function(user) {
+    return this.userManager.getUser().then(function (user) {
       if (user) {
         return true;
       } else {
@@ -121,7 +124,7 @@ export class AuthService implements IAuthService {
   }
 
   private getAccessToken(): Promise<string> {
-    return this.getUser().then(function(user) {
+    return this.getUser().then(function (user) {
       if (user) {
         return Promise.resolve(user.access_token);
       }
@@ -139,10 +142,10 @@ export class AuthService implements IAuthService {
       const requestUrl = this.authority + '/' + resource;
       return this.httpClient
         .get(requestUrl).pipe(
-        map((res: Response) => {
-          return res.json();
-        }),
-        catchError(error => this.handleError(error)))
+          map((res: Response) => {
+            return res.json();
+          }),
+          catchError(error => this.handleError(error)))
         .toPromise<T>();
     });
   }
