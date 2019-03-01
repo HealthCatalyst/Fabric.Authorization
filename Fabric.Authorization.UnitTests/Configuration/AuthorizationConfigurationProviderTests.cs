@@ -65,7 +65,7 @@ namespace Fabric.Authorization.UnitTests.Configuration
             Assert.Equal("test", config.EncryptionCertificateSettings.EncryptionCertificateThumbprint);
         }
 
-        [Fact]
+        [Fact(Skip = "Changing Hosting Pool")]
         public void GetConfiguration_GetsUnencryptedConfigurationFromDockerSecrets()
         {
             var certificateService = new Mock<ICertificateService>().Object;
