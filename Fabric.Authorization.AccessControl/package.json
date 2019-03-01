@@ -43,7 +43,7 @@
     "typeface-open-sans": "0.0.54"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "~0.7.0",
+    "@angular-devkit/build-angular": "^0.7.5",
     "@angular/cli": "6.1.2",
     "@angular/compiler-cli": "6.1.1",
     "@angular/language-service": "6.1.1",

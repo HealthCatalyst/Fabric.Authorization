@@ -197,6 +197,8 @@ namespace Fabric.Authorization.API.Modules
 
         public bool HasSubjectId => Context.CurrentUser.HasClaim(c => c.Type == Claims.Sub);
 
+        public string Name => Context.CurrentUser.Claims.First(c => c.Type == Claims.Name).Value;
+
         protected Predicate<Claim> GetClientIdPredicate(string clientId)
         {
             return claim => claim.Type == Claims.ClientId && claim.Value == clientId;
