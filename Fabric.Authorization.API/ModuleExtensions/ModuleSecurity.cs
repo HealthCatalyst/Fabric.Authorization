@@ -19,10 +19,10 @@ namespace Fabric.Authorization.API.ModuleExtensions
             module.AddBeforeHookOrExecute(RequiresOwnership<T>(doesClientOwnItem, grain, securableItem));
         }
 
-        public static void RequiresPermissionsAndClaims<T>(this NancyModule module, string subjectId, IEnumerable<string> permissions, string grain, string securableItem, params Predicate<Claim>[] requiredClaims)
+        public static void RequiresPermissionsAndClaims<T>(this NancyModule module, string name, IEnumerable<string> permissions, string grain, string securableItem, params Predicate<Claim>[] requiredClaims)
         {
             module.RequiresClaims(requiredClaims);
-            module.AddBeforeHookOrExecute(RequiresPermissions<T>(subjectId, permissions, grain, securableItem));
+            module.AddBeforeHookOrExecute(RequiresPermissions<T>(name, permissions, grain, securableItem));
         }
         
         public static Func<NancyContext, Response> RequiresOwnership<T>(bool doesClientOwnItem, string grain, string securableItem)
@@ -45,7 +45,7 @@ namespace Fabric.Authorization.API.ModuleExtensions
             };
         }
 
-        private static Func<NancyContext, Response> RequiresPermissions<T>(string subjectId, IEnumerable<string> permissions, string grain, string securableItem)
+        private static Func<NancyContext, Response> RequiresPermissions<T>(string name, IEnumerable<string> permissions, string grain, string securableItem)
         {
             return (context) =>
             {
@@ -54,7 +54,7 @@ namespace Fabric.Authorization.API.ModuleExtensions
                 {
                     return null;
                 }
-                var message = $"The current user: {subjectId}, does not have the required permissions to manage the requested grain/securableItem: {grain}/{securableItem} combination";
+                var message = $"The current user: {name}, does not have the required permissions to manage the requested grain/securableItem: {grain}/{securableItem} combination";
                 return CreateForbiddenResponse<T>(message, context);
             };
         }
