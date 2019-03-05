@@ -1,4 +1,4 @@
-import { Subject } from 'rxjs';
+import { Subject, Observable, of } from 'rxjs';
 import { IAccessControlConfigService } from './access-control-config.service';
 import { IDataChangedEventArgs } from '../models/changedDataEventArgs.model';
 import { Exception } from '../models/exception.model';
@@ -12,4 +12,8 @@ export class MockAccessControlConfigService implements IAccessControlConfigServi
     fabricExternalIdpSearchApiUrl = 'idpss';
     dataChanged = new Subject<IDataChangedEventArgs>();
     errorRaised: Subject<Exception>;
+
+    getBaseUrls(): Observable<string[]> {
+        return of([])
+    }
 }

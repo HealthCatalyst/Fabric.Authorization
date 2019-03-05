@@ -7,6 +7,7 @@
         public string AccessControlUIToken { get; set; }
         public bool UseDiscovery { get; set; }
         public bool UseOAuth2Authentication { get; set; }
+        public string UseOAuth2AuthenticationToken { get; set; }
         public string Endpoint { get; set; }
     }
 }

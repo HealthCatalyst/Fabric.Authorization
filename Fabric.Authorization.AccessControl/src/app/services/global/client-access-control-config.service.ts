@@ -2,9 +2,10 @@ import { Injectable } from '@angular/core';
 import { AuthService } from './auth.service';
 import { IAccessControlConfigService } from '../access-control-config.service';
 import { IDataChangedEventArgs } from '../../models/changedDataEventArgs.model';
-import { Subject } from 'rxjs';
+import { Subject, Observable } from 'rxjs';
 import { Exception } from '../../models/exception.model';
 import { ServicesService } from './services.service';
+import { switchMap } from 'rxjs/operators';
 
 @Injectable()
 export class ClientAccessControlConfigService implements IAccessControlConfigService {
@@ -21,10 +22,20 @@ export class ClientAccessControlConfigService implements IAccessControlConfigSer
     });
   }
 
+  public getBaseUrls(): Observable<string[]> {
+    return this.servicesService.buildServiceMaps().pipe(
+      switchMap(url => {
+        this.fabricAuthApiUrl = this.servicesService.authorizationServiceEndpoint
+        this.fabricExternalIdpSearchApiUrl = this.servicesService.identityProviderSearchServiceEndpoint
+        return [this.fabricAuthApiUrl, this.fabricExternalIdpSearchApiUrl]
+      })
+    )
+  }
+
   clientId = '';
   identityProvider = 'windows';
   grain = 'dos';
   securableItem = 'datamarts';
-  fabricAuthApiUrl = this.servicesService.authorizationServiceEndpoint;
-  fabricExternalIdpSearchApiUrl = this.servicesService.identityProviderSearchServiceEndpoint;
+  fabricAuthApiUrl = null
+  fabricExternalIdpSearchApiUrl = null
 }

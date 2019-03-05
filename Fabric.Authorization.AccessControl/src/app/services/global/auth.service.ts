@@ -1,7 +1,7 @@
 
-import { throwError as observableThrowError, Observable, forkJoin, from } from 'rxjs';
+import { throwError as observableThrowError } from 'rxjs';
 
-import { catchError, map, switchMap, tap } from 'rxjs/operators';
+import { catchError, map, tap } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { Response } from '@angular/http';
 import { HttpClient } from '@angular/common/http';
@@ -38,13 +38,13 @@ export class AuthService implements IAuthService {
     // Need the initializer to load all the values first
     // This makes sure we get the correct accessControl endpoint
     return this.servicesService.getIdentityAndAccessControlUrl().pipe(
-      tap(urlList => {
-        this.authority = urlList[0];
+      tap(urls => {
+        this.authority = urls.identityUrl;
         const clientSettings: any = {
           authority: this.authority,
           client_id: this.clientId,
-          redirect_uri: `${urlList[1]}/client/oidc-callback.html`,
-          post_logout_redirect_uri: `${urlList[1]}/client/logged-out`,
+          redirect_uri: `${urls.accessControlUrl}/client/oidc-callback.html`,
+          post_logout_redirect_uri: `${urls.accessControlUrl}/client/logged-out`,
           response_type: 'id_token token',
           scope: [
             'openid',
@@ -56,7 +56,7 @@ export class AuthService implements IAuthService {
             'fabric/authorization.dos.write',
             'fabric/authorization.internal'
           ].join(' '),
-          silent_redirect_uri: `${urlList[1]}/client/silent.html`,
+          silent_redirect_uri: `${urls.accessControlUrl}/client/silent.html`,
           automaticSilentRenew: true,
           filterProtocolClaims: true,
           loadUserInfo: true

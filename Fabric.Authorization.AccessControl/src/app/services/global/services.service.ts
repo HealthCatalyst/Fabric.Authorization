@@ -1,10 +1,11 @@
-import { map, mergeMap, switchMap, tap, every } from 'rxjs/operators';
+import { map, mergeMap, switchMap, tap } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, forkJoin } from 'rxjs';
 
 import { ConfigService } from './config.service';
 import { OData } from './odata';
+import { UrlResponse } from '../../models/urlResponse.model';
 
 export interface IService {
     name: string;
@@ -50,7 +51,7 @@ export class ServicesService {
 
     }
 
-    public getIdentityAndAccessControlUrl(): Observable<string[]> {
+    public getIdentityAndAccessControlUrl(): Observable<UrlResponse> {
         return this.isOAuthAuthenticationEnabled.pipe(
             switchMap(isEnabled => {
               if(isEnabled) {
@@ -65,7 +66,8 @@ export class ServicesService {
                         })
                     })
               }
-            })
+            }),
+            switchMap(urlList => of(new UrlResponse(urlList[0], urlList[1])))
         )
     }
 
@@ -85,8 +87,8 @@ export class ServicesService {
     }
 
     get isOAuthAuthenticationEnabled(): Observable<boolean> {
-        return this.configService.getDiscoveryServiceRoot().pipe(
-            every(url => url === '')
+        return this.configService.getUseOAuthAuthentication().pipe(
+            switchMap(stringBool => stringBool === 'true' ? of(true) : of(false))
         )
     }
 
@@ -94,30 +96,30 @@ export class ServicesService {
         return this.configService.getIdentityServiceRoot()
             .pipe(map((url) => `${url}/.well-known/openid-configuration`),
                 switchMap((url) => this.http.get(url)),
-                map((response: any) => response.discovery_uri));
+                map((response: any) => this.trimRightChar(response.discovery_uri, '/')));
     }
 
+
     get identityServiceEndpoint(): Observable<string> {
-        var serviceUrl = this.services.find(s => s.name === 'IdentityService').url;
-        return this.configService.getIdentityServiceRoot()
-            .pipe(map(url => url === '' ? serviceUrl : url))
+        return this.configService.getIdentityServiceRoot().pipe(
+            map(url => this.trimRightChar(url, '/'))
+        )
     }
 
     get authorizationServiceEndpoint(): string {
-        return this.services.find(s => s.name === 'AuthorizationService').url;
+        const url = this.services.find(s => s.name === 'AuthorizationService').url
+        return this.trimRightChar(url, '/');
     }
 
     get identityProviderSearchServiceEndpoint(): string {
-        return this.services.find(s => s.name === 'IdentityProviderSearchService').url;
+        const url = this.services.find(s => s.name === 'IdentityProviderSearchService').url
+        return this.trimRightChar(url, '/');
     }
 
     get accessControlEndpoint(): Observable<string> {
-        const accessControlUrl = this.services.find(s => s.name === 'AccessControl').url;
-        if (accessControlUrl == undefined || accessControlUrl == '') {
-            return this.configService.getAccessControlServiceRoot();
-        }
-
-        return of(accessControlUrl);
+        return this.configService.getAccessControlServiceRoot().pipe(
+            map(url => this.trimRightChar(url, '/'))
+        )
     }
 
     public needsAuthToken(url: string) {
@@ -134,7 +136,7 @@ export class ServicesService {
         return targetService ? targetService.requireAuthToken : false;
     }
 
-    private buildServiceMaps(): Observable<string> {
+    public buildServiceMaps(): Observable<string> {
         return this.discoveryServiceEndpoint.pipe(
             map(discoveryUrl => `${discoveryUrl}/Services?$filter=` + this.buildServiceFilter() + `&$select=ServiceUrl,Version,ServiceName`),
             mergeMap(discoveryUrl => this.http.get<OData.IArray<IDiscoveryService>>(discoveryUrl, { withCredentials: true })),
@@ -190,8 +192,8 @@ export class ServicesService {
     }
 
     private parseUrl(url) {
-        var location = document.createElement("a")
-        location.href = url
+        var location = document.createElement("a");
+        location.href = url;
         // IE doesn't populate all link properties when setting .href with a relative URL,
         // however .href will return an absolute URL which then can be used on itself
         // to populate these additional fields.
@@ -199,6 +201,6 @@ export class ServicesService {
             location.href = location.href;
         }
 
-        return location
+        return location;
     }
 }
