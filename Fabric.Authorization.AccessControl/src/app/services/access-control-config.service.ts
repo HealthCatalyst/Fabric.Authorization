@@ -1,5 +1,5 @@
 import { IDataChangedEventArgs } from '../models/changedDataEventArgs.model';
-import { Subject } from 'rxjs';
+import { Subject, Observable } from 'rxjs';
 import { Exception } from '../models/exception.model';
 
 export interface IAccessControlConfigService {
@@ -11,4 +11,5 @@ export interface IAccessControlConfigService {
   fabricExternalIdpSearchApiUrl: string;
   dataChanged: Subject<IDataChangedEventArgs>;
   errorRaised: Subject<Exception>;
+  getBaseUrls(): Observable<string[]>
 }

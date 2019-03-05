@@ -41,18 +41,10 @@ namespace Fabric.Authorization.API.Infrastructure.Middleware
                 var identityServerSettings = _appConfiguration.IdentityServerConfidentialClientSettings;
 
                 // swaps in the discovery service root
-                if (discoveryServiceSettings.UseOAuth2Authentication)
-                {
-                    _indexContent = _indexContent.Replace(discoveryServiceSettings.DiscoveryServiceToken, string.Empty);
-                    _indexContent = _indexContent.Replace(discoveryServiceSettings.IdentityServiceToken, this._appConfiguration.IdentityServerConfidentialClientSettings.Authority);
-                    _indexContent = _indexContent.Replace(discoveryServiceSettings.AccessControlUIToken, this._appConfiguration.ApplicationEndpoint);
-                }
-                else
-                {
-                    _indexContent = _indexContent.Replace(discoveryServiceSettings.DiscoveryServiceToken, discoveryServiceSettings.Endpoint);
-                    _indexContent = _indexContent.Replace(discoveryServiceSettings.IdentityServiceToken, string.Empty);
-                    _indexContent = _indexContent.Replace(discoveryServiceSettings.AccessControlUIToken, string.Empty);
-                }
+                _indexContent = _indexContent.Replace(discoveryServiceSettings.UseOAuth2AuthenticationToken, discoveryServiceSettings.UseOAuth2Authentication ? "true" : "false");
+                _indexContent = _indexContent.Replace(discoveryServiceSettings.DiscoveryServiceToken, discoveryServiceSettings.Endpoint);
+                _indexContent = _indexContent.Replace(discoveryServiceSettings.IdentityServiceToken, this._appConfiguration.IdentityServerConfidentialClientSettings.Authority);
+                _indexContent = _indexContent.Replace(discoveryServiceSettings.AccessControlUIToken, this._appConfiguration.ApplicationEndpoint);
 
                 // swaps in the access control root
                 _indexContent = _indexContent.Replace(AccessControl.ClientRootToken,
