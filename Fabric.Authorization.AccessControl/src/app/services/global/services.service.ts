@@ -54,6 +54,7 @@ export class ServicesService {
     public getIdentityAndAccessControlUrl(): Observable<UrlResponse> {
         return this.isOAuthAuthenticationEnabled.pipe(
             switchMap(isEnabled => {
+              this.services.find(s => s.name === 'DiscoveryService').requireAuthToken = isEnabled              
               if(isEnabled) {
                 // if OAuth, we get identity and access control up front
                 return forkJoin(this.identityServiceEndpoint, this.accessControlEndpoint)
