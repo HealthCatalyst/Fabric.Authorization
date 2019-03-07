@@ -11,5 +11,4 @@ export interface IAccessControlConfigService {
   fabricExternalIdpSearchApiUrl: string;
   dataChanged: Subject<IDataChangedEventArgs>;
   errorRaised: Subject<Exception>;
-  getBaseUrls(): Observable<string[]>
 }

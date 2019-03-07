@@ -20,16 +20,9 @@ export class ClientAccessControlConfigService implements IAccessControlConfigSer
     this.errorRaised.subscribe((eventArgs: Exception) => {
       console.log(`error: ${JSON.stringify(eventArgs)}`);
     });
-  }
 
-  public getBaseUrls(): Observable<string[]> {
-    return this.servicesService.buildServiceMaps().pipe(
-      switchMap(url => {
-        this.fabricAuthApiUrl = this.servicesService.authorizationServiceEndpoint
-        this.fabricExternalIdpSearchApiUrl = this.servicesService.identityProviderSearchServiceEndpoint
-        return [this.fabricAuthApiUrl, this.fabricExternalIdpSearchApiUrl]
-      })
-    )
+    this.fabricAuthApiUrl = this.servicesService.authorizationServiceEndpoint
+    this.fabricExternalIdpSearchApiUrl = this.servicesService.identityProviderSearchServiceEndpoint
   }
 
   clientId = '';

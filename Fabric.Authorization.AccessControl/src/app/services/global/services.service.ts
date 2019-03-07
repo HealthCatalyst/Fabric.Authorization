@@ -48,7 +48,7 @@ export class ServicesService {
     constructor(private http: HttpClient, private configService: ConfigService) { }
 
     public initialize() {
-
+        this.buildServiceMaps()
     }
 
     public getIdentityAndAccessControlUrl(): Observable<UrlResponse> {
@@ -137,7 +137,7 @@ export class ServicesService {
         return targetService ? targetService.requireAuthToken : false;
     }
 
-    public buildServiceMaps(): Observable<string> {
+    private buildServiceMaps(): Observable<string> {
         return this.discoveryServiceEndpoint.pipe(
             map(discoveryUrl => `${discoveryUrl}/Services?$filter=` + this.buildServiceFilter() + `&$select=ServiceUrl,Version,ServiceName`),
             mergeMap(discoveryUrl => this.http.get<OData.IArray<IDiscoveryService>>(discoveryUrl, { withCredentials: true })),
@@ -181,9 +181,13 @@ export class ServicesService {
     }
 
     private trimRightChar(characters, char) {
+        if (characters === undefined || characters === null) {
+            return characters;
+        }
+
         var i = 0;
         while (characters[characters.length - 1 - i] === char)
-            i++
+            i++;
 
         return characters.substring(0, characters.length - i);
     }
