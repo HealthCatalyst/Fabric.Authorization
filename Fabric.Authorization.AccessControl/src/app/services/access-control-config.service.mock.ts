@@ -12,8 +12,4 @@ export class MockAccessControlConfigService implements IAccessControlConfigServi
     fabricExternalIdpSearchApiUrl = 'idpss';
     dataChanged = new Subject<IDataChangedEventArgs>();
     errorRaised: Subject<Exception>;
-
-    getBaseUrls(): Observable<string[]> {
-        return of([])
-    }
 }

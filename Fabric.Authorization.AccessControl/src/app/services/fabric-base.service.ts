@@ -9,6 +9,6 @@ export class FabricBaseService {
     protected httpClient: HttpClient,
     @Inject('IAccessControlConfigService') protected accessControlConfigService: IAccessControlConfigService
   ) {
-    accessControlConfigService.getBaseUrls().toPromise()
+    
   }
 }
