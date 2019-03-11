@@ -6,6 +6,7 @@ export interface IFabricPrincipal {
   principalType: string;
   identityProvider?: string;
   tenantId?: string;
+  tenantAlias?: string;
   externalIdentifier?: string;
   identityProviderUserPrincipalName?: string;
 
