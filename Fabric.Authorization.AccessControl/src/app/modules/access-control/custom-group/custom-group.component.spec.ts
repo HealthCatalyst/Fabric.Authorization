@@ -158,7 +158,7 @@ describe('CustomGroupComponent', () => {
     }));
   });
 
-  describe('associateUsers', () => {
+  describe('associateUsersAndGroups', () => {
     it('returns groups on search', async(() => {
       // arrange
       component.principals = mockExternalIdpSearchResult.principals;
@@ -173,7 +173,7 @@ describe('CustomGroupComponent', () => {
     }));
   });
 
-  describe('unAssociateUsers', () => {
+  describe('unAssociateUsersAndGroups', () => {
     it('returns groups on search', async(() => {
       // arrange
       component.principals = mockExternalIdpSearchResult.principals;
@@ -195,7 +195,8 @@ describe('CustomGroupComponent', () => {
       // arrange
       const mockErrorResponse = {
           statusCode: 409,
-          message: `Could not create group name "${mockGroupsResponse[0].groupName}". A group with the same name exists as a Custom group or a Directory group.`
+          message: `Could not create group name "${mockGroupsResponse[0].groupName}". `
+          + `A group with the same name exists as a Custom group or a Directory group.`
       };
       groupService.getChildGroups.and.returnValue(observableThrowError(mockErrorResponse));
       component.editMode = true;
@@ -208,7 +209,8 @@ describe('CustomGroupComponent', () => {
       // assert
       expect(component.groupNameInvalid).toBe(true);
       expect(component.groupNameError).toBeTruthy();
-      expect(component.groupNameError).toMatch(`Could not create group name "${mockGroupsResponse[0].groupName}". A group with the same name exists as a Custom group or a Directory group.`);
+      expect(component.groupNameError).toMatch(`Could not create group name "${mockGroupsResponse[0].groupName}". `
+        + `A group with the same name exists as a Custom group or a Directory group.`);
     });
 
     it('returns error if associated group name is the same as existing custom group', () => {
@@ -228,14 +230,16 @@ describe('CustomGroupComponent', () => {
       // assert
       expect(component.groupNameInvalid).toBe(true);
       expect(component.associatedNameError).toBeTruthy();
-      expect(component.associatedNameError).toMatch(`The associated user or group name should not be the same as an existing custom group: ${mockGroupsResponse[0].groupName}`);
+      expect(component.associatedNameError).toMatch(`The associated user or group name should not be the same as an existing custom group: `
+        + `${mockGroupsResponse[0].groupName}`);
     });
 
     it('returns error if associated user name is the same as existing custom group', () => {
       // arrange
       const mockErrorResponse = {
         statusCode: 409,
-        message: `The associated user or group name should not be the same as an existing custom group: ${mockUsersResponse[0].identityProviderUserPrincipalName}`
+        message: `The associated user or group name should not be the same as an existing custom group: `
+          + `${mockUsersResponse[0].identityProviderUserPrincipalName}`
       };
       groupService.getChildGroups.and.returnValue(observableThrowError(mockErrorResponse));
       component.editMode = true;
@@ -248,7 +252,8 @@ describe('CustomGroupComponent', () => {
       // assert
       expect(component.groupNameInvalid).toBe(true);
       expect(component.associatedNameError).toBeTruthy();
-      expect(component.associatedNameError).toMatch(`The associated user or group name should not be the same as an existing custom group: ${mockUsersResponse[0].identityProviderUserPrincipalName}`);
+      expect(component.associatedNameError).toMatch(`The associated user or group name should not be the same as an existing custom group: `
+        + `${mockUsersResponse[0].identityProviderUserPrincipalName}`);
     });
 
   });
@@ -344,6 +349,94 @@ describe('CustomGroupComponent', () => {
       const result = component.getGroupNameToDisplay(group);
 
       // Assert
+      expect(result).toBe(groupName);
+    });
+  });
+
+  describe('getPrincipalNameToDisplay', () => {
+    it('should not append tenant alias if principal is a user', () => {
+      // arrange
+      const principalName = 'azureuser@tenant.com';
+      const principal = {
+        subjectId: principalName,
+        principalType: 'user',
+        tenantId: 'tenantId',
+        tenantAlias: 'tenantAlias',
+        identityProviderUserPrincipalName: principalName,
+      };
+
+      // act
+      const result = component.getPrincipalNameToDisplay(principal);
+
+      // assert
+      expect(result).toBe(principalName);
+    });
+
+    it('should not append tenant alias if principal is a group, and tenant alias is not present', () => {
+      // arrange
+      const principalName = 'azure group';
+      const principal = {
+        subjectId: principalName,
+        principalType: 'group',
+        tenantId: 'tenantId',
+        identityProviderUserPrincipalName: principalName,
+      };
+
+      // act
+      const result = component.getPrincipalNameToDisplay(principal);
+
+      // assert
+      expect(result).toBe(principalName);
+    });
+
+    it('should append tenant alias if principal is a group, and tenant alias is present', () => {
+      // arrange
+      const principalName = 'azure group';
+      const tenantAlias = 'alias';
+      const principal = {
+        subjectId: principalName,
+        principalType: 'group',
+        tenantId: 'tenantId',
+        tenantAlias: tenantAlias,
+        identityProviderUserPrincipalName: principalName,
+      };
+
+      // act
+      const result = component.getPrincipalNameToDisplay(principal);
+
+      // assert
+      expect(result).toBe(principalName + '@' + tenantAlias);
+    });
+  });
+
+  describe('getAdGroupNameToDisplay', () => {
+    it('should append tenant alias if not null', () => {
+      const groupName = 'group-name';
+      const alias = 'alias-name';
+      const group = {
+        groupName: groupName,
+        tenantAlias: alias,
+        groupSource: ''
+      };
+
+      // act
+      const result = component.getAdGroupNameToDisplay(group);
+
+      // assert
+      expect(result).toBe(groupName + '@' + alias);
+    });
+
+    it('should not append tenant alias if not null', () => {
+      const groupName = 'group-name';
+      const group = {
+        groupName: groupName,
+        groupSource: ''
+      };
+
+      // act
+      const result = component.getAdGroupNameToDisplay(group);
+
+      // assert
       expect(result).toBe(groupName);
     });
   });
