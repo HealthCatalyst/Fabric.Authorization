@@ -166,15 +166,17 @@ export class MemberComponent implements OnInit, OnDestroy {
     this.ngUnsubscribe.complete();
   }
 
+  setSearchText(principal: IFabricPrincipal): void {
+    this.searchText = principal.identityProviderUserPrincipalName || principal.subjectId;
+    if (!!principal.tenantAlias) {
+      this.searchText += '@' + principal.tenantAlias;
+    }
+  }
+
   selectPrincipal(principal: IFabricPrincipal): Subscription {
     this.principals = [];
     this.selectedPrincipal = principal;
-    const alias: string = principal.tenantAlias;
-    if (!alias) {
-      this.searchText = (principal.identityProviderUserPrincipalName || principal.subjectId);
-    } else {
-      this.searchText = (principal.identityProviderUserPrincipalName || principal.subjectId) + '@' + alias;
-    }
+    this.setSearchText(principal);
     return this.bindExistingRoles(principal).subscribe();
   }
 

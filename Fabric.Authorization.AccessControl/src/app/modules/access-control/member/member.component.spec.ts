@@ -116,6 +116,42 @@ describe('MemberComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  describe('setSearchText', () => {
+    it('should append tenant alias if not null', () => {
+      const principalName = 'azure group';
+      const alias = 'tenant alias';
+      const principal = {
+        subjectId: principalName,
+        principalType: 'group',
+        tenantId: 'tenantId',
+        tenantAlias: alias,
+        identityProviderUserPrincipalName: principalName,
+      };
+
+      // act
+      component.setSearchText(principal);
+
+      // assert
+      expect(component.searchText).toBe(principalName + '@' + alias);
+    });
+
+    it('should not append tenant alias if null', () => {
+      const principalName = 'azure group';
+      const principal = {
+        subjectId: principalName,
+        principalType: 'group',
+        tenantId: 'tenantId',
+        identityProviderUserPrincipalName: principalName,
+      };
+
+      // act
+      component.setSearchText(principal);
+
+      // assert
+      expect(component.searchText).toBe(principalName);
+    });
+  });
+
   describe('sync errors', () => {
     it('should show sync alert when sync user error occurs', () => {
       const mockErrorResponse = {
