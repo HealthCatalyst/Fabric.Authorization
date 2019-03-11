@@ -12,7 +12,7 @@
       </hc-checkbox>
       <span *ngIf="principal.principalType == 'user'" [innerText]="principal.identityProviderUserPrincipalName">
       </span>
-      <span *ngIf="principal.principalType == 'group'" [innerText]="principal.subjectId">
+      <span *ngIf="principal.principalType == 'group'" [innerText]="principal.subjectId + '@' + principal.tenantAlias">
       </span>
       <span [innerText]="'(' + principal.principalType + ')'">
       </span>
