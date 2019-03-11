@@ -45,7 +45,11 @@ Import-Module -Name .\Install-Authorization-Utilities.psm1 -Force
 $identityInstallUtilities = ".\Install-Identity-Utilities.psm1"
 if (!(Test-Path $identityInstallUtilities -PathType Leaf)) {
     Write-DosMessage -Level "Warning" -Message "Could not find identity install utilities. Manually downloading and installing"
-    Invoke-WebRequest -Uri https://raw.githubusercontent.com/HealthCatalyst/Fabric.Identity/master/Fabric.Identity.API/scripts/Install-Identity-Utilities.psm1 -Headers @{"Cache-Control" = "no-cache"} -OutFile $identityInstallUtilities
+    $originalProgressPreference = $progressPreference
+    try {
+        $progressPreference = 'silentlyContinue'
+        Invoke-WebRequest -Uri https://raw.githubusercontent.com/HealthCatalyst/Fabric.Identity/master/Fabric.Identity.API/scripts/Install-Identity-Utilities.psm1 -Headers @{"Cache-Control" = "no-cache"} -OutFile $identityInstallUtilities -UseBasicParsing
+    } finally { $progressPreference = $originalProgressPreference }
 }
 Import-Module -Name $identityInstallUtilities -Force
 
@@ -53,7 +57,11 @@ Import-Module -Name $identityInstallUtilities -Force
 $fabricInstallUtilities = ".\Fabric-Install-Utilities.psm1"
 if (!(Test-Path $fabricInstallUtilities -PathType Leaf)) {
     Write-DosMessage -Level "Warning" -Message "Could not find fabric install utilities. Manually downloading and installing"
-    Invoke-WebRequest -Uri https://raw.githubusercontent.com/HealthCatalyst/InstallScripts/master/common/Fabric-Install-Utilities.psm1 -Headers @{"Cache-Control" = "no-cache"} -OutFile $fabricInstallUtilities
+    $originalProgressPreference = $progressPreference
+    try {
+        $progressPreference = 'silentlyContinue'
+        Invoke-WebRequest -Uri https://raw.githubusercontent.com/HealthCatalyst/InstallScripts/master/common/Fabric-Install-Utilities.psm1 -Headers @{"Cache-Control" = "no-cache"} -OutFile $fabricInstallUtilities -UseBasicParsing
+    } finally { $progressPreference = $originalProgressPreference }
 }
 Import-Module -Name $fabricInstallUtilities -Force
 $credentials = @{}

@@ -2,7 +2,11 @@
 $fabricInstallUtilities = ".\Fabric-Install-Utilities.psm1"
 if (!(Test-Path $fabricInstallUtilities -PathType Leaf)) {
     Write-DosMessage -Level "Warning" -Message "Could not find fabric install utilities. Manually downloading and installing"
-    Invoke-WebRequest -Uri https://raw.githubusercontent.com/HealthCatalyst/InstallScripts/master/common/Fabric-Install-Utilities.psm1 -Headers @{"Cache-Control" = "no-cache"} -OutFile $fabricInstallUtilities
+    $originalProgressPreference = $progressPreference
+    try {
+        $progressPreference = 'silentlyContinue'
+        Invoke-WebRequest -Uri https://raw.githubusercontent.com/HealthCatalyst/InstallScripts/master/common/Fabric-Install-Utilities.psm1 -Headers @{"Cache-Control" = "no-cache"} -OutFile $fabricInstallUtilities -UseBasicParsing
+    } finally { $progressPreference = $originalProgressPreference }
 }
 Import-Module -Name $fabricInstallUtilities -Force
 
@@ -786,15 +790,20 @@ function Install-UrlRewriteIfNeeded
     )
     if(!(Test-Prerequisite "*IIS URL Rewrite Module 2" $version))
     {    
+        $originalProgressPreference = $progressPreference
         try {
             Write-DosMessage -Level "Information" -Message "IIS URL Rewrite Module 2 version $version not installed...installing version $version"        
-            Invoke-WebRequest -Uri $downloadUrl -OutFile $env:Temp\rewrite_amd64_en-US.msi
+            $progressPreference = 'silentlyContinue'
+            Invoke-WebRequest -Uri $downloadUrl -OutFile $env:Temp\rewrite_amd64_en-US.msi -UseBasicParsing
             Start-Process msiexec.exe -Wait -ArgumentList "/i $($env:Temp)\rewrite_amd64_en-US.msi /qn"
             Write-DosMessage -Level "Information" -Message "IIS URL Rewrite Module 2 installed successfully."
         }
         catch {
             Write-DosMessage -Level "Error" -Message "Could not install IIS URL Rewrite Module 2. Please install the IIS URL Rewrite Module 2 before proceeding: $downloadUrl"
             throw
+        }
+        finally {
+            $progressPreference = $originalProgressPreference
         }
         try {
             Remove-Item $env:Temp\rewrite_amd64_en-US.msi
