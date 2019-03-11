@@ -343,6 +343,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           type: this.groupType,
           identityProvider: principal.identityProvider,
           tenantId: principal.tenantId,
+          tenantAlias: principal.tenantAlias,
           externalIdentifier: principal.externalIdentifier
         };
         return newGroup;
@@ -389,6 +390,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           selected: false,
           identityProvider: group.identityProvider,
           tenantId: group.tenantId,
+          tenantAlias: group.tenantAlias,
           externalIdentifier: group.externalIdentifier
         };
         return newPrincipal;
@@ -567,6 +569,24 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     }
 
     return customGroup.groupName;
+  }
+
+  getPrincipalNameToDisplay(principal: IFabricPrincipal): string {
+    if (principal.principalType.toLowerCase() === 'user') {
+      return principal.identityProviderUserPrincipalName || principal.subjectId;
+    }  else if (principal.principalType.toLowerCase() === 'group') {
+      if (!principal.tenantAlias) {
+        return principal.subjectId;
+      }
+      return principal.subjectId + '@' + principal.tenantAlias;
+    }
+  }
+
+  getAdGroupNameToDisplay(adGroup: IGroup): string {
+    if (!adGroup.tenantAlias) {
+      return adGroup.groupName;
+    }
+    return adGroup.groupName + '@' + adGroup.tenantAlias;
   }
 
   getUserNameToDisplay(user: IUser): string {
