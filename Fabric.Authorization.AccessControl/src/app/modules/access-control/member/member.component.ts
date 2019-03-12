@@ -18,6 +18,7 @@ import { IGroup } from '../../../models/group.model';
 import { CurrentUserService } from '../../../services/current-user.service';
 import { AlertService } from '../../../services/global/alert.service';
 import { IAccessControlConfigService } from '../../../services/access-control-config.service';
+import { NameDisplayService } from '../../../services/name-display.service';
 
 @Component({
   selector: 'app-member',
@@ -56,7 +57,8 @@ export class MemberComponent implements OnInit, OnDestroy {
     private currentUserService: CurrentUserService,
     private alertService: AlertService,
     @Inject('IAccessControlConfigService')
-    private configService: IAccessControlConfigService
+    private configService: IAccessControlConfigService,
+    private userNameService: NameDisplayService
   ) {
   }
 
@@ -164,6 +166,10 @@ export class MemberComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.ngUnsubscribe.next();
     this.ngUnsubscribe.complete();
+  }
+
+  getPrincipalNameToDisplay(principal: IFabricPrincipal): string {
+    return this.userNameService.getPrincipalNameToDisplay(principal);
   }
 
   setSearchText(principal: IFabricPrincipal): void {

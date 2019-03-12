@@ -10,9 +10,7 @@
     <li *ngFor="let principal of principals">
       <hc-checkbox [id]="principal.subjectId + principal.tenantId" [(ngModel)]="principal.selected" (click)="selectPrincipal(principal)">
       </hc-checkbox>
-      <span *ngIf="principal.principalType == 'user'" [innerText]="principal.identityProviderUserPrincipalName">
-      </span>
-      <span *ngIf="principal.principalType == 'group'" [innerText]="principal.subjectId + '@' + principal.tenantAlias">
+      <span [innerText]="getPrincipalNameToDisplay(principal)">
       </span>
       <span [innerText]="'(' + principal.principalType + ')'">
       </span>
