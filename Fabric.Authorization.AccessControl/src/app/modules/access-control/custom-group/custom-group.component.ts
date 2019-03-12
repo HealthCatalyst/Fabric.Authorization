@@ -18,6 +18,7 @@ import { IGroup } from '../../../models/group.model';
 import { CurrentUserService } from '../../../services/current-user.service';
 import { AlertService } from '../../../services/global/alert.service';
 import { IAccessControlConfigService } from '../../../services/access-control-config.service';
+import { NameDisplayService } from '../../../services/name-display.service';
 
 @Component({
   selector: 'app-custom-group',
@@ -72,6 +73,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     private alertService: AlertService,
     @Inject('IAccessControlConfigService')
     private configService: IAccessControlConfigService,
+    private userNameService: NameDisplayService
   ) { }
 
   ngOnInit() {
@@ -572,14 +574,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   }
 
   getPrincipalNameToDisplay(principal: IFabricPrincipal): string {
-    if (principal.principalType.toLowerCase() === 'user') {
-      return principal.identityProviderUserPrincipalName || principal.subjectId;
-    }  else if (principal.principalType.toLowerCase() === 'group') {
-      if (!principal.tenantAlias) {
-        return principal.subjectId;
-      }
-      return principal.subjectId + '@' + principal.tenantAlias;
-    }
+    return this.userNameService.getPrincipalNameToDisplay(principal);
   }
 
   getAdGroupNameToDisplay(adGroup: IGroup): string {
