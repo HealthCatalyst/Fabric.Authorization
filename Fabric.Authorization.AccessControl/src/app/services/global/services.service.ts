@@ -22,6 +22,7 @@ interface IDiscoveryService {
 
 @Injectable()
 export class ServicesService {
+    private baseDiscoveryServiceUrl: string;
     public services: IService[] = [
         {
             name: 'IdentityService',
@@ -48,35 +49,34 @@ export class ServicesService {
     constructor(private http: HttpClient, private configService: ConfigService) { }
 
     public initialize() {
-        this.buildServiceMaps()
+        this.buildServiceMaps().toPromise();
     }
 
     public getIdentityAndAccessControlUrl(): Observable<UrlResponse> {
         return this.isOAuthAuthenticationEnabled.pipe(
             switchMap(isEnabled => {
-              this.services.find(s => s.name === 'DiscoveryService').requireAuthToken = isEnabled              
-              if(isEnabled) {
+              this.services.find(s => s.name === 'DiscoveryService').requireAuthToken = isEnabled;
+              if (isEnabled) {
                 // if OAuth, we get identity and access control up front
-                return forkJoin(this.identityServiceEndpoint, this.accessControlEndpoint)
+                return forkJoin(this.identityServiceEndpoint, this.accessControlEndpoint);
               } else {
                 // If Windows Auth, we have discovery up front and have to build
                 // out the service urls from discovery
                 return this.buildServiceMaps().toPromise().then(identityUrl => {
                         return this.accessControlEndpoint.toPromise().then(accessControlUrl => {
-                            return [identityUrl, accessControlUrl]
-                        })
-                    })
+                            return [identityUrl, accessControlUrl];
+                        });
+                    });
               }
             }),
             switchMap(urlList => of(new UrlResponse(urlList[0], urlList[1])))
-        )
+        );
     }
 
-    private baseDiscoveryServiceUrl: string;
     get discoveryServiceEndpoint(): Observable<string> {
         if (this.baseDiscoveryServiceUrl === undefined) {
             // if discovery service url is pushed to the website by the window.location, then use that
-            // if we get identity service url instead, then visit this website, grab the discovery_uri from 
+            // if we get identity service url instead, then visit this website, grab the discovery_uri from
             // identity instead.
             return this.configService.getDiscoveryServiceRoot()
                 .pipe(switchMap(url => url === '' ? this.discoveryServiceUrlFromIdentity : of(url)),
@@ -139,7 +139,8 @@ export class ServicesService {
 
     private buildServiceMaps(): Observable<string> {
         return this.discoveryServiceEndpoint.pipe(
-            map(discoveryUrl => `${discoveryUrl}/Services?$filter=` + this.buildServiceFilter() + `&$select=ServiceUrl,Version,ServiceName`),
+            map(discoveryUrl =>
+                `${discoveryUrl}/Services?$filter=` + this.buildServiceFilter() + `&$select=ServiceUrl,Version,ServiceName`),
             mergeMap(discoveryUrl => this.http.get<OData.IArray<IDiscoveryService>>(discoveryUrl, { withCredentials: true })),
             map(response => {
                 for (const service of this.services) {
@@ -155,7 +156,7 @@ export class ServicesService {
                         service.url = targetService.ServiceUrl;
                     }
                 }
-                
+
                 return this.services.find(s => s.name === 'IdentityService').url;
             })
         );

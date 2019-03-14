@@ -64,6 +64,9 @@ export class AuthService implements IAuthService {
 
         this.userManager = new UserManager(clientSettings);
 
+        // build out services now..
+        this.servicesService.initialize();
+
         this.userManager.events.addAccessTokenExpiring(function () {
           console.log('access token expiring');
         });
