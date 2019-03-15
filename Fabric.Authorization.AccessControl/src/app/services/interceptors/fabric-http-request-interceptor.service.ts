@@ -1,5 +1,5 @@
 
-import {from as observableFrom,  Observable } from 'rxjs';
+import {from as observableFrom,  Observable, empty } from 'rxjs';
 
 import {mergeMap} from 'rxjs/operators';
 import { Injectable, Inject } from '@angular/core';
@@ -38,6 +38,10 @@ export class FabricHttpRequestInterceptorService implements HttpInterceptor {
       );
 
       return tokenObservable.pipe(mergeMap(accessToken => {
+        // do not send request if user token was not found (not authenticated), and was required
+        if (!accessToken) {
+          return empty();
+        }
         const modifiedRequest = req.clone({
           setHeaders: {
             Authorization: `${

@@ -49,7 +49,14 @@ export class ServicesService {
     constructor(private http: HttpClient, private configService: ConfigService) { }
 
     public initialize() {
-        this.buildServiceMaps().toPromise();
+        // prevent discovery from being called twice with oauth disabled
+        this.isOAuthAuthenticationEnabled.toPromise().then(
+            isEnabled => {
+                if (isEnabled) {
+                    this.buildServiceMaps().toPromise();
+                }
+            }
+        );
     }
 
     public getIdentityAndAccessControlUrl(): Observable<UrlResponse> {
