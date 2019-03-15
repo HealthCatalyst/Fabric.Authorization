@@ -10,8 +10,10 @@ export class BrowserRequirementsService {
 
   cookiesEnabled(): boolean {
     const userAgent = window.navigator.userAgent;
-    if (!(userAgent.indexOf('MSIE ') > -1 || userAgent.indexOf('Trident') > -1) &&
-        typeof navigator.cookieEnabled !== 'undefined' && navigator.cookieEnabled) {
+    const isIE = (userAgent.indexOf('MSIE') > -1 || userAgent.indexOf('Trident') > -1);
+    if (isIE && document.cookie && document.cookie.length > 0) {
+      return true;
+    } else if (isIE === false && typeof navigator.cookieEnabled !== 'undefined' && navigator.cookieEnabled) {
       return true;
     }
     if (!document.cookie || document.cookie === '') {
