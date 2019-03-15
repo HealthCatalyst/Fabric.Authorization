@@ -40,6 +40,7 @@ export class FabricHttpRequestInterceptorService implements HttpInterceptor {
       return tokenObservable.pipe(mergeMap(accessToken => {
         // do not send request if user token was not found (not authenticated), and was required
         if (!accessToken) {
+          console.log(`Request requiring authorization was cancelled, user was not logged in. Request url: ${req.url}`);
           return empty();
         }
         const modifiedRequest = req.clone({
