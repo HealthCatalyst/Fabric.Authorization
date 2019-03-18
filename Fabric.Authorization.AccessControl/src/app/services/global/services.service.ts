@@ -1,11 +1,10 @@
 import { map, mergeMap, switchMap, tap } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of, forkJoin } from 'rxjs';
+import { Observable, of } from 'rxjs';
 
 import { ConfigService } from './config.service';
 import { OData } from './odata';
-import { UrlResponse } from '../../models/urlResponse.model';
 
 export interface IService {
     name: string;
@@ -55,27 +54,6 @@ export class ServicesService {
                 return this.buildServiceMaps().toPromise();
             })
         ).toPromise();
-    }
-
-    public getIdentityAndAccessControlUrl(): Observable<UrlResponse> {
-        return this.isOAuthAuthenticationEnabled.pipe(
-            switchMap(isEnabled => {
-              this.services.find(s => s.name === 'DiscoveryService').requireAuthToken = isEnabled;
-              if (isEnabled) {
-                // if OAuth, we get identity and access control up front
-                return forkJoin(this.identityServiceEndpoint, this.accessControlEndpoint);
-              } else {
-                // If Windows Auth, we have discovery up front and have to build
-                // out the service urls from discovery
-                return this.buildServiceMaps().toPromise().then(identityUrl => {
-                        return this.accessControlEndpoint.toPromise().then(accessControlUrl => {
-                            return [identityUrl, accessControlUrl];
-                        });
-                    });
-              }
-            }),
-            switchMap(urlList => of(new UrlResponse(urlList[0], urlList[1])))
-        );
     }
 
     get discoveryServiceEndpoint(): Observable<string> {
@@ -168,10 +146,10 @@ export class ServicesService {
     }
 
     private findUrlBestMatch(url: string) {
-        var serviceUrlMatch = "";
+        let serviceUrlMatch = '';
         this.services.forEach(element => {
             if (element.url) {
-                var result = url.toLowerCase().includes(element.url.toLowerCase());
+                const result = url.toLowerCase().includes(element.url.toLowerCase());
 
                 if (result) {
                     if (element.url.length > serviceUrlMatch.length) {
@@ -181,7 +159,7 @@ export class ServicesService {
             }
         });
 
-        var matchedService = this.services.find(s => s.url && s.url.toLowerCase() === serviceUrlMatch);
+        const matchedService = this.services.find(s => s.url && s.url.toLowerCase() === serviceUrlMatch);
         const serviceItem: IService = matchedService;
         return serviceItem;
     }
@@ -191,9 +169,10 @@ export class ServicesService {
             return characters;
         }
 
-        var i = 0;
-        while (characters[characters.length - 1 - i] === char)
+        let i = 0;
+        while (characters[characters.length - 1 - i] === char) {
             i++;
+        }
 
         return characters.substring(0, characters.length - i);
     }
@@ -203,7 +182,7 @@ export class ServicesService {
     }
 
     private parseUrl(url) {
-        var location = document.createElement("a");
+        const location = document.createElement('a');
         location.href = url;
         // IE doesn't populate all link properties when setting .href with a relative URL,
         // however .href will return an absolute URL which then can be used on itself
