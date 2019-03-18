@@ -1,14 +1,14 @@
 
-import { throwError as observableThrowError } from 'rxjs';
+import { throwError as observableThrowError, forkJoin, of } from 'rxjs';
 
-import { catchError, map, tap } from 'rxjs/operators';
+import { catchError, map, tap, switchMap } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { Response } from '@angular/http';
 import { HttpClient } from '@angular/common/http';
 import { UserManager, User, Log } from 'oidc-client';
 
-
-import { ServicesService } from './services.service';
+import { ConfigService } from './config.service';
+import { UrlResponse } from '../../models/urlResponse.model';
 
 export interface IAuthService {
   userManager: UserManager;
@@ -30,14 +30,15 @@ export class AuthService implements IAuthService {
   clientId: string;
   authority: string;
 
-  constructor(private httpClient: HttpClient, private servicesService: ServicesService) {
+  constructor(private httpClient: HttpClient, private configService: ConfigService) {
     this.clientId = 'fabric-access-control';
   }
 
   initialize(): Promise<any> {
     // Need the initializer to load all the values first
-    // This makes sure we get the correct accessControl endpoint
-    return this.servicesService.getIdentityAndAccessControlUrl().pipe(
+    // This makes sure we get the correct accessControl endpoint, from the configService
+    return forkJoin(this.configService.getIdentityServiceRoot(), this.configService.getAccessControlServiceRoot()).pipe(
+      switchMap(urls => of(new UrlResponse(urls[0], urls[1]))),
       tap(urls => {
         this.authority = urls.identityUrl;
         const clientSettings: any = {
@@ -63,9 +64,6 @@ export class AuthService implements IAuthService {
         };
 
         this.userManager = new UserManager(clientSettings);
-
-        // build out services now..
-        this.servicesService.initialize();
 
         this.userManager.events.addAccessTokenExpiring(function () {
           console.log('access token expiring');
