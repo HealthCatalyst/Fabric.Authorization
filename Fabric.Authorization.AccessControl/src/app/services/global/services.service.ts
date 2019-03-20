@@ -19,7 +19,9 @@ interface IDiscoveryService {
     Version: number;
 }
 
-@Injectable()
+@Injectable(
+    // { providedIn: 'root' }
+)
 export class ServicesService {
     private baseDiscoveryServiceUrl: string;
     public services: IService[] = [
@@ -45,7 +47,9 @@ export class ServicesService {
         }
     ];
 
-    constructor(private http: HttpClient, private configService: ConfigService) { }
+    constructor(private http: HttpClient, private configService: ConfigService) {
+        this.initialize().toPromise();
+     }
 
     public initialize() {
         return this.isOAuthAuthenticationEnabled.pipe(
@@ -53,7 +57,7 @@ export class ServicesService {
                 this.services.find(s => s.name === 'DiscoveryService').requireAuthToken = isEnabled;
                 return this.buildServiceMaps().toPromise();
             })
-        ).toPromise();
+        );
     }
 
     get discoveryServiceEndpoint(): Observable<string> {
