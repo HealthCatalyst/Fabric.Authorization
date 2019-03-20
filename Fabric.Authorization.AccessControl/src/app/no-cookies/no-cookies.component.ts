@@ -15,7 +15,7 @@ export class NoCookiesComponent implements OnInit {
   ngOnInit() {
     setInterval(() => {
       if (this.browserRequirements.cookiesEnabled()) {
-        window.location.reload();
+        this.ngOnInit();
       }
     }, 1000);
   }
