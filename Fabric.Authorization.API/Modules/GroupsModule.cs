@@ -546,7 +546,6 @@ namespace Fabric.Authorization.API.Modules
                 var identityProvider = GetQueryParameter("identityProvider");
                 var tenantId = GetQueryParameter("tenantId");
 
-
                 GroupIdentifier groupIdentifier = CreateGroupIdentifier(SetIdentityProvider(identityProvider), tenantId, parameters.groupName.ToString());
                 var group = await _groupService.GetGroup(groupIdentifier);
                 await CheckWriteAccess(group);
