@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>netcoreapp1.1</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
     <DebugType>Full</DebugType>
     <Company>Health Catalyst</Company>
     <Product>Fabric.Authorization</Product>
-    <Copyright>Copyright © 2018</Copyright>
+    <Copyright>Copyright © 2019</Copyright>
     <Version Condition=" '$(BUILD_BUILDNUMBER)' == '' ">1.0.0.0-local</Version>
     <Version Condition=" '$(BUILD_BUILDNUMBER)' != '' ">$(BUILD_BUILDNUMBER)</Version>
   </PropertyGroup>
@@ -87,15 +87,10 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="2.7.0" />
+    <PackageReference Include="Microsoft.AspNetCore.All" Version="2.2.2" />
     <PackageReference Include="Fabric.Platform.Bootstrappers.Nancy" Version="1.0.2018081702" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore" Version="1.1.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Owin" Version="1.1.2" />
-    <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="1.1.2" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="1.1.5" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="1.1.2" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="1.1.2" />
-    <PackageReference Include="Microsoft.Extensions.Logging.TraceSource" Version="1.1.2" />
     <PackageReference Include="Nancy" Version="2.0.0-clinteastwood" />
     <PackageReference Include="Nancy.Swagger" Version="2.2.29-alpha" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="1.4.0" />

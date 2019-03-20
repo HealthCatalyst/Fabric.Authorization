@@ -8,6 +8,7 @@ using Fabric.Authorization.Domain.Stores;
 using Fabric.Platform.Auth;
 using Fabric.Platform.Logging;
 using Fabric.Platform.Shared.Configuration;
+using IdentityServer4.AccessTokenValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -56,7 +57,14 @@ namespace Fabric.Authorization.API
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddWebEncoders();
+	        services.AddWebEncoders();
+	        services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
+		        .AddIdentityServerAuthentication(options =>
+		        {
+			        options.Authority = _idServerSettings.Authority;
+			        options.RequireHttpsMetadata = false;
+			        options.ApiName = _idServerSettings.ClientId;
+				});
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -66,15 +74,9 @@ namespace Fabric.Authorization.API
 
             _bootstrapper = new Bootstrapper(_logger, _appConfig, _levelSwitch, env, loggerFactory);
 
-            app.UseIdentityServerAuthentication(new IdentityServerAuthenticationOptions
-            {
-                Authority = _idServerSettings.Authority,
-                RequireHttpsMetadata = false,
-                ApiName = _idServerSettings.ClientId
-            });
-
             app.UseAngular(_appConfig, env)
                 .UseStaticFiles()
+                .UseAuthentication()
                 .UseOwin()
                 .UseFabricLoggingAndMonitoring(_logger, HealthCheck, _levelSwitch)
                 .UseAuthPlatform(_idServerSettings.Scopes, _allowedPaths)
