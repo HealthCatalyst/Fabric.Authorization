@@ -29,6 +29,24 @@ namespace Fabric.Authorization.API.Modules
             In = ParameterIn.Path
         };
 
+        private readonly Parameter _identityProviderQueryParameter = new Parameter
+        {
+            Name = "identityProvider",
+            Description = "The identity provider (IdP) of the group",
+            Required = false,
+            Type = "string",
+            In = ParameterIn.Query
+        };
+
+        private readonly Parameter _tenantIdQueryParameter = new Parameter
+        {
+            Name = "tenantId",
+            Description = "The identity provider (IdP) of the group",
+            Required = false,
+            Type = "string",
+            In = ParameterIn.Query
+        };
+
         private readonly Tag _groupsTag = new Tag { Name = "Groups", Description = "Operations for managing groups" };
 
         private readonly Parameter _securableItemParameter = new Parameter
@@ -49,10 +67,19 @@ namespace Fabric.Authorization.API.Modules
             In = ParameterIn.Body
         };
 
-        private readonly Parameter _identityProviderParameter = new Parameter
+        private readonly Parameter _identityProviderBodyParameter = new Parameter
         {
             Name = "identityProvider",
             Description = "3rd party identity provider (IdP) of the user",
+            Type = "string",
+            Required = true,
+            In = ParameterIn.Body
+        };
+
+        private readonly Parameter _tenantIdBodyParameter = new Parameter
+        {
+            Name = "tenantId",
+            Description = "Tenant ID of the group (currently only applicable for Azure AD IdP)",
             Type = "string",
             Required = true,
             In = ParameterIn.Body
@@ -144,6 +171,8 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupNameParameter,
+                    _identityProviderQueryParameter,
+                    _tenantIdQueryParameter,
                     new BodyParameter<GroupPatchApiRequest>(modelCatalog)
                     {
                         Name = "GroupPatchApiRequest",
@@ -219,7 +248,9 @@ namespace Fabric.Authorization.API.Modules
                 },
                 new[]
                 {
-                    _groupNameParameter
+                    _groupNameParameter,
+                    _identityProviderQueryParameter,
+                    _tenantIdQueryParameter
                 },
                 new[]
                 {
@@ -296,7 +327,9 @@ namespace Fabric.Authorization.API.Modules
                 },
                 new[]
                 {
-                    _groupNameParameter
+                    _groupNameParameter,
+                    _identityProviderQueryParameter,
+                    _tenantIdQueryParameter
                 },
                 new[]
                 {
@@ -306,9 +339,9 @@ namespace Fabric.Authorization.API.Modules
             #region Group -> Role Mapping Docs
 
             RouteDescriber.DescribeRouteWithParams(
-                "GetRolesFromGroup",
+                "GetRolesForGroup",
                 "",
-                "Gets roles for a group by group name",
+                "Gets roles for a group by group name, grain, and securable item",
                 new List<HttpResponseMetadata>
                 {
                     new HttpResponseMetadata<IEnumerable<RoleApiModel>>
@@ -331,7 +364,42 @@ namespace Fabric.Authorization.API.Modules
                 {
                     _groupNameParameter,
                     _securableItemParameter,
-                    _grainParameter
+                    _grainParameter,
+                    _identityProviderQueryParameter,
+                    _tenantIdQueryParameter
+                },
+                new[]
+                {
+                    _groupsTag
+                }).SecurityRequirement(OAuth2ReadScopeBuilder);
+
+            RouteDescriber.DescribeRouteWithParams(
+                "GetRolesFromGroup",
+                "",
+                "Gets roles for a group by group name and (optionally) identity provider and tenant ID",
+                new List<HttpResponseMetadata>
+                {
+                    new HttpResponseMetadata<IEnumerable<RoleApiModel>>
+                    {
+                        Code = (int) HttpStatusCode.OK,
+                        Message = "OK"
+                    },
+                    new HttpResponseMetadata
+                    {
+                        Code = (int) HttpStatusCode.Forbidden,
+                        Message = "Client does not have access"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.NotFound,
+                        Message = "Group with specified name was not found"
+                    }
+                },
+                new[]
+                {
+                    _groupNameParameter,
+                    _identityProviderQueryParameter,
+                    _tenantIdQueryParameter
                 },
                 new[]
                 {
@@ -377,7 +445,9 @@ namespace Fabric.Authorization.API.Modules
                 },
                 new[]
                 {
-                    _groupNameParameter,                    
+                    _groupNameParameter,
+                    _identityProviderQueryParameter,
+                    _tenantIdQueryParameter,
                     new BodyParameter<List<RoleApiModel>>(modelCatalog)
                     {
                         Name = "Roles",
@@ -414,6 +484,8 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupNameParameter,
+                    _identityProviderQueryParameter,
+                    _tenantIdQueryParameter,
                     new BodyParameter<List<RoleIdentifierApiRequest>>(modelCatalog)
                     {
                         Name = "Roles",
@@ -453,7 +525,9 @@ namespace Fabric.Authorization.API.Modules
                 },
                 new[]
                 {
-                    _groupNameParameter
+                    _groupNameParameter,
+                    _identityProviderQueryParameter,
+                    _tenantIdQueryParameter
                 },
                 new[]
                 {
@@ -501,6 +575,8 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupNameParameter,
+                    _identityProviderQueryParameter,
+                    _tenantIdQueryParameter
                     new BodyParameter<List<UserIdentifierApiRequest>>(modelCatalog)
                     {
                         Name = "Users",
@@ -537,8 +613,10 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupNameParameter,
+                    _identityProviderQueryParameter,
+                    _tenantIdQueryParameter,
                     _subjectIdParameter,
-                    _identityProviderParameter
+                    _identityProviderBodyParameter
                 },
                 new[]
                 {
@@ -588,8 +666,10 @@ namespace Fabric.Authorization.API.Modules
                     new BodyParameter<List<GroupIdentifierApiRequest>>(modelCatalog)
                     {
                         Name = "Groups",
-                        Description = "The directory groups to remove"
-                    }
+                        Description = "The directory groups to add"
+                    },
+                    _identityProviderQueryParameter,
+                    _tenantIdQueryParameter
                 },
                 new[]
                 {
@@ -626,6 +706,8 @@ namespace Fabric.Authorization.API.Modules
                 new[]
                 {
                     _groupNameParameter,
+                    _identityProviderQueryParameter,
+                    _tenantIdQueryParameter,
                     new BodyParameter<List<UserIdentifierApiRequest>>(modelCatalog)
                     {
                         Name = "Groups",
