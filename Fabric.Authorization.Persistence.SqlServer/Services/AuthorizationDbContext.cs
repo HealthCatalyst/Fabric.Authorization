@@ -7,7 +7,7 @@ using Fabric.Authorization.Persistence.SqlServer.Configuration;
 using Fabric.Authorization.Persistence.SqlServer.EntityModels;
 using Fabric.Authorization.Persistence.SqlServer.Extensions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Client = Fabric.Authorization.Persistence.SqlServer.EntityModels.Client;
 using Grain = Fabric.Authorization.Persistence.SqlServer.EntityModels.Grain;

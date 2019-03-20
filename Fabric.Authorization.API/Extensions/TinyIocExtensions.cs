@@ -6,13 +6,25 @@ using Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Providers;
 using Fabric.Authorization.API.Services;
 using Fabric.Authorization.Domain.Resolvers.Permissions;
 using Fabric.Authorization.Domain.Services;
+using Fabric.Platform.Http;
+using Fabric.Platform.Shared.Configuration;
+using Nancy;
+using Nancy.Owin;
 using Nancy.TinyIoc;
+using HttpRequestMessageFactory = Fabric.Authorization.API.Services.HttpRequestMessageFactory;
 
 namespace Fabric.Authorization.API.Extensions
 {
     public static class TinyIocExtensions
     {
-        public static TinyIoCContainer RegisterServices(this TinyIoCContainer container, IAppConfiguration appConfiguration)
+	    public static TinyIoCContainer UseNewHttpRequestMessageFactory(this TinyIoCContainer self, NancyContext context, IdentityServerConfidentialClientSettings settings)
+	    {
+		    var correlationToken = context.GetOwinEnvironment()?[Platform.Shared.Constants.FabricLogContextProperties.CorrelationTokenContextName] as string;
+		    self.Register<IHttpRequestMessageFactory>(new HttpRequestMessageFactory(settings.Authority, settings.ClientId, settings.ClientSecret,
+			    correlationToken ?? string.Empty, string.Empty));
+		    return self;
+	    }
+		public static TinyIoCContainer RegisterServices(this TinyIoCContainer container, IAppConfiguration appConfiguration)
         {
             container.Register<RoleService, RoleService>();
             container.Register<UserService, UserService>();

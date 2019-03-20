@@ -11,7 +11,6 @@ using Fabric.Authorization.API.Infrastructure.PipelineHooks;
 using Fabric.Authorization.API.Logging;
 using Fabric.Authorization.Domain.Events;
 using Fabric.Authorization.Domain.Services;
-using Fabric.Platform.Bootstrappers.Nancy;
 using LibOwin;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
@@ -55,9 +54,10 @@ namespace Fabric.Authorization.API
 
         protected override void RequestStartup(TinyIoCContainer container, IPipelines pipelines, NancyContext context)
         {
+			
             base.RequestStartup(container, pipelines, context);
             var owinEnvironment = context.GetOwinEnvironment();
-            if (owinEnvironment != null)
+            if (owinEnvironment != null && owinEnvironment.ContainsKey(OwinConstants.RequestUser))
             {
                 var principal = owinEnvironment[OwinConstants.RequestUser] as ClaimsPrincipal;
                 context.CurrentUser = principal;
@@ -76,7 +76,7 @@ namespace Fabric.Authorization.API
             base.ConfigureRequestContainer(container, context);
             container.Register(new NancyContextWrapper(context));
             var appConfig = container.Resolve<IAppConfiguration>();
-            container.UseHttpRequestMessageFactory(context, appConfig.IdentityServerConfidentialClientSettings);
+            container.UseNewHttpRequestMessageFactory(context, appConfig.IdentityServerConfidentialClientSettings);
             container.RegisterServices(appConfig);
 
             var configurator = container.Resolve<IPersistenceConfigurator>();

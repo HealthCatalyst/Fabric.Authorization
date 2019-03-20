@@ -42,12 +42,12 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                 entity.HasKey(p => p.Id);
                 
                 entity.Property(p => p.Id)
-                    .ForSqlServerHasColumnName("IdentityID")
+                    .HasColumnName("IdentityID")
                     .ValueGeneratedOnAdd()
                     .UseSqlServerIdentityColumn();
 
                 entity.Property(p => p.Name)
-                    .ForSqlServerHasColumnName("IdentityNM")
+                    .HasColumnName("IdentityNM")
                     .HasMaxLength(255)
                     .IsRequired();
 
@@ -66,17 +66,17 @@ namespace Fabric.Authorization.Persistence.SqlServer.Extensions
                 entity.HasKey(p => p.Id);
 
                 entity.Property(p => p.Id)
-                    .ForSqlServerHasColumnName("RoleID")
+                    .HasColumnName("RoleID")
                     .ValueGeneratedOnAdd()
                     .UseSqlServerIdentityColumn();
 
                 entity.Property(p => p.Name)
-                    .ForSqlServerHasColumnName("RoleNM")
+                    .HasColumnName("RoleNM")
                     .HasMaxLength(255)
                     .IsRequired();
                 
                 entity.Property(p => p.Description)
-                    .ForSqlServerHasColumnName("RoleDSC")
+                    .HasColumnName("RoleDSC")
                     .HasMaxLength(4000);
 
                 entity.HasMany(p => p.EDWIdentityRoles)
