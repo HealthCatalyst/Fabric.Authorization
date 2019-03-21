@@ -55,7 +55,7 @@ export class ServicesService {
     ) { }
 
     public initialize() {
-        this.isOAuthAuthenticationEnabled.subscribe(isEnabled => {
+        return this.isOAuthAuthenticationEnabled.subscribe(isEnabled => {
             this.services.find(s => s.name === 'DiscoveryService').requireAuthToken = isEnabled;
             return this.buildServiceMaps();
         });
@@ -126,12 +126,12 @@ export class ServicesService {
     }
 
     private buildServiceMaps() {
-        this.authService.isUserAuthenticated().then(result => {
+        return this.authService.isUserAuthenticated().then(result => {
             if (result) {
-                this.discoveryServiceEndpoint.subscribe(discoveryUrl => {
+                return this.discoveryServiceEndpoint.subscribe(discoveryUrl => {
                     const requestUrl = `${discoveryUrl}/Services?$filter=` + this.buildServiceFilter() +
                         `&$select=ServiceUrl,Version,ServiceName`;
-                    this.makeDiscoveryRequest(requestUrl);
+                    return this.makeDiscoveryRequest(requestUrl);
                 });
             }
         });
@@ -139,14 +139,14 @@ export class ServicesService {
 
     private makeDiscoveryRequest(requestUrl: string) {
         return this.isOAuthAuthenticationEnabled.subscribe(isEnabled => {
-            let reqObservable;
+            let discoveryRequest;
             if (isEnabled) {
-                reqObservable = this.http.get<OData.IArray<IDiscoveryService>>(requestUrl);
+                discoveryRequest = this.http.get<OData.IArray<IDiscoveryService>>(requestUrl);
             } else {
-                reqObservable = this.http.get<OData.IArray<IDiscoveryService>>(requestUrl, { withCredentials: true });
+                discoveryRequest = this.http.get<OData.IArray<IDiscoveryService>>(requestUrl, { withCredentials: true });
             }
 
-            reqObservable.subscribe(response => {
+            return discoveryRequest.subscribe(response => {
                 for (const service of this.services) {
                     const targetService: IDiscoveryService = response.value.find(
                         s => s.ServiceName === service.name && (!service.version || s.Version === service.version)

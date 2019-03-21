@@ -5,10 +5,11 @@ import { ServicesService } from './services.service';
 @Injectable()
 export class InitializerService {
 
-  constructor(@Inject('IAuthService')private authService: IAuthService, private servicesServce: ServicesService) { }
+  constructor(@Inject('IAuthService')private authService: IAuthService, private servicesService: ServicesService) { }
 
   initialize() {
-    return this.authService.initialize()
-      .then(() => this.servicesServce.initialize());
+    return this.authService.initialize().then(() => {
+      return this.servicesService.initialize();
+    });
   }
 }
