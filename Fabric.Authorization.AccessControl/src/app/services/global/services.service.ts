@@ -55,7 +55,7 @@ export class ServicesService {
     ) { }
 
     public initialize() {
-        return this.isOAuthAuthenticationEnabled.subscribe(isEnabled => {
+        return this.isOAuthAuthenticationEnabled.toPromise().then(isEnabled => {
             this.services.find(s => s.name === 'DiscoveryService').requireAuthToken = isEnabled;
             return this.buildServiceMaps();
         });
@@ -138,15 +138,15 @@ export class ServicesService {
     }
 
     private makeDiscoveryRequest(requestUrl: string) {
-        return this.isOAuthAuthenticationEnabled.subscribe(isEnabled => {
-            let discoveryRequest;
+        return this.isOAuthAuthenticationEnabled.toPromise().then(isEnabled => {
+            let discoveryRequest = this.http.get<OData.IArray<IDiscoveryService>>(requestUrl);
             if (isEnabled) {
                 discoveryRequest = this.http.get<OData.IArray<IDiscoveryService>>(requestUrl);
             } else {
                 discoveryRequest = this.http.get<OData.IArray<IDiscoveryService>>(requestUrl, { withCredentials: true });
             }
 
-            return discoveryRequest.subscribe(response => {
+            return discoveryRequest.toPromise().then(response => {
                 for (const service of this.services) {
                     const targetService: IDiscoveryService = response.value.find(
                         s => s.ServiceName === service.name && (!service.version || s.Version === service.version)
