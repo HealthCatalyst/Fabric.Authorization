@@ -1,13 +1,5 @@
-# Import Fabric Install Utilities
-$fabricInstallUtilities = ".\Fabric-Install-Utilities.psm1"
-if (!(Test-Path $fabricInstallUtilities -PathType Leaf)) {
-    Write-DosMessage -Level "Warning" -Message "Could not find fabric install utilities. Manually downloading and installing"
-    Invoke-WebRequest -Uri https://raw.githubusercontent.com/HealthCatalyst/InstallScripts/master/common/Fabric-Install-Utilities.psm1 -Headers @{"Cache-Control" = "no-cache"} -OutFile $fabricInstallUtilities
-}
-Import-Module -Name $fabricInstallUtilities -Force
-
 # Import Dos Install Utilities
-$minVersion = [System.Version]::new(1, 0, 234, 0)
+$minVersion = [System.Version]::new(1, 0, 248, 0)
 try {
     Get-InstalledModule -Name DosInstallUtilities -MinimumVersion $minVersion -ErrorAction Stop
 } catch {
@@ -15,6 +7,14 @@ try {
     Install-Module DosInstallUtilities -Scope CurrentUser -MinimumVersion $minVersion -Force
 }
 Import-Module -Name DosInstallUtilities -MinimumVersion $minVersion -Force
+
+# Import Fabric Install Utilities
+$fabricInstallUtilities = ".\Fabric-Install-Utilities.psm1"
+if (!(Test-Path $fabricInstallUtilities -PathType Leaf)) {
+    Write-DosMessage -Level "Warning" -Message "Could not find fabric install utilities. Manually downloading and installing"
+    Get-WebRequestDownload -Uri https://raw.githubusercontent.com/HealthCatalyst/InstallScripts/master/common/Fabric-Install-Utilities.psm1 -NoCache -OutFile $fabricInstallUtilities
+}
+Import-Module -Name $fabricInstallUtilities -Force
 
 Add-Type -AssemblyName System.Web
 
@@ -788,7 +788,7 @@ function Install-UrlRewriteIfNeeded
     {    
         try {
             Write-DosMessage -Level "Information" -Message "IIS URL Rewrite Module 2 version $version not installed...installing version $version"        
-            Invoke-WebRequest -Uri $downloadUrl -OutFile $env:Temp\rewrite_amd64_en-US.msi
+            Get-WebRequestDownload -Uri $downloadUrl -OutFile $env:Temp\rewrite_amd64_en-US.msi
             Start-Process msiexec.exe -Wait -ArgumentList "/i $($env:Temp)\rewrite_amd64_en-US.msi /qn"
             Write-DosMessage -Level "Information" -Message "IIS URL Rewrite Module 2 installed successfully."
         }
