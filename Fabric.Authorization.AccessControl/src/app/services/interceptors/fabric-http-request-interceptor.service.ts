@@ -19,12 +19,8 @@ export class FabricHttpRequestInterceptorService implements HttpInterceptor {
   protected static readonly AcceptHeader = 'application/json';
   protected static readonly ContentTypeHeader = 'application/json';
   protected static AuthorizationHeader = `Bearer`;
-  private _servicesService;
 
-  constructor(@Inject('IAuthService')private authService: IAuthService,
-  @Inject('ServicesService')private servicesService: ServicesService) {
-      this._servicesService = servicesService;
-    }
+  constructor(@Inject('IAuthService')private authService: IAuthService, private servicesService: ServicesService) { }
 
   intercept(
     req: HttpRequest<any>,
@@ -42,7 +38,6 @@ export class FabricHttpRequestInterceptorService implements HttpInterceptor {
       );
 
       return tokenObservable.pipe(mergeMap(accessToken => {
-        // do not send request if user token was not found (not authenticated), and was required
         const modifiedRequest = req.clone({
           setHeaders: {
             Authorization: `${
