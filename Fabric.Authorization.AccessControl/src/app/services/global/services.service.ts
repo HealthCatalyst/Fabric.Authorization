@@ -131,25 +131,38 @@ export class ServicesService {
                 this.discoveryServiceEndpoint.subscribe(discoveryUrl => {
                     const requestUrl = `${discoveryUrl}/Services?$filter=` + this.buildServiceFilter() +
                         `&$select=ServiceUrl,Version,ServiceName`;
-                    this.http.get<OData.IArray<IDiscoveryService>>(requestUrl).subscribe(response => {
-                        for (const service of this.services) {
-                            const targetService: IDiscoveryService = response.value.find(
-                                s => s.ServiceName === service.name && (!service.version || s.Version === service.version)
-                            );
-
-                            if (service.name === 'DiscoveryService') {
-                                service.url = null;
-                            } else if (targetService === undefined) {
-                                throw new Error(
-                                    `The ${service.name} was not found in discovery service. Please ensure it is set up correctly.`
-                                );
-                            } else {
-                                service.url = targetService.ServiceUrl;
-                            }
-                        }
-                    });
+                    this.makeDiscoveryRequest(requestUrl);
                 });
             }
+        });
+    }
+
+    private makeDiscoveryRequest(requestUrl: string) {
+        return this.isOAuthAuthenticationEnabled.subscribe(isEnabled => {
+            let reqObservable;
+            if (isEnabled) {
+                reqObservable = this.http.get<OData.IArray<IDiscoveryService>>(requestUrl);
+            } else {
+                reqObservable = this.http.get<OData.IArray<IDiscoveryService>>(requestUrl, { withCredentials: true });
+            }
+
+            reqObservable.subscribe(response => {
+                for (const service of this.services) {
+                    const targetService: IDiscoveryService = response.value.find(
+                        s => s.ServiceName === service.name && (!service.version || s.Version === service.version)
+                    );
+
+                    if (service.name === 'DiscoveryService') {
+                        service.url = null;
+                    } else if (targetService === undefined) {
+                        throw new Error(
+                            `The ${service.name} was not found in discovery service. Please ensure it is set up correctly.`
+                        );
+                    } else {
+                        service.url = targetService.ServiceUrl;
+                    }
+                }
+            });
         });
     }
 
