@@ -10,6 +10,8 @@ export class InitializerService {
   initialize() {
     return this.authService.initialize().then(() => {
       return this.servicesService.initialize();
+    }).then(() => {
+      console.log('Initializer service completed');
     });
   }
 }
