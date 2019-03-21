@@ -798,7 +798,7 @@ Describe 'Install-UrlRewriteIfNeeded' -Tag 'Unit'{
             It 'Installs url rewrite if minimum version is not present'{
                 # Arrange
                 Mock Test-Prerequisite { return $false}
-                Mock Invoke-WebRequest {}
+                Mock Get-WebRequestDownload {}
                 Mock Start-Process {}
                 Mock Remove-Item {}
 
@@ -806,13 +806,13 @@ Describe 'Install-UrlRewriteIfNeeded' -Tag 'Unit'{
                 Install-UrlRewriteIfNeeded -version "1.1.1.1" -downloadUrl "http://host.domain.local/url-rewrite.msi"
 
                 # Assert
-                Assert-MockCalled Invoke-WebRequest -Times 1
+                Assert-MockCalled Get-WebRequestDownload -Times 1
                 Assert-MockCalled Start-Process -Times 1
             }
             It 'Throws an exception when Start-Process fails'{
                 # Arrange
                 Mock Test-Prerequisite { return $false}
-                Mock Invoke-WebRequest {}
+                Mock Get-WebRequestDownload {}
                 Mock Start-Process {throw "bad stuff happened"}
                 Mock Remove-Item {}
 
@@ -822,7 +822,7 @@ Describe 'Install-UrlRewriteIfNeeded' -Tag 'Unit'{
             It 'Should warn when we cannot clean up the install files, but not throw an error'{
                 # Arrange
                 Mock Test-Prerequisite { return $false}
-                Mock Invoke-WebRequest {}
+                Mock Get-WebRequestDownload {}
                 Mock Start-Process {}
                 Mock Remove-Item { throw "bad stuff happened"}
                 Mock Write-DosMessage {}
@@ -838,7 +838,7 @@ Describe 'Install-UrlRewriteIfNeeded' -Tag 'Unit'{
             It 'Does not install url rewrite if minimum version is present'{
                 # Arrange
                 Mock Test-Prerequisite { return $true}
-                Mock Invoke-WebRequest {}
+                Mock Get-WebRequestDownload {}
                 Mock Start-Process {}
                 Mock Write-DosMessage {}
 
@@ -846,7 +846,7 @@ Describe 'Install-UrlRewriteIfNeeded' -Tag 'Unit'{
                 Install-UrlRewriteIfNeeded -version "1.1.1.1" -downloadUrl "http://host.domain.local/url-rewrite.msi"
 
                 # Assert
-                Assert-MockCalled Invoke-WebRequest -Times 0
+                Assert-MockCalled Get-WebRequestDownload -Times 0
                 Assert-MockCalled Start-Process -Times 0
                 Assert-MockCalled Write-DosMessage -Times 1
             }
