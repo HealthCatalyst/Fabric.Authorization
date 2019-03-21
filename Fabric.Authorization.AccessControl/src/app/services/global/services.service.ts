@@ -1,10 +1,11 @@
 import { map, mergeMap, switchMap, tap } from 'rxjs/operators';
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 
 import { ConfigService } from './config.service';
 import { OData } from './odata';
+import { IAuthService } from './auth.service';
 
 export interface IService {
     name: string;
@@ -20,7 +21,7 @@ interface IDiscoveryService {
 }
 
 @Injectable(
-    // { providedIn: 'root' }
+    { providedIn: 'root' }
 )
 export class ServicesService {
     private baseDiscoveryServiceUrl: string;
@@ -47,17 +48,13 @@ export class ServicesService {
         }
     ];
 
-    constructor(private http: HttpClient, private configService: ConfigService) {
-        this.initialize().toPromise();
-     }
+    constructor(private http: HttpClient, private configService: ConfigService, @Inject('IAuthService')private authService: IAuthService) { }
 
     public initialize() {
-        return this.isOAuthAuthenticationEnabled.pipe(
-            switchMap(isEnabled => {
-                this.services.find(s => s.name === 'DiscoveryService').requireAuthToken = isEnabled;
-                return this.buildServiceMaps().toPromise();
-            })
-        );
+        this.isOAuthAuthenticationEnabled.subscribe(isEnabled => {
+            this.services.find(s => s.name === 'DiscoveryService').requireAuthToken = isEnabled;
+            return this.buildServiceMaps();
+        });
     }
 
     get discoveryServiceEndpoint(): Observable<string> {
@@ -124,29 +121,30 @@ export class ServicesService {
         return targetService ? targetService.requireAuthToken : false;
     }
 
-    private buildServiceMaps(): Observable<string> {
-        return this.discoveryServiceEndpoint.pipe(
-            map(discoveryUrl =>
-                `${discoveryUrl}/Services?$filter=` + this.buildServiceFilter() + `&$select=ServiceUrl,Version,ServiceName`),
-            mergeMap(discoveryUrl => this.http.get<OData.IArray<IDiscoveryService>>(discoveryUrl, { withCredentials: true })),
-            map(response => {
-                for (const service of this.services) {
-                    const targetService: IDiscoveryService = response.value.find(
-                        s => s.ServiceName === service.name && (!service.version || s.Version === service.version)
-                    );
+    private buildServiceMaps() {
+        this.authService.isUserAuthenticated().then(result => {
+            if (result) {
+                this.discoveryServiceEndpoint.subscribe(discoveryUrl => {
+                    const requestUrl = `${discoveryUrl}/Services?$filter=` + this.buildServiceFilter() + `&$select=ServiceUrl,Version,ServiceName`;
+                    this.http.get<OData.IArray<IDiscoveryService>>(requestUrl).subscribe(response => {
+                        for (const service of this.services) {
+                            const targetService: IDiscoveryService = response.value.find(
+                                s => s.ServiceName === service.name && (!service.version || s.Version === service.version)
+                            );
 
-                    if (service.name === 'DiscoveryService') {
-                        service.url = null;
-                    } else if (targetService === undefined) {
-                        throw new Error(`The ${service.name} was not found in discovery service. Please ensure it is set up correctly.`);
-                    } else {
-                        service.url = targetService.ServiceUrl;
-                    }
-                }
+                            if (service.name === 'DiscoveryService') {
+                                service.url = null;
+                            } else if (targetService === undefined) {
+                                throw new Error(`The ${service.name} was not found in discovery service. Please ensure it is set up correctly.`);
+                            } else {
+                                service.url = targetService.ServiceUrl;
+                            }
+                        }
+                    })
+                });
+            }
+        })
 
-                return this.services.find(s => s.name === 'IdentityService').url;
-            })
-        );
     }
 
     private findUrlBestMatch(url: string) {
