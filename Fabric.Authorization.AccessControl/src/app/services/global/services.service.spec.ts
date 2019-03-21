@@ -3,11 +3,19 @@ import { TestBed, inject } from '@angular/core/testing';
 import { ServicesService, IService} from './services.service';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ConfigService } from './config.service';
+import { MockAuthService } from './auth.service.mock';
 
 describe('ServicesService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [ServicesService, ConfigService],
+      providers: [
+        ServicesService,
+        ConfigService,
+        {
+          provide: 'IAuthService',
+          useClass: MockAuthService
+        }
+      ],
       imports: [HttpClientTestingModule]
     });
   });
