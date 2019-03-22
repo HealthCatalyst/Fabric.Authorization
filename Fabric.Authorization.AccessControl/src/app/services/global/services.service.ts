@@ -128,7 +128,7 @@ export class ServicesService {
     private buildServiceMaps() {
         return this.authService.isUserAuthenticated().then(result => {
             if (result) {
-                return this.discoveryServiceEndpoint.subscribe(discoveryUrl => {
+                return this.discoveryServiceEndpoint.toPromise().then(discoveryUrl => {
                     const requestUrl = `${discoveryUrl}/Services?$filter=` + this.buildServiceFilter() +
                         `&$select=ServiceUrl,Version,ServiceName`;
                     return this.makeDiscoveryRequest(requestUrl);
