@@ -576,7 +576,7 @@ namespace Fabric.Authorization.API.Modules
                 {
                     _groupNameParameter,
                     _identityProviderQueryParameter,
-                    _tenantIdQueryParameter
+                    _tenantIdQueryParameter,
                     new BodyParameter<List<UserIdentifierApiRequest>>(modelCatalog)
                     {
                         Name = "Users",
@@ -623,6 +623,9 @@ namespace Fabric.Authorization.API.Modules
                     _groupsTag
                 }).SecurityRequirement(OAuth2WriteScopeBuilder);
 
+            #endregion
+
+            #region Child Group Docs
             RouteDescriber.DescribeRouteWithParams(
                 "AddChildGroups",
                 "1) Only custom groups can be a parent group. 2) Only directory groups can be child groups.",
@@ -718,6 +721,39 @@ namespace Fabric.Authorization.API.Modules
                 {
                     _groupsTag
                 }).SecurityRequirement(OAuth2WriteScopeBuilder);
+
+            RouteDescriber.DescribeRouteWithParams(
+                "GetChildGroups",
+                "",
+                "Gets child groups for a custom group",
+                new List<HttpResponseMetadata>
+                {
+                    new HttpResponseMetadata<IEnumerable<GroupRoleApiModel>>
+                    {
+                        Code = (int) HttpStatusCode.OK,
+                        Message = "OK"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.Forbidden,
+                        Message = "Client does not have access"
+                    },
+                    new HttpResponseMetadata<Error>
+                    {
+                        Code = (int) HttpStatusCode.NotFound,
+                        Message = "Custom group with specified name was not found"
+                    }
+                },
+                new[]
+                {
+                    _groupNameParameter,
+                    _identityProviderQueryParameter,
+                    _tenantIdQueryParameter
+                },
+                new[]
+                {
+                    _groupsTag
+                }).SecurityRequirement(OAuth2ReadScopeBuilder);
 
             #endregion
         }
