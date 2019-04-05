@@ -454,9 +454,9 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
               {
                 if(this.checkIfUserRemovedSelfFromGroup(currentUser, usersToRemove))
                 {
-                  this.currentUserService.resetPermssionCache();
+                  this.currentUserService.resetPermissionCache();
                 }
-              });
+              }).catch(() => console.log('Promise rejected.'));
 
             // get child groups to add/remove
             const childGroupsToAdd = this.associatedGroups
@@ -610,11 +610,11 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
 
   checkIfUserRemovedSelfFromGroup(currentUser: User, removedUsersList: IUser[]): boolean {
     var matched = false;
-    removedUsersList.forEach(removedUser => {
-      if(removedUser.subjectId.toLowerCase == currentUser.profile.sub.toLowerCase) {
-        matched = true;
-      }          
-    });
+    for(let i = 0; i < removedUsersList.length; i++){
+      if(removedUsersList[i].subjectId.toLowerCase() == currentUser.profile.sub.toLowerCase()) {
+        return true;
+      }
+    };
     return matched;
   }
 

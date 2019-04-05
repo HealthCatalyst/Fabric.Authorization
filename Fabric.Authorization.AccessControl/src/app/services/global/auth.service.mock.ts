@@ -27,6 +27,7 @@ export class MockAuthService implements IAuthService {
 
     getUser(): Promise<User>{
       const user = <User>{};
+      user.profile = {"sub": ''};
       return new Promise((resolve) =>{
         resolve(user);
       });
