@@ -20,6 +20,9 @@ import { AlertService } from '../../../services/global/alert.service';
 import { IAccessControlConfigService } from '../../../services/access-control-config.service';
 import { NameDisplayService } from '../../../services/name-display.service';
 
+import { IAuthService } from '../../../services/global/auth.service'
+import { User } from 'oidc-client'
+
 @Component({
   selector: 'app-custom-group',
   templateUrl: './custom-group.component.html',
@@ -73,7 +76,9 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
     private alertService: AlertService,
     @Inject('IAccessControlConfigService')
     private configService: IAccessControlConfigService,
-    private userNameService: NameDisplayService
+    private userNameService: NameDisplayService,
+    @Inject('IAuthService')
+    private authService: IAuthService
   ) { }
 
   ngOnInit() {
@@ -444,6 +449,15 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
             const usersToRemove = existingUsers
               .filter(existingUser => !this.associatedUsers.some(user => user.subjectId === existingUser.subjectId));
 
+            // Check if user removed self from group
+            this.authService.getUser().then(currentUser => 
+              {
+                if(this.checkIfUserRemovedSelfFromGroup(currentUser, usersToRemove))
+                {
+                  this.currentUserService.resetPermssionCache();
+                }
+              });
+
             // get child groups to add/remove
             const childGroupsToAdd = this.associatedGroups
               .filter(childGroup => !existingChildGroups.some(existingChildGroup => childGroup.groupName === existingChildGroup.groupName));
@@ -593,4 +607,15 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
 
     return user.subjectId;
   }
+
+  checkIfUserRemovedSelfFromGroup(currentUser: User, removedUsersList: IUser[]): boolean {
+    var matched = false;
+    removedUsersList.forEach(removedUser => {
+      if(removedUser.subjectId.toLowerCase == currentUser.profile.sub.toLowerCase) {
+        matched = true;
+      }          
+    });
+    return matched;
+  }
+
 }
