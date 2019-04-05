@@ -25,4 +25,9 @@ export class CurrentUserService {
 
     return of(this.permissions);
   }
+
+  resetPermssionCache() {
+    this.lastUpdateTimestamp = 0;
+  }
+
 }
