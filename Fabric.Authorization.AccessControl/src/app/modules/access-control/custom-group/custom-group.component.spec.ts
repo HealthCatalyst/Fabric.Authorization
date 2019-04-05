@@ -43,6 +43,7 @@ import { IFabricPrincipal } from '../../../models/fabricPrincipal.model';
 import { FabricAuthEdwAdminService } from '../../../services/fabric-auth-edwadmin.service';
 import { AlertService } from '../../../services/global/alert.service';
 import { Router } from '@angular/router';
+import { MockAuthService } from '../../../services/global/auth.service.mock';
 
 describe('CustomGroupComponent', () => {
   let component: CustomGroupComponent;
@@ -67,7 +68,13 @@ describe('CustomGroupComponent', () => {
           LabelModule,
           CheckboxModule,
           ProgressIndicatorsModule,
-          ToastrModule.forRoot()]
+          ToastrModule.forRoot()],
+        providers: [
+          {
+            provide: 'IAuthService',
+            useClass: MockAuthService
+          }
+         ]
       }).compileComponents();
     })
   );
