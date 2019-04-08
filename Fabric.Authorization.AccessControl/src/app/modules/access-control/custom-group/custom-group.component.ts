@@ -611,7 +611,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   checkIfUserRemovedSelfFromGroup(currentUser: User, removedUsersList: IUser[]): boolean {
     var matched = false;
     for(let i = 0; i < removedUsersList.length; i++){
-      if(removedUsersList[i].subjectId.toLowerCase() == currentUser.profile.sub.toLowerCase()) {
+      if(removedUsersList[i].subjectId.toLowerCase() === currentUser.profile.sub.toLowerCase()) {
         return true;
       }
     };
