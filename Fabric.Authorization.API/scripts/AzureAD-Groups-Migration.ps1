@@ -67,19 +67,21 @@ function Get-NonMigratedActiveDirectoryGroups {
 function Get-AzureADGroupBySID {
     param(
         [Parameter(Mandatory=$true)]
-        [string] $tenantId,
+        [System.Collections.Hashtable] $tenant,
         [Parameter(Mandatory=$true)]
         [string] $groupSID
     )
 
     $azureADGroups = @()
     # connect to Azure AD
+    $tenantId = $tenant.name
+    $tenantAlias = $tenant.alias
     if ($credentials.ContainsKey($tenantId)) {
-        Write-DosMessage -Level Information "Using cached credentials to connect to tenant $($tenantId)"
+        Write-DosMessage -Level Information "Using cached credentials to connect to tenant $tenantAlias"
         Connect-AzureADTenant -tenantId $tenantId -credential $credentials[$tenantId] | Out-Null
         $azureADGroups = Get-AzureADGroup -Filter "onPremisesSecurityIdentifier eq '$($groupSID)'"
     } else {
-        Write-DosMessage -Level Information "Credentials not cached - prompting user for credentials to connect to tenant $($tenantId)"
+        Write-DosMessage -Level Information "Credentials not cached - prompting user for credentials to connect to tenant $tenantAlias"
         $authenticationFailed = $true
         $maxRetryAttempts = 3
 
@@ -87,16 +89,16 @@ function Get-AzureADGroupBySID {
             try {
                 $credential = Connect-AzureADTenant -tenantId $tenantId
                 if (!$credentials.ContainsKey($tenantId)) {
-                    Write-DosMessage -Level Information -Message "Caching credentials for tenant $($tenantId)."
+                    Write-DosMessage -Level Information -Message "Caching credentials for tenant $tenantAlias."
                     $credentials.Add($tenantId, $credential)
                 }
 
-                Write-DosMessage -Level "Information" -Message "Retrieving group $($groupSID) from Azure AD Tenant $($tenantId)..."
+                Write-DosMessage -Level "Information" -Message "Retrieving group $($groupSID) from Azure AD Tenant $tenantAlias..."
                 $azureADGroups = Get-AzureADGroup -Filter "onPremisesSecurityIdentifier eq '$($groupSID)'"
                 $authenticationFailed = $false
             }
             catch [Microsoft.Open.Azure.AD.CommonLibrary.AadAuthenticationFailedException], [Microsoft.Open.Azure.AD.CommonLibrary.AadNeedAuthenticationException] {
-                Write-DosMessage -Level Error -Message "Error authenticating user with Azure AD tenant $($tenantId). Please try again."
+                Write-DosMessage -Level Error -Message "Error authenticating user with Azure AD tenant $tenantAlias. Please try again."
                 $authenticationFailed = $true
             }
             # Connect-AzureADTenant will not throw an exception if a valid username (i.e., user@domain, even if user is not in tenant
@@ -107,7 +109,7 @@ function Get-AzureADGroupBySID {
                     Write-DosMessage -Level Information -Message "403 error when retrieving Azure AD group."
                     # reset cached credentials for this tenantId
                     $credentials.Remove($tenantId)
-                    Write-DosMessage -Level "Information" -Message "Removed cached credentials for Azure AD Tenant $($tenantId)..."
+                    Write-DosMessage -Level "Information" -Message "Removed cached credentials for Azure AD Tenant $tenantAlias..."
                     $authenticationFailed = $true
                 }
                 else {
@@ -131,7 +133,7 @@ function Get-AzureADGroupBySID {
         Disconnect-AzureAD
     }
     catch {
-        $errorMsg = "There was an unexpected error error while disconnecting from Azure AD tenant: $($tenantId)"
+        $errorMsg = "There was an unexpected error error while disconnecting from Azure AD tenant: $tenantAlias"
         Write-DosMessage -Level Error -Message $errorMsg
         throw $errorMsg
     }
@@ -140,7 +142,7 @@ function Get-AzureADGroupBySID {
         return $azureADGroups[0]
     }
     elseif ($azureADGroups.Count -eq 0) {
-        $errorMsg = "No match found for SID $($groupSID) in Azure AD Tenant $($tenantId)."
+        $errorMsg = "No match found for SID $($groupSID) in Azure AD Tenant $tenantAlias."
         Write-DosMessage -Level Error -Message $errorMsg
     }
     else {
@@ -159,15 +161,15 @@ function Move-ActiveDirectoryGroupsToAzureAD {
 
     Write-DosMessage -Level Information -Message "Migrating AD groups to Azure AD..."
 
-    $allowedTenantIds = @()
+    $tenants = @()
 
     try {
-        $allowedTenantIds = Get-AzureADTenants -installConfigPath $installConfigPath
+        $tenants = Get-AzureADTenants -installConfigPath $installConfigPath
     }
     catch {
         Write-DosMessage -Level Fatal -Message "Error retrieving Azure AD Tenants. Check to ensure the installConfigPath ($($installConfigPath)) is correct."
     }
-    if ($null -eq $allowedTenantIds -or $allowedTenantIds.Count -eq 0) {
+    if ($null -eq $tenants -or $tenants.Count -eq 0) {
         Write-DosMessage -Level Fatal -Message  "No tenants were found in the install.config"
     }
 
@@ -209,19 +211,21 @@ function Move-ActiveDirectoryGroupsToAzureAD {
             continue
         }
 
-        foreach ($tenantId in $allowedTenantIds) {
+        foreach ($tenant in $tenants) {
+            $tenantId = $tenant.name
+            $tenantAlias = $tenant.alias
             try {
                 # query Azure AD to get external ID
-                $azureADGroup = Get-AzureADGroupBySID -tenantId $tenantId -groupSID $adGroupSID
+                $azureADGroup = Get-AzureADGroupBySID -tenant $tenant -groupSID $adGroupSID
                 if ($null -ne $azureADGroup) {
-                    Write-DosMessage -Level Information -Message "Found group $($azureADGroup.DisplayName) with ObjectId $($azureADGroup.ObjectId) in Azure AD Tenant $($tenantId)"
+                    Write-DosMessage -Level Information -Message "Found group $($azureADGroup.DisplayName) with ObjectId $($azureADGroup.ObjectId) in Azure AD Tenant $tenantAlias"
                 }
                 else {
                     continue
                 }
             }
             catch {
-                Write-DosMessage -Level Information -Message "Error occurred while processing group $($group.Name) for tenant ($tenantId). $($_.Exception)"
+                Write-DosMessage -Level Information -Message "Error occurred while processing group $($group.Name) for tenant $tenantAlias. $($_.Exception)"
                 continue
             }
 
@@ -236,7 +240,7 @@ function Move-ActiveDirectoryGroupsToAzureAD {
             FROM Groups g
             WHERE g.[GroupId] = @groupId;"
     
-            Write-DosMessage -Level "Information" -Message "Migrating group $($group.Name) to Azure AD Tenant $tenantId..."
+            Write-DosMessage -Level "Information" -Message "Migrating group $($group.Name) to Azure AD Tenant $tenantAlias..."
             try {
                 Invoke-Sql $connString $sql @{groupId=$group.GroupId;tenantId=$tenantId;externalIdentifier=$externalIdentifier} | Out-Null
             }
