@@ -398,6 +398,21 @@ function Get-SamAccountFromAccountName
     $samAccountName = $accountNameParts[1]
     return $samAccountName
 }
+
+function Get-SamDomainFromAccountName 
+{
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $accountName
+    )
+    $accountNameParts = $accountName.Split('\')
+    if ($accountNameParts.Count -ne 2) {
+        Write-DosMessage -Level "Error" -Message "Please enter an account in the form DOMAIN\account. Halting installation." 
+        throw
+    }
+    $samAccountDomain = $accountNameParts[0]
+    return $samAccountDomain
+}
     
 function Add-ListOfUsersToDosAdminGroup($edwAdminUsers, $connString, $authorizationServiceUrl, $accessToken) {	   
     # Get the group once, should be same for every user.
@@ -1296,3 +1311,4 @@ Export-ModuleMember Add-AuthorizationRegistration
 Export-ModuleMember Set-LoggingConfiguration
 Export-ModuleMember Get-PrincipalContext
 Export-ModuleMember Get-SamAccountFromAccountName 
+Export-ModuleMember Get-SamDomainFromAccountName 
