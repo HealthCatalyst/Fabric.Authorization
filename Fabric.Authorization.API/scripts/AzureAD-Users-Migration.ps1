@@ -365,9 +365,7 @@ function Get-ADUsers
 {
     param(
         [Parameter(Mandatory=$true)]
-        [System.Data.DataSet] $authDataSet,
-        [Parameter(Mandatory=$true)]
-        [string] $domain
+        [System.Data.DataSet] $authDataSet
     )
 
     # Add sourceAnchor to existing auth table (userTable) passed in
@@ -376,19 +374,27 @@ function Get-ADUsers
     {
        # cleanup variables 
        # if AD User is mispelled the values from the previous user will be entered for the next user
-       $pc = $null
        $samAccountName = $null
        $entry = $null
        $userMap = $null
        $userMapGuid = $null
 
        [string] $subjectId = $user.SubjectId.ToString()
-       # find the samAccountName in AD from the AuthorizationDB SubjectId
-       $pc = Get-PrincipalContext -domain $domain
-       $samAccountName = Get-SamAccountFromAccountName -accountName $subjectId
-
+       # This script is in Install-Authorization-Utilities.psm1
+       $samAccountName = Get-SamAccountFromAccountName -accountName $subjectId 
+       $samDomainName = Get-SamDomainFromAccountName -accountName $subjectId
+       
        # get all properties of the user with $samAccountName
-       $entry = Get-ADUser $samAccountName -Properties *
+       # You can find this script in ActiveDirectory module, located here:
+       # Remote Server Administration Tools https://www.microsoft.com/en-us/download/details.aspx?id=45520
+       try 
+       {
+            $entry = Get-ADUser $samAccountName -Server $samDomainName -Properties * 
+       } 
+       catch [Microsoft.ActiveDirectory.Management.ADServerDownException]
+       {
+            Write-DosMessage -Level "Error" -Message "Could not connect to AD Server '$($samDomainName)' for user '$($samAccountName)'."
+       }
 
        # returns a System.Byte[], needs to be converted to a base 64 string to compare with AzureAD ImmutableId         
        # the system.Guid(, ) with the comma is interpreted by powershell as passing a literal
@@ -531,10 +537,7 @@ $authorizationDatabase = Get-AuthorizationDatabaseConnectionString -authorizatio
 # Method to get authorization database users
 $authDataSet = Get-AuthUsers -connectionString $authorizationDatabase.DbConnectionString
 
-# Connect to AD to get ObjectId/ms-DS-ConsistencyGuid for each user in authorization
-$currentUserDomain = Get-CurrentUserDomain -quiet $quiet
-
-$authADDataSet = Get-ADUsers -authDataSet $authDataSet -domain $currentUserDomain
+$authADDataSet = Get-ADUsers -authDataSet $authDataSet
 
 $authAADDataSet = Get-AzureADUsers -authDataSet $authADDataSet -tenants $tenants
 
