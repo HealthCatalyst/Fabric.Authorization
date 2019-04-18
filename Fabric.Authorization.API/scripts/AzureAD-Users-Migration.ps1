@@ -381,8 +381,16 @@ function Get-ADUsers
 
        [string] $subjectId = $user.SubjectId.ToString()
        # This script is in Install-Authorization-Utilities.psm1
-       $samAccountName = Get-SamAccountFromAccountName -accountName $subjectId 
-       $samDomainName = Get-SamDomainFromAccountName -accountName $subjectId
+       try
+       {
+           $samAccountName = Get-SamAccountFromAccountName -accountName $subjectId 
+           $samDomainName = Get-SamDomainFromAccountName -accountName $subjectId
+       }
+       catch 
+       {
+            Write-DosMessage -Level "Error" -Message "Could not understand account name: '$($subjectId)'. Skipping..."
+            continue
+       }
        
        # get all properties of the user with $samAccountName
        # You can find this script in ActiveDirectory module, located here:

@@ -381,6 +381,56 @@ Describe 'Get-SamAccountFromAccountName tests' -Tag 'Unit'{
 
             #Act
             {Get-SamAccountFromAccountName -accountName $accountName } |Should -Throw
+        }      
+        It 'Should throw an exception for only a user name' {
+            #Arrange
+            $accountName = "user"
+
+            #Act
+            {Get-SamAccountFromAccountName -accountName $accountName } |Should -Throw
+        }
+    }
+}
+
+Describe 'Get-SamDomainFromAccountName tests' -Tag 'Unit'{
+    InModuleScope Install-Authorization-Utilities{
+        It 'Should parse a valid account domain'{
+            #Arrange
+            $accountName = "domain\test.user"
+
+            #Act
+            $samAccountName = Get-SamDomainFromAccountName -accountName $accountName
+
+            #Assert
+            $samAccountName | Should -Be "domain"
+        }
+        It 'Should throw an exception for an invalid account domain'{
+            #Arrange
+            $accountName = "domain\test\user"
+
+            #Act
+            {Get-SamDomainFromAccountName -accountName $accountName } |Should -Throw
+        }
+        It 'Should throw an exception for a null account domain'{
+            #Arrange
+            $accountName = $null
+
+            #Act
+            {Get-SamDomainFromAccountName -accountName $accountName } |Should -Throw
+        }
+        It 'Should throw an exception for a empty account name'{
+            #Arrange
+            $accountName = ""
+
+            #Act
+            {Get-SamDomainFromAccountName -accountName $accountName } |Should -Throw
+        }      
+        It 'Should throw an exception for only a domain name' {
+            #Arrange
+            $accountName = "domain"
+
+            #Act
+            {Get-SamDomainFromAccountName -accountName $accountName } |Should -Throw
         }
     }
 }
