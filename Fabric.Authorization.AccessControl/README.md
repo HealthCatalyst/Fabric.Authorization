@@ -11,7 +11,7 @@ If you would like to run the Access Control UI against a development version of 
 - Execute `npm run watch` to build the angular application and watch for changes
 - In VS 2017 ensure the startup project is `Fabric.Authorization.API` and the debug profile is set to `IIS`.
 - In VS 2017 begin debugging by pressing `F5`
-- In IIS, a new web applicatin will be created `AuthorizationDev`.  You will need to change the app pool; I suggest changing it the the same one as Authorization.
+- In IIS, a new web application will be created `AuthorizationDev`.  You will need to change the app pool; I suggest changing it the the same one as Authorization.
 - From time to time, the debugger set to `IIS` will remove the https binding.  If you notice things not working, check that out.
 
 This will allow you to set breakpoints in the Fabric.Authorization.API code via VS 2017. In addition you can debug the javascript via your chosen web browser using source maps.
