@@ -47,7 +47,7 @@ exports.config = {
     const root = process.env.E2E_SERVERROOT || browser.params.serverRoot;
     browser.baseUrl = process.env.E2E_BASEURL || browser.baseUrl;
 
-    const discoveryUrl = `https://${encodeURIComponent(username)}:${encodeURIComponent(password)}@${root}/DiscoveryService/v1`
+    const discoveryUrl = `https://${encodeURIComponent(username)}:${encodeURIComponent(password)}@${root}/DiscoveryService`
 
     console.log('Logging into Discovery');
 
