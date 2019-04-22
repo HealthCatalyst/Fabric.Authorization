@@ -80,7 +80,7 @@ export class MemberComponent implements OnInit, OnDestroy {
     this.grain = this.route.snapshot.paramMap.get('grain');
     this.securableItem = this.route.snapshot.paramMap.get('securableItem');
     this.returnRoute = `${this.returnRoute}/${this.grain}/${this.securableItem}`;
-    this.currentUserService.getPermissions().subscribe(p => {
+    this.currentUserService.getPermissions(this.securableItem).subscribe(p => {
       const requiredPermission = `${this.grain}/${this.securableItem}.manageauthorization`;
       if (!p.includes(requiredPermission)) {
         this.missingManageAuthorizationPermission = true;

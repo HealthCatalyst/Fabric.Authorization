@@ -67,7 +67,7 @@ export class MemberListComponent implements OnInit, OnChanges {
   }
 
   initialize() {
-    this.currentUserService.getPermissions().subscribe(p => {
+    this.currentUserService.getPermissions(this.securableItem).subscribe(p => {
       const requiredPermission = `${this.grain}/${this.securableItem}.manageauthorization`;
       if (p.includes(requiredPermission)) {
         this.hideDeleteButton = false;

@@ -20,8 +20,8 @@ import { AlertService } from '../../../services/global/alert.service';
 import { IAccessControlConfigService } from '../../../services/access-control-config.service';
 import { NameDisplayService } from '../../../services/name-display.service';
 
-import { IAuthService } from '../../../services/global/auth.service'
-import { User } from 'oidc-client'
+import { IAuthService } from '../../../services/global/auth.service';
+import { User } from 'oidc-client';
 
 @Component({
   selector: 'app-custom-group',
@@ -116,7 +116,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
           this.associatedUsers.forEach(u => u.type = this.userType);
           this.associatedGroups.forEach(g => g.type = this.groupType);
 
-          return this.currentUserService.getPermissions();
+          return this.currentUserService.getPermissions(this.securableItem);
         }),
         tap(p => {
           this.groupRoles.forEach(r => {
@@ -141,7 +141,7 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
         ).pipe(
         switchMap((roles: IRole[]) => {
           this.roles = roles;
-          return this.currentUserService.getPermissions();
+          return this.currentUserService.getPermissions(this.securableItem);
         }),
         tap(p => {
           this.roles.forEach(r => {
@@ -450,11 +450,9 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
               .filter(existingUser => !this.associatedUsers.some(user => user.subjectId === existingUser.subjectId));
 
             // Check if user removed self from group
-            this.authService.getUser().then(currentUser => 
-              {
-                if(this.checkIfUserRemovedSelfFromGroup(currentUser, usersToRemove))
-                {
-                  this.currentUserService.resetPermissionCache();
+            this.authService.getUser().then(currentUser => {
+                if (this.checkIfUserRemovedSelfFromGroup(currentUser, usersToRemove)) {
+                  this.currentUserService.resetPermissionCache(this.securableItem);
                 }
               }).catch(() => console.log('Promise rejected.'));
 
@@ -609,12 +607,12 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
   }
 
   checkIfUserRemovedSelfFromGroup(currentUser: User, removedUsersList: IUser[]): boolean {
-    var matched = false;
-    for(let i = 0; i < removedUsersList.length; i++){
-      if(removedUsersList[i].subjectId.toLowerCase() === currentUser.profile.sub.toLowerCase()) {
+    const matched = false;
+    for (let i = 0; i < removedUsersList.length; i++) {
+      if (removedUsersList[i].subjectId.toLowerCase() === currentUser.profile.sub.toLowerCase()) {
         return true;
       }
-    };
+    }
     return matched;
   }
 

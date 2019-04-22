@@ -8,26 +8,27 @@ import { Observable, of } from 'rxjs';
   providedIn: 'root'
 })
 export class CurrentUserService {
-  private permissions: Array<string> = [];
-  private lastUpdateTimestamp = 0;
+  private permissionMap: Map<string, Array<string>> = new Map<string, Array<string>>();
+  private lastUpdateTimestampMap: Map<string, number> = new Map<string, number>();
 
   constructor(private authUserService: FabricAuthUserService) {
   }
 
-  getPermissions(): Observable<string[]> {
+  getPermissions(securableItem: string): Observable<string[]> {
     const currentTimeStamp = new Date().getTime();
-    if (this.lastUpdateTimestamp === 0 || (Math.abs(currentTimeStamp - this.lastUpdateTimestamp) / 60000) > 2) {
-      this.lastUpdateTimestamp = currentTimeStamp;
-      return this.authUserService.getCurrentUserPermissions().pipe(tap(userPermissionResponse => {
-        this.permissions = userPermissionResponse.permissions;
+    if (!this.lastUpdateTimestampMap.has(securableItem)
+        || this.lastUpdateTimestampMap.get(securableItem) === 0
+        || (Math.abs(currentTimeStamp - this.lastUpdateTimestampMap.get(securableItem)) / 60000) > 2) {
+          this.lastUpdateTimestampMap.set(securableItem, currentTimeStamp);
+          return this.authUserService.getCurrentUserPermissions(securableItem).pipe(tap(userPermissionResponse => {
+            this.permissionMap.set(securableItem, userPermissionResponse.permissions);
       }), map(p => p.permissions));
     }
 
-    return of(this.permissions);
+    return of(this.permissionMap.get(securableItem));
   }
 
-  resetPermissionCache() {
-    this.lastUpdateTimestamp = 0;
+  resetPermissionCache(securableItem: string) {
+    this.lastUpdateTimestampMap.set(securableItem, 0);
   }
-
 }

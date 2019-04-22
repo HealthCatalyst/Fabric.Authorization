@@ -1,6 +1,6 @@
 
 import {tap} from 'rxjs/operators';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, Inject } from '@angular/core';
 import { Observable, of } from 'rxjs';
 
@@ -60,8 +60,14 @@ export class FabricAuthUserService extends FabricBaseService {
   }
 
   public getCurrentUserPermissions(
+    securableItem?: string
   ): Observable<IUserPermissionResponse> {
-    return this.httpClient.get<IUserPermissionResponse>(FabricAuthUserService.currentUserPermissionsApiUrl);
+    let params = new HttpParams();
+    if (securableItem) {
+      params = params.set('securableItem', securableItem);
+    }
+
+    return this.httpClient.get<IUserPermissionResponse>(FabricAuthUserService.currentUserPermissionsApiUrl, { params });
   }
 
   public getUserRoles(
