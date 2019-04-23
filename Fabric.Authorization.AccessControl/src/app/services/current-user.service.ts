@@ -16,9 +16,7 @@ export class CurrentUserService {
 
   getPermissions(securableItem: string): Observable<string[]> {
     const currentTimeStamp = new Date().getTime();
-    if (!this.lastUpdateTimestampMap.has(securableItem)
-        || this.lastUpdateTimestampMap.get(securableItem) === 0
-        || (Math.abs(currentTimeStamp - this.lastUpdateTimestampMap.get(securableItem)) / 60000) > 2) {
+    if (this.shouldRefreshCache(securableItem, currentTimeStamp)) {
           this.lastUpdateTimestampMap.set(securableItem, currentTimeStamp);
           return this.authUserService.getCurrentUserPermissions(securableItem).pipe(tap(userPermissionResponse => {
             this.permissionMap.set(securableItem, userPermissionResponse.permissions);
@@ -30,5 +28,11 @@ export class CurrentUserService {
 
   resetPermissionCache(securableItem: string) {
     this.lastUpdateTimestampMap.set(securableItem, 0);
+  }
+
+  private shouldRefreshCache(securableItem: string, currentTimeStamp: number): boolean {
+    return !this.lastUpdateTimestampMap.has(securableItem)
+        || this.lastUpdateTimestampMap.get(securableItem) === 0
+        || (Math.abs(currentTimeStamp - this.lastUpdateTimestampMap.get(securableItem)) / 60000) > 2
   }
 }
