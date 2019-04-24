@@ -17,7 +17,7 @@ namespace Fabric.Authorization.API.Extensions
 {
     public static class TinyIocExtensions
     {
-	    public static TinyIoCContainer UseNewHttpRequestMessageFactory(this TinyIoCContainer self, NancyContext context, IdentityServerConfidentialClientSettings settings)
+	    public static TinyIoCContainer UseHttpRequestMessageFactory(this TinyIoCContainer self, NancyContext context, IdentityServerConfidentialClientSettings settings)
 	    {
 		    var correlationToken = context.GetOwinEnvironment()?[Platform.Shared.Constants.FabricLogContextProperties.CorrelationTokenContextName] as string;
 		    self.Register<IHttpRequestMessageFactory>(new HttpRequestMessageFactory(settings.Authority, settings.ClientId, settings.ClientSecret,
