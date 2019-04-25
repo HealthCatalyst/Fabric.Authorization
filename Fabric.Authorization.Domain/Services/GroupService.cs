@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Fabric.Authorization.Domain.Constants;
 using Fabric.Authorization.Domain.Exceptions;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Stores;
@@ -65,9 +66,13 @@ namespace Fabric.Authorization.Domain.Services
 
         public async Task<Group> GetGroup(GroupIdentifier groupIdentifier, string clientId)
         {
-            var group = await _groupStore.Get(groupIdentifier);             
-            var clientRoles = (await _roleService.GetRoles(clientId)).ToList();
-            group.Roles = clientRoles.Intersect(group.Roles).ToList();
+            var group = await _groupStore.Get(groupIdentifier);
+            if (!string.Equals(clientId, AccessControl.ClientId, StringComparison.OrdinalIgnoreCase))
+            {
+                var clientRoles = (await _roleService.GetRoles(clientId)).ToList();
+                group.Roles = clientRoles.Intersect(group.Roles).ToList();
+            }
+
             return group;
         }
 
