@@ -8,7 +8,7 @@ If you would like to run the Access Control UI against a development version of 
 
 - Run the `setup-dependencies.ps1` PowerShell script as administrator to ensure you have the correct versions of node, npm, angular and typescript installed.
 - In Fabric.Authorization.API/appsettings.json, update the `IdentityServerConfidentialClientSettings.Authority` setting to point at your installed version of Fabric.Identity, e.g. `https://host.domain.local/identity`
-- Execute `npm run watch` to build the angular application and watch for changes
+- Launch PowerShell or gitbash as administrator and in Fabric.Authorization.AccessControl folder execute `npm install' then `npm run watch` to build the angular application and watch for changes
 - In VS 2017 ensure the startup project is `Fabric.Authorization.API` and the debug profile is set to `IIS`.
 - In VS 2017 begin debugging by pressing `F5`
 - In IIS, a new web application will be created `AuthorizationDev`.  You will need to change the app pool; I suggest changing it the the same one as Authorization.
