@@ -245,7 +245,10 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
             {
                 foreach (var groupUser in groupEntity.GroupUsers)
                 {
-                    groupUser.User.UserPermissions = groupUser.User.UserPermissions.Where(up => !up.IsDeleted).ToList();
+                    if (groupUser.User?.UserPermissions != null)
+                    {
+                        groupUser.User.UserPermissions = groupUser.User.UserPermissions.Where(up => !up.IsDeleted).ToList();
+                    }
                 }
             }
 
