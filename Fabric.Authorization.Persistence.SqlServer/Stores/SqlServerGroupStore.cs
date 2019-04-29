@@ -212,14 +212,18 @@ namespace Fabric.Authorization.Persistence.SqlServer.Stores
         {
             var groupEntities = await AuthorizationDbContext.Groups
                 .Include(g => g.GroupRoles)
-                .ThenInclude(gr => gr.Role)
-                .ThenInclude(r => r.SecurableItem)
+                    .ThenInclude(gr => gr.Role)
+                        .ThenInclude(r => r.SecurableItem)
+                .Include(g => g.GroupRoles)
+                    .ThenInclude(gr => gr.Role)
+                        .ThenInclude(r => r.RolePermissions)
                 .Include(g => g.GroupUsers)
-                .ThenInclude(gu => gu.User)
+                    .ThenInclude(gu => gu.User)
+                        .ThenInclude(u => u.UserPermissions)
                 .Include(g => g.ParentGroups)
-                .ThenInclude(cg => cg.Parent)
+                    .ThenInclude(cg => cg.Parent)
                 .Include(g => g.ChildGroups)
-                .ThenInclude(cg => cg.Child)
+                    .ThenInclude(cg => cg.Child)
                 .Where(g => !g.IsDeleted)
                 .ToArrayAsync();
 
