@@ -64,6 +64,7 @@ namespace Fabric.Authorization.API
 			        options.Authority = _idServerSettings.Authority;
 			        options.RequireHttpsMetadata = false;
 			        options.ApiName = _idServerSettings.ClientId;
+                    options.SupportedTokens = SupportedTokens.Jwt;
 				});
         }
 
