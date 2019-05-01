@@ -145,7 +145,9 @@ export class CustomGroupComponent implements OnInit, OnDestroy {
       takeUntil(this.ngUnsubscribe),
       filter((term) => !this.editMode),
       tap((term) => {
-        this.rolesForGrainAndSecurable.map(r => r.selected = false);
+        if(!this.groupNameInvalid){
+          this.rolesForGrainAndSecurable.map(r => r.selected = false);
+        }
         this.principals.map(p => p.selected = false);
         if (term && term.length > 2) {
           this.searchingGroup = true;
