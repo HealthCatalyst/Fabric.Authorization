@@ -263,6 +263,36 @@ describe('CustomGroupComponent', () => {
         + `${mockUsersResponse[0].identityProviderUserPrincipalName}`);
     });
 
+    it('dont reset the roles if group name invalid', () => {
+      // Arrange
+      component.groupNameSubject.next("test");
+      // create a few roles for component.rolesForGrainAndSecurable
+      component.rolesForGrainAndSecurable.map(r => r.selected = true)
+      component.groupNameInvalid = true;
+      component.groupNameSubject.next("test123456");
+
+      // Act
+      component.ngOnInit();
+
+      // Assert
+      expect(component.rolesForGrainAndSecurable[0].selected).toBe(true)
+  });
+
+  it('reset the roles if group name valid', () => {
+    // Arrange
+    component.groupNameSubject.next("test");
+    // create a few roles for component.rolesForGrainAndSecurable
+    component.rolesForGrainAndSecurable.map(r => r.selected = true)
+    component.groupNameInvalid = false;
+    component.groupNameSubject.next("test123456");
+
+    // Act
+    component.ngOnInit();
+
+    // Assert
+    expect(component.rolesForGrainAndSecurable[0].selected).toBe(false)
+  });
+
   });
 
   describe('save button', () => {
