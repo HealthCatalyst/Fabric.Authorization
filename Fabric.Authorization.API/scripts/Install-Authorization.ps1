@@ -54,6 +54,10 @@ $commonSettingsScope = "common"
 $commonInstallSettings = Get-InstallationSettings $commonSettingsScope -installConfigPath $installConfigPath
 Set-LoggingConfiguration -commonConfig $commonInstallSettings
 
+$discoverySettingsScope = "discoveryservice"
+$discoveryInstallSettings = Get-InstallationSettings $discoverySettingsScope -installConfigPath $installConfigPath
+$accessControlUseOauthWithDiscovery = $discoveryInstallSettings.enableOAuth
+
 $currentDirectory = $PSScriptRoot
 $zipPackage = Get-FullyQualifiedInstallationZipFile -zipPackage $installSettings.zipPackage -workingDirectory $currentDirectory
 Install-DotNetCoreIfNeeded -version "2.1.10.0" -downloadUrl "https://download.visualstudio.microsoft.com/download/pr/34ad5a08-c67b-4c6f-a65f-47cb5a83747a/02d897904bd52e8681412e353660ac66/dotnet-hosting-2.1.10-win.exe"
@@ -106,7 +110,8 @@ Set-AuthorizationEnvironmentVariables -appDirectory $installApplication.applicat
     -adminAccount $adminAccount `
     -authorizationApiSecret $authorizationApiSecret `
     -authorizationServiceUrl $authorizationServiceUrl `
-    -discoveryServiceUrl $discoveryServiceUrl
+    -discoveryServiceUrl $discoveryServiceUrl `
+    -accessControlUseOauthWithDiscovery $accessControlUseOauthWithDiscovery
 
 $accessToken = Get-AccessToken -authUrl $identityServiceUrl -clientId "fabric-installer" -scope "fabric/identity.manageresources fabric/authorization.read fabric/authorization.write fabric/authorization.dos.write fabric/authorization.manageclients" $installSettings.fabricInstallerSecret
 Add-AuthorizationRegistration -clientId "fabric-installer" -clientName "Fabric Installer" -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken | Out-Null

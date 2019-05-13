@@ -1061,7 +1061,8 @@ function Set-AuthorizationEnvironmentVariables
         [Hashtable] $adminAccount,
         [string] $authorizationApiSecret,
         [string] $authorizationServiceUrl,
-        [string] $discoveryServiceUrl
+        [string] $discoveryServiceUrl,
+        [string] $accessControlUseOauthWithDiscovery
     )
 
     $environmentVariables = @{"StorageProvider" = "sqlserver"}
@@ -1119,6 +1120,10 @@ function Set-AuthorizationEnvironmentVariables
     if ($discoveryServiceUrl) {
         $environmentVariables.Add("DiscoveryServiceSettings__UseDiscovery", "true")
         $environmentVariables.Add("DiscoveryServiceSettings__Endpoint", $discoveryServiceUrl)
+    }
+
+    if ($accessControlUseOauthWithDiscovery) {
+        $environmentVariables.Add("DiscoveryServiceSettings__UseOAuth2Authentication", $accessControlUseOauthWithDiscovery)
     }
 
     Set-EnvironmentVariables $appDirectory $environmentVariables | Out-Null
