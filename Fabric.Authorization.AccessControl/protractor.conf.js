@@ -38,7 +38,16 @@ exports.config = {
     require('ts-node').register({
       project: 'e2e/tsconfig.e2e.json'
     });
+    var HtmlScreenshotReporter = require('protractor-jasmine2-screenshot-reporter');
+
+    var screenshotReporter = new HtmlScreenshotReporter({
+      dest: 'functional-test-screenshots',
+      filename: 'test-report.html',
+      captureOnlyFailedSpecs: true
+    });
+
     jasmine.getEnv().addReporter(new SpecReporter({ spec: { displayStacktrace: true } }));
+    jasmine.getEnv().addReporter(screenshotReporter);
     browser.driver.manage().window().maximize();
 
     // take environment variables over config values

@@ -14,10 +14,11 @@ export class MemberPage {
         this.getSearchBox().sendKeys(searchString);
     }
 
-    save() {
+    async save() {
+        const until = protractor.ExpectedConditions;
         const saveButton = this.getSaveButton();
-        expect(saveButton.isEnabled()).toBe(true, 'save button was not enabled');
-        saveButton.click();
+        return browser.wait(until.elementToBeClickable(saveButton), browser.allScriptsTimeout, 'save button was not enabled')
+            .then(() => saveButton.click());
     }
 
     getRoleRow(roleToSelect: string) {
@@ -36,36 +37,35 @@ export class MemberPage {
         }).first();
     }
 
-    searchForAndSelectPrincipal(searchString: string, principalType: string) {
+    async searchForAndSelectPrincipal(searchString: string, principalType: string) {
         const until = protractor.ExpectedConditions;
         const saveButton = this.getSaveButton();
-        expect(saveButton.isEnabled()).toBe(false, 'save button was not disabled before selecting a user');
+        await expect(saveButton.isEnabled()).toBe(false, 'save button was not disabled before selecting a user');
 
         // search user
         this.searchPrincipal(searchString);
 
         // select result
         const principalListElement = this.getIdpssPrincipalResult(principalType);
-        browser.wait(until.visibilityOf(principalListElement), 3000, 'IdPSS search results were not found');
+        await browser.wait(until.visibilityOf(principalListElement), browser.allScriptsTimeout, 'IdPSS search results were not found');
 
         // overlay contains the actual clickable checkbox
         const userSelectionCheckBox = principalListElement.element(by.className('hc-checkbox-overlay'));
-        userSelectionCheckBox.click();
+        return userSelectionCheckBox.click();
     }
 
-    selectRoleAndSave(roleToSelect: string) {
+      async selectRoleAndSave(roleToSelect: string) {
         const roleRow = this.getRoleRow(roleToSelect);
         const firstRoleCheckBox = roleRow.element(by.className('hc-checkbox-overlay'));
-        firstRoleCheckBox.click();
-
-        this.save();
-        this.waitUntilMainPageLoaded(); // necessary so test does not end before saving roles
+        return firstRoleCheckBox.click()
+            .then(() => this.save())
+            .then(() => this.waitUntilMainPageLoaded()); // necessary so test does not end before saving roles
     }
 
-    private waitUntilMainPageLoaded() {
+    private async waitUntilMainPageLoaded() {
         const mainPage = new MemberListPage();
         const until = protractor.ExpectedConditions;
         const addButton = mainPage.getAddButton();
-        browser.wait(until.presenceOf(addButton), 3000, 'Main page was not loaded');
+        return browser.wait(until.presenceOf(addButton), browser.allScriptsTimeout, 'Main page was not loaded');
     }
 }
