@@ -4,21 +4,23 @@ import { MemberPage } from './member.page';
 
 export class MemberListPage {
     async getMemberListPage() {
-        browser.get(browser.baseUrl);
-        tellNgZoneItHasNoPendingMacroTasks();
+        await browser.get(browser.baseUrl);
+        await tellNgZoneItHasNoPendingMacroTasks();
     }
 
     getAddButton() { return element(by.buttonText('Add')); }
 
-    navigateToMemberPage() {
+    async navigateToMemberPage() {
         const until = protractor.ExpectedConditions;
         const addButton = this.getAddButton();
-        browser.wait(until.presenceOf(addButton), 3000, 'Add button on main page was not found');  // wait until loaded...
-        addButton.click();
+        await browser
+            .wait(until.presenceOf(addButton), browser.allScriptsTimeout, 'Add button on main page was not found');  // wait until loaded...
+        await addButton.click();
 
         const userGroupLink = element(by.linkText('Directory Group or User'));
-        browser.wait(until.presenceOf(userGroupLink), 3000, 'Link to member page was not found');
-        userGroupLink.click();
+        await browser
+            .wait(until.presenceOf(userGroupLink), browser.allScriptsTimeout, 'Link to member page was not found');
+        await userGroupLink.click();
         return new MemberPage();
     }
 }

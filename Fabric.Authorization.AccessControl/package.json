@@ -66,6 +66,7 @@
     "oidc-client": "^1.4.1",
     "popper.js": "^1.14.4",
     "protractor": "^5.4.2",
+    "protractor-jasmine2-screenshot-reporter": "^0.5.0",
     "puppeteer": "^1.2.0",
     "ts-node": "~3.2.0",
     "tslint": "~5.7.0",
