@@ -24,7 +24,7 @@ describe('member page', () => {
     // verify user has roles from above
     const roleRow = memberPage.getRoleRow(memberPage.DataMartAdmin);
     const checkbox = roleRow.element(memberPage.getCheckedCheckBoxLocator());
-    await browser.wait(until.visibilityOf(checkbox), browser.allScriptsTimeout, 'Check box was not found..');
+    await browser.wait(until.visibilityOf(checkbox), browser.allScriptsTimeout, 'Role was not select on re-search');
 
     // remove role (reset) user
     await memberPage.selectRoleAndSave(memberPage.DataMartAdmin);
@@ -45,7 +45,7 @@ describe('member page', () => {
     // verify user has roles from above
     const roleRow = memberPage.getRoleRow(memberPage.PublicEntityReader);
     const checkbox = roleRow.element(memberPage.getCheckedCheckBoxLocator());
-    await browser.wait(until.visibilityOf(checkbox), browser.allScriptsTimeout, 'Check box was not found..');
+    await browser.wait(until.visibilityOf(checkbox), browser.allScriptsTimeout, 'Role was not select on re-search');
 
     // remove role (reset) user
     await memberPage.selectRoleAndSave(memberPage.PublicEntityReader);
