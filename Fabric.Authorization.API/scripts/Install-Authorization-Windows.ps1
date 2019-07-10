@@ -836,7 +836,7 @@ if(Test-AppPoolExistsAndRunsAsUser -appPoolName $appName -userName $storedIisUse
 }
 else{
     if (![string]::IsNullOrEmpty($storedIisUser)) {
-        $userEnteredIisUser = Read-Host "Press Enter to accept the default IIS App Pool User '$($storedIisUser)' or enter a new App Pool User"
+        $userEnteredIisUser = Read-Host "Press Enter to accept the default IIS App Pool User '$($storedIisUser)' or enter a new App Pool User for $appName"
         if ([string]::IsNullOrEmpty($userEnteredIisUser)) {
             $userEnteredIisUser = $storedIisUser
         }
