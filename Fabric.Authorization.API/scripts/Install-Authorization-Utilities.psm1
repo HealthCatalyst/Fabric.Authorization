@@ -1011,8 +1011,6 @@ function Get-AdminAccount{
     param(
         [string] $adminAccount,
         [Parameter(Mandatory=$true)]
-        [string] $currentUserDomain,
-        [Parameter(Mandatory=$true)]
         [string] $installConfigPath,
         [Parameter(Mandatory=$true)]
         [bool] $quiet
@@ -1030,6 +1028,9 @@ function Get-AdminAccount{
         }
     }
     
+    $Split = $adminAccount.Split('\')
+    $currentUserDomain = $Split[0]
+    Write-DosMessage -Level "Information" -Message "The domain for the admin account is $($currentUserDomain)"
     $samAccountName = Get-SamAccountFromAccountName -accountName $adminAccount
     $adminAccountIsUser = $false
     if (Test-IsUser -samAccountName $samAccountName -domain $currentUserDomain) {
@@ -1043,7 +1044,7 @@ function Get-AdminAccount{
         throw
     }
     if ($adminAccount) {Add-InstallationSetting "authorization" "adminAccount" "$adminAccount" $installConfigPath | Out-Null}
-    return @{AdminAccountName = $adminAccount; AdminAccountIsUser = $adminAccountIsUser}
+    return @{AdminAccountName = $adminAccount; AdminAccountIsUser = $adminAccountIsUser; UserDomain = $currentUserDomain}
 }
 
 function Set-AuthorizationEnvironmentVariables

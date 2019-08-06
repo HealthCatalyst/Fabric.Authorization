@@ -75,8 +75,7 @@ if(!$noDiscoveryService){
 }
 $identityServiceUrl = Get-IdentityServiceUrl -identityServiceUrl $installSettings.identityService -installConfigPath $installConfigPath -quiet $quiet
 $authorizationServiceUrl = Get-ApplicationEndpoint -appName $installSettings.appName -applicationEndpoint $installSettings.applicationEndPoint -installConfigPath $installConfigPath -scope $installSettingsScope -quiet $quiet
-$currentUserDomain = Get-CurrentUserDomain -quiet $quiet
-$adminAccount = Get-AdminAccount -adminAccount $installSettings.adminAccount -currentUserDomain $currentUserDomain -installConfigPath $installConfigPath -quiet $quiet
+$adminAccount = Get-AdminAccount -adminAccount $installSettings.adminAccount -installConfigPath $installConfigPath -quiet $quiet
 $dosAdminGroupName = "DosAdmins"
 
 Add-DatabaseSecurity $iisUser.UserName $installSettings.edwAdminDatabaseRole $metadataDatabase.DbConnectionString
@@ -118,7 +117,7 @@ Add-AuthorizationRegistration -clientId "fabric-installer" -clientName "Fabric I
 Add-AuthorizationRegistration -clientId "fabric-access-control" -clientName "Fabric.AccessControl" -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken | Out-Null
 
 Move-DosAdminRoleToDosAdminGroup -authUrl "$authorizationServiceUrl/v1" -accessToken $accessToken -connectionString $authorizationDatabase.DbConnectionString -groupName $dosAdminGroupName
-Add-AccountToDosAdminGroup -accountName $adminAccount.AdminAccountName -domain $currentUserDomain -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken -connString $authorizationDatabase.DbConnectionString
-Add-AccountToEDWAdmin -accountName $adminAccount.AdminAccountName -domain $currentUserDomain -connString $metadataDatabase.DbConnectionString
+Add-AccountToDosAdminGroup -accountName $adminAccount.AdminAccountName -domain $adminAccount.UserDomain -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken -connString $authorizationDatabase.DbConnectionString
+Add-AccountToEDWAdmin -accountName $adminAccount.AdminAccountName -domain $adminAccount.UserDomain -connString $metadataDatabase.DbConnectionString
 Add-EdwAdminUsersToDosAdminGroup -metadataConnStr $metadataDatabase.DbConnectionString -authorizationDbConnStr $authorizationDatabase.DbConnectionString -authorizationServiceUrl $authorizationServiceUrl -accessToken $accessToken
 Invoke-MonitorShallow "$authorizationServiceUrl"
