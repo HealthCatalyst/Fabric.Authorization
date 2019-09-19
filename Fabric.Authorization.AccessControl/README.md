@@ -13,7 +13,7 @@ If you would like to run the Access Control UI against a development version of 
 
 - In Fabric.Authorization.API/appsettings.json, update the `IdentityProviderSearchSettings.Endpoint` setting to point at your installed version of Fabric.IdentityProviderSearchService, e.g. `https://host.domain.local/IdentityProviderSearchService/v1`. If you are debugging Fabric.IdentityProviderSearchService, then the debug version, `http://localhost/IdPSSDev`. Make sure to walk through the `Readme.md` for Fabric.IdentityProviderSearchService for the correct setup, then start debugging Fabric.IdentityProviderSearchService in Local IIS mode.
 
-- In the `Identity` database `ClientCorsOrigins` table, there should be an `Origin` for `http://host.domain.local` that has a ClientId that coincides with `fabric-access-control` in the `Clients` table, change to `http://localhost`.
+- In the `Identity` database `ClientCorsOrigins` table, there should be an `Origin` for `http://host.domain.local` that has a ClientId that coincides with `fabric-access-control` in the `Clients` table. For this same ClientId, add another row with this Origin: `http://localhost`. 
 - For Client `fabric-access-control` update the following 
 `Identity.ClientPostLogoutRedirectUris` table to `http://localhost/AuthorizationDev/client/logged-out` 
 `Identity.ClientRedirectUris` table to `http://localhost/AuthorizationDev/client/oidc-callback.html` and `http://localhost/AuthorizationDev/client/silent.html`
@@ -27,4 +27,4 @@ If you would like to run the Access Control UI against a development version of 
 
 This will allow you to set breakpoints in the Fabric.Authorization.API code via VS 2017. In addition you can debug the javascript via your chosen web browser using source maps. 
 
-In chrome for example, to look at the source files and set breakpoints in angular access control, start dev tools. Then go to Sources tab then webpack:// and then the following folder hierarchy ./src/app then find the folder and file with the code change and select. You should see your latest changes are showing and are able to set breakpoints.
+In `chrome` for example, to look at the source map files and set breakpoints in access control, `start dev tools`. Then go to Sources tab then `webpack://` and the following folder hierarchy `./src/app`. Find the folder and file with the code change and select. You should see your latest changes showing and are able to set breakpoints. While running `npm run watch` in `VS Code`, make a small change to the typescript, wait for it to update, then `refresh the browser` to make sure changes are getting updated.
