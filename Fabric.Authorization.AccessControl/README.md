@@ -14,7 +14,7 @@ If you would like to run the Access Control UI against a development version of 
 - In IIS, a new web application will be created `AuthorizationDev`.  You will need to change the app pool; I suggest changing it to the same one as Authorization.
 - In the `Identity` database `ClientCorsOrigins` table, there should be an `Origin` for `http://localhost` that has a ClientId that coincides with `fabric-access-control` in the `Clients` table.
 - For Client `fabric-access-control` update the following 
-`Identity.ClientPostLogoutRedirectUris` table to `https://HC2353.hqcatalyst.local/Authorization/client/logged-out` 
+`Identity.ClientPostLogoutRedirectUris` table to `http://localhost/AuthorizationDev/client/logged-out` 
 `Identity.ClientRedirectUris` table to `http://localhost/AuthorizationDev/client/oidc-callback.html` and `http://localhost/AuthorizationDev/client/silent.html`
 - From time to time, the debugger set to `IIS` will remove the https binding.  If you notice things not working, check that out.
 
