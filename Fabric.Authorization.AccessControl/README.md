@@ -23,7 +23,7 @@ If you would like to run the Access Control UI against a development version of 
 - In VS 2017 begin debugging by pressing `F5`
 - In IIS, a new web application will be created `AuthorizationDev`.  You will need to change the app pool; I suggest changing it to the same one as Authorization.
 
-- From time to time, the debugger set to `IIS` will remove the https binding.  If you notice things not working, check that out. Also you will need to stop and start the `Identity app pool` after changing `Identity` database settings to make sure previous values aren't cached.
+- From time to time, the debugger set to `IIS` will remove the https binding.  If you notice things not working, check that out. Also, you will need to stop and start the `App Pools` for Identity and Authorization after changing settings in `Identity` database tables, to make sure previous values aren't cached.
 
 This will allow you to set breakpoints in the Fabric.Authorization.API code via VS 2017. In addition you can debug the javascript via your chosen web browser using source maps. 
 
