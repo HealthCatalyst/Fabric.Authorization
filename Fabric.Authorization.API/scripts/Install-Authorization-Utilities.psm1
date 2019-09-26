@@ -1,5 +1,5 @@
 # Import Dos Install Utilities
-$minVersion = [System.Version]::new(1, 0, 248, 0)
+$minVersion = [System.Version]::new(1, 0, 270, 0)
 try {
     Get-InstalledModule -Name DosInstallUtilities -MinimumVersion $minVersion -ErrorAction Stop
 } catch {
@@ -1297,6 +1297,25 @@ function Set-LoggingConfiguration{
     }
 }
 
+function Get-AuthorizationFabricInstallerSecret {
+    param (
+        [string] $fabricInstallerSecret,
+        [string] $encryptionCertificateThumbprint
+    )
+
+    if ($fabricInstallerSecret.StartsWith("!!enc!!:")) {
+        $secretNoEnc = $fabricInstallerSecret -replace "!!enc!!:"
+        $fabricInstallerSecret = Unprotect-DosInstallerSecret -CertificateThumprint $encryptionCertificateThumbprint -EncryptedInstallerSecretValue $secretNoEnc
+    }
+
+    if ([string]::IsNullOrWhitespace($fabricInstallerSecret)) {
+        Write-DosMessage -Level "Error" -Message "There was an error decrypting the installer secret. Halting installation."
+    }
+
+    return $fabricInstallerSecret
+}
+
+
 Export-ModuleMember Install-UrlRewriteIfNeeded
 Export-ModuleMember Get-AuthorizationDatabaseConnectionString
 Export-ModuleMember Get-IdentityServiceUrl
@@ -1318,3 +1337,4 @@ Export-ModuleMember Set-LoggingConfiguration
 Export-ModuleMember Get-PrincipalContext
 Export-ModuleMember Get-SamAccountFromAccountName 
 Export-ModuleMember Get-SamDomainFromAccountName 
+Export-ModuleMember Get-AuthorizationFabricInstallerSecret
