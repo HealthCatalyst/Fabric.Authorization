@@ -46,34 +46,41 @@ if(!(Test-IsRunAsAdministrator))
 
 $ErrorActionPreference = "Stop"
 
+# Grab install configs
 Write-DosMessage -Level "Information" -Message "Using install.config: $installConfigPath"
+$configStore = @{Type = "File"; Format = "XML"; Path = "$installConfigPath"}
 $installSettingsScope = "authorization"
-$installSettings = Get-InstallationSettings $installSettingsScope -installConfigPath $installConfigPath
+$installSettings = Get-DosConfigValues -ConfigStore $configStore -Scope $installSettingsScope
 
 $commonSettingsScope = "common"
-$commonInstallSettings = Get-InstallationSettings $commonSettingsScope -installConfigPath $installConfigPath
+$commonInstallSettings = Get-DosConfigValues -ConfigStore $configStore -Scope $commonSettingsScope
 Set-LoggingConfiguration -commonConfig $commonInstallSettings
 
 $discoverySettingsScope = "discoveryservice"
-$discoveryInstallSettings = Get-InstallationSettings $discoverySettingsScope -installConfigPath $installConfigPath
+$discoveryInstallSettings = Get-DosConfigValues -ConfigStore $configStore -Scope $discoverySettingsScope
 $accessControlUseOauthWithDiscovery = $discoveryInstallSettings.enableOAuth
+
+# Grab installer secret
+$encryptionCertificate = Get-Certificate -certificateThumbprint $commonInstallSettings.encryptionCertificateThumbprint
+$fabricInstallerSecret = Get-IdentityFabricInstallerSecret `
+    -fabricInstallerSecret $commonInstallSettings.fabricInstallerSecret `
+    -encryptionCertificateThumbprint $encryptionCertificate.Thumbprint
 
 $currentDirectory = $PSScriptRoot
 $zipPackage = Get-FullyQualifiedInstallationZipFile -zipPackage $installSettings.zipPackage -workingDirectory $currentDirectory
 Install-DotNetCoreIfNeeded -version "2.1.10.0" -downloadUrl "https://download.visualstudio.microsoft.com/download/pr/34ad5a08-c67b-4c6f-a65f-47cb5a83747a/02d897904bd52e8681412e353660ac66/dotnet-hosting-2.1.10-win.exe"
 Install-UrlRewriteIfNeeded -version "7.2.1952" -downloadUrl "http://download.microsoft.com/download/D/D/E/DDE57C26-C62C-4C59-A1BB-31D58B36ADA2/rewrite_amd64_en-US.msi"
 $selectedSite = Get-IISWebSiteForInstall -selectedSiteName $installSettings.siteName -quiet $quiet -installConfigPath $installConfigPath -scope $installSettingsScope
-$selectedCerts = Get-Certificates -primarySigningCertificateThumbprint $installSettings.encryptionCertificateThumbprint -encryptionCertificateThumbprint $installSettings.encryptionCertificateThumbprint -installConfigPath $installConfigPath -scope $installSettingsScope -quiet $quiet
 $iisUser = Get-IISAppPoolUser -credential $credential -appName $installSettings.appName -storedIisUser $installSettings.iisUser -installConfigPath $installConfigPath -scope $installSettingsScope
-Add-PermissionToPrivateKey $iisUser.UserName $selectedCerts.EncryptionCertificate read
+Add-PermissionToPrivateKey $iisUser.UserName $encryptionCertificate read
 $appInsightsKey = Get-AppInsightsKey -appInsightsInstrumentationKey $installSettings.appInsightsInstrumentationKey -installConfigPath $installConfigPath -scope $installSettingsScope -quiet $quiet
-$sqlServerAddress = Get-SqlServerAddress -sqlServerAddress $installSettings.sqlServerAddress -installConfigPath $installConfigPath -quiet $quiet
+$sqlServerAddress = Get-SqlServerAddress -sqlServerAddress $commonInstallSettings.sqlServerAddress -installConfigPath $installConfigPath -quiet $quiet
 $authorizationDatabase = Get-AuthorizationDatabaseConnectionString -authorizationDbName $installSettings.authorizationDbName -sqlServerAddress $sqlServerAddress -installConfigPath $installConfigPath -quiet $quiet
 if(!$noDiscoveryService){
-    $metadataDatabase = Get-MetadataDatabaseConnectionString -metadataDbName $installSettings.metadataDbName -sqlServerAddress $sqlServerAddress -installConfigPath $installConfigPath -quiet $quiet
-    $discoveryServiceUrl = Get-DiscoveryServiceUrl -discoveryServiceUrl $installSettings.discoveryService -installConfigPath $installConfigPath -quiet $quiet
+    $metadataDatabase = Get-MetadataDatabaseConnectionString -metadataDbName $commonInstallSettings.metadataDbName -sqlServerAddress $sqlServerAddress -installConfigPath $installConfigPath -quiet $quiet
+    $discoveryServiceUrl = Get-DiscoveryServiceUrl -discoveryServiceUrl $commonInstallSettings.discoveryService -installConfigPath $installConfigPath -quiet $quiet
 }
-$identityServiceUrl = Get-IdentityServiceUrl -identityServiceUrl $installSettings.identityService -installConfigPath $installConfigPath -quiet $quiet
+$identityServiceUrl = Get-IdentityServiceUrl -identityServiceUrl $commonInstallSettings.identityService -installConfigPath $installConfigPath -quiet $quiet
 $authorizationServiceUrl = Get-ApplicationEndpoint -appName $installSettings.appName -applicationEndpoint $installSettings.applicationEndPoint -installConfigPath $installConfigPath -scope $installSettingsScope -quiet $quiet
 $adminAccount = Get-AdminAccount -adminAccount $installSettings.adminAccount -installConfigPath $installConfigPath -quiet $quiet
 $dosAdminGroupName = "DosAdmins"
@@ -85,22 +92,22 @@ $installApplication = Publish-Application -site $selectedSite `
                  -zipPackage $zipPackage `
                  -assembly "Fabric.Authorization.API.dll"
 
-Add-DatabaseSecurity $iisUser.UserName $installSettings.authorizationDatabaseRole $authorizationDatabase.DbConnectionString           
+Add-DatabaseSecurity $iisUser.UserName $installSettings.authorizationDatabaseRole $authorizationDatabase.DbConnectionString
 if(!$noDiscoveryService){
     Register-AuthorizationWithDiscovery -iisUserName $iisUser.UserName -metadataConnStr $metadataDatabase.DbConnectionString -version $installApplication.version -authorizationServiceUrl $authorizationServiceUrl
     Register-AccessControlWithDiscovery -iisUserName $iisUser.UserName -metadataConnStr $metadataDatabase.DbConnectionString -version $installApplication.version -authorizationServiceUrl $authorizationServiceUrl
-}      
+}
 
-$accessToken = Get-AccessToken -authUrl $identityServiceUrl -clientId "fabric-installer" -scope "fabric/identity.manageresources" -secret $installSettings.fabricInstallerSecret
+$accessToken = Get-AccessToken -authUrl $identityServiceUrl -clientId "fabric-installer" -scope "fabric/identity.manageresources" -secret $fabricInstallerSecret
 
 $authorizationApiSecret = Add-AuthorizationApiRegistration -identityServiceUrl $identityServiceUrl -accessToken $accessToken
 $authorizationClientSecret = Add-AuthorizationClientRegistration -identityServiceUrl $identityServiceUrl -accessToken $accessToken
 Add-AccessControlClientRegistration -identityServiceUrl $identityServiceUrl -authorizationServiceUrl $authorizationServiceUrl -accessToken $accessToken | Out-Null
 
 Set-AuthorizationEnvironmentVariables -appDirectory $installApplication.applicationDirectory `
-    -encryptionCert $selectedCerts.EncryptionCertificate `
+    -encryptionCert $encryptionCertificate `
     -clientName $clientName `
-    -encryptionCertificateThumbprint $selectedCerts.EncryptionCertificate.Thumbprint `
+    -encryptionCertificateThumbprint $encryptionCertificate.Thumbprint `
     -appInsightsInstrumentationKey $appInsightsKey `
     -authorizationClientSecret $authorizationClientSecret `
     -identityServiceUrl $identityServiceUrl `
@@ -112,7 +119,7 @@ Set-AuthorizationEnvironmentVariables -appDirectory $installApplication.applicat
     -discoveryServiceUrl $discoveryServiceUrl `
     -accessControlUseOauthWithDiscovery $accessControlUseOauthWithDiscovery
 
-$accessToken = Get-AccessToken -authUrl $identityServiceUrl -clientId "fabric-installer" -scope "fabric/identity.manageresources fabric/authorization.read fabric/authorization.write fabric/authorization.dos.write fabric/authorization.manageclients" $installSettings.fabricInstallerSecret
+$accessToken = Get-AccessToken -authUrl $identityServiceUrl -clientId "fabric-installer" -scope "fabric/identity.manageresources fabric/authorization.read fabric/authorization.write fabric/authorization.dos.write fabric/authorization.manageclients" $fabricInstallerSecret
 Add-AuthorizationRegistration -clientId "fabric-installer" -clientName "Fabric Installer" -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken | Out-Null
 Add-AuthorizationRegistration -clientId "fabric-access-control" -clientName "Fabric.AccessControl" -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken | Out-Null
 
