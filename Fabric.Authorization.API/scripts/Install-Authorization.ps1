@@ -49,8 +49,8 @@ $ErrorActionPreference = "Stop"
 # Grab install configs
 Write-DosMessage -Level "Information" -Message "Using install.config: $installConfigPath"
 $configStore = @{Type = "File"; Format = "XML"; Path = "$installConfigPath"}
-$installSettingsScope = "authorization"
-$installSettings = Get-DosConfigValues -ConfigStore $configStore -Scope $installSettingsScope
+$authorizationInstallSettingsScope = "authorization"
+$authorizationInstallSettings = Get-DosConfigValues -ConfigStore $configStore -Scope $authorizationInstallSettingsScope
 
 $commonSettingsScope = "common"
 $commonInstallSettings = Get-DosConfigValues -ConfigStore $configStore -Scope $commonSettingsScope
@@ -67,32 +67,32 @@ $fabricInstallerSecret = Get-IdentityFabricInstallerSecret `
     -encryptionCertificateThumbprint $encryptionCertificate.Thumbprint
 
 $currentDirectory = $PSScriptRoot
-$zipPackage = Get-FullyQualifiedInstallationZipFile -zipPackage $installSettings.zipPackage -workingDirectory $currentDirectory
+$zipPackage = Get-FullyQualifiedInstallationZipFile -zipPackage $authorizationInstallSettings.zipPackage -workingDirectory $currentDirectory
 Install-DotNetCoreIfNeeded -version "2.1.10.0" -downloadUrl "https://download.visualstudio.microsoft.com/download/pr/34ad5a08-c67b-4c6f-a65f-47cb5a83747a/02d897904bd52e8681412e353660ac66/dotnet-hosting-2.1.10-win.exe"
 Install-UrlRewriteIfNeeded -version "7.2.1952" -downloadUrl "http://download.microsoft.com/download/D/D/E/DDE57C26-C62C-4C59-A1BB-31D58B36ADA2/rewrite_amd64_en-US.msi"
-$selectedSite = Get-IISWebSiteForInstall -selectedSiteName $installSettings.siteName -quiet $quiet -installConfigPath $installConfigPath -scope $installSettingsScope
-$iisUser = Get-IISAppPoolUser -credential $credential -appName $installSettings.appName -storedIisUser $installSettings.iisUser -installConfigPath $installConfigPath -scope $installSettingsScope
+$selectedSite = Get-IISWebSiteForInstall -selectedSiteName $authorizationInstallSettings.siteName -quiet $quiet -installConfigPath $installConfigPath -scope $authorizationInstallSettingsScope
+$iisUser = Get-IISAppPoolUser -credential $credential -appName $authorizationInstallSettings.appName -storedIisUser $authorizationInstallSettings.iisUser -installConfigPath $installConfigPath -scope $authorizationInstallSettingsScope
 Add-PermissionToPrivateKey $iisUser.UserName $encryptionCertificate read
-$appInsightsKey = Get-AppInsightsKey -appInsightsInstrumentationKey $installSettings.appInsightsInstrumentationKey -installConfigPath $installConfigPath -scope $installSettingsScope -quiet $quiet
+$appInsightsKey = Get-AppInsightsKey -appInsightsInstrumentationKey $authorizationInstallSettings.appInsightsInstrumentationKey -installConfigPath $installConfigPath -scope $authorizationInstallSettingsScope -quiet $quiet
 $sqlServerAddress = Get-SqlServerAddress -sqlServerAddress $commonInstallSettings.sqlServerAddress -installConfigPath $installConfigPath -quiet $quiet
-$authorizationDatabase = Get-AuthorizationDatabaseConnectionString -authorizationDbName $installSettings.authorizationDbName -sqlServerAddress $sqlServerAddress -installConfigPath $installConfigPath -quiet $quiet
+$authorizationDatabase = Get-AuthorizationDatabaseConnectionString -authorizationDbName $authorizationInstallSettings.authorizationDbName -sqlServerAddress $sqlServerAddress -installConfigPath $installConfigPath -quiet $quiet
 if(!$noDiscoveryService){
     $metadataDatabase = Get-MetadataDatabaseConnectionString -metadataDbName $commonInstallSettings.metadataDbName -sqlServerAddress $sqlServerAddress -installConfigPath $installConfigPath -quiet $quiet
     $discoveryServiceUrl = Get-DiscoveryServiceUrl -discoveryServiceUrl $commonInstallSettings.discoveryService -installConfigPath $installConfigPath -quiet $quiet
 }
 $identityServiceUrl = Get-IdentityServiceUrl -identityServiceUrl $commonInstallSettings.identityService -installConfigPath $installConfigPath -quiet $quiet
-$authorizationServiceUrl = Get-ApplicationEndpoint -appName $installSettings.appName -applicationEndpoint $installSettings.applicationEndPoint -installConfigPath $installConfigPath -scope $installSettingsScope -quiet $quiet
-$adminAccount = Get-AdminAccount -adminAccount $installSettings.adminAccount -installConfigPath $installConfigPath -quiet $quiet
+$authorizationServiceUrl = Get-ApplicationEndpoint -appName $authorizationInstallSettings.appName -applicationEndpoint $authorizationInstallSettings.applicationEndPoint -installConfigPath $installConfigPath -scope $authorizationInstallSettingsScope -quiet $quiet
+$adminAccount = Get-AdminAccount -adminAccount $authorizationInstallSettings.adminAccount -installConfigPath $installConfigPath -quiet $quiet
 $dosAdminGroupName = "DosAdmins"
 
-Add-DatabaseSecurity $iisUser.UserName $installSettings.edwAdminDatabaseRole $metadataDatabase.DbConnectionString
+Add-DatabaseSecurity $iisUser.UserName $authorizationInstallSettings.edwAdminDatabaseRole $metadataDatabase.DbConnectionString
 $installApplication = Publish-Application -site $selectedSite `
-                 -appName $installSettings.appName `
+                 -appName $authorizationInstallSettings.appName `
                  -iisUser $iisUser `
                  -zipPackage $zipPackage `
                  -assembly "Fabric.Authorization.API.dll"
 
-Add-DatabaseSecurity $iisUser.UserName $installSettings.authorizationDatabaseRole $authorizationDatabase.DbConnectionString
+Add-DatabaseSecurity $iisUser.UserName $authorizationInstallSettings.authorizationDatabaseRole $authorizationDatabase.DbConnectionString
 if(!$noDiscoveryService){
     Register-AuthorizationWithDiscovery -iisUserName $iisUser.UserName -metadataConnStr $metadataDatabase.DbConnectionString -version $installApplication.version -authorizationServiceUrl $authorizationServiceUrl
     Register-AccessControlWithDiscovery -iisUserName $iisUser.UserName -metadataConnStr $metadataDatabase.DbConnectionString -version $installApplication.version -authorizationServiceUrl $authorizationServiceUrl
