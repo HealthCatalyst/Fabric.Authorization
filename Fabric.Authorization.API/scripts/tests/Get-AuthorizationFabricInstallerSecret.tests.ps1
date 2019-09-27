@@ -16,7 +16,8 @@ Import-Module $targetFilePath -Force
             It 'Should decrypt and return the installer secret' {
                 # Arrange
                 $fabricInstallerSecret = "!!enc!!:some secret"
-                Mock -CommandName  Unprotect-DosInstallerSecret { return $fabricInstallerSecret }
+                $returnSecret = "some secret"
+                Mock -CommandName  Unprotect-DosInstallerSecret { return $returnSecret }
 
                 # Act
                 $decryptedSecret = Get-AuthorizationFabricInstallerSecret `
@@ -24,7 +25,7 @@ Import-Module $targetFilePath -Force
                     -encryptionCertificateThumbprint $encryptionCertificateThumbprint
 
                 # Assert
-                $decryptedSecret | Should -eq $fabricInstallerSecret
+                $decryptedSecret | Should -eq $returnSecret
             }
 
             It 'Should not decrypt the installer secret when not encrypted' {
@@ -47,7 +48,7 @@ Import-Module $targetFilePath -Force
                 $encryptionCertificateThumbprint = "some thumbprint"
             }
 
-            It 'Should create log an error when no secret is returned' {
+            It 'Should create an error log when no secret is returned' {
                 # Arrange
                 $fabricInstallerSecret = "!!enc!!:some secret"
                 $newSecret = "new secret"
