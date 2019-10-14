@@ -22,8 +22,8 @@ cd Fabric.Authorization.wiki
 
 echo "-----Present directory = $(pwd)-----"
 
-git config user.name "vsts build"
-git config user.email "kyle.paul@healthcatalyst.com"
+git config user.name "HealthCatalystDevTest"
+git config user.email "testIdPHC@gmail.com"
 git add *.md
 
 echo "committing files"
