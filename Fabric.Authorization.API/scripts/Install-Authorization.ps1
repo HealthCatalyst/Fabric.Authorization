@@ -125,6 +125,4 @@ Add-AuthorizationRegistration -clientId "fabric-access-control" -clientName "Fab
 
 Move-DosAdminRoleToDosAdminGroup -authUrl "$authorizationServiceUrl/v1" -accessToken $accessToken -connectionString $authorizationDatabase.DbConnectionString -groupName $dosAdminGroupName
 Add-AccountToDosAdminGroup -accountName $adminAccount.AdminAccountName -domain $adminAccount.UserDomain -authorizationServiceUrl "$authorizationServiceUrl/v1" -accessToken $accessToken -connString $authorizationDatabase.DbConnectionString
-Add-AccountToEDWAdmin -accountName $adminAccount.AdminAccountName -domain $adminAccount.UserDomain -connString $metadataDatabase.DbConnectionString
-Add-EdwAdminUsersToDosAdminGroup -metadataConnStr $metadataDatabase.DbConnectionString -authorizationDbConnStr $authorizationDatabase.DbConnectionString -authorizationServiceUrl $authorizationServiceUrl -accessToken $accessToken
 Invoke-MonitorShallow "$authorizationServiceUrl"
