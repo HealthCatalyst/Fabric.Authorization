@@ -1,5 +1,5 @@
 # Import Dos Install Utilities
-$minVersion = [System.Version]::new(1, 0, 248, 0)
+$minVersion = [System.Version]::new(1, 0, 276, 0)
 try {
     Get-InstalledModule -Name DosInstallUtilities -MinimumVersion $minVersion -ErrorAction Stop
 } catch {
