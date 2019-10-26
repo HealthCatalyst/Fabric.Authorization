@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { IAccessControlConfigService } from '../access-control-config.service';
 import { IDataChangedEventArgs } from '../../models/changedDataEventArgs.model';
-import { Subject } from 'rxjs';
+import { Subject, Observable } from 'rxjs';
 import { Exception } from '../../models/exception.model';
 import { ServicesService } from './services.service';
 
@@ -20,7 +20,7 @@ export class ClientAccessControlConfigService implements IAccessControlConfigSer
     });
 
     this.fabricAuthApiUrl = this.servicesService.authorizationServiceEndpoint;
-    this.fabricExternalIdpSearchApiUrl = this.servicesService.identityProviderSearchServiceEndpoint;
+    this.fabricExternalIdpSearchApiUrl = this.servicesService.identityServiceEndpoint;
   }
 
   clientId = '';
@@ -28,5 +28,5 @@ export class ClientAccessControlConfigService implements IAccessControlConfigSer
   grain = 'dos';
   securableItem = 'datamarts';
   fabricAuthApiUrl = null;
-  fabricExternalIdpSearchApiUrl = null;
+  fabricExternalIdpSearchApiUrl: Observable<string> = null;
 }
