@@ -186,8 +186,11 @@ export class ServicesService {
     }
 
     private routeNeedsAuthToken(url: string, targetService: IService) {
-        if (targetService.name.toLowerCase().includes('identity')) {
-            return url.includes('principals');
+        const serviceName = targetService.name.toLowerCase();
+
+        if (serviceName.includes('identity')
+            && !serviceName.includes('identityprovidersearch')) {
+            return targetService.requireAuthToken || url.includes('principals');
         }
 
         return targetService.requireAuthToken;
