@@ -1,4 +1,4 @@
-import { switchMap, filter, distinctUntilChanged, debounceTime, catchError, retry } from 'rxjs/operators';
+import { switchMap, filter, distinctUntilChanged, debounceTime, catchError, retry, map } from 'rxjs/operators';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, Inject } from '@angular/core';
 import { Observable } from 'rxjs';
@@ -15,7 +15,7 @@ import { IdPSearchResult } from '../models/idpSearchResult.model';
 @Injectable()
 export class FabricExternalIdpSearchService extends FabricBaseService {
 
-  public static idPServiceBaseUrl = '';
+  public static idPServiceBaseUrl: Observable<string> = null;
 
   constructor(
     httpClient: HttpClient,
@@ -25,7 +25,9 @@ export class FabricExternalIdpSearchService extends FabricBaseService {
 
     if (!FabricExternalIdpSearchService.idPServiceBaseUrl) {
       const service = accessControlConfigService;
-      FabricExternalIdpSearchService.idPServiceBaseUrl = `${service.fabricExternalIdpSearchApiUrl}/principals/search`;
+      FabricExternalIdpSearchService.idPServiceBaseUrl = service.fabricExternalIdpSearchApiUrl.pipe(
+        map(url => `${url}/api/principals/search`)
+      );
     }
   }
 
@@ -41,7 +43,9 @@ export class FabricExternalIdpSearchService extends FabricBaseService {
               params = params.set('type', type);
           }
 
-          return this.httpClient.get<IdPSearchResult>(FabricExternalIdpSearchService.idPServiceBaseUrl, { params });
+          return FabricExternalIdpSearchService.idPServiceBaseUrl.pipe(
+            switchMap(url => this.httpClient.get<IdPSearchResult>(url, { params }))
+          );
       })
   );
   }

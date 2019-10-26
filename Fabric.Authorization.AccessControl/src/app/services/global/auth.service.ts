@@ -53,7 +53,7 @@ export class AuthService implements IAuthService {
             'fabric.profile',
             'fabric/authorization.read',
             'fabric/authorization.write',
-            'fabric/idprovider.searchusers',
+            'fabric/identity.searchusers',
             'fabric/authorization.dos.write',
             'fabric/authorization.internal'
           ].join(' '),

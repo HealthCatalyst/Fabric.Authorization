@@ -8,7 +8,7 @@ export interface IAccessControlConfigService {
   grain: string;
   securableItem: string;
   fabricAuthApiUrl: string;
-  fabricExternalIdpSearchApiUrl: string;
+  fabricExternalIdpSearchApiUrl: Observable<string>;
   dataChanged: Subject<IDataChangedEventArgs>;
   errorRaised: Subject<Exception>;
 }

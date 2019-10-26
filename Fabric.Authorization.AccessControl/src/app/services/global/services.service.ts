@@ -92,7 +92,7 @@ export class ServicesService {
     get identityServiceEndpoint(): Observable<string> {
         return this.configService.getIdentityServiceRoot().pipe(
             map(url => this.trimRightChar(url, '/'))
-        )
+        );
     }
 
     get authorizationServiceEndpoint(): string {
@@ -122,7 +122,7 @@ export class ServicesService {
         const targetService: IService = service ? service : this.findUrlBestMatch(url);
 
         // take that service, see if it requires Authentication Token
-        return targetService ? targetService.requireAuthToken : false;
+        return  targetService ? this.routeNeedsAuthToken(urlLowerCase, targetService) : false;
     }
 
     private buildServiceMaps() {
@@ -183,6 +183,14 @@ export class ServicesService {
         const matchedService = this.services.find(s => s.url && s.url.toLowerCase() === serviceUrlMatch);
         const serviceItem: IService = matchedService;
         return serviceItem;
+    }
+
+    private routeNeedsAuthToken(url: string, targetService: IService) {
+        if (targetService.name.toLowerCase().includes('identity')) {
+            return url.includes('principals');
+        }
+
+        return targetService.requireAuthToken;
     }
 
     private trimRightChar(characters, char) {
