@@ -240,6 +240,42 @@ describe('ServicesService', () => {
       expect(result).toBeFalsy();
   }));
 
+  it('matches correct service requireAuthToken, when identity service not listed first, mixed case, and at principals route',
+  inject(
+    [ServicesService], (service: ServicesService) => {
+      var strUrl = "https://testdomain.local/Identity/api/principals/search";
+      let listOfServices: IService[] = [
+        {
+          name: 'identityprovidersearchservice',
+          version: 1.2,
+          url: 'https://testdomain.local/identityprovidersearchservice/v1',
+          requireAuthToken: true
+        },
+        {
+          name: 'identityservice',
+          version: 1.1,
+          url: 'https://testdomain.local/identity',
+          requireAuthToken: false
+        },
+        {
+            name: 'AuthorizationService',
+            version: 1.3,
+            url: 'https://testdomain.local/Authorization/v1',
+            requireAuthToken: true
+        },
+        {
+            name: 'AccessControl',
+            version: 1.4,
+            url: 'https://testdomain.local/Authorization',
+            requireAuthToken: false
+        }
+    ];
+
+      service.services = listOfServices;
+      var result = service.needsAuthToken(strUrl);
+      expect(result).toBeTruthy();
+  }));
+
   it('matches correct service requireAuthToken, when Authorization service out of order, and camel case',
     inject(
       [ServicesService], (service: ServicesService) => {
