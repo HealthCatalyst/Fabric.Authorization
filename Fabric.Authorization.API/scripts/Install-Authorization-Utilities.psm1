@@ -964,7 +964,7 @@ function Add-AuthorizationClientRegistration
         ClientName = "Fabric Authorization Client";
         RequireConsent = $false; 
         AllowedGrantTypes = @("client_credentials"); 
-        AllowedScopes = @("fabric/identity.read", "fabric/identity.searchusers", "fabric/idprovider.searchusers");
+        AllowedScopes = @("fabric/identity.read", "fabric/identity.searchusers");
     }
     $jsonBody = ConvertTo-Json $body
 
@@ -987,7 +987,7 @@ function Add-AccessControlClientRegistration
         clientId = "fabric-access-control";
         clientName = "Fabric Authorization Access Control Client";
         requireConsent = "false";
-        allowedScopes = "openid", "profile", "fabric.profile", "fabric/authorization.read", "fabric/authorization.write", "fabric/authorization.internal", "fabric/idprovider.searchusers", "fabric/authorization.dos.write";
+        allowedScopes = "openid", "profile", "fabric.profile", "fabric/authorization.read", "fabric/authorization.write", "fabric/authorization.internal", "fabric/identity.searchusers", "fabric/authorization.dos.write";
         allowOfflineAccess = $false;
         allowAccessTokensViaBrowser = $true;
         enableLocalLogin = $false;
