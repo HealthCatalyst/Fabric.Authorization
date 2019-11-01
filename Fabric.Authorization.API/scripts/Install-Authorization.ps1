@@ -2,33 +2,34 @@
 #Requires -Version 5.1
 #Requires -Modules PowerShellGet, PackageManagement
 
-# Import Dos Install Utilities
-$minVersion = [System.Version]::new(1, 0, 279, 0)
-try {
-    Get-InstalledModule -Name DosInstallUtilities -MinimumVersion $minVersion -ErrorAction Stop
-} catch {
-    Write-Host "Installing DosInstallUtilities from Powershell Gallery"
-    Install-Module DosInstallUtilities -Scope CurrentUser -MinimumVersion $minVersion -Force
-}
-Import-Module -Name DosInstallUtilities -MinimumVersion $minVersion -Force
-
 param(
     [PSCredential] $credential,
-    [ValidateScript({
-        if (!(Test-Path $_)) {
-            throw "Path $_ does not exist. Please enter valid path to the install.config."
-        }
-        if (!(Test-Path $_ -PathType Leaf)) {
-            throw "Path $_ is not a file. Please enter a valid path to the install.config."
-        }
-        return $true
-    })] 
+    [ValidateScript( {
+            if (!(Test-Path $_)) {
+                throw "Path $_ does not exist. Please enter valid path to the install.config."
+            }
+            if (!(Test-Path $_ -PathType Leaf)) {
+                throw "Path $_ is not a file. Please enter a valid path to the install.config."
+            }
+            return $true
+        })] 
     [string] $installConfigPath = "$PSScriptRoot\install.config", 
     [switch] $noDiscoveryService, 
     [switch] $quiet
 )
 
 Import-Module -Name .\Install-Authorization-Utilities.psm1 -Force
+
+# Import Dos Install Utilities
+$minVersion = [System.Version]::new(1, 0, 279, 0)
+try {
+    Get-InstalledModule -Name DosInstallUtilities -MinimumVersion $minVersion -ErrorAction Stop
+}
+catch {
+    Write-Host "Installing DosInstallUtilities from Powershell Gallery"
+    Install-Module DosInstallUtilities -Scope CurrentUser -MinimumVersion $minVersion -Force
+}
+Import-Module -Name DosInstallUtilities -MinimumVersion $minVersion -Force
 
 # Import Identity Install Utilities
 $identityInstallUtilities = ".\Install-Identity-Utilities.psm1"
@@ -48,8 +49,7 @@ Import-Module -Name $fabricInstallUtilities -Force
 
 Test-MeetsMinimumRequiredPowerShellVerion -majorVersion 4
 
-if(!(Test-IsRunAsAdministrator))
-{
+if (!(Test-IsRunAsAdministrator)) {
     Write-DosMessage -Level "Error" -Message "You must run this script as an administrator. Halting configuration."
     throw
 }
@@ -58,7 +58,7 @@ $ErrorActionPreference = "Stop"
 
 # Grab install configs
 Write-DosMessage -Level "Information" -Message "Using install.config: $installConfigPath"
-$configStore = @{Type = "File"; Format = "XML"; Path = "$installConfigPath"}
+$configStore = @{Type = "File"; Format = "XML"; Path = "$installConfigPath" }
 $authorizationInstallSettingsScope = "authorization"
 $authorizationInstallSettings = Get-DosConfigValues -ConfigStore $configStore -Scope $authorizationInstallSettingsScope
 
@@ -86,7 +86,7 @@ Add-PermissionToPrivateKey $iisUser.UserName $encryptionCertificate read
 $appInsightsKey = Get-AppInsightsKey -appInsightsInstrumentationKey $authorizationInstallSettings.appInsightsInstrumentationKey -installConfigPath $installConfigPath -scope $authorizationInstallSettingsScope -quiet $quiet
 $sqlServerAddress = Get-SqlServerAddress -sqlServerAddress $commonInstallSettings.sqlServerAddress -installConfigPath $installConfigPath -quiet $quiet
 $authorizationDatabase = Get-AuthorizationDatabaseConnectionString -authorizationDbName $authorizationInstallSettings.authorizationDbName -sqlServerAddress $sqlServerAddress -installConfigPath $installConfigPath -quiet $quiet
-if(!$noDiscoveryService){
+if (!$noDiscoveryService) {
     $metadataDatabase = Get-MetadataDatabaseConnectionString -metadataDbName $commonInstallSettings.metadataDbName -sqlServerAddress $sqlServerAddress -installConfigPath $installConfigPath -quiet $quiet
     $discoveryServiceUrl = Get-DiscoveryServiceUrl -discoveryServiceUrl $commonInstallSettings.discoveryService -installConfigPath $installConfigPath -quiet $quiet
 }
@@ -97,13 +97,13 @@ $dosAdminGroupName = "DosAdmins"
 
 Add-DatabaseSecurity $iisUser.UserName $authorizationInstallSettings.edwAdminDatabaseRole $metadataDatabase.DbConnectionString
 $installApplication = Publish-Application -site $selectedSite `
-                 -appName $authorizationInstallSettings.appName `
-                 -iisUser $iisUser `
-                 -zipPackage $zipPackage `
-                 -assembly "Fabric.Authorization.API.dll"
+    -appName $authorizationInstallSettings.appName `
+    -iisUser $iisUser `
+    -zipPackage $zipPackage `
+    -assembly "Fabric.Authorization.API.dll"
 
 Add-DatabaseSecurity $iisUser.UserName $authorizationInstallSettings.authorizationDatabaseRole $authorizationDatabase.DbConnectionString
-if(!$noDiscoveryService){
+if (!$noDiscoveryService) {
     Register-AuthorizationWithDiscovery -iisUserName $iisUser.UserName -metadataConnStr $metadataDatabase.DbConnectionString -version $installApplication.version -authorizationServiceUrl $authorizationServiceUrl
     Register-AccessControlWithDiscovery -iisUserName $iisUser.UserName -metadataConnStr $metadataDatabase.DbConnectionString -version $installApplication.version -authorizationServiceUrl $authorizationServiceUrl
 }
