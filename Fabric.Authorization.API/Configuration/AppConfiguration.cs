@@ -18,7 +18,6 @@ namespace Fabric.Authorization.API.Configuration
         public EntityFrameworkSettings EntityFrameworkSettings { get; set; }
         public string ApplicationEndpoint { get; set; }
         public DiscoveryServiceSettings DiscoveryServiceSettings { get; set; }
-        public IdentityProviderSearchSettings IdentityProviderSearchSettings { get; set; }
         public bool MigrateDuplicateGroups { get; set; }
         public bool MigrateGroupSource { get; set; }
         public bool MigrateGroupIdentityProvider { get; set; }
