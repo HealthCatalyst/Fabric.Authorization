@@ -8,7 +8,6 @@ using Catalyst.Fabric.Authorization.Models;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.RemoteServices.Identity.Providers;
-using Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Providers;
 using Fabric.Authorization.Domain;
 using Fabric.Authorization.Domain.Services;
 using Fabric.Authorization.Persistence.SqlServer.Configuration;
@@ -58,7 +57,7 @@ namespace Fabric.Authorization.IntegrationTests
             }
         }
 
-        public Browser GetBrowser(ClaimsPrincipal principal, string storageProvider, IIdentityServiceProvider identityServiceProvider = null, IIdPSearchProvider idPSearchProvider = null)
+        public Browser GetBrowser(ClaimsPrincipal principal, string storageProvider, IIdentityServiceProvider identityServiceProvider = null)
         {
             var appConfiguration = new AppConfiguration
             {
@@ -82,7 +81,7 @@ namespace Fabric.Authorization.IntegrationTests
             var hostingEnvironment = new Mock<IHostingEnvironment>();
 
             Bootstrapper = new TestBootstrapper(new Mock<ILogger>().Object, appConfiguration,
-                new LoggingLevelSwitch(), hostingEnvironment.Object, principal, identityServiceProvider, idPSearchProvider);
+                new LoggingLevelSwitch(), hostingEnvironment.Object, principal, identityServiceProvider);
 
             return new Browser(Bootstrapper, context =>
             {

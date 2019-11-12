@@ -25,7 +25,7 @@ namespace Fabric.Authorization.API.Modules
         private readonly GroupService _groupService;
         private readonly ClientService _clientService;
         private readonly GrainService _grainService;
-        private readonly IdPSearchService _idPSearchService;
+        private readonly GroupSearchService _groupSearchService;
 
         public static string InvalidRoleArrayMessage =
             "No roles present in payload; please ensure you are posting an array of RoleApiModels.";
@@ -46,13 +46,13 @@ namespace Fabric.Authorization.API.Modules
             AccessService accessService,
             ClientService clientService,
             GrainService grainService,
-            IdPSearchService idPSearchService,
+            GroupSearchService groupSearchService,
             IAppConfiguration appConfiguration = null) : base("/v1/groups", logger, validator, accessService, appConfiguration)
         {
             _groupService = groupService;
             _clientService = clientService;
             _grainService = grainService;
-            _idPSearchService = idPSearchService;
+            _groupSearchService = groupSearchService;
 
             Get("/",
             async _ => await GetGroups().ConfigureAwait(false),
@@ -221,7 +221,7 @@ namespace Fabric.Authorization.API.Modules
             {
                 if (string.Equals(incomingGroup.IdentityProvider, IdentityConstants.AzureActiveDirectory, StringComparison.OrdinalIgnoreCase))
                 {
-                    var idPSearchResponse = await _idPSearchService.GetGroupAsync(incomingGroup.IdentityProvider, incomingGroup.Name, incomingGroup.TenantId);
+                    var idPSearchResponse = await this._groupSearchService.GetGroupAsync(incomingGroup.IdentityProvider, incomingGroup.Name, incomingGroup.TenantId);
                     if (idPSearchResponse.HttpStatusCode != System.Net.HttpStatusCode.OK)
                     {
                         return CreateFailureResponse(

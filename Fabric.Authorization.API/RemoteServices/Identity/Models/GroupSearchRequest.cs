@@ -1,6 +1,6 @@
-﻿namespace Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Models
+﻿namespace Fabric.Authorization.API.RemoteServices.Identity.Models
 {
-    public class IdPGroupRequest
+    public class GroupSearchRequest
     {
         public string IdentityProvider { get; set; }
         public string TenantId { get; set; }

@@ -7,8 +7,8 @@ using Catalyst.Fabric.Authorization.Models;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.Constants;
 using Fabric.Authorization.API.Models;
-using Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Models;
-using Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Providers;
+using Fabric.Authorization.API.RemoteServices.Identity.Models;
+using Fabric.Authorization.API.RemoteServices.Identity.Providers;
 using Fabric.Authorization.Domain;
 using Fabric.Authorization.Domain.Models;
 using Fabric.Authorization.Domain.Services;
@@ -44,9 +44,9 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             {
                 fixture.ConnectionStrings = connectionStrings;
             }
-            Browser = fixture.GetBrowser(Principal, storageProvider, null, CreateMockIdPProvider(new List<IdPGroup>
+            Browser = fixture.GetBrowser(Principal, storageProvider, this.CreateMockIdentityServiceProvider(new List<IdentityGroup>
             {
-                new IdPGroup
+                new IdentityGroup
                 {
                     GroupName = "My Azure AD Group",
                     PrincipalType = "Group",
@@ -60,17 +60,17 @@ namespace Fabric.Authorization.IntegrationTests.Modules
             _storageProvider = storageProvider;
         }
 
-        private IIdPSearchProvider CreateMockIdPProvider(List<IdPGroup> results)
+        private IIdentityServiceProvider CreateMockIdentityServiceProvider(List<IdentityGroup> results)
         {
-            var mockIdpSearchProvider = new Mock<IIdPSearchProvider>();
-            mockIdpSearchProvider.Setup(m => m.GetGroupAsync(It.IsAny<IdPGroupRequest>()))
-                .ReturnsAsync(() => new FabricIdPGroupResponse()
+            var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
+            mockIdentityServiceProvider.Setup(m => m.SearchGroupAsync(It.IsAny<GroupSearchRequest>()))
+                .ReturnsAsync(() => new FabricIdentityGroupResponse()
                 {
                     HttpStatusCode = System.Net.HttpStatusCode.OK,
                     Results = results
                 });
 
-            return mockIdpSearchProvider.Object;
+            return mockIdentityServiceProvider.Object;
         }
 
         [Theory]
@@ -220,7 +220,7 @@ namespace Fabric.Authorization.IntegrationTests.Modules
         public async Task AddGroup_AzureActiveDirectoryNoResults_BadRequestAsync()
         {
             var groupName = Guid.NewGuid().ToString();
-            var browser = _fixture.GetBrowser(Principal, _storageProvider, null, CreateMockIdPProvider(new List<IdPGroup>()));
+            var browser = _fixture.GetBrowser(Principal, _storageProvider, this.CreateMockIdentityServiceProvider(new List<IdentityGroup>()));
 
             var postResponse = await browser.Post("/groups", with =>
             {

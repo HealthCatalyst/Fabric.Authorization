@@ -92,7 +92,7 @@ namespace Fabric.Authorization.API.Services
             }
 
             var fabricIdentityUserResponse =
-                await _identityServiceProvider.Search(request.ClientId, userList.Select(u => $"{u.SubjectId}:{u.IdentityProvider}"));
+                await _identityServiceProvider.SearchUsersAsync(request.ClientId, userList.Select(u => $"{u.SubjectId}:{u.IdentityProvider}"));
 
             if (fabricIdentityUserResponse != null && fabricIdentityUserResponse.HttpStatusCode == System.Net.HttpStatusCode.OK)
             {

@@ -25,6 +25,8 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
         private readonly ILogger _logger;
 
         private const string ServiceName = "Fabric.Identity";
+        private const string UsersEndpoint = "users";
+        private const string PrincipalsEndpoint = "principals/";
 
         public IdentityServiceProvider(
             HttpClient httpClient,
@@ -38,7 +40,7 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
             _logger = logger;
         }
 
-        public async Task<FabricIdentityUserResponse> Search(string clientId, IEnumerable<string> userIds)
+        public async Task<FabricIdentityUserResponse> SearchUsersAsync(string clientId, IEnumerable<string> userIds)
         {
             var userIdList = userIds.ToList();
             if (userIdList.Count == 0)
@@ -50,16 +52,7 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
                 };
             }
 
-            var settings = _appConfiguration.IdentityServerConfidentialClientSettings;
-            var baseUri = settings.Authority.EnsureTrailingSlash();
-            var tokenUriAddress = $"{baseUri}connect/token";
-            var tokenClient = new TokenClient(tokenUriAddress, Domain.Identity.ClientName, settings.ClientSecret);
-            var accessTokenResponse = await tokenClient.RequestClientCredentialsAsync(IdentityScopes.SearchUsersScope).ConfigureAwait(false);
-
-            var httpRequestMessage = _httpRequestMessageFactory.CreateWithAccessToken(HttpMethod.Post, new Uri($"{baseUri}api/users"),
-                accessTokenResponse.AccessToken);
-
-            httpRequestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            var httpRequestMessage = await CreateHttpRequestMessage(UsersEndpoint, HttpMethod.Post);
 
             var request = new UserSearchRequest
             {
@@ -73,14 +66,12 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
                 "application/json");
 
             var response = await _httpClient.SendAsync(httpRequestMessage);
-
-            var results = new List<UserSearchResponse>();
             var responseContent = response.Content == null ? string.Empty : await response.Content.ReadAsStringAsync();
-
+            
+            var results = new List<UserSearchResponse>();
             if (response.StatusCode != HttpStatusCode.OK)
             {
-                _logger.Error($"Response status code from {ServiceName} {httpRequestMessage.RequestUri} => {response.StatusCode}");
-                _logger.Error($"Response content from {ServiceName} {httpRequestMessage.RequestUri} => {responseContent}");
+                LogNonOkResponse(httpRequestMessage, response, responseContent);
             }
             else
             {
@@ -93,6 +84,71 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
                 HttpStatusCode = response.StatusCode,
                 Results = results
             };
+        }
+
+        public async Task<FabricIdentityGroupResponse> SearchGroupAsync(GroupSearchRequest request)
+        {
+            var route = $"{PrincipalsEndpoint}{request.IdentityProvider}/groups/{request.DisplayName}";
+
+            if (!string.IsNullOrWhiteSpace(request.TenantId))
+            {
+                route = $"{route}?tenantId={request.TenantId}";
+            }
+
+            var httpRequestMessage = await CreateHttpRequestMessage(route, HttpMethod.Get);
+
+            _logger.Debug($"Invoking {ServiceName} endpoint {httpRequestMessage.RequestUri}");
+
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8,
+                "application/json");
+
+            var response = await _httpClient.SendAsync(httpRequestMessage);
+            var responseContent = response.Content == null ? string.Empty : await response.Content.ReadAsStringAsync();
+            
+            var results = new GroupSearchResponse();
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                this.LogNonOkResponse(httpRequestMessage, response, responseContent);
+            }
+            else
+            {
+                results = JsonConvert.DeserializeObject<GroupSearchResponse>(responseContent);
+                _logger.Debug($"{ServiceName} {httpRequestMessage.RequestUri} result: {results}");
+            }
+
+            return new FabricIdentityGroupResponse
+            {
+                HttpStatusCode = response.StatusCode,
+                Results = results.Principals
+            };
+        }
+
+        private async Task<HttpRequestMessage> CreateHttpRequestMessage(string route, HttpMethod httpMethod)
+        {
+            var settings = _appConfiguration.IdentityServerConfidentialClientSettings;
+            var authority = settings.Authority.EnsureTrailingSlash();
+            var tokenUriAddress = $"{authority}connect/token";
+            var tokenClient = new TokenClient(tokenUriAddress, Domain.Identity.ClientName, settings.ClientSecret);
+            var accessTokenResponse = await tokenClient
+                                          .RequestClientCredentialsAsync(IdentityScopes.SearchUsersScope).ConfigureAwait(false);
+
+            var baseUri = $"{authority}api/";
+            var httpRequestMessage = _httpRequestMessageFactory.CreateWithAccessToken(httpMethod,
+                new Uri($"{baseUri}{route}"),
+                accessTokenResponse.AccessToken);
+
+            httpRequestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            return httpRequestMessage;
+        }
+
+        private void LogNonOkResponse(
+            HttpRequestMessage httpRequestMessage,
+            HttpResponseMessage response,
+            string responseContent)
+        {
+            this._logger.Error($"Response status code from {ServiceName} {httpRequestMessage.RequestUri} => {response.StatusCode}");
+            this._logger.Error($"Response content from {ServiceName} {httpRequestMessage.RequestUri} => {responseContent}");
         }
     }
 }

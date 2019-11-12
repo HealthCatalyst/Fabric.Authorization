@@ -418,7 +418,7 @@ namespace Fabric.Authorization.UnitTests.Search
 
             var mockIdentityServiceProvider = new Mock<IIdentityServiceProvider>();
             mockIdentityServiceProvider
-                .Setup(m => m.Search(MemberSearchServiceFixture.AtlasClientId, new List<string> {"atlas_user:Windows"}))
+                .Setup(m => m.SearchUsersAsync(MemberSearchServiceFixture.AtlasClientId, new List<string> {"atlas_user:Windows"}))
                 .ReturnsAsync(() => new FabricIdentityUserResponse
                 {
                     HttpStatusCode = HttpStatusCode.OK,

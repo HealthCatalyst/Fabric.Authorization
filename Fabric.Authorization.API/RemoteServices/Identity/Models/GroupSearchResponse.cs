@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Net;
 
-namespace Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Models
+namespace Fabric.Authorization.API.RemoteServices.Identity.Models
 {
-    public class IdPGroup
+    public class IdentityGroup
     {
         public string ExternalIdentifier { get; set; }
         public string GroupName { get; set; }
@@ -12,15 +12,15 @@ namespace Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Models
         public string PrincipalType { get; set; }
     }
 
-    public class IdPGroupResponse
+    public class GroupSearchResponse
     {
-        public IEnumerable<IdPGroup> Principals { get; set; }
+        public IEnumerable<IdentityGroup> Principals { get; set; }
         public int ResultCount { get; set; }
     }
 
-    public class FabricIdPGroupResponse
+    public class FabricIdentityGroupResponse
     {
         public HttpStatusCode HttpStatusCode { get; set; }
-        public IEnumerable<IdPGroup> Results { get; set; }
+        public IEnumerable<IdentityGroup> Results { get; set; }
     }
 }
