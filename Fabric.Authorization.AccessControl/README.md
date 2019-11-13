@@ -11,7 +11,6 @@ If you would like to run the Access Control UI against a development version of 
 
 - In Fabric.Authorization.API/appsettings.json, update the `DiscoveryServiceSettings.Endpoint` setting to point at your installed version of DiscoveryService, e.g. `https://host.domain.local/DiscoveryService/v1`.
 
-- In Fabric.Authorization.API/appsettings.json, update the `IdentityProviderSearchSettings.Endpoint` setting to point at your installed version of Fabric.IdentityProviderSearchService, e.g. `https://host.domain.local/IdentityProviderSearchService/v1`. If you are debugging Fabric.IdentityProviderSearchService, then the debug version, `http://localhost/IdPSSDev`. Make sure to walk through the `Readme.md` for Fabric.IdentityProviderSearchService for the correct setup, then start debugging Fabric.IdentityProviderSearchService in Local IIS mode.
 - Update `IdentityServerConfidentialClientSettings.ClientSecret` to be `secret`
 - The `IdentityServerConfidentialClientSettings.ClientID` shows `authorization-api`. That will be the name of the `ApiResource` that you will find the `Id` of in the `Identity` database `ApiResources` table. Now go to the `ApiSecrets` table and find the column with that `ApiResourceId`. Using the ApiResource Id, find the correct row and  `ApiSecrets.Value` to update. Uncomment and copy the following code, then run in powershell. Copy the returned secret value. Use a sql update script or right-click and edit the `ApiSecrets` table `Value` column, and paste in the secret value.
 - Update the `Identity` database `ClientSecrets` table `Value` column. Look for `fabric-authorization-client` ClientId, in Clients table.
@@ -52,7 +51,7 @@ To make sure you have all the necessary settings you can `copy` the web.config a
 This can be done for the Authorization service installation and `AuthorizationDev` instance, and the Identity Provider Search service installation and `IdPSSDev` instance.
 The `alternative` is to add these same settings to the `appsettings.json`. If these settings are in the web.config and appsettings.json, the `web.config will override the appsettings.json` file.
 There were some `appsettings.json` file changes involving setting the ClientSecret to 'secret'. Make sure these are reflected in the `web.config` files if using the web.config over the appsettings.json.
-The `AzureActiveDirectorySettings_ClientId and ClientSecret` should reflect the application clientid and clientsecret on `portal.azure.com` Azure Active Directory `App Registrations`.
+The `AzureActiveDirectorySettings_ClientId and ClientSecret` should reflect the application clientid and clientsecret on `portal.azure.com` Azure Active Directory `App Registrations`. 
 
 
 

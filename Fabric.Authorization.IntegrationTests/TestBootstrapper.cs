@@ -2,7 +2,6 @@
 using Fabric.Authorization.API;
 using Fabric.Authorization.API.Configuration;
 using Fabric.Authorization.API.RemoteServices.Identity.Providers;
-using Fabric.Authorization.API.RemoteServices.IdentityProviderSearch.Providers;
 using Fabric.Authorization.Domain.Stores;
 using Fabric.Authorization.Persistence.SqlServer.Stores;
 using Microsoft.AspNetCore.Hosting;
@@ -18,20 +17,17 @@ namespace Fabric.Authorization.IntegrationTests
     {
         private readonly ClaimsPrincipal _principal;
         private readonly IIdentityServiceProvider _identityServiceProvider;
-        private readonly IIdPSearchProvider _idPSearchProvider;
 
         public TestBootstrapper(ILogger logger, 
             IAppConfiguration appConfig, 
             LoggingLevelSwitch levelSwitch,
             IHostingEnvironment env, 
             ClaimsPrincipal principal, 
-            IIdentityServiceProvider identityServiceProvider = null,
-            IIdPSearchProvider idPSearchProvider = null)
+            IIdentityServiceProvider identityServiceProvider = null)
             : base(logger, appConfig, levelSwitch, env, null)
         {
             _principal = principal;
             _identityServiceProvider = identityServiceProvider;
-            _idPSearchProvider = idPSearchProvider;
         }
 
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
@@ -53,11 +49,6 @@ namespace Fabric.Authorization.IntegrationTests
             if (_identityServiceProvider != null)
             {
                 container.Register(_identityServiceProvider);
-            }
-
-            if (_idPSearchProvider != null)
-            {
-                container.Register(_idPSearchProvider);
             }
         }
     }
