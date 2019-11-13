@@ -25,7 +25,7 @@ namespace Fabric.Authorization.API.RemoteServices.Identity.Providers
         private readonly ILogger _logger;
 
         private const string ServiceName = "Fabric.Identity";
-        private const string UsersEndpoint = "users";
+        private const string UsersEndpoint = "users/";
         private const string PrincipalsEndpoint = "principals/";
 
         public IdentityServiceProvider(
