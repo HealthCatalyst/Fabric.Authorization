@@ -51,7 +51,7 @@ To make sure you have all the necessary settings you can `copy` the web.config a
 This can be done for the Authorization service installation and `AuthorizationDev` instance, and the Identity Provider Search service installation and `IdPSSDev` instance.
 The `alternative` is to add these same settings to the `appsettings.json`. If these settings are in the web.config and appsettings.json, the `web.config will override the appsettings.json` file.
 There were some `appsettings.json` file changes involving setting the ClientSecret to 'secret'. Make sure these are reflected in the `web.config` files if using the web.config over the appsettings.json.
-The `AzureActiveDirectorySettings_ClientId and ClientSecret` should reflect the application clientid and clientsecret on `portal.azure.com` Azure Active Directory `App Registrations`.
+The `AzureActiveDirectorySettings_ClientId and ClientSecret` should reflect the application clientid and clientsecret on `portal.azure.com` Azure Active Directory `App Registrations`. 
 
 
 
