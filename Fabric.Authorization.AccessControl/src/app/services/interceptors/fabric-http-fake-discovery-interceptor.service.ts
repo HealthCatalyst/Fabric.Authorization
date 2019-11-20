@@ -24,8 +24,6 @@ export class FabricHttpFakeDiscoveryInterceptorService implements HttpIntercepto
           this.responseBody = {
             "@odata.context":"http://localhost/DiscoveryService/v1/$metadata#Services(ServiceUrl,Version,ServiceName)","value":[
               {
-                "ServiceUrl":"http://localhost/IdentityProviderSearchService/v1","Version":1,"ServiceName":"IdentityProviderSearchService"
-              },{
                 "ServiceUrl":url,"Version":1,"ServiceName":"IdentityService"
               },{
                 "ServiceUrl":"http://localhost/AuthorizationDev/v1","Version":1,"ServiceName":"AuthorizationService"

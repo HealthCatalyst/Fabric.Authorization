@@ -35,10 +35,6 @@ export class ServicesService {
             requireAuthToken: true
         },
         {
-            name: 'IdentityProviderSearchService',
-            requireAuthToken: true
-        },
-        {
             name: 'AccessControl',
             requireAuthToken: false
         },
@@ -97,11 +93,6 @@ export class ServicesService {
 
     get authorizationServiceEndpoint(): string {
         const url = this.services.find(s => s.name === 'AuthorizationService').url;
-        return this.trimRightChar(url, '/');
-    }
-
-    get identityProviderSearchServiceEndpoint(): string {
-        const url = this.services.find(s => s.name === 'IdentityProviderSearchService').url;
         return this.trimRightChar(url, '/');
     }
 
