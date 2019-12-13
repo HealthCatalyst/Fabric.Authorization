@@ -1,13 +1,13 @@
 import { TestBed, inject } from '@angular/core/testing';
 
-import { ToastrModule } from 'ngx-toastr';
-
+import { ToasterModule } from '@healthcatalyst/cashmere';
+import { OverlayModule } from '@angular/cdk/overlay';
 import { AlertService } from './alert.service';
 
 describe('AlertService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [ToastrModule.forRoot()],
+      imports: [ToasterModule,OverlayModule],
       providers: [AlertService]
     });
   });

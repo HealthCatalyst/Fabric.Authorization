@@ -14,12 +14,13 @@ import { FabricAuthMemberSearchService } from './fabric-auth-member-search.servi
 import { IAuthMemberSearchRequest } from '../models/authMemberSearchRequest.model';
 import { MockAccessControlConfigService } from './access-control-config.service.mock';
 import { AlertService } from './global/alert.service';
-import { ToastrModule } from 'ngx-toastr';
+import { ToasterModule } from '@healthcatalyst/cashmere';
+import { OverlayModule } from '@angular/cdk/overlay';
 
 describe('FabricAuthMemberSearchService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, ToastrModule.forRoot()],
+      imports: [HttpClientTestingModule, ToasterModule, OverlayModule],
       providers: [
         FabricAuthMemberSearchService,
         AlertService,

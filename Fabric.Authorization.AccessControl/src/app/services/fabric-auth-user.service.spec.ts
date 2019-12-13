@@ -18,7 +18,8 @@ import { IUser } from '../models/user.model';
 import { IGroup } from '../models/group.model';
 import { MockAccessControlConfigService } from './access-control-config.service.mock';
 import { AlertService } from './global/alert.service';
-import { ToastrModule } from 'ngx-toastr';
+import { ToasterModule } from '@healthcatalyst/cashmere';
+import { OverlayModule } from '@angular/cdk/overlay';
 
 describe('FabricAuthUserService', () => {
   const idP = 'ad';
@@ -26,7 +27,7 @@ describe('FabricAuthUserService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, ToastrModule.forRoot()],
+      imports: [HttpClientTestingModule, ToasterModule, OverlayModule],
       providers: [
         FabricAuthUserService,
         AlertService,

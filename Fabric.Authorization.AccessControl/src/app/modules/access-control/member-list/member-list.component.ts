@@ -25,7 +25,6 @@ import { CurrentUserService } from '../../../services/current-user.service';
 export class MemberListComponent implements OnInit, OnChanges {
   readonly pageSizes: number[] = [5, 10, 25, 50];
   readonly keyUp = new Subject<Event>();
-  readonly maxPageSize = 50;
   private _pageNumber = 1;
 
   hideDeleteButton = true;
@@ -98,16 +97,8 @@ export class MemberListComponent implements OnInit, OnChanges {
     this.onSearchChanged(true);
   }
 
-  get availablePageSizes() {
-    return this.pageSizes.filter(
-      s => s < this.totalMembers && s <= this.maxPageSize
-    );
-  }
-
   get totalPages() {
-    return typeof this.totalMembers === 'number'
-      ? Math.ceil(this.totalMembers / this.pageSize)
-      : null;
+    return typeof this.totalMembers === 'number' ? this.totalMembers : null;
   }
 
   onSearchChanged(preservePageNumber = false) {

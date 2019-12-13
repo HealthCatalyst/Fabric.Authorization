@@ -15,20 +15,22 @@
   </div>
 
   <div class="header">
-    <button hc-button color="primary" [hcPopover]="options" popperPlacement="right" aria-hidden="true">
+    <button hc-button color="primary" [hcPop]="options" popperPlacement="right" aria-hidden="true">
       Add&nbsp;
       <hc-icon class="btn-icon-right" fontSet="fa" fontIcon="fa-angle-down" icon-sm aria-hidden="true"></hc-icon>
     </button>
-    <hc-popover-content #options>
-      <ul class="list-options">
-        <li>
-          <a [routerLink]="['/access-control/member', grain, securableItem]">Directory Group or User</a>
-        </li>
-        <li>
-          <a [routerLink]="['/access-control/customgroup', grain, securableItem]">Custom Group</a>
-        </li>
-      </ul>
-    </hc-popover-content>
+    <hc-pop #options>
+      <div hcMenu>
+        <button hcMenuItem [routerLink]="['/access-control/member', grain, securableItem]">
+          <hc-icon hcMenuIcon fontSet="fa" fontIcon="fa-user"></hc-icon>
+          <span hcMenuText>Directory Group or User</span>
+        </button>
+        <button hcMenuItem [routerLink]="['/access-control/customgroup', grain, securableItem]">
+          <hc-icon hcMenuIcon fontSet="fa" fontIcon="fa-users"></hc-icon>
+          <span hcMenuText>Custom Group</span>
+        </button>
+      </div>
+    </hc-pop>
 
     <div hcInputIcon>
       <input hc-input class="hc-input" name="filter" placeholder="filter" [(ngModel)]="filter" (keyup)="keyUp.next($event)" />
@@ -76,19 +78,14 @@
     </table>
   </div>
   <div class="footer">
-    <div class="pageSize">
-      <label hc-label>Show:</label>
-      <hc-select highlight="false" [(ngModel)]="pageSize" (ngModelChange)="onSearchChanged()">
-        <option *ngFor="let size of availablePageSizes" [value]="size" [selected]="pageSize === size">{{size}}</option>
-        <option *ngIf="totalMembers <= maxPageSize" [value]="totalMembers">All</option>
-      </hc-select>
-      <label hc-label>
-        of
-        <span class="totalMembers">{{totalMembers}}</span> entries
-      </label>
-    </div>
     <div class="pagination">
-      <hc-pagination [totalPages]="totalPages" [(pageNumber)]="pageNumber"></hc-pagination>
+      <hc-pagination
+        [length]="totalPages"
+        [(pageNumber)]="pageNumber"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="pageSizes"
+        (pageSizeChange)="onSearchChanged()">
+      </hc-pagination>
     </div>
   </div>
 </div>
