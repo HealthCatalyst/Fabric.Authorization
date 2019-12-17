@@ -26,9 +26,9 @@ export class MemberListComponent implements OnInit, OnChanges {
   readonly pageSizes: number[] = [5, 10, 25, 50];
   readonly keyUp = new Subject<Event>();
   private _pageNumber = 1;
+  private _pageSize = 10;
 
-  hideDeleteButton = true;
-  pageSize = 10;
+  hideDeleteButton = true;  
   members: IAuthMemberSearchResult[];
   totalMembers = 10;
   filter = '';
@@ -95,6 +95,19 @@ export class MemberListComponent implements OnInit, OnChanges {
 
     this._pageNumber = value;
     this.onSearchChanged(true);
+  }
+
+  get pageSize() {
+    return this._pageSize;
+  }
+
+  set pageSize(value: number) {
+    if (this.pageSize === value) {
+      return;
+    }
+
+    this._pageSize = value;
+    this.onSearchChanged(false)
   }
 
   get totalPages() {

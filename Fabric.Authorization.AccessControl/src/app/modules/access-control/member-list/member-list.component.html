@@ -84,7 +84,8 @@
         [(pageNumber)]="pageNumber"
         [pageSize]="pageSize"
         [pageSizeOptions]="pageSizes"
-        (pageSizeChange)="onSearchChanged()">
+        (pageSizeChange)="pageSize = $event"
+        (pageNumberChange)="pageNumber = $event">
       </hc-pagination>
     </div>
   </div>
