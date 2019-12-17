@@ -18,7 +18,8 @@ import { IRole } from '../models/role.model';
 import { IGroup } from '../models/group.model';
 import { MockAccessControlConfigService } from './access-control-config.service.mock';
 import { AlertService } from './global/alert.service';
-import { ToastrModule } from 'ngx-toastr';
+import { ToasterModule } from '@healthcatalyst/cashmere';
+import { OverlayModule } from '@angular/cdk/overlay';
 
 describe('FabricAuthGroupService', () => {
   const groupName = 'DosAdminGroup';
@@ -34,7 +35,7 @@ describe('FabricAuthGroupService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, ToastrModule.forRoot()],
+      imports: [HttpClientTestingModule, ToasterModule, OverlayModule],
       providers: [
         FabricAuthGroupService,
         AlertService,

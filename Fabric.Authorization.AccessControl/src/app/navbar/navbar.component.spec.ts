@@ -2,10 +2,11 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import {RouterTestingModule} from '@angular/router/testing';
 
-import { NavbarModule, PopoverModule, IconModule } from '@healthcatalyst/cashmere';
+import { NavbarModule, PopModule, IconModule, ModalModule, AppSwitcherModule } from '@healthcatalyst/cashmere';
 import { NavbarComponent } from './navbar.component';
 import { User } from 'oidc-client';
 import { MockAuthService } from '../services/global/auth.service.mock';
+import { MockAppSwitcherConfig } from '../test/app-switcher-config.mock';
 
 describe('NavbarComponent', () => {
   let component: NavbarComponent;
@@ -14,12 +15,13 @@ describe('NavbarComponent', () => {
   beforeEach(async(() => {
      TestBed.configureTestingModule({
        declarations: [ NavbarComponent ],
-       imports: [RouterTestingModule, NavbarModule, PopoverModule, IconModule, HttpClientTestingModule],
+       imports: [RouterTestingModule, NavbarModule, PopModule, IconModule, ModalModule, AppSwitcherModule, HttpClientTestingModule],
        providers: [
          {
-         provide: 'IAuthService',
-         useClass: MockAuthService
-        }
+          provide: 'IAuthService',
+          useClass: MockAuthService
+         },
+         MockAppSwitcherConfig
       ]
      })
      .compileComponents();

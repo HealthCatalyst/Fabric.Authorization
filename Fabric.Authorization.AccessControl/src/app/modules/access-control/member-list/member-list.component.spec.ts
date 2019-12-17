@@ -4,7 +4,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 
 import { MemberListComponent } from './member-list.component';
 import { ServicesMockModule } from '../services.mock.module';
-import { PopoverModule, IconModule, ProgressIndicatorsModule, SelectModule, ModalModule, PaginationModule } from '@healthcatalyst/cashmere';
+import { PopModule, IconModule, ProgressIndicatorsModule, SelectModule, ModalModule, PaginationModule } from '@healthcatalyst/cashmere';
 import { FabricAuthMemberSearchServiceMock, mockAuthSearchResult } from '../../../services/fabric-auth-member-search.service.mock';
 import { FormsModule } from '@angular/forms';
 import { FabricAuthMemberSearchService } from '../../../services/fabric-auth-member-search.service';
@@ -25,7 +25,7 @@ describe('MemberListComponent', () => {
           IconModule,
           ModalModule,
           PaginationModule,
-          PopoverModule,
+          PopModule,
           ProgressIndicatorsModule,
           SelectModule,
           RouterTestingModule,
