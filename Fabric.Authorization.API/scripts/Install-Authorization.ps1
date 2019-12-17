@@ -102,6 +102,8 @@ $installApplication = Publish-Application -site $selectedSite `
     -zipPackage $zipPackage `
     -assembly "Fabric.Authorization.API.dll"
 
+Set-DisableWindowsAuthentication -siteName $authorizationInstallSettings.siteName -appName $authorizationInstallSettings.appName
+
 Add-DatabaseSecurity $iisUser.UserName $authorizationInstallSettings.authorizationDatabaseRole $authorizationDatabase.DbConnectionString
 if (!$noDiscoveryService) {
     Register-AuthorizationWithDiscovery -iisUserName $iisUser.UserName -metadataConnStr $metadataDatabase.DbConnectionString -version $installApplication.version -authorizationServiceUrl $authorizationServiceUrl

@@ -1315,6 +1315,25 @@ function Get-AuthorizationFabricInstallerSecret {
     return $fabricInstallerSecret
 }
 
+function Set-DisableWindowsAuthentication {
+    param (
+        [string] $siteName,
+        [string] $appName
+    )
+
+    $manager = Get-IISServerManager
+    $config = $manager.GetApplicationHostConfiguration()
+    $section = $config.GetSection("system.webServer/security/authentication/windowsAuthentication")
+    $section.OverrideMode = "Allow"
+    $manager.CommitChanges()
+
+    Start-Sleep -s 3
+    Write-DosMessage -Level "Information" -Message "Unlocked system.webServer/security/authentication/windowsAuthentication for configuration"
+
+    Set-WebConfigurationProperty -Filter "/system.webServer/security/authentication/windowsAuthentication" -Name Enabled -Value False -PSPath "IIS:\Sites\$siteName\$appName"
+
+    Write-DosMessage -Level "Information" -Message "Disabled Windows Authentication on $siteName/$appName"
+}
 
 Export-ModuleMember Install-UrlRewriteIfNeeded
 Export-ModuleMember Get-AuthorizationDatabaseConnectionString
@@ -1338,3 +1357,4 @@ Export-ModuleMember Get-PrincipalContext
 Export-ModuleMember Get-SamAccountFromAccountName 
 Export-ModuleMember Get-SamDomainFromAccountName 
 Export-ModuleMember Get-AuthorizationFabricInstallerSecret
+Export-ModuleMember Set-DisableWindowsAuthentication
