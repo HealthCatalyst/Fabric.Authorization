@@ -6,11 +6,11 @@ import {
 } from '@angular/common/http/testing';
 import { FabricHttpErrorHandlerInterceptorService } from './interceptors/fabric-http-error-handler-interceptor.service';
 import { TestBed } from '@angular/core/testing';
-
+import { ToasterModule } from '@healthcatalyst/cashmere';
+import { OverlayModule } from '@angular/cdk/overlay';
 import { FabricAuthEdwAdminService } from './fabric-auth-edwadmin.service';
 import { MockAccessControlConfigService } from './access-control-config.service.mock';
 import { AlertService } from './global/alert.service';
-import { ToastrModule } from 'ngx-toastr';
 
 describe('FabricAuthEdwadminService', () => {
   let httpTestingController: HttpTestingController;
@@ -18,7 +18,7 @@ describe('FabricAuthEdwadminService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, ToastrModule.forRoot()],
+      imports: [HttpClientTestingModule, ToasterModule, OverlayModule],
       providers: [FabricAuthEdwAdminService,
         AlertService,
         {

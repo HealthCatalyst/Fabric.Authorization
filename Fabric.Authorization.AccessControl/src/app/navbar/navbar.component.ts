@@ -1,4 +1,6 @@
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, OnInit, Inject, TemplateRef } from '@angular/core';
+import { ModalService, ModalOptions } from '@healthcatalyst/cashmere';
+import { AboutAppService } from '../services/about-app.service';
 import { User } from 'oidc-client';
 
 import { IAuthService } from '../services/global/auth.service';
@@ -11,12 +13,20 @@ import { IAuthService } from '../services/global/auth.service';
 export class NavbarComponent implements OnInit {
   userDisplayName: string;
   userIsAuthenticated: boolean;
+  identityProvider: string;
+  organization: string;
+  currentYear: number;
 
   constructor(
-    @Inject('IAuthService')private authService: IAuthService
+    @Inject('IAuthService')private authService: IAuthService,
+    private modalService: ModalService,
+    private appInfo: AboutAppService
   ) {}
 
   ngOnInit() {
+    let today = new Date();
+    this.currentYear = today.getFullYear();
+
     this.authService.getUser().then(user => {
       this.userDisplayName = this.getUserDisplayName(user);
     });
@@ -32,6 +42,13 @@ export class NavbarComponent implements OnInit {
 
   getUserDisplayName(user: User): string {
     if (user && user.profile) {
+      this.identityProvider = user.profile.idp;
+      if( user.profile.email ) {
+        let email = user.profile.email;
+        let domain = email.substring(email.lastIndexOf("@")+1);
+        let org = domain.split(".");
+        this.organization = org[0];
+      }
       if (user.profile.family_name && user.profile.given_name) {
         return (user.profile.given_name + ' ' + user.profile.family_name);
       } else if (user.profile.idp === 'AzureActiveDirectory') {
@@ -41,6 +58,25 @@ export class NavbarComponent implements OnInit {
       }
     }
     return '';
+  }
+
+  aboutApp(content: TemplateRef<any>) {
+    let options: ModalOptions = {
+      size: 'md'
+    };
+    this.modalService.open(content, options);
+  }
+
+  get surveyURL() {
+    let tempURL = this.appInfo.surveyURL;
+    tempURL += "?app_version=" + this.appInfo.dosVersion;
+    if( this.userDisplayName ) {
+      tempURL += "&user=" + this.userDisplayName;
+    }
+    if( this.organization ) {
+      tempURL += "&org=" + this.organization;
+    }
+    return tempURL;
   }
 
   /*

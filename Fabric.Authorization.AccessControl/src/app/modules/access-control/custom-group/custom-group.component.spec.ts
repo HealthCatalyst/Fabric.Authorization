@@ -1,8 +1,5 @@
 import { Subject ,  Observable, of, throwError as observableThrowError } from 'rxjs';
 import { async, ComponentFixture, TestBed, inject } from '@angular/core/testing';
-
-import { ToastrModule } from 'ngx-toastr';
-
 import { CustomGroupComponent } from './custom-group.component';
 import { ServicesMockModule } from '../services.mock.module';
 import { FormsModule } from '@angular/forms';
@@ -23,12 +20,13 @@ import {
 import {
   ButtonModule,
   IconModule,
-  PopoverModule,
+  PopModule,
   InputModule,
-  LabelModule,
   CheckboxModule,
-  ProgressIndicatorsModule
+  ProgressIndicatorsModule,
+  ToasterModule
 } from '@healthcatalyst/cashmere';
+import { OverlayModule } from '@angular/cdk/overlay';
 import { InputDirective } from '../input.directive';
 import { FabricExternalIdpSearchServiceMock, mockExternalIdpSearchResult } from '../../../services/fabric-external-idp-search.service.mock';
 import { IdPSearchResult } from '../../../models/idpSearchResult.model';
@@ -63,12 +61,12 @@ describe('CustomGroupComponent', () => {
           ServicesMockModule,
           ButtonModule,
           IconModule,
-          PopoverModule,
+          PopModule,
           InputModule,
-          LabelModule,
           CheckboxModule,
           ProgressIndicatorsModule,
-          ToastrModule.forRoot()],
+          ToasterModule,
+          OverlayModule],
         providers: [
           {
             provide: 'IAuthService',

@@ -6,8 +6,6 @@ $FontPathOpenSans: "../node_modules/typeface-open-sans/files";
 
 @import "~@healthcatalyst/cashmere/scss/cashmere";
 
-@import '~ngx-toastr/toastr.css';
-
 /////////// #TODO: Fix Cashmere in IE
 input.hc-input, div.input-icon {
   height: 35px !important;

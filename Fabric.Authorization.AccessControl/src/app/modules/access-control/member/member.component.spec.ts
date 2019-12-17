@@ -1,18 +1,16 @@
 import { of, throwError } from 'rxjs';
 import { async, ComponentFixture, TestBed, inject } from '@angular/core/testing';
-
-import { ToastrModule } from 'ngx-toastr';
-
 import { MemberComponent } from './member.component';
 import {
   ButtonModule,
   IconModule,
-  PopoverModule,
+  PopModule,
   InputModule,
-  LabelModule,
   CheckboxModule,
-  ProgressIndicatorsModule
+  ProgressIndicatorsModule,
+  ToasterModule
 } from '@healthcatalyst/cashmere';
+import { OverlayModule } from '@angular/cdk/overlay';
 import { FormsModule } from '@angular/forms';
 import {
     FabricExternalIdpSearchServiceMock,
@@ -55,12 +53,12 @@ describe('MemberComponent', () => {
           FormsModule,
           ButtonModule,
           IconModule,
-          PopoverModule,
+          PopModule,
           InputModule,
-          LabelModule,
           CheckboxModule,
           ProgressIndicatorsModule,
-          ToastrModule.forRoot()],
+          ToasterModule,
+          OverlayModule],
           providers: [
             {
               provide: ActivatedRoute, useValue: {

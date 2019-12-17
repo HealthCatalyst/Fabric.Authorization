@@ -2,25 +2,27 @@ import { TestBed, async } from '@angular/core/testing';
 import { AppComponent } from './app.component';
 import {RouterTestingModule} from '@angular/router/testing';
 import { NavbarComponent } from './navbar/navbar.component';
-import { NavbarModule, PopoverModule, IconModule } from '@healthcatalyst/cashmere';
+import { NavbarModule, PopModule, IconModule, ModalModule, AppSwitcherModule } from '@healthcatalyst/cashmere';
 import { AuthService } from './services/global/auth.service';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ServicesService } from './services/global/services.service';
 import { ConfigService } from './services/global/config.service';
+import { MockAppSwitcherConfig } from '../app/test/app-switcher-config.mock';
 
 describe('AppComponent', () => {
   beforeEach(
     async(() => {
       TestBed.configureTestingModule({
         declarations: [AppComponent, NavbarComponent],
-        imports: [RouterTestingModule, NavbarModule, PopoverModule, IconModule, HttpClientTestingModule],
+        imports: [RouterTestingModule, NavbarModule, PopModule, IconModule, ModalModule, AppSwitcherModule, HttpClientTestingModule],
         providers: [
           {
           provide: 'IAuthService',
           useClass: AuthService
           },
           ServicesService,
-          ConfigService]
+          ConfigService,
+          MockAppSwitcherConfig]
       }).compileComponents();
     })
   );

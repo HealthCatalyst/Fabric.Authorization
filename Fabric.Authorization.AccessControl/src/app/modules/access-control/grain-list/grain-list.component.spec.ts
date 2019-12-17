@@ -13,7 +13,7 @@ import { MemberListComponent } from '../member-list/member-list.component';
 import { FabricAuthGrainServiceMock, mockGrains } from '../../../services/fabric-auth-grain.service.mock';
 import { FabricAuthGrainService } from '../../../services/fabric-auth-grain.service';
 
-import { PopoverModule, IconModule, ProgressIndicatorsModule, SelectModule, ModalModule, PaginationModule } from '@healthcatalyst/cashmere';
+import { PopModule, IconModule, ProgressIndicatorsModule, SelectModule, ModalModule, PaginationModule } from '@healthcatalyst/cashmere';
 import { FabricAuthMemberSearchServiceMock, mockAuthSearchResult } from '../../../services/fabric-auth-member-search.service.mock';
 import { FormsModule } from '@angular/forms';
 import { FabricAuthMemberSearchService } from '../../../services/fabric-auth-member-search.service';
@@ -35,7 +35,7 @@ describe('GrainListComponent', () => {
         IconModule,
         ModalModule,
         PaginationModule,
-        PopoverModule,
+        PopModule,
         ProgressIndicatorsModule,
         SelectModule,
         RouterTestingModule]
