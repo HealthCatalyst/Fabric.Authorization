@@ -84,7 +84,13 @@ $selectedSite = Get-IISWebSiteForInstall -selectedSiteName $authorizationInstall
 $iisUser = Get-IISAppPoolUser -credential $credential -appName $authorizationInstallSettings.appName -storedIisUser $authorizationInstallSettings.iisUser -installConfigPath $installConfigPath -scope $authorizationInstallSettingsScope
 Add-PermissionToPrivateKey $iisUser.UserName $encryptionCertificate read
 $appInsightsKey = Get-AppInsightsKey -appInsightsInstrumentationKey $authorizationInstallSettings.appInsightsInstrumentationKey -installConfigPath $installConfigPath -scope $authorizationInstallSettingsScope -quiet $quiet
-$sqlServerAddress = Get-SqlServerAddress -sqlServerAddress $commonInstallSettings.sqlServerAddress -installConfigPath $installConfigPath -quiet $quiet
+try{
+    #try to get the sql server address from common.metadataSqlServerInstanceAddress
+    $sqlServerAddress = Get-SqlServerAddress -sqlServerAddress $commonInstallSettings.metadataSqlServerInstanceAddress -installConfigPath $installConfigPath -quiet $quiet
+} catch {
+    #if common.metadataSqlServerInstanceAddress doesn't work, try common.sqlServerAddress
+    $sqlServerAddress = Get-SqlServerAddress -sqlServerAddress $commonInstallSettings.sqlServerAddress -installConfigPath $installConfigPath -quiet $quiet
+}
 $authorizationDatabase = Get-AuthorizationDatabaseConnectionString -authorizationDbName $authorizationInstallSettings.authorizationDbName -sqlServerAddress $sqlServerAddress -installConfigPath $installConfigPath -quiet $quiet
 if (!$noDiscoveryService) {
     $metadataDatabase = Get-MetadataDatabaseConnectionString -metadataDbName $commonInstallSettings.metadataDbName -sqlServerAddress $sqlServerAddress -installConfigPath $installConfigPath -quiet $quiet
